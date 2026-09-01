@@ -148,7 +148,7 @@
     padding:7px 11px;min-width:96px;text-align:right;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 100%,6px 100%);}
   .slot .k{color:#4d5665;margin-right:6px;}
   .slot.active{border-color:var(--red);color:#fff;background:rgba(122,37,48,.6);}
-  .slot.empty{opacity:.45;color:#5b6474;background:rgba(10,13,19,.6);}
+  .slot.empty{color:#4e5768;background:rgba(9,12,18,.86);border-color:#1b2330;}
   .slot{text-shadow:0 1px 2px rgba(0,0,0,.8);}
   .slot .cnt{color:var(--amber);}
 
@@ -2512,10 +2512,10 @@ function detonateUtility(p){
   }
   else if(p.id === 'smoke'){
     SFX.smokePop(pos);
-    const cloud = {pos: pos.clone().setY(Math.max(pos.y, floorAt(pos.x,pos.z,pos.y+1)) + 1.2),
-                   r:0.5, rMax:4.6, life:15.5, t:0, puffs:[]};
-    for(let i=0;i<16;i++){
-      const sp = softSprite(0xc9ced6, 0.0);
+    const cloud = {pos: pos.clone().setY(Math.max(pos.y, floorAt(pos.x,pos.z,pos.y+1)) + 1.3),
+                   r:0.5, rMax:4.8, life:15.5, t:0, puffs:[]};
+    for(let i=0;i<22;i++){
+      const sp = softSprite(0xbcc2cc, 0.0);
       const off = V3(rand(-1,1), rand(-0.6,0.9), rand(-1,1)).normalize().multiplyScalar(rand(0.3,1));
       sp.position.copy(cloud.pos).add(off);
       sp.userData.off = off;
@@ -2549,8 +2549,8 @@ function updateSmokes(dt){
     s.r = s.rMax*grow;
     const fade = s.t > s.life-2.5 ? clamp((s.life - s.t)/2.5, 0, 1) : 1;
     for(const sp of s.puffs){
-      sp.scale.setScalar(3.4*grow + Math.sin(s.t*1.4 + sp.userData.off.x*5)*0.12);
-      sp.material.opacity = 0.72*grow*fade;
+      sp.scale.setScalar(3.8*grow + Math.sin(s.t*1.4 + sp.userData.off.x*5)*0.14);
+      sp.material.opacity = 0.88*grow*fade;
       sp.position.copy(s.pos).addScaledVector(sp.userData.off, grow*2.4);
     }
     if(s.t >= s.life){
@@ -4475,6 +4475,16 @@ function finishBoot(){
   document.querySelectorAll('#dotBtns button').forEach(b=>b.classList.toggle('active', +b.dataset.dot === CFG.ch.dot));
   document.querySelectorAll('#outBtns button').forEach(b=>b.classList.toggle('active', +b.dataset.out === CFG.ch.out));
   if(CFG.isTouch) el('rotHint').classList.add('on');
+/* debug handle — handy for tweaking values from the console */
+window.STRAY = {
+  CFG, matchState, agents, world, WEAPONS, UTILS, ECON, bomb, smokes, fires, projectiles,
+  get me(){ return me; },
+  startMatch, nextRound, endRound, buyItem, equipSlot, throwUtility, findPath, buildMap,
+  fireOnce, tryFire, meleeAttack, applyDamage, killAgent, aliveOf, botBuy, siteAt,
+  canPlant, canDefuse, plantTick, defuseTick, completePlant, explodeBomb, checkRoundEnd,
+  refillAmmo, moveAgent, updateBot, input, movementSpread, weaponOf, ammoOf, V3
+};
+
   setLoad(100, 'ready');
   setTimeout(()=>{
     el('loading').classList.add('hidden');
@@ -4485,15 +4495,6 @@ function finishBoot(){
 }
 setTimeout(buildTexturesStep, 30);
 
-/* debug handle — handy for tweaking values from the console */
-window.STRAY = {
-  CFG, matchState, agents, world, WEAPONS, UTILS, ECON, bomb, smokes, fires, projectiles,
-  get me(){ return me; },
-  startMatch, nextRound, endRound, buyItem, equipSlot, throwUtility, findPath, buildMap,
-  fireOnce, tryFire, meleeAttack, applyDamage, killAgent, aliveOf, botBuy, siteAt,
-  canPlant, canDefuse, plantTick, defuseTick, completePlant, explodeBomb, checkRoundEnd,
-  refillAmmo, moveAgent, updateBot, input, movementSpread, weaponOf, ammoOf, V3
-};
 
 }catch(err){
   const b = document.getElementById('errBox');
