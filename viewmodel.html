@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070a">
+<title>STRAY TACTICAL — VIEWMODEL</title>
+<style>
+  :root{
+    --bg:#090c11; --panel:#11161f; --line:#232c3a;
+    --red:#ff3b4d; --red-dim:#7a2530; --cyan:#3ee6d8; --white:#e8ecf1; --amber:#ffb648;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+  html,body{margin:0;padding:0;width:100%;height:100%;background:#05070a;overflow:hidden;
+    font-family:'Segoe UI',Arial,sans-serif;touch-action:none;overscroll-behavior:none;}
+  img{-webkit-user-drag:none;user-drag:none;}
+
+  /* ---------- ARKA PLAN (sadece hareketi görebilmek icin, oyun mantigi yok) ---------- */
+  #world{position:fixed;inset:0;overflow:hidden;background:
+      radial-gradient(120% 80% at 50% 15%, #1b2532 0%, #0d1117 55%, #05070a 100%);}
+  #stars{position:absolute;inset:-20% -20% 40% -20%;
+    background-image:radial-gradient(1.5px 1.5px at 20% 30%,rgba(255,255,255,.35),transparent),
+      radial-gradient(1.5px 1.5px at 70% 20%,rgba(255,255,255,.25),transparent),
+      radial-gradient(1.5px 1.5px at 45% 60%,rgba(255,255,255,.2),transparent),
+      radial-gradient(1.5px 1.5px at 85% 55%,rgba(255,255,255,.28),transparent),
+      radial-gradient(1.5px 1.5px at 10% 70%,rgba(255,255,255,.18),transparent);
+    background-size:340px 260px;will-change:transform;}
+  #horizon{position:absolute;left:-40%;right:-40%;top:50%;height:2px;
+    background:linear-gradient(90deg,transparent,rgba(62,230,216,.35),transparent);will-change:transform;}
+  #floorWrap{position:absolute;left:-60%;right:-60%;top:50%;bottom:-60%;perspective:340px;perspective-origin:50% 0%;will-change:transform;}
+  #floor{position:absolute;inset:0;transform-origin:50% 0%;transform:rotateX(74deg);
+    background-image:
+      repeating-linear-gradient(90deg,rgba(62,230,216,.16) 0 1px,transparent 1px 84px),
+      repeating-linear-gradient(0deg,rgba(62,230,216,.13) 0 1px,transparent 1px 84px);
+    background-size:84px 84px;
+    -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 62%);
+    mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 62%);}
+  #haze{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 50% 55%,transparent 35%,rgba(3,5,8,.85) 100%);}
+
+  /* ---------- VIEWMODEL ---------- */
+  #vmLayer{position:fixed;inset:0;perspective:900px;perspective-origin:50% 65%;pointer-events:none;z-index:10;}
+  .vm{position:absolute;left:50%;bottom:0;transform-origin:50% 100%;will-change:transform;
+    filter:drop-shadow(0 18px 26px rgba(0,0,0,.75));opacity:0;visibility:hidden;}
+  .vm.on{opacity:1;visibility:visible;}
+  .vm img{display:block;width:100%;height:auto;}
+  /* namlu agzi, gorselin %49 / %24 noktasinda; parlama namlu ekseni boyunca uzatilir */
+  #flash{position:absolute;width:16%;padding-bottom:16%;left:48%;top:23%;
+    transform:translate(-50%,-50%) rotate(-23deg) scaleX(1.7) scale(.2);
+    background:radial-gradient(circle,rgba(255,252,235,1) 0%,rgba(255,214,120,.9) 18%,rgba(255,150,40,.5) 42%,transparent 70%);
+    opacity:0;pointer-events:none;}
+  #slashFx{position:absolute;inset:0;pointer-events:none;opacity:0;}
+  #slashFx svg{width:100%;height:100%;display:block;}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;z-index:20;pointer-events:none;}
+  #cross{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);opacity:.85;}
+  #cross i{position:absolute;background:var(--white);box-shadow:0 0 3px #000;}
+  #cross i:nth-child(1){left:50%;top:0;width:2px;height:8px;margin-left:-1px;}
+  #cross i:nth-child(2){left:50%;bottom:0;width:2px;height:8px;margin-left:-1px;}
+  #cross i:nth-child(3){top:50%;left:0;height:2px;width:8px;margin-top:-1px;}
+  #cross i:nth-child(4){top:50%;right:0;height:2px;width:8px;margin-top:-1px;}
+  #tag{position:absolute;left:14px;top:12px;font-size:10px;letter-spacing:3px;color:#4d5665;line-height:1.7;}
+  #tag b{color:var(--cyan);font-weight:700;}
+  #wpnName{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));text-align:right;color:#fff;}
+  #wpnName .n{font-size:15px;font-weight:900;letter-spacing:4px;text-shadow:0 2px 4px #000;}
+  #wpnName .s{font-size:10px;letter-spacing:3px;color:var(--cyan);font-weight:700;}
+
+  /* ---------- DOKUNMATIK KONTROL ---------- */
+  #touch{position:fixed;inset:0;z-index:30;pointer-events:none;}
+  #lookZone{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:auto;}
+  #stick{position:absolute;left:calc(20px + env(safe-area-inset-left));bottom:calc(26px + env(safe-area-inset-bottom));
+    width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.05);
+    border:2px solid rgba(255,255,255,.14);pointer-events:auto;}
+  #stick .knob{position:absolute;width:48px;height:48px;left:35px;top:35px;border-radius:50%;
+    background:rgba(255,59,77,.42);border:1px solid rgba(255,255,255,.4);will-change:transform;}
+  .tbtn{position:absolute;pointer-events:auto;background:rgba(17,22,31,.62);border:2px solid rgba(255,255,255,.18);
+    color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:11px;letter-spacing:1px;backdrop-filter:blur(2px);}
+  .tbtn.down{background:rgba(255,59,77,.4);border-color:var(--red);transform:scale(.94);}
+  #fireBtn{width:86px;height:86px;right:calc(22px + env(safe-area-inset-right));bottom:calc(120px + env(safe-area-inset-bottom));
+    background:rgba(255,59,77,.3);border-color:rgba(255,59,77,.75);font-size:12px;}
+  #aimBtn{width:58px;height:58px;right:calc(120px + env(safe-area-inset-right));bottom:calc(190px + env(safe-area-inset-bottom));}
+  #jumpBtn{width:58px;height:58px;right:calc(120px + env(safe-area-inset-right));bottom:calc(38px + env(safe-area-inset-bottom));}
+  #aimBtn.hide{display:none;}
+  #slots{position:absolute;left:calc(16px + env(safe-area-inset-left));top:calc(58px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:7px;}
+  .slot{pointer-events:auto;background:rgba(17,22,31,.7);border:1px solid var(--line);color:#8a96a8;
+    font-size:10px;font-weight:800;letter-spacing:2px;padding:8px 13px;
+    clip-path:polygon(0 0,calc(100% - 7px) 0,100% 100%,7px 100%);}
+  .slot.active{border-color:var(--red);color:#fff;background:rgba(122,37,48,.6);}
+  #topBtns{position:absolute;right:calc(14px + env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));display:flex;gap:8px;}
+  #topBtns button{pointer-events:auto;width:36px;height:36px;border-radius:50%;background:rgba(17,22,31,.7);
+    border:1px solid var(--line);color:#8a96a8;font-size:15px;line-height:1;}
+
+  /* ---------- AYAR PANELI ---------- */
+  /* dikey modda butonlar silahin uzerine binmesin */
+  @media (orientation:portrait){
+    #fireBtn{width:78px;height:78px;right:calc(18px + env(safe-area-inset-right));bottom:calc(232px + env(safe-area-inset-bottom));}
+    #aimBtn{right:calc(30px + env(safe-area-inset-right));bottom:calc(326px + env(safe-area-inset-bottom));}
+    #jumpBtn{right:calc(28px + env(safe-area-inset-right));bottom:calc(152px + env(safe-area-inset-bottom));}
+    #stick{bottom:calc(34px + env(safe-area-inset-bottom));}
+    #wpnName{top:calc(60px + env(safe-area-inset-top));bottom:auto;}
+    #lookZone{height:72%;}
+    .tbtn{background:rgba(17,22,31,.42);}
+    #fireBtn{background:rgba(255,59,77,.26);}
+  }
+
+  #cfg{position:fixed;inset:0;z-index:60;background:rgba(5,7,10,.9);display:none;
+    align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+  #cfg.on{display:flex;}
+  .panel{background:var(--panel);border:1px solid var(--line);padding:18px 20px;width:min(92vw,390px);color:var(--white);
+    clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));max-height:92vh;overflow-y:auto;}
+  .panel h3{margin:0 0 14px;font-size:12px;letter-spacing:4px;color:#6b7688;text-transform:uppercase;}
+  .row{display:flex;justify-content:space-between;align-items:center;margin:10px 0;font-size:11px;color:#a9b3c2;
+    letter-spacing:1px;text-transform:uppercase;gap:10px;}
+  .row input[type=range]{width:150px;accent-color:var(--red);}
+  .row .v{font-size:10px;color:#5c6779;min-width:34px;text-align:right;}
+  .bigBtn{margin-top:14px;width:100%;padding:13px;background:linear-gradient(90deg,var(--red-dim),var(--red));border:none;
+    color:#fff;font-size:14px;font-weight:800;letter-spacing:4px;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 100%,12px 100%);}
+  .bigBtn.ghost{background:#1a212c;border:1px solid var(--line);color:#c3ccd8;}
+
+  /* ---------- YUKLEME ---------- */
+  #loading{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#141a24,#05070a 75%);z-index:100;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);}
+  #loading h1{font-size:min(9vw,44px);letter-spacing:6px;margin:0 0 6px;font-weight:900;transform:skewX(-6deg);
+    background:linear-gradient(180deg,#fff,var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #loading .sub{font-size:10px;letter-spacing:6px;color:var(--cyan);margin-bottom:20px;}
+  .loadbar{width:min(70vw,300px);height:6px;background:#1c2330;border:1px solid var(--line);overflow:hidden;}
+  .loadbar>div{height:100%;width:0;background:linear-gradient(90deg,var(--red-dim),var(--red));transition:width .2s;}
+  #loadTxt{margin-top:10px;font-size:10px;letter-spacing:3px;color:#8a96a8;text-transform:uppercase;}
+  #startBtn{margin-top:22px;display:none;padding:13px 34px;background:linear-gradient(90deg,var(--red-dim),var(--red));
+    border:none;color:#fff;font-size:14px;font-weight:800;letter-spacing:5px;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 100%,12px 100%);}
+  #hint{position:fixed;left:0;right:0;bottom:calc(6px + env(safe-area-inset-bottom));text-align:center;z-index:40;
+    font-size:9px;letter-spacing:2px;color:#3f4857;pointer-events:none;transition:opacity .6s;}
+</style>
+</head>
+<body>
+
+<!-- arka plan katmanlari -->
+<div id="world">
+  <div id="stars"></div>
+  <div id="floorWrap"><div id="floor"></div></div>
+  <div id="horizon"></div>
+  <div id="haze"></div>
+</div>
+
+<!-- viewmodel katmani -->
+<div id="vmLayer">
+  <div class="vm" id="vm-knife">
+    <img src="assets/vm_knife.png" alt="bicak viewmodel">
+    <div id="slashFx">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M6 74 Q 44 6 96 26" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+  <div class="vm" id="vm-pistol">
+    <img src="assets/vm_pistol.png" alt="tabanca viewmodel">
+    <div id="flash"></div>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="cross"><i></i><i></i><i></i><i></i></div>
+  <div id="tag"><b>VIEWMODEL TEST</b><br>oyun mantigi yok</div>
+  <div id="wpnName"><div class="n" id="wName">BICAK</div><div class="s" id="wSub">MELEE</div></div>
+</div>
+
+<!-- kontroller -->
+<div id="touch">
+  <div id="lookZone"></div>
+  <div id="stick"><div class="knob" id="knob"></div></div>
+  <div class="tbtn" id="fireBtn">ATES</div>
+  <div class="tbtn" id="aimBtn">NISAN</div>
+  <div class="tbtn" id="jumpBtn">ZIPLA</div>
+  <div id="slots">
+    <div class="slot active" data-w="knife">1 &nbsp;BICAK</div>
+    <div class="slot" data-w="pistol">2 &nbsp;TABANCA</div>
+  </div>
+  <div id="topBtns">
+    <button id="cfgBtn" title="ayarlar">&#9881;</button>
+    <button id="fsBtn" title="tam ekran">&#9974;</button>
+  </div>
+</div>
+
+<div id="hint">SOL: YURU &nbsp;·&nbsp; SAG: BAK &nbsp;·&nbsp; CIFT DOKUN: SILAH DEGISTIR</div>
+
+<!-- ayarlar -->
+<div id="cfg">
+  <div class="panel">
+    <h3>Viewmodel Ayarlari</h3>
+    <div class="row"><span>Sallanma (sway)</span><input type="range" id="cSway" min="0" max="200" value="100"><span class="v" id="vSway">100</span></div>
+    <div class="row"><span>Yuruyus (bob)</span><input type="range" id="cBob" min="0" max="200" value="100"><span class="v" id="vBob">100</span></div>
+    <div class="row"><span>Nefes</span><input type="range" id="cIdle" min="0" max="200" value="100"><span class="v" id="vIdle">100</span></div>
+    <div class="row"><span>Geri tepme</span><input type="range" id="cRecoil" min="0" max="200" value="100"><span class="v" id="vRecoil">100</span></div>
+    <div class="row"><span>Boyut</span><input type="range" id="cScale" min="70" max="160" value="100"><span class="v" id="vScale">100</span></div>
+    <div class="row"><span>Yukseklik</span><input type="range" id="cOffY" min="-25" max="25" value="0"><span class="v" id="vOffY">0</span></div>
+    <div class="row"><span>Bakis hassasiyeti</span><input type="range" id="cSens" min="20" max="300" value="100"><span class="v" id="vSens">100</span></div>
+    <button class="bigBtn" id="cfgClose">KAPAT</button>
+    <button class="bigBtn ghost" id="cfgReset">VARSAYILANA DON</button>
+  </div>
+</div>
+
+<!-- yukleme -->
+<div id="loading">
+  <h1>STRAY TACTICAL</h1>
+  <div class="sub">VIEWMODEL</div>
+  <div class="loadbar"><div id="loadFill"></div></div>
+  <div id="loadTxt">GORSELLER YUKLENIYOR</div>
+  <button id="startBtn">BASLA</button>
+</div>
+
+<script>
+"use strict";
+(function(){
+
+/* =========================================================
+   Bu sayfa bir oyun degil: sadece iki viewmodel gorselinin
+   yuruyus / bakis / ates / nisan hareketlerini gosterir.
+   ========================================================= */
+
+const WEAPONS = {
+  knife: {
+    el:null, id:'vm-knife', name:'BICAK', sub:'MELEE',
+    ar: 511/1024,        // gorsel en/boy orani (h/w)
+    wFactor: 1.52,       // ekran genisliginin kati
+    maxH: 0.86,          // ekran yuksekliginin en fazla su kadari
+    ox: 0.03, oy: 0.05,  // taban kaydirma (genislik orani)
+    canAim: false, fireLabel:'SALDIR',
+    bob: 1.15, sway: 1.25
+  },
+  pistol: {
+    el:null, id:'vm-pistol', name:'TABANCA', sub:'GLOCK 17',
+    ar: 669/1024,
+    wFactor: 1.34,
+    maxH: 0.95,
+    ox: -0.01, oy: 0.05,
+    canAim: true, fireLabel:'ATES',
+    aimPt: [0.606, 0.322], // nisan hattinin (arpacik-gez) gorsel icindeki orta noktasi
+    aimScale: 1.16,
+    bob: 1.0, sway: 1.0
+  }
+};
+
+// ---- kullanici ayarlari ----
+const DEF = { sway:100, bob:100, idle:100, recoil:100, scale:100, offY:0, sens:100 };
+let CFG = Object.assign({}, DEF);
+try{ const s = localStorage.getItem('st_vm_cfg'); if(s) CFG = Object.assign(CFG, JSON.parse(s)); }catch(e){}
+function saveCfg(){ try{ localStorage.setItem('st_vm_cfg', JSON.stringify(CFG)); }catch(e){} }
+
+// ---- durum ----
+const S = {
+  cur:'knife', next:null,
+  vw:0, vh:0, U:1,
+  yaw:0, pitch:0,
+  lookIn:{x:0,y:0},          // bu karede gelen bakis girdisi (px)
+  swayX:0, swayY:0,
+  moveX:0, moveY:0, spd:0, sprint:false,
+  bobT:0, walkDist:0,
+  recoil:0, recoilRot:0,
+  aim:0, aimHeld:false,
+  swap:0,                    // 1 = tamamen indirilmis
+  jumpT:-1, jumpH:0, land:0,
+  atk:-1, atkDir:1,
+  fireHeld:false, lastFire:0,
+  t:0
+};
+
+const $ = s => document.querySelector(s);
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const damp=(a,b,l,dt)=>lerp(a,b,1-Math.exp(-l*dt));
+
+// ---------- boyutlandirma ----------
+function layout(){
+  S.vw = window.innerWidth; S.vh = window.innerHeight;
+  S.U = Math.min(S.vw, S.vh)/420;
+  const gs = CFG.scale/100;
+  // dikey modda ekran dar kaldigi icin referans olarak yuksekligi de hesaba kat
+  const base = Math.max(S.vw, S.vh*0.62);
+  for(const k in WEAPONS){
+    const w = WEAPONS[k];
+    let ww = base * w.wFactor * gs;
+    if(ww * w.ar > S.vh * w.maxH) ww = (S.vh * w.maxH)/w.ar;
+    w.w = ww; w.h = ww * w.ar;
+    w.el.style.width = ww+'px';
+    w.el.style.marginLeft = (-ww/2 + w.ox*ww)+'px';
+    w.el.style.bottom = (-w.oy*w.h - CFG.offY*S.U)+'px';
+  }
+}
+
+// nisan alirken silahi nisangah ekran ortasina gelecek sekilde kaydir
+function aimOffset(w){
+  if(!w.canAim) return {x:0,y:0,s:1};
+  const s = w.aimScale, px = w.aimPt[0], py = w.aimPt[1];
+  const bottomPx = -w.oy*w.h - CFG.offY*S.U;   // elemanin alt kenari (ekran altindan)
+  const tx = -w.ox*w.w - (px-0.5)*w.w*s;
+  const ty = -S.vh*0.5 + bottomPx - (py-1)*w.h*s;
+  return {x:tx, y:ty, s:s};
+}
+
+// ---------- girdi: sol analog ----------
+const stick = $('#stick'), knob = $('#knob');
+let stickId=null, stickC={x:0,y:0}, stickR=59;
+function stickStart(e){
+  if(stickId!==null) return;
+  stickId = e.pointerId;
+  const r = stick.getBoundingClientRect();
+  stickC = {x:r.left+r.width/2, y:r.top+r.height/2}; stickR = r.width/2;
+  stick.setPointerCapture(stickId); stickMove(e);
+}
+function stickMove(e){
+  if(e.pointerId!==stickId) return;
+  let dx = e.clientX-stickC.x, dy = e.clientY-stickC.y;
+  const d = Math.hypot(dx,dy), m = stickR;
+  if(d>m){ dx*=m/d; dy*=m/d; }
+  knob.style.transform = `translate(${dx}px,${dy}px)`;
+  S.moveX = dx/m; S.moveY = -dy/m;
+  const mag = Math.min(1, Math.hypot(S.moveX,S.moveY));
+  S.spd = mag; S.sprint = mag>0.86 && S.moveY>0.4;
+}
+function stickEnd(e){
+  if(e.pointerId!==stickId) return;
+  stickId=null; knob.style.transform='translate(0,0)';
+  S.moveX=S.moveY=0; S.spd=0; S.sprint=false;
+}
+stick.addEventListener('pointerdown',stickStart);
+stick.addEventListener('pointermove',stickMove);
+stick.addEventListener('pointerup',stickEnd);
+stick.addEventListener('pointercancel',stickEnd);
+
+// ---------- girdi: sag bakis alani ----------
+const lookZone = $('#lookZone');
+let lookId=null, lookLast={x:0,y:0}, lastTap=0;
+lookZone.addEventListener('pointerdown',e=>{
+  if(lookId!==null) return;
+  lookId=e.pointerId; lookLast={x:e.clientX,y:e.clientY};
+  lookZone.setPointerCapture(lookId);
+  const now = performance.now();
+  if(now-lastTap < 280) swapWeapon();     // cift dokunus = silah degistir
+  lastTap = now;
+});
+lookZone.addEventListener('pointermove',e=>{
+  if(e.pointerId!==lookId) return;
+  const dx=e.clientX-lookLast.x, dy=e.clientY-lookLast.y;
+  lookLast={x:e.clientX,y:e.clientY};
+  applyLook(dx,dy);
+});
+function lookUp(e){ if(e.pointerId===lookId) lookId=null; }
+lookZone.addEventListener('pointerup',lookUp);
+lookZone.addEventListener('pointercancel',lookUp);
+
+function applyLook(dx,dy){
+  const k = (CFG.sens/100) * (S.aim>0.5?0.55:1);
+  S.yaw   += dx*0.16*k;
+  S.pitch  = clamp(S.pitch - dy*0.16*k, -55, 55);
+  S.lookIn.x += dx*k; S.lookIn.y += dy*k;
+}
+
+// ---------- butonlar ----------
+function bindBtn(el, down, up){
+  el.addEventListener('pointerdown',e=>{ e.preventDefault(); el.classList.add('down'); down&&down(); });
+  const off=()=>{ el.classList.remove('down'); up&&up(); };
+  el.addEventListener('pointerup',off);
+  el.addEventListener('pointercancel',off);
+  el.addEventListener('pointerleave',off);
+}
+bindBtn($('#fireBtn'), ()=>{ S.fireHeld=true; fire(); }, ()=>{ S.fireHeld=false; });
+bindBtn($('#aimBtn'),  ()=>{ S.aimHeld=true; },        ()=>{ S.aimHeld=false; });
+bindBtn($('#jumpBtn'), jump, null);
+
+document.querySelectorAll('.slot').forEach(el=>{
+  el.addEventListener('pointerdown',e=>{ e.preventDefault(); setWeapon(el.dataset.w); });
+});
+
+// ---------- silah ----------
+function setWeapon(k){
+  if(k===S.cur || S.next) return;
+  S.next = k; S.atk=-1; S.recoil=0; S.aimHeld=false;
+  buzz(12);
+}
+function swapWeapon(){ setWeapon(S.cur==='knife'?'pistol':'knife'); }
+
+function applyWeaponUI(){
+  const w = WEAPONS[S.cur];
+  $('#wName').textContent = w.name;
+  $('#wSub').textContent  = w.sub;
+  $('#fireBtn').textContent = w.fireLabel;
+  $('#aimBtn').classList.toggle('hide', !w.canAim);
+  document.querySelectorAll('.slot').forEach(s=>s.classList.toggle('active', s.dataset.w===S.cur));
+  for(const k in WEAPONS) WEAPONS[k].el.classList.toggle('on', k===S.cur);
+}
+
+// ---------- aksiyonlar ----------
+function fire(){
+  const now = performance.now();
+  if(S.swap>0.35) return;
+  if(S.cur==='pistol'){
+    if(now-S.lastFire < 105) return;
+    S.lastFire = now;
+    const r = CFG.recoil/100;
+    S.recoil = Math.min(1.35, S.recoil + 0.85*r);
+    S.recoilRot = (Math.random()*2-1)*0.6;
+    S.pitch = clamp(S.pitch + 1.5*r, -55, 55);
+    S.yaw  += (Math.random()*2-1)*0.5*r;
+    muzzle();
+    buzz(14);
+  }else{
+    if(S.atk>=0 && S.atk<0.62) return;
+    S.atk = 0; S.atkDir *= -1;
+    slash();
+    buzz(20);
+  }
+}
+function jump(){ if(S.jumpT<0){ S.jumpT=0; buzz(10);} }
+
+const flash = $('#flash');
+function muzzle(){
+  flash.style.transition='none';
+  flash.style.opacity = 0.9;
+  flash.style.transform = `translate(-50%,-50%) rotate(${-23+(Math.random()*10-5)}deg) scaleX(1.7) scale(${0.8+Math.random()*0.45})`;
+  requestAnimationFrame(()=>{
+    flash.style.transition='opacity .07s linear';
+    flash.style.opacity = 0;
+  });
+}
+const slashFx = $('#slashFx');
+function slash(){
+  slashFx.style.transition='none';
+  slashFx.style.opacity=0.75;
+  slashFx.style.transform = `scaleX(${S.atkDir}) scale(1.05)`;
+  setTimeout(()=>{ slashFx.style.transition='opacity .18s ease-out'; slashFx.style.opacity=0; }, 70);
+}
+function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+
+// ---------- klavye / fare (masaustu testi) ----------
+const keys={};
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='Digit1') setWeapon('knife');
+  if(e.code==='Digit2') setWeapon('pistol');
+  if(e.code==='KeyQ')   swapWeapon();
+  if(e.code==='Space'){ e.preventDefault(); jump(); }
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; });
+addEventListener('mousedown',e=>{
+  if(e.target.closest('#touch,#cfg')) return;
+  if(e.button===0){ S.fireHeld=true; fire(); }
+  if(e.button===2){ S.aimHeld=true; }
+});
+addEventListener('mouseup',e=>{ if(e.button===0) S.fireHeld=false; if(e.button===2) S.aimHeld=false; });
+addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('mousemove',e=>{
+  if(document.pointerLockElement) applyLook(e.movementX, e.movementY);
+});
+// masaustunde bos alana tiklayinca fare kilidi (mobilde calismaz)
+addEventListener('click',e=>{
+  if(e.target.closest('#touch,#cfg,#loading')) return;
+  if(document.pointerLockElement) return;
+  if(matchMedia('(pointer:fine)').matches) document.documentElement.requestPointerLock?.();
+});
+let kbWalk=false;
+function readKeys(){
+  let x=0,y=0;
+  if(keys.KeyW) y+=1; if(keys.KeyS) y-=1;
+  if(keys.KeyD) x+=1; if(keys.KeyA) x-=1;
+  if(x||y){
+    const m=Math.hypot(x,y);
+    S.moveX=x/m; S.moveY=y/m; S.spd=1; S.sprint=!!keys.ShiftLeft && y>0;
+    kbWalk=true;
+  }else if(kbWalk){
+    kbWalk=false;
+    if(stickId===null){ S.moveX=S.moveY=0; S.spd=0; S.sprint=false; }
+  }
+}
+
+// ---------- ana dongu ----------
+const layer = $('#vmLayer'), starsEl=$('#stars'), floorEl=$('#floor'),
+      floorWrap=$('#floorWrap'), horizonEl=$('#horizon'), crossEl=$('#cross');
+let last = performance.now();
+
+function frame(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  S.t += dt;
+  readKeys();
+
+  // --- silah degistirme (indir / kaldir) ---
+  if(S.next){
+    S.swap = Math.min(1, S.swap + dt*4.2);
+    if(S.swap>=1){ S.cur = S.next; S.next=null; applyWeaponUI(); }
+  }else if(S.swap>0){
+    S.swap = Math.max(0, S.swap - dt*3.4);
+  }
+  const W = WEAPONS[S.cur];
+
+  // --- nisan ---
+  const wantAim = W.canAim && S.aimHeld && S.swap<0.2 && !S.sprint;
+  S.aim = damp(S.aim, wantAim?1:0, 11, dt);
+
+  // --- yuruyus / bob ---
+  const spd = S.spd * (S.sprint?1.25:1);
+  const bobK = (CFG.bob/100) * W.bob * (1 - S.aim*0.72);
+  if(spd>0.02){
+    S.bobT += dt * (7.4 + spd*3.4);
+    S.walkDist += dt * spd * 190;
+  }else{
+    S.bobT = damp(S.bobT % (Math.PI*2), 0, 4, dt);
+  }
+  const bobX = Math.sin(S.bobT) * 13 * S.U * spd * bobK;
+  const bobY = Math.abs(Math.cos(S.bobT)) * 11 * S.U * spd * bobK;
+  const bobZ = Math.sin(S.bobT) * 2.2 * spd * bobK;
+
+  // --- bakis sallanmasi (sway) ---
+  const inX = S.lookIn.x * (0.0166/Math.max(dt,0.001));
+  const inY = S.lookIn.y * (0.0166/Math.max(dt,0.001));
+  S.lookIn.x = S.lookIn.y = 0;
+  const swayK = (CFG.sway/100) * W.sway * (1 - S.aim*0.78);
+  const tSwayX = clamp(-inX*1.05, -46, 46) * S.U * swayK;
+  const tSwayY = clamp(-inY*0.85, -38, 38) * S.U * swayK;
+  S.swayX = damp(S.swayX, tSwayX, 9, dt);
+  S.swayY = damp(S.swayY, tSwayY, 9, dt);
+
+  // --- nefes (idle) ---
+  const idleK = (CFG.idle/100) * (1 - S.spd*0.8) * (1 - S.aim*0.6);
+  const idleX = Math.sin(S.t*0.9)  * 3.4 * S.U * idleK;
+  const idleY = Math.sin(S.t*1.35) * 2.6 * S.U * idleK;
+  const idleR = Math.sin(S.t*0.72) * 0.55 * idleK;
+
+  // --- ziplama ---
+  if(S.jumpT>=0){
+    S.jumpT += dt;
+    const T = 0.62;
+    if(S.jumpT>=T){ S.jumpT=-1; S.jumpH=0; S.land=1; }
+    else S.jumpH = Math.sin(Math.PI * S.jumpT/T);
+  }
+  S.land = Math.max(0, S.land - dt*4.2);
+  const jumpY = S.jumpH * 16 * S.U + easeOut(S.land) * 20 * S.U;
+
+  // --- geri tepme ---
+  S.recoil = Math.max(0, S.recoil - dt*(4.6 + S.recoil*3.4));
+  const rc = S.recoil;
+
+  // --- bicak saldirisi ---
+  let aX=0, aY=0, aRz=0, aRx=0, aSc=1;
+  if(S.atk>=0){
+    S.atk += dt/0.42;
+    if(S.atk>=1) S.atk=-1;
+    else{
+      const p = S.atk, d = S.atkDir;
+      if(p<0.26){                       // geri cekis
+        const e = easeOut(p/0.26);
+        aX = 34*S.U*e*d; aY = -16*S.U*e; aRz = -20*e*d; aRx = 9*e; aSc = 1-0.03*e;
+      }else if(p<0.5){                  // savurma
+        const e = easeIn((p-0.26)/0.24);
+        aX = lerp(34,-46,e)*S.U*d; aY = lerp(-16,20,e)*S.U;
+        aRz = lerp(-20,34,e)*d; aRx = lerp(9,-8,e); aSc = lerp(0.97,1.07,e);
+      }else{                            // toparlanma
+        const e = easeOut((p-0.5)/0.5);
+        aX = -46*S.U*(1-e)*d; aY = 20*S.U*(1-e);
+        aRz = 34*(1-e)*d; aRx = -8*(1-e); aSc = lerp(1.07,1,e);
+      }
+    }
+  }
+
+  // --- kosma pozu ---
+  const sprintK = damp(WEAPONS[S.cur].sprintK||0, S.sprint?1:0, 8, dt);
+  WEAPONS[S.cur].sprintK = sprintK;
+
+  // --- nisan konumu ---
+  const ao = aimOffset(W);
+
+  // --- birlestir ---
+  const swapE = easeIn(S.swap);
+  let x = bobX + S.swayX + idleX + aX + S.moveX*9*S.U*(1-S.aim*0.6);
+  let y = bobY + S.swayY + idleY + aY + jumpY + rc*26*S.U + swapE*W.h*0.95 + sprintK*18*S.U;
+  let rz = bobZ + idleR + aRz - S.moveX*3.1*(1-S.aim*0.7) - S.swayX*0.045 + swapE*16 + sprintK*8;
+  let rx = aRx - rc*9 - S.swayY*0.05 + swapE*10;
+  let ry = S.swayX*0.075;
+  let sc = aSc * (1 + rc*0.02);
+
+  // nisana gecerken sway/bob azalir, silah merkeze gelir
+  x = lerp(x, x*0.35 + ao.x, S.aim);
+  y = lerp(y, y*0.35 + ao.y, S.aim);
+  rz = lerp(rz, rz*0.3, S.aim);
+  rx = lerp(rx, rx*0.3, S.aim);
+  ry = lerp(ry, ry*0.3, S.aim);
+  sc = lerp(sc, sc*ao.s, S.aim);
+
+  W.el.style.transform =
+    `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+
+  // --- arka plan (hareketi gorunur kilmak icin) ---
+  const camY = -S.pitch*3.4 + jumpY*0.5 + bobY*0.25;
+  starsEl.style.transform    = `translate3d(${(-S.yaw*1.6).toFixed(1)}px,${(camY*0.35).toFixed(1)}px,0)`;
+  horizonEl.style.transform  = `translate3d(0,${camY.toFixed(1)}px,0)`;
+  floorWrap.style.transform  = `translate3d(0,${camY.toFixed(1)}px,0)`;
+  floorEl.style.backgroundPosition = `${(-S.yaw*2.2).toFixed(1)}px ${(S.walkDist*(S.moveY>=0?1:-1)).toFixed(1)}px`;
+
+  // --- nisanginin gorunumu ---
+  crossEl.style.opacity = (0.85 - S.aim*0.85 - (S.cur==='knife'?0.45:0)).toFixed(2);
+  crossEl.style.transform = `translate(-50%,-50%) scale(${(1 + S.spd*0.35 + rc*0.5).toFixed(2)})`;
+
+  // otomatik ates (basili tutma)
+  if(S.fireHeld && S.cur==='pistol') fire();
+
+  requestAnimationFrame(frame);
+}
+function easeOut(t){ return 1-Math.pow(1-clamp(t,0,1),3); }
+function easeIn(t){ t=clamp(t,0,1); return t*t; }
+
+// ---------- ayar paneli ----------
+const cfgMap = {cSway:'sway',cBob:'bob',cIdle:'idle',cRecoil:'recoil',cScale:'scale',cOffY:'offY',cSens:'sens'};
+function syncCfgUI(){
+  for(const id in cfgMap){
+    const key = cfgMap[id];
+    $('#'+id).value = CFG[key];
+    $('#v'+id.slice(1)).textContent = CFG[key];
+  }
+}
+for(const id in cfgMap){
+  $('#'+id).addEventListener('input',e=>{
+    CFG[cfgMap[id]] = +e.target.value;
+    $('#v'+id.slice(1)).textContent = e.target.value;
+    if(cfgMap[id]==='scale' || cfgMap[id]==='offY') layout();
+    saveCfg();
+  });
+}
+$('#cfgBtn').addEventListener('click',()=>{ syncCfgUI(); $('#cfg').classList.add('on'); });
+$('#cfgClose').addEventListener('click',()=>$('#cfg').classList.remove('on'));
+$('#cfgReset').addEventListener('click',()=>{ CFG=Object.assign({},DEF); syncCfgUI(); layout(); saveCfg(); });
+
+$('#fsBtn').addEventListener('click',async()=>{
+  try{
+    if(!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+      if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
+    }else document.exitFullscreen();
+  }catch(e){}
+});
+
+addEventListener('resize', layout);
+addEventListener('orientationchange', ()=>setTimeout(layout,220));
+
+// ---------- yukleme ----------
+for(const k in WEAPONS) WEAPONS[k].el = document.getElementById(WEAPONS[k].id);
+const imgs = Array.from(document.querySelectorAll('.vm img'));
+let done=0;
+imgs.forEach(im=>{
+  const step=()=>{
+    done++;
+    $('#loadFill').style.width = Math.round(done/imgs.length*100)+'%';
+    if(done>=imgs.length) ready();
+  };
+  if(im.complete && im.naturalWidth) step();
+  else{ im.addEventListener('load',step); im.addEventListener('error',step); }
+});
+function ready(){
+  // gercek en/boy oranini gorselden al
+  for(const k in WEAPONS){
+    const im = WEAPONS[k].el.querySelector('img');
+    if(im.naturalWidth) WEAPONS[k].ar = im.naturalHeight/im.naturalWidth;
+  }
+  layout(); applyWeaponUI(); syncCfgUI();
+  $('#loadTxt').textContent = 'HAZIR';
+  $('#startBtn').style.display = 'block';
+}
+$('#startBtn').addEventListener('click',()=>{
+  $('#loading').style.display='none';
+  setTimeout(()=>{ $('#hint').style.opacity=0; }, 6000);
+});
+
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
