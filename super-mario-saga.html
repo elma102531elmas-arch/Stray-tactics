@@ -1,0 +1,3012 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SUPER MARIO SAGA</title>
+<style>
+  :root{
+    --ink:#0a0812; --panel:#191233; --line:#3b2f6b;
+    --red:#e5392b; --green:#35b84a; --gold:#ffd23f; --paper:#fdf3d6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden;
+    font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;touch-action:none;}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#05040a;}
+  #wrap{position:relative;}
+  canvas{display:block;position:absolute;left:0;top:0;}
+  #world{image-rendering:pixelated;image-rendering:crisp-edges;}
+  #ui{pointer-events:none;}
+
+  /* ---------- touch pad ---------- */
+  #pad{position:fixed;inset:0;z-index:30;display:none;}
+  #pad.on{display:block;}
+  .tbtn{position:absolute;display:flex;align-items:center;justify-content:center;
+    border:2px solid rgba(255,255,255,.35);background:rgba(20,16,40,.42);color:#fff;
+    font-weight:900;letter-spacing:1px;border-radius:14px;backdrop-filter:blur(2px);}
+  .tbtn:active,.tbtn.hit{background:rgba(255,210,63,.45);border-color:#fff;}
+  #tL{left:14px;bottom:86px;width:64px;height:64px;font-size:26px;}
+  #tR{left:88px;bottom:86px;width:64px;height:64px;font-size:26px;}
+  #tU{left:51px;bottom:156px;width:64px;height:58px;font-size:22px;}
+  #tA{right:22px;bottom:150px;width:72px;height:72px;font-size:24px;border-radius:50%;
+    background:rgba(229,57,43,.45);border-color:#ff8a7d;}
+  #tB{right:104px;bottom:86px;width:72px;height:72px;font-size:24px;border-radius:50%;
+    background:rgba(53,184,74,.45);border-color:#8ff0a0;}
+  #tS{right:22px;bottom:86px;width:60px;height:46px;font-size:12px;}
+
+  /* ---------- overlays ---------- */
+  .ov{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(6,4,14,.92);color:var(--paper);padding:18px;text-align:center;}
+  .ov.hidden{display:none;}
+  .ov h2{font-size:20px;letter-spacing:4px;margin:0 0 6px;color:var(--gold);}
+  .ov p{font-size:13px;line-height:1.7;color:#cfc6ef;max-width:420px;margin:4px 0;}
+  .ov .keys{display:grid;grid-template-columns:auto auto;gap:6px 16px;font-size:13px;margin:12px 0;color:#cfc6ef;}
+  .ov .keys b{color:#fff;}
+  .ovBtn{margin-top:14px;padding:12px 26px;border:2px solid var(--gold);background:#2a1f52;color:var(--paper);
+    font-size:14px;font-weight:800;letter-spacing:3px;cursor:pointer;border-radius:6px;}
+  .ovBtn:active{background:var(--gold);color:#2a1f52;}
+  #rot{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+    background:#05040a;color:var(--gold);font-size:15px;letter-spacing:2px;text-align:center;padding:24px;}
+</style>
+</head>
+<body>
+<div id="stage"><div id="wrap">
+  <canvas id="world"></canvas>
+  <canvas id="ui"></canvas>
+</div></div>
+
+<div id="pad">
+  <div class="tbtn" id="tL">&#9664;</div>
+  <div class="tbtn" id="tR">&#9654;</div>
+  <div class="tbtn" id="tU">&#9650;</div>
+  <div class="tbtn" id="tA">A</div>
+  <div class="tbtn" id="tB">B</div>
+  <div class="tbtn" id="tS">MENU</div>
+</div>
+
+<div class="ov" id="pause">
+  <h2>MOLA</h2>
+  <div class="keys">
+    <span>Yürü</span><b>&#8592; &#8594; / A D</b>
+    <span>Mario</span><b>Z</b>
+    <span>Luigi</span><b>X</b>
+    <span>Konuş / Onayla</span><b>Z veya ENTER</b>
+    <span>Mola</span><b>ESC</b>
+  </div>
+  <p>Savaşta: saldırırken tam zamanında <b>Z</b> (Mario) ya da <b>X</b> (Luigi) tuşuna bas.
+  Düşman saldırırken aynı tuşla zıpla ve kaç!</p>
+  <div class="ovBtn" id="resumeBtn">DEVAM</div>
+  <div class="ovBtn" id="restartBtn" style="border-color:#8a7fc0">BAŞTAN BAŞLA</div>
+</div>
+
+<div id="rot">TELEFONU YAN &#199;EVİR</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SUPER MARIO SAGA  —  B&Ouml;L&Uuml;M 1: SESİ &Ccedil;ALINAN PRENSES
+   Mario &amp; Luigi: Superstar Saga'nın açılış hikâyesinin
+   piksel sanatıyla, sıfırdan çizilmiş bir yeniden anlatımı.
+   Tüm sprite'lar, müzikler ve kod bu dosyada üretilmiştir.
+   ============================================================ */
+
+/* =========================== 1. TEMEL =========================== */
+const VW = 320, VH = 180;                 // iç çözünürlük (piksel)
+const world = document.getElementById('world');
+const uiCan = document.getElementById('ui');
+const wx = world.getContext('2d');
+const ux = uiCan.getContext('2d');
+let SCALE = 3;
+
+function resize(){
+  const w = window.innerWidth, h = window.innerHeight;
+  SCALE = Math.max(1, Math.min(Math.floor(w / VW), Math.floor(h / VH)));
+  if (SCALE * VW < w * 0.55) SCALE = Math.max(1, Math.min(w / VW, h / VH));
+  const cw = Math.round(VW * SCALE), ch = Math.round(VH * SCALE);
+  world.width = VW; world.height = VH;
+  world.style.width = cw + 'px'; world.style.height = ch + 'px';
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  uiCan.width = Math.round(cw * dpr); uiCan.height = Math.round(ch * dpr);
+  uiCan.style.width = cw + 'px'; uiCan.style.height = ch + 'px';
+  ux.setTransform(dpr * SCALE, 0, 0, dpr * SCALE, 0, 0); // UI de sanal koordinat kullanır
+  const wrap = document.getElementById('wrap');
+  wrap.style.width = cw + 'px'; wrap.style.height = ch + 'px';
+  wx.imageSmoothingEnabled = false;
+  ux.imageSmoothingEnabled = true;
+}
+window.addEventListener('resize', resize);
+
+/* =========================== 2. PALET =========================== */
+const PAL = {
+  '.': null,
+  'K': '#17131f', 'k': '#2e2740',
+  'W': '#ffffff', 'L': '#c9d2e0', 'l': '#7d879c',
+  'S': '#ffc9a0', 's': '#d89264',
+  'H': '#6b3a16', 'h': '#43230b',
+  'R': '#e5392b', 'r': '#a81f18',
+  'G': '#35b84a', 'g': '#1d7e34',
+  'B': '#3452d6', 'b': '#1e2f8f',
+  'Y': '#ffd23f', 'y': '#c9860f',
+  'N': '#7c4a1e', 'n': '#4e2d10',
+  'E': '#3f7de0', 'P': '#ff8fc0', 'p': '#c7548c',
+  'M': '#8a45b0', 'm': '#54246f',
+  'C': '#4fe6e0', 'c': '#1d8f97',
+  'O': '#f0a83c', 'o': '#b46c12',
+  'V': '#8fe05a', 'v': '#3f7a22',
+  'T': '#e8d6a8', 't': '#b09a6a',
+  'Z': '#241a3d', 'X': '#ff6a3d', 'Q': '#a0f0ff'
+};
+
+const _bakeCache = Object.create(null);
+function bake(id, rows){
+  let c = _bakeCache[id];
+  if (c) return c;
+  const h = rows.length;
+  let w = 0; for (let i = 0; i < h; i++) w = Math.max(w, rows[i].length);
+  c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  const img = g.createImageData(w, h), d = img.data;
+  for (let y = 0; y < h; y++){
+    const row = rows[y];
+    for (let x = 0; x < row.length; x++){
+      const hex = PAL[row[x]];
+      if (!hex) continue;
+      const i = (y * w + x) * 4;
+      d[i]   = parseInt(hex.substr(1,2),16);
+      d[i+1] = parseInt(hex.substr(3,2),16);
+      d[i+2] = parseInt(hex.substr(5,2),16);
+      d[i+3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  _bakeCache[id] = c;
+  return c;
+}
+/* satır değiştirerek varyant üret (kopyala-yapıştır değil: her poz elle ayarlanmış satırlar) */
+function V(base, obj){ const r = base.slice(); for (const k in obj) r[+k] = obj[k]; return r; }
+
+/* =========================== 3. KARAKTER PİKSELLERİ =========================== */
+const CH = {};
+
+/* ---------------------------- MARIO ---------------------------- */
+(function(){
+const b = [
+"....KKKKKKK.....",
+"...KRRRRRRRK....",
+"..KRRRRRRRRRK...",
+"..KRRWWRRRRRK...",
+".KHRRWWRRRRRRRK.",
+".KHHRRRRRRRRRRK.",
+".KHHSSSSSSSKKKK.",
+".KHSSSSKWESSSK..",
+".KHSSSSKWESSSsK.",
+".KHSSSSSSSSSssK.",
+".KHHSSSSSSSSssK.",
+"..KHHKKKKKKKKsK.",
+"..KSSKKKKKKKKKK.",
+"...KSSSSSSSSKK..",
+"....KKSSSSKK....",
+"..KKRRRRRRRRKK..",
+".KWWRRbYYbRRWWK.",
+".KWWRBBYYBBRWWK.",
+"..KKBBBBBBBBKK..",
+"...KBBBBBBBBK...",
+"...KBBBKKBBBK...",
+"...KBBK..KBBK...",
+"..KNNNK..KNNNK..",
+"..KnnnK..KnnnK.."
+];
+const idle2 = V(b, {
+  16:"..KKRRbYYbRRKK..",
+  17:".KWWRBBYYBBRWWK.",
+  18:".KWWKBBBBBBKWWK.",
+  19:"...KBBBBBBBBK..."
+});
+const blink = V(b, {
+  7:".KHSSSSKKKSSSK..",
+  8:".KHSSSSSSSSSsK.."
+});
+const w0 = V(b, {                       /* sol bacak önde */
+  16:".KWWRRbYYbRRKK..",
+  17:"..KWRBBYYBBRWWK.",
+  20:"...KBBBKKBBBK...",
+  21:"..KBBBK..KBBK...",
+  22:".KNNNNK..KNNK...",
+  23:".KnnnnK..KnnK..."
+});
+const w1 = V(b, {                       /* geçiş pozu */
+  20:"...KBBBBBBBK....",
+  21:"...KBBK.KBBK....",
+  22:"...KNNK.KNNNK...",
+  23:"...KnnK.KnnnK..."
+});
+const w2 = V(b, {                       /* sağ bacak önde */
+  16:"..KKRRbYYbRRWWK.",
+  17:".KWWRBBYYBBRKK..",
+  20:"...KBBBKKBBBK...",
+  21:"..KBBK..KBBBBK..",
+  22:"..KNNK..KNNNNK..",
+  23:"..KnnK..KnnnnK.."
+});
+const jump = V(b, {
+  15:".KWWKRRRRRRKWWK.",
+  16:".KWWRRbYYbRRWWK.",
+  17:"..KKRBBYYBBRKK..",
+  20:"...KBBBBBBBBK...",
+  21:"..KBBBBKKBBBK...",
+  22:".KNNNNK.KNNNNK..",
+  23:".KnnnnK.KnnnnK.."
+});
+const stomp = V(b, {
+  15:".KWWKRRRRRRKWWK.",
+  16:".KWWRRbYYbRRWWK.",
+  17:"..KKRBBYYBBRKK..",
+  20:"...KBBBKKBBBK...",
+  21:"...KBBK.KBBK....",
+  22:"..KNNNNK.KNNNNK.",
+  23:"..KnnnnK.KnnnnK."
+});
+const hurt = V(b, {
+  7:".KHSSSKWKSSSSK..",
+  8:".KHSSSSKSKSSsK..",
+  11:"..KHHKKWWKKKKsK.",
+  12:"..KSSKKWWKKKKKK.",
+  16:".KWWRRbYYbRRWWK.",
+  20:"...KBBBKKBBBK...",
+  21:"..KBBBK..KBBBK..",
+  22:".KNNNNK..KNNNNK.",
+  23:".KnnnnK..KnnnnK."
+});
+const win = V(b, {
+  14:"....KKSSSSKKWWK.",
+  15:"..KKRRRRRRRRKWK.",
+  16:".KWWRRbYYbRRRK..",
+  17:"..KKRBBYYBBRKK..",
+  20:"...KBBBKKBBBK...",
+  21:"..KBBBK..KBBK...",
+  22:".KNNNNK..KNNK...",
+  23:".KnnnnK..KnnK..."
+});
+CH.mario = { id:'ma', w:16, h:24, anims:{
+  idle:[b, idle2, b, blink], walk:[w0,w1,w2,w1], jump:[jump], fall:[jump],
+  atk:[jump, stomp], hurt:[hurt], win:[win], scared:[hurt], talk:[idle2, b]
+}, fps:{ idle:3, walk:10, atk:8, talk:4 } };
+})();
+
+/* ---------------------------- LUIGI ---------------------------- */
+(function(){
+const b = [
+"....KKKKKKK.....",
+"...KGGGGGGGK....",
+"..KGGGGGGGGGK...",
+"..KGGWWGGGGGK...",
+".KHGGWWGGGGGGGK.",
+".KHHGGGGGGGGGGK.",
+".KHHSSSSSSSKKKK.",
+".KHSSSSKWESSSK..",
+".KHSSSSKWESSSsK.",
+".KHSSSSSSSSSssK.",
+".KHSSSSSSSSSsssK",
+".KHHSSSSSSSSsssK",
+"..KHHSSSSSSSSsK.",
+"..KSSKKKKKKKSK..",
+"...KSSSSSSSSKK..",
+"....KKSSSSKK....",
+"...KKGGGGGGKK...",
+"..KWWGGbYYbGGWWK",
+"..KWWGBBYYBBGWWK",
+"...KKBBBBBBBKK..",
+"....KBBBBBBBK...",
+"....KBBBKBBBK...",
+"....KBBK.KBBK...",
+"....KBBK.KBBK...",
+"...KNNNK.KNNNK..",
+"...KnnnK.KnnnK.."
+];
+const idle2 = V(b, {
+  17:"...KWGGbYYbGGWK.",
+  18:"..KWWGBBYYBBGWWK",
+  19:"..KWWKBBBBBBKWWK",
+  20:"....KBBBBBBBK..."
+});
+const blink = V(b, {
+  7:".KHSSSSKKKSSSK..",
+  8:".KHSSSSSSSSSsK.."
+});
+const w0 = V(b, {
+  17:"..KWWGGbYYbGGKK.",
+  21:"....KBBBKBBBK...",
+  22:"...KBBBK.KBBK...",
+  23:"..KBBBK..KBBK...",
+  24:"..KNNNNK.KNNK...",
+  25:"..KnnnnK.KnnK..."
+});
+const w1 = V(b, {
+  21:"....KBBBBBBBK...",
+  22:"....KBBBBBBK....",
+  23:"....KBBK.KBBK...",
+  24:"....KNNK.KNNNK..",
+  25:"....KnnK.KnnnK.."
+});
+const w2 = V(b, {
+  17:".KKWWGGbYYbGGWWK",
+  21:"....KBBBKBBBK...",
+  22:"....KBBK.KBBBK..",
+  23:"....KBBK..KBBBK.",
+  24:"...KNNK..KNNNNK.",
+  25:"...KnnK..KnnnnK."
+});
+const jump = V(b, {
+  16:"..KWKKGGGGGGKKWK",
+  17:"..KWWGGbYYbGGWWK",
+  18:"...KGBBYYBBGKK..",
+  22:"....KBBBBBBK....",
+  23:"...KBBBKKBBBK...",
+  24:"..KNNNNK.KNNNNK.",
+  25:"..KnnnnK.KnnnnK."
+});
+const stomp = V(b, {
+  16:"..KWKKGGGGGGKKWK",
+  17:"..KWWGGbYYbGGWWK",
+  22:"....KBBK.KBBK...",
+  23:"....KBBK.KBBK...",
+  24:"...KNNNK.KNNNK..",
+  25:"...KnnnK.KnnnK.."
+});
+const hurt = V(b, {
+  7:".KHSSSKWKSSSSK..",
+  8:".KHSSSSKSKSSsK..",
+  13:"..KSSKKWWKKKSK..",
+  22:"...KBBK..KBBBK..",
+  23:"..KBBBK..KBBBK..",
+  24:".KNNNNK..KNNNNK.",
+  25:".KnnnnK..KnnnnK."
+});
+const scared = V(b, {                   /* kollar yukarı, dizler titriyor */
+  7:".KHSSSSKKKSSSK..",
+  8:".KHSSSSKWKSSSsK.",
+  13:"..KSSKWWWWKKSK..",
+  16:".KWKKGGGGGGKKWK.",
+  17:".KWWGGbYYbGGWWK.",
+  22:"....KBBK.KBBK...",
+  23:"...KBBK...KBBK..",
+  24:"..KNNNK...KNNNK.",
+  25:"..KnnnK...KnnnK."
+});
+const win = V(b, {
+  15:"....KKSSSSKKWWK.",
+  16:"...KKGGGGGGKKWK.",
+  17:"..KWWGGbYYbGGGK.",
+  21:"....KBBBKBBBK...",
+  22:"....KBBK.KBBK...",
+  24:"...KNNNK.KNNNK.."
+});
+CH.luigi = { id:'lu', w:16, h:26, anims:{
+  idle:[b, idle2, b, blink], walk:[w0,w1,w2,w1], jump:[jump], fall:[jump],
+  atk:[jump, stomp], hurt:[hurt], win:[win], scared:[scared, b], talk:[idle2, b]
+}, fps:{ idle:3, walk:10, atk:8, scared:6, talk:4 } };
+})();
+
+/* ---------------------------- TOAD ---------------------------- */
+(function(){
+const b = [
+"....KKKKKK......",
+"..KKWWWWWWKK....",
+".KWWWRRWWWWWWK..",
+".KWWWWRRWWRRWWK.",
+".KWRRWWWWWWRRWK.",
+"..KWWWWWWWWWWK..",
+"...KKWWWWWWKK...",
+"....KSSSSSSK....",
+"...KSKKSSKKSK...",
+"...KSKKSSKKSK...",
+"...KSSSKKSSSK...",
+"....KSSSSSSK....",
+"..KKBBBYYBBBKK..",
+".KSBBBYYYYBBBSK.",
+".KSKBBBYYBBBKSK.",
+"..KKBBBBBBBBKK..",
+"...KWWK..KWWK...",
+"...KllK..KllK..."
+];
+const idle2 = V(b, { 13:".KSBBBYYYYBBBSK.", 16:"...KWWK..KWWK...", 17:"...KllK..KllK..." });
+const w0 = V(b, { 13:"KSKBBBYYYYBBBSK.", 16:"..KWWWK..KWWK...", 17:"..KlllK..KllK..." });
+const w1 = V(b, { 16:"....KWWKKWWK....", 17:"....KllKKllK...." });
+const w2 = V(b, { 13:".KSBBBYYYYBBBKSK", 16:"...KWWK..KWWWK..", 17:"...KllK..KlllK.." });
+const talk = V(b, { 10:"...KSSKKKKSSK...", 11:"....KSKKKKSK....", 13:"KSKBBBYYYYBBBSK." });
+const panic = V(b, {
+  8:"...KKKKSSKKKKK..",
+  10:"...KSKKKKKKSK...",
+  11:"....KKKKKKKK....",
+  12:"KKBBBYYBBBKK....",
+  13:"KSBBBYYYYBBBSK..",
+  16:"..KWWK....KWWK..",
+  17:"..KllK....KllK.."
+});
+CH.toad = { id:'td', w:16, h:18, anims:{
+  idle:[b, idle2], walk:[w0,w1,w2,w1], talk:[talk, b], panic:[panic, b], jump:[w1], hurt:[panic]
+}, fps:{ idle:2.5, walk:10, talk:5, panic:8 } };
+})();
+
+/* ---------------------------- PEACH ---------------------------- */
+(function(){
+const b = [
+"....KYYYYYK.....",
+"...KYEYEYEYK....",
+"...KYYYYYYYK....",
+"..KYYYYYYYYYK...",
+"..KyyyyyyyyyK...",
+".KYYYYYYYYYYYK..",
+".KYYSSSSSSSYYK..",
+".KYSSSSSSSSSYK..",
+".KYSKWEsSKWESYK.",
+".KYSSSSSSSSSSYK.",
+".KYYSSSpppSSYYK.",
+".KYYYSSSSSSSYYK.",
+".KYYYYSSSSSYYYK.",
+".KYYYKSSSKYYYYK.",
+".KYYWWWWWWWWYYK.",
+"..KWWPPPPPPWWK..",
+"..KWKPPPPPPKWK..",
+"...KPPPPPPPPK...",
+"...KPPPPPPPPK...",
+"..KPPPPPPPPPPK..",
+"..KPPPPPPPPPPK..",
+".KPPPPPPPPPPPPK.",
+".KppppppppppppK.",
+".KKKKKKKKKKKKK..",
+"....KWWK.KWWK...",
+"....KppK.KppK..."
+];
+const idle2 = V(b, { 10:".KYYSSSpppSSYYK.", 21:".KPPPPPPPPPPPPK.", 22:".KppppppppppppK." });
+const talk = V(b, { 10:".KYYSSKpppKSYYK.", 11:".KYYYSSpppSSYYK." });
+const shock = V(b, {
+  8:".KYSKWWWSKWWWYK.",
+  9:".KYSSSSSSSSSSYK.",
+  10:".KYYSSKKKKSSYYK.",
+  11:".KYYYSKKKKSYYYK.",
+  14:"KKYYWWWWWWWWYYKK",
+  15:"KWWKPPPPPPPPKWWK"
+});
+CH.peach = { id:'pe', w:16, h:26, anims:{
+  idle:[b, idle2], talk:[talk, b], shock:[shock, b], hurt:[shock], walk:[b, idle2]
+}, fps:{ idle:2, talk:5, shock:7 } };
+})();
+
+/* --------------------------- CACKLETTA --------------------------- */
+(function(){
+const b = [
+"......KKKKKK........",
+".....KWWWWWWK.......",
+"....KWWWWWWWWK......",
+"...KWWKKKKKKWWK.....",
+"..KWWKllllllKWWK....",
+"..KWKlllllllllKWK...",
+".KWKllYYlllYYlllK...",
+".KWKlYKYllYKYlllK...",
+".KWKllYYlllYYllllK..",
+".KWKlllllllllllllK..",
+".KWKlllsslllsslllK..",
+".KWKllllllllllllK...",
+"..KllKKKKKKKKKlK....",
+"..KlKWKWKWKWKKlK....",
+"..KKlKKKKKKKKlKK....",
+"...KMMMMMMMMMMK.....",
+"..KMMMMMMMMMMMMK....",
+".KMMMmmMMMMmmMMMK...",
+".KMMmmmMMMMmmmMMK...",
+"KMMMmMMMMMMMMmMMMK..",
+"KMMMMMMMYYMMMMMMMK..",
+".KMMMMMMYYMMMMMMK...",
+"..KMMMMMMMMMMMMK....",
+"...KMMMMMMMMMMK.....",
+"....KmmmmmmmmK......",
+"...KmmmmmmmmmmK.....",
+"..KmmmmmmmmmmmmK....",
+"..KKKKKKKKKKKKKK...."
+];
+const idle2 = V(b, {
+  7:".KWKlYKYllYKYlllK...",
+  13:"..KlKWKWKWKWKKlK....",
+  19:"KMMMmMMMMMMMMmMMMK..",
+  20:".KMMMMMMYYMMMMMMK...",
+  21:".KMMMMMMYYMMMMMMK..."
+});
+const cackle = V(b, {
+  6:".KWKlYYYlYYYYlllK...",
+  7:".KWKYYKYlYKYYlllK...",
+  12:"..KllKKKKKKKKKlK....",
+  13:"..KlKWKWKWKWKKlK....",
+  14:"..KKlKWKWKWKlKK.....",
+  17:".KMMMmmMMMMmmMMMK...",
+  18:"KMMmmmMMMMmmmMMMK..."
+});
+const hood = V(b, {                      /* elçi kılığı: mor kukuleta */
+  0:"......KKKKKK........",
+  1:".....KMMMMMMK.......",
+  2:"....KMMMMMMMMK......",
+  3:"...KMMMMMMMMMMK.....",
+  4:"..KMMMKKKKKKMMMK....",
+  5:"..KMMKZZZZZZZKMMK...",
+  6:".KMMKZZYYZZYYZKMK...",
+  7:".KMMKZZYZZZYZZKMK...",
+  8:".KMMKZZZZZZZZZKMK...",
+  9:".KMMKZZZZZZZZZKMK...",
+  10:".KMMKZZZZZZZZZKMK...",
+  11:".KMMMKZZZZZZZKMMK...",
+  12:"..KMMMKKKKKKKMMK....",
+  13:"..KMMMMMMMMMMMMK....",
+  14:"..KMMMMMMMMMMMMK...."
+});
+CH.cackletta = { id:'ck', w:20, h:28, anims:{
+  idle:[b, idle2], talk:[cackle, b], cackle:[cackle, idle2], hood:[hood, V(hood,{13:"..KMMMMMMMMMMMMK...."})]
+}, fps:{ idle:2, talk:6, cackle:8 } };
+})();
+
+/* ---------------------------- FAWFUL ---------------------------- */
+(function(){
+const b = [
+"......KK........",
+".....KLLK.......",
+"..KKKKLLKKKK....",
+".KLLLLLLLLLLLK..",
+".KLLKKKKKKKLLK..",
+"..KVVVVVVVVVK...",
+".KVVVVVVVVVVVK..",
+"KVCCCCKKCCCCVK..",
+"KVCWCCKKCCWCVK..",
+"KVCCCCKKCCCCVK..",
+"KVVVVVVVVVVVVK..",
+".KVVVKKKKKVVVK..",
+".KVVKWWWWWKVVK..",
+"..KVVKKKKKVVK...",
+"...KMMMMMMMK....",
+"..KMMMMMMMMMK...",
+".KMMCMMMMMCMMK..",
+".KMMMMMMMMMMMK..",
+"..KMMMMMMMMMK...",
+"..KmmmmmmmmmK...",
+"..KKKKKKKKKKK...",
+"...KLLK.KLLK...."
+];
+const idle2 = V(b, { 8:"KVCWCCKKCCWCVK..", 12:".KVVKWWWWWKVVK..", 17:".KMMMMMMMMMMMK.." });
+const talk = V(b, {
+  12:".KVVKWWWWWKVVK..",
+  13:"..KVVKWWWKVVK...",
+  14:"...KMMMMMMMK...."
+});
+const fly = V(b, {                      /* pervane dönerken */
+  0:"......KK........",
+  1:"..KKKKLLKKKK....",
+  2:".KLLLLLLLLLLLK..",
+  21:"...KLLK.KLLK...."
+});
+CH.fawful = { id:'fw', w:16, h:22, anims:{
+  idle:[b, idle2], talk:[talk, b], fly:[fly, b]
+}, fps:{ idle:3, talk:7, fly:12 } };
+})();
+
+/* ---------------------------- GOOMBA ---------------------------- */
+(function(){
+const b = [
+"....KKKKKKKK....",
+"..KKnnnnnnnnKK..",
+".KnNNNNNNNNNNnK.",
+"KNNNNNNNNNNNNNNK",
+"KNNKKNNNNNNKKNNK",
+"KNKWWKNNNNKWWKNK",
+"KTKWKKTTTTKKWKTK",
+"KTTWWKTTTTKWWTTK",
+"KTTTTTTTTTTTTTTK",
+".KTTKWWWWWWKTTK.",
+".KTTKWKKKKWKTTK.",
+"..KTTTTTTTTTTK..",
+".KKnnKK..KKnnKK.",
+".KnnnnK..KnnnnK."
+];
+const w0 = V(b, { 12:"KKnnKK....KKnnKK", 13:"KnnnnK....KnnnnK" });
+const w1 = V(b, { 12:"..KKnnKKKKnnKK..", 13:"..KnnnnKnnnnnK.." });
+const hurt = V(b, {
+  4:"KNNKKNNNNNNKKNNK",
+  5:"KNKWKKNNNNKKWKNK",
+  6:"KTKKWKTTTTKWKKTK",
+  7:"KTTWWKTTTTKWWTTK",
+  9:".KTTKKKKKKKKTTK.",
+  10:".KTTKWKWKWKWKTK."
+});
+const flat = [
+"................",
+"................",
+"................",
+"................",
+"................",
+"................",
+"................",
+"...KKKKKKKKKK...",
+"..KnNNNNNNNNnK..",
+".KNNKKNNNNKKNNK.",
+".KTTTTTTTTTTTTK.",
+".KTKWKKKKKKWKTK.",
+"..KnnnnnnnnnnK..",
+"..KKKKKKKKKKKK.."
+];
+CH.goomba = { id:'gb', w:16, h:14, anims:{
+  idle:[b, w1], walk:[w0, b, w1, b], hurt:[hurt], atk:[w0, w1], flat:[flat]
+}, fps:{ idle:3, walk:8, atk:10 } };
+})();
+
+/* ---------------------------- BOWSER ---------------------------- */
+(function(){
+/* sola bakar (savaşta sağda durur): yeşil deri, sarı göbek, kızıl yele,
+   beyaz boynuz/diş/pençe, dikenli yeşil kabuk */
+const b = [
+"..........KRRK..KRRK..............",
+"....KWK...KRRK..KRRK..KWK.........",
+"...KWWK..KRRRRKKKRRRRK.KWWK.......",
+"...KWWK.KRRRRRRRRRRRRK.KWWK.......",
+"...KWWKKRRRRRRRRRRRRRRKKWWK.......",
+"..KKWWKVVVVVVVVVVVVVVKKWWKK.......",
+"..KWWWVVVVVVVVVVVVVVVVVWWWK.......",
+".KVVVVVVVVVVVVVVVVVVVVVK..........",
+".KVVvvVVVVvvVVVVVVVVVVVK..........",
+".KVvWWvVVvWWvVVVVVVVVVVK..........",
+"KVVvWKvVVvWKvVVVVVVVVVVK..........",
+"KVYYVVVVVVVVVVVVVVVVVVVK..........",
+"KYYYYYVVVVVVVVVVVVVVVVVK.KWWK.....",
+"KYKYYYYVVVVVVVVVVVVVVVVK.KWWK.....",
+"KYYYYYYYVVVVVVVVVVVVVVVKKGWWGK....",
+"KWWWWYYYYVVVVVVVVVVVVVKGGGGGGK....",
+".KWKWKYYYYVVVVVVVVVVVKGGGGGGGGKWK.",
+"..KYYYYYYYYVVVVVVVVVKGGGGGGGGGKWWK",
+"...KKYYYYYVVVVVVVVKKGGGGGGGGGGKWWK",
+".KWKKKKKKKKKKKKKVVKGGGGGGGGGGGGGK.",
+"KWWWKWKWKWKWKKVVVKGGGGGGGGGGGGKWK.",
+".KVKVVVYYYYYKVVGGGGGGGGGGGGGGKKWWK",
+"KVVKVVVYYYYYKVGGGGGGGGGGGGGGGKKWWK",
+".KVKVVVYYYYYKVGGGGGGGGGGGGGGGGGK..",
+"..KVVVVYYYYYKVGGGGGGGGGGGGGGGGK.KK",
+"..KWVVVYYYYYKVGGGGOOOOOOGGGGGK.KVK",
+".KWWKVVYYYYYKVGGGOOOOOOOOGGGK..KVK",
+"..KWWKVYYYYKKVGGGOOOOOOOOGGK...KK.",
+"..KVVVVVVKVVGGGGGOOOOOOGGGGK......",
+"...KVVVVVVKVVGGGGGGGGGGGK.........",
+"...KVVVVVVKKGGGGGGGGGGKK..........",
+"..KVVVKKVVVVKKKKKKKKKK............",
+"..KVVVK.KVVVVK....................",
+".KWWWWWK.KWWWWWWK................."
+];
+/* nefes alıp verme (göğüs ve kollar oynar) */
+const idle2 = V(b, {
+  11:"KVYYYVVVVVVVVVVVVVVVVVK...........",
+  21:"..KKVVVYYYYYKVVGGGGGGGGGGGGGGKKWWK",
+  22:".KVVKVVYYYYYKVGGGGGGGGGGGGGGGKKWWK",
+  32:"..KVVVK.KVVVVK...................."
+});
+/* ağzı hafif aralık */
+const breathe = V(b, {
+  14:"KKKYYYYYVVVVVVVVVVVVVVVKKGWWGK....",
+  15:"KKWWWYYYYVVVVVVVVVVVVVKGGGGGGK....",
+  21:"..KKVVVYYYYYKVVGGGGGGGGGGGGGGKKWWK"
+});
+/* kükreme: ağız kocaman açık, kaşlar çatık */
+const roar = V(b, {
+  8:".KVvvvVVvvvvVVVVVVVVVVVK..........",
+  9:".KVvWKvVVvKWvVVVVVVVVVVK..........",
+  12:"KYYYYYYVVVVVVVVVVVVVVVVK.KWWK.....",
+  13:"KWWWWWWYVVVVVVVVVVVVVVVK.KWWK.....",
+  14:"KKKKKKKKVVVVVVVVVVVVVVVKKGWWGK....",
+  15:"KKKKKKKKYYVVVVVVVVVVVVKGGGGGGK....",
+  16:".KKKKKKKYYYVVVVVVVVVVKGGGGGGGGKWK.",
+  17:"..KWWWWWYYYVVVVVVVVVKGGGGGGGGGKWWK"
+});
+/* pençe savurma: kol ileri uzanır, ağız açık */
+const claw = V(b, {
+  12:"KYYYYYYVVVVVVVVVVVVVVVVK.KWWK.....",
+  13:"KWWWWWWYVVVVVVVVVVVVVVVK.KWWK.....",
+  14:"KKKKKKKKVVVVVVVVVVVVVVVKKGWWGK....",
+  22:"KVVVVVVVYYYYYKVGGGGGGGGGGGGGGKKWWK",
+  23:"WKVVVVVVYYYYYKVGGGGGGGGGGGGGGGGK..",
+  24:"WWKVVVVVYYYYYKVGGGGGGGGGGGGGGGK.KK",
+  25:"WWWKVVVVYYYYYKVGGGGOOOOOOGGGGK.KVK",
+  26:"WWKKVVVYYYYYKVGGGOOOOOOOOGGGK..KVK"
+});
+/* canı yanmış: gözler şaşkın, ağız açık */
+const hurt = V(b, {
+  9:".KVvKWvVVvWKvVVVVVVVVVVK..........",
+  10:"KVVvWKvVVvKWvVVVVVVVVVVK..........",
+  13:"KWWWWWWYVVVVVVVVVVVVVVVK.KWWK.....",
+  14:"KKKKKKKKVVVVVVVVVVVVVVVKKGWWGK....",
+  15:"KKKKKKKKYYVVVVVVVVVVVVKGGGGGGK....",
+  25:"..KWVVVYYYYYKVGGGGOOOOOOGGGGGK.KVK"
+});
+/* yenilmiş: sırtüstü, bacaklar havada */
+const down = [
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................................",
+"..................KVVK............",
+".............KVVK.KVVK............",
+".............KVVK.KVVK............",
+"............KWWWWK.KWWWWK.........",
+"..........KKVVVVKKKVVVVKK.........",
+"...KKKKKVVVVVVVVVVVVVVVVVK........",
+"..KVVVVVVVYYYYYYYYYYYYYYVK........",
+".KVvWKvVVYYYYYYYYYYYYYYYYK........",
+"KVVvWKvVYYYYYYYYYYYYYYYYYK........",
+"KYYYYYYVYYYYYYYYYYYYYYYYK.........",
+"KWWWWYYVKKKKKKKKKKKKKKKK..........",
+".KKKKKKK.........................."
+];
+CH.bowser = { id:'bw', w:34, h:34, rev:true, anims:{
+  idle:[b, idle2, breathe, idle2], roar:[roar, b], atk:[claw, b], hurt:[hurt], down:[down],
+  walk:[b, idle2, breathe, idle2]
+}, fps:{ idle:2.5, roar:5, atk:7, walk:4 } };
+})();
+
+/* =========================== 4. ÇİZİM YARDIMCILARI =========================== */
+function animOf(key, name){
+  const c = CH[key];
+  return (c.anims[name] || c.anims.idle);
+}
+function frameCount(key, name){ return animOf(key, name).length; }
+function drawChar(g, key, name, idx, x, y, dir, alpha){
+  const c = CH[key], frames = animOf(key, name);
+  const f = frames[((idx % frames.length) + frames.length) % frames.length];
+  const img = bake(c.id + name + (idx % frames.length), f);
+  const px = Math.round(x - c.w / 2), py = Math.round(y - c.h);
+  if (alpha != null && alpha < 1){ g.save(); g.globalAlpha = alpha; }
+  /* c.rev: sprite zaten sola bakıyor (Bowser) */
+  if (c.rev ? dir > 0 : dir < 0){
+    g.save(); g.translate(px + c.w, 0); g.scale(-1, 1); g.drawImage(img, 0, py); g.restore();
+  } else {
+    g.drawImage(img, px, py);
+  }
+  if (alpha != null && alpha < 1) g.restore();
+}
+function shadow(g, x, y, w, a){
+  g.save(); g.globalAlpha = a == null ? .3 : a; g.fillStyle = '#17131f';
+  g.beginPath(); g.ellipse(Math.round(x), Math.round(y), w, Math.max(1, w * .32), 0, 0, 6.3); g.fill();
+  g.restore();
+}
+function rect(g, x, y, w, h, col){ g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+function frameBox(g, x, y, w, h, fill, edge, edge2){
+  rect(g, x, y, w, h, edge);
+  rect(g, x + 1, y + 1, w - 2, h - 2, edge2 || edge);
+  rect(g, x + 2, y + 2, w - 4, h - 4, fill);
+}
+
+/* =========================== 5. METİN =========================== */
+const FONT = '"Trebuchet MS","Segoe UI",system-ui,sans-serif';
+function txt(s, x, y, o){
+  o = o || {};
+  const size = o.size || 8;
+  ux.font = (o.weight || 'bold') + ' ' + size + 'px ' + FONT;
+  ux.textAlign = o.align || 'left';
+  ux.textBaseline = o.base || 'top';
+  if (o.shadow !== false){ ux.fillStyle = o.shadow || 'rgba(15,11,25,.85)'; ux.fillText(s, x + .8, y + .9); }
+  ux.fillStyle = o.col || '#fdf3d6';
+  ux.fillText(s, x, y);
+}
+function measure(s, size, weight){
+  ux.font = (weight || 'bold') + ' ' + (size || 8) + 'px ' + FONT;
+  return ux.measureText(s).width;
+}
+function wrap(s, maxW, size){
+  const words = s.split(' '), lines = []; let cur = '';
+  for (const w of words){
+    const test = cur ? cur + ' ' + w : w;
+    if (measure(test, size) > maxW && cur){ lines.push(cur); cur = w; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/* =========================== 6. GİRDİ =========================== */
+const IN = {
+  l:false, r:false, u:false, d:false, a:false, b:false, start:false,
+  _edge:Object.create(null), _held:Object.create(null),
+  down(k){ if (!this._held[k]) this._edge[k] = true; this._held[k] = true; this[k] = true; },
+  up(k){ this._held[k] = false; this[k] = false; },
+  hit(k){ return !!this._edge[k]; },
+  any(){ return this._edge.a || this._edge.b || this._edge.start; },
+  eat(){ this._edge.a = false; this._edge.b = false; this._edge.u = false; },
+  clear(){ this._edge = Object.create(null); }
+};
+const KEYMAP = {
+  ArrowLeft:'l', KeyA:'l', ArrowRight:'r', KeyD:'r', ArrowUp:'u', KeyW:'u', ArrowDown:'d', KeyS:'d',
+  KeyZ:'a', Enter:'a', Space:'a', KeyJ:'a', KeyN:'a',
+  KeyX:'b', KeyK:'b', KeyM:'b', ShiftLeft:'b',
+  Escape:'start', KeyP:'start'
+};
+window.addEventListener('keydown', e => {
+  const k = KEYMAP[e.code];
+  if (k){ e.preventDefault(); IN.down(k); AUD.init(); }
+});
+window.addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k){ e.preventDefault(); IN.up(k); } });
+window.addEventListener('blur', () => { ['l','r','u','d','a','b','start'].forEach(k => IN.up(k)); });
+
+(function touchSetup(){
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (isTouch) document.getElementById('pad').classList.add('on');
+  const map = { tL:'l', tR:'r', tU:'u', tA:'a', tB:'b', tS:'start' };
+  for (const id in map){
+    const el = document.getElementById(id), key = map[id];
+    const on = e => { e.preventDefault(); AUD.init(); IN.down(key); el.classList.add('hit'); };
+    const off = e => { e.preventDefault(); IN.up(key); el.classList.remove('hit'); };
+    el.addEventListener('touchstart', on, {passive:false});
+    el.addEventListener('touchend', off, {passive:false});
+    el.addEventListener('touchcancel', off, {passive:false});
+    el.addEventListener('mousedown', on);
+    el.addEventListener('mouseup', off);
+    el.addEventListener('mouseleave', off);
+  }
+  /* ekrana dokunma = A (menü/diyalog için) */
+  world.addEventListener('pointerdown', e => { AUD.init(); IN.down('a'); });
+  world.addEventListener('pointerup', () => IN.up('a'));
+})();
+
+/* =========================== 7. SES (chiptune) =========================== */
+const NOTE = (function(){
+  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'], o = {};
+  for (let oc = 1; oc <= 7; oc++) for (let i = 0; i < 12; i++)
+    o[names[i] + oc] = 440 * Math.pow(2, (oc * 12 + i - 57) / 12);
+  return o;
+})();
+
+const AUD = {
+  ctx:null, master:null, musG:null, sfxG:null, on:true,
+  init(){
+    if (this.ctx){ if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.master = this.ctx.createGain(); this.master.gain.value = .5; this.master.connect(this.ctx.destination);
+      this.musG = this.ctx.createGain(); this.musG.gain.value = .45; this.musG.connect(this.master);
+      this.sfxG = this.ctx.createGain(); this.sfxG.gain.value = .8; this.sfxG.connect(this.master);
+    } catch (e){ this.ctx = null; }
+  },
+  tone(f, dur, type, vol, dest, when, slideTo){
+    if (!this.ctx || !this.on || !f) return;
+    const t = when || this.ctx.currentTime;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square'; o.frequency.setValueAtTime(f, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(.001, vol == null ? .2 : vol), t + .012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(dest || this.sfxG); o.start(t); o.stop(t + dur + .02);
+  },
+  noise(dur, vol, when, hp){
+    if (!this.ctx || !this.on) return;
+    const t = when || this.ctx.currentTime;
+    const len = Math.max(1, Math.floor(this.ctx.sampleRate * dur));
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const s = this.ctx.createBufferSource(); s.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = hp ? 'highpass' : 'lowpass'; f.frequency.value = hp || 1200;
+    const g = this.ctx.createGain(); g.gain.value = vol == null ? .25 : vol;
+    s.connect(f); f.connect(g); g.connect(this.sfxG); s.start(t);
+  },
+  sfx(name){
+    if (!this.ctx){ return; }
+    const t = this.ctx.currentTime, T = (f, d, ty, v, when, sl) => this.tone(f, d, ty, v, this.sfxG, when, sl);
+    switch (name){
+      case 'blip':  T(720, .05, 'square', .12); break;
+      case 'talk':  T(430 + Math.random() * 90, .028, 'square', .06); break;
+      case 'sel':   T(520, .05, 'square', .14); T(780, .06, 'square', .1, t + .05); break;
+      case 'cancel':T(380, .08, 'square', .12, t, 220); break;
+      case 'jump':  T(320, .13, 'square', .16, t, 720); break;
+      case 'land':  this.noise(.07, .14, t, 0); break;
+      case 'stomp': T(180, .09, 'square', .2, t, 70); this.noise(.1, .2, t, 0); break;
+      case 'hit':   T(160, .16, 'sawtooth', .2, t, 60); this.noise(.13, .26, t, 0); break;
+      case 'hurt':  T(300, .22, 'sawtooth', .2, t, 90); break;
+      case 'great': T(NOTE['E5'], .07, 'square', .17); T(NOTE['G5'], .07, 'square', .17, t + .07); T(NOTE['C6'], .14, 'square', .17, t + .14); break;
+      case 'ok':    T(NOTE['C5'], .07, 'square', .15); T(NOTE['E5'], .1, 'square', .15, t + .07); break;
+      case 'coin':  T(NOTE['B5'], .06, 'square', .16); T(NOTE['E6'], .2, 'square', .14, t + .06); break;
+      case 'heal':  T(NOTE['C5'], .07, 'triangle', .2); T(NOTE['E5'], .07, 'triangle', .2, t + .07);
+                    T(NOTE['G5'], .07, 'triangle', .2, t + .14); T(NOTE['C6'], .2, 'triangle', .2, t + .21); break;
+      case 'boom':  this.noise(.55, .5, t, 0); T(90, .5, 'sawtooth', .3, t, 30); break;
+      case 'fire':  this.noise(.42, .3, t, 900); T(240, .4, 'sawtooth', .13, t, 120); break;
+      case 'roar':  T(120, .7, 'sawtooth', .32, t, 58); this.noise(.7, .26, t, 0); break;
+      case 'laugh': for (let i = 0; i < 5; i++) T(660 - i * 40, .07, 'square', .13, t + i * .1, 520 - i * 30); break;
+      case 'machine': for (let i = 0; i < 6; i++) T(200 + i * 60, .05, 'sawtooth', .1, t + i * .05); break;
+      case 'steam': this.noise(.6, .22, t, 2400); break;
+      case 'crash': this.noise(.9, .5, t, 0); T(140, .8, 'square', .22, t, 40); break;
+      case 'win':   ['C5','E5','G5','C6','G5','C6'].forEach((n, i) => T(NOTE[n], i === 5 ? .5 : .11, 'square', .2, t + i * .11)); break;
+      case 'lose':  ['G4','F4','E4','D4','C4'].forEach((n, i) => T(NOTE[n], .22, 'square', .18, t + i * .16)); break;
+      case 'appear':T(NOTE['C4'], .5, 'sawtooth', .22, t, NOTE['C6']); break;
+    }
+  },
+  /* ---- basit adım dizici (16'lık adımlar) ---- */
+  mus:{ track:null, step:0, nextT:0, name:null },
+  parse(str){
+    const out = []; let t = 0;
+    str.split(/\s+/).filter(Boolean).forEach(tok => {
+      const p = tok.split(':'), len = parseInt(p[1] || '4', 10);
+      if (p[0] !== '-') out.push({ t:t, f:NOTE[p[0]] || 0, len:len });
+      t += len;
+    });
+    return { notes:out, len:t };
+  },
+  play(name){
+    this.init();
+    if (this.mus.name === name) return;
+    this.mus.name = name;
+    const T = TRACKS[name];
+    if (!T){ this.mus.track = null; return; }
+    const parts = T.parts.map(p => {
+      const m = this.parse(p.mel); const grid = {};
+      m.notes.forEach(n => { (grid[n.t] = grid[n.t] || []).push(n); });
+      return { grid:grid, len:m.len, wave:p.wave || 'square', vol:p.vol == null ? .12 : p.vol, dur:p.dur || 1 };
+    });
+    let len = 0; parts.forEach(p => len = Math.max(len, p.len));
+    if (T.drums) len = Math.max(len, T.drums.length);
+    this.mus.track = { bpm:T.bpm, parts:parts, drums:T.drums || '', len:len };
+    this.mus.step = 0;
+    this.mus.nextT = this.ctx ? this.ctx.currentTime + .06 : 0;
+  },
+  stop(){ this.mus.track = null; this.mus.name = null; },
+  pump(){
+    const M = this.mus;
+    if (!this.ctx || !M.track || !this.on) return;
+    const sd = 60 / M.track.bpm / 4;
+    let guard = 0;
+    while (M.nextT < this.ctx.currentTime + .3 && guard++ < 64){
+      const s = M.step % M.track.len;
+      M.track.parts.forEach(p => {
+        const ns = p.grid[s % p.len];
+        if (ns) ns.forEach(n => this.tone(n.f, sd * n.len * .92 * p.dur, p.wave, p.vol, this.musG, M.nextT));
+      });
+      const d = M.track.drums[s % (M.track.drums.length || 1)];
+      if (d === 'x') this.noise(.09, .17, M.nextT, 0);
+      else if (d === 'h') this.noise(.04, .07, M.nextT, 4000);
+      else if (d === 'o') this.noise(.16, .13, M.nextT, 2600);
+      M.step++; M.nextT += sd;
+    }
+  }
+};
+
+/* ---- özgün chiptune parçalar ---- */
+const TRACKS = {
+  title: { bpm:118, parts:[
+    { mel:"C5:4 E5:4 G5:4 E5:4 A5:8 G5:8 F5:4 E5:4 D5:4 E5:4 C5:16", wave:'square', vol:.13 },
+    { mel:"C3:8 G3:8 A2:8 E3:8 F2:8 C3:8 G2:8 G2:8", wave:'triangle', vol:.16 }
+  ], drums:"x.h.o.h.x.h.o.h." },
+  field: { bpm:142, parts:[
+    { mel:"G4:2 A4:2 B4:4 D5:4 B4:4 G4:2 A4:2 B4:4 E5:8 D5:4 B4:2 D5:2 E5:4 G5:4 D5:8 B4:4 A4:4 G4:8",
+      wave:'square', vol:.12 },
+    { mel:"G2:4 G3:4 D3:4 G3:4 E2:4 E3:4 B2:4 E3:4 C3:4 C4:4 G3:4 C4:4 D3:4 D4:4 A3:4 D4:4",
+      wave:'triangle', vol:.15 }
+  ], drums:"x.h.o.h.x.h.o.hx.h.o.h.x.hxo.h." },
+  home: { bpm:96, parts:[
+    { mel:"E5:6 D5:2 C5:4 D5:4 E5:4 G5:4 E5:8 C5:6 D5:2 E5:4 D5:4 C5:8 A4:8", wave:'triangle', vol:.15 },
+    { mel:"C3:8 G3:8 A2:8 E3:8 F2:8 C3:8 G2:8 G3:8", wave:'sine', vol:.13 }
+  ], drums:"h...h...h...h..." },
+  castle: { bpm:104, parts:[
+    { mel:"C5:4 G4:4 C5:4 E5:4 D5:8 B4:8 C5:4 G4:4 C5:4 F5:4 E5:16", wave:'triangle', vol:.15 },
+    { mel:"C3:4 C3:4 G3:4 C3:4 G2:4 G2:4 D3:4 G2:4 A2:4 A2:4 E3:4 A2:4 G2:8 G3:8", wave:'square', vol:.09 }
+  ], drums:"x.......o.......x.......o......." },
+  danger: { bpm:150, parts:[
+    { mel:"C4:2 C4:2 D#4:2 C4:2 F4:4 C4:4 C4:2 C4:2 D#4:2 C4:2 G4:4 F4:4", wave:'square', vol:.12 },
+    { mel:"C2:2 C2:2 C2:2 C2:2 C2:2 C2:2 C2:2 C2:2 G1:2 G1:2 G1:2 G1:2 A#1:2 A#1:2 A#1:2 A#1:2", wave:'sawtooth', vol:.1 }
+  ], drums:"x.h.x.h.o.h.x.h." },
+  battle: { bpm:164, parts:[
+    { mel:"E5:2 E5:2 G5:2 E5:2 A5:4 G5:4 E5:2 D5:2 E5:2 G5:2 B5:4 A5:4 G5:2 E5:2 D5:2 E5:2 C5:8 D5:4 E5:4",
+      wave:'square', vol:.12 },
+    { mel:"A2:2 A3:2 A2:2 A3:2 E2:2 E3:2 E2:2 E3:2 F2:2 F3:2 F2:2 F3:2 G2:2 G3:2 G2:2 G3:2",
+      wave:'triangle', vol:.15 }
+  ], drums:"x.h.o.h.x.h.o.h.x.h.o.h.xxh.o.h." },
+  boss: { bpm:158, parts:[
+    { mel:"D4:2 D4:2 F4:2 D4:2 G#4:4 G4:4 D4:2 D4:2 F4:2 A4:2 C5:4 B4:4 A#4:2 A4:2 G4:2 F4:2 D4:8 D4:4 C#4:4",
+      wave:'sawtooth', vol:.1 },
+    { mel:"D2:2 D2:2 D3:2 D2:2 D2:2 D2:2 A#2:2 D2:2 D2:2 D2:2 D3:2 D2:2 G#2:2 G#2:2 A2:2 A2:2",
+      wave:'square', vol:.11 }
+  ], drums:"x.h.o.h.x.h.oxh.x.h.o.h.xxh.ooh." },
+  evil: { bpm:112, parts:[
+    { mel:"A4:4 A#4:4 A4:4 F4:4 C#5:8 C5:8 A4:4 A#4:4 C5:4 C#5:4 A4:16", wave:'sawtooth', vol:.09 },
+    { mel:"A1:8 A1:8 F1:8 F1:8 D#1:8 D#1:8 E1:8 E1:8", wave:'triangle', vol:.16 }
+  ], drums:"o...............x..............." },
+  victory: { bpm:150, parts:[
+    { mel:"C5:2 E5:2 G5:2 C6:6 G5:4 C6:12", wave:'square', vol:.15 },
+    { mel:"C3:4 C3:4 G3:4 C4:4 G3:4 C4:8", wave:'triangle', vol:.16 }
+  ], drums:"x.x.x.xxo......." }
+};
+
+/* =========================== 8. EFEKTLER =========================== */
+const FX = {
+  parts:[], pops:[], shake:0, shakeT:0, flash:0, flashCol:'#ffffff', freeze:0,
+  burst(x, y, n, col, spd, life, grav){
+    for (let i = 0; i < n; i++){
+      const a = Math.random() * 6.283, s = (spd || 40) * (.4 + Math.random() * .8);
+      this.parts.push({ x:x, y:y, vx:Math.cos(a) * s, vy:Math.sin(a) * s - 12,
+        g:grav == null ? 190 : grav, l:life || .6, t:0, c:col || '#ffd23f', sz:1 + (Math.random() * 2 | 0) });
+    }
+  },
+  stars(x, y, n){
+    for (let i = 0; i < (n || 6); i++){
+      const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, s = 40 + Math.random() * 50;
+      this.parts.push({ x:x, y:y, vx:Math.cos(a) * s, vy:Math.sin(a) * s, g:120, l:.7, t:0,
+        c:['#ffd23f','#ffffff','#4fe6e0'][i % 3], sz:2, star:true });
+    }
+  },
+  smoke(x, y, n, col){
+    for (let i = 0; i < (n || 5); i++)
+      this.parts.push({ x:x + (Math.random() - .5) * 8, y:y, vx:(Math.random() - .5) * 18, vy:-16 - Math.random() * 18,
+        g:-8, l:.8, t:0, c:col || '#c9d2e0', sz:2 + (Math.random() * 2 | 0) });
+  },
+  pop(s, x, y, col, big){ this.pops.push({ x:x, y:y, s:s, c:col || '#ffd23f', t:0, l:big ? 1.1 : .8, big:!!big }); },
+  quake(p, t){ this.shake = Math.max(this.shake, p); this.shakeT = Math.max(this.shakeT, t || .35); },
+  blink(col, p){ this.flash = p == null ? .8 : p; this.flashCol = col || '#ffffff'; },
+  hold(t){ this.freeze = Math.max(this.freeze, t); },
+  update(dt){
+    for (let i = this.parts.length - 1; i >= 0; i--){
+      const p = this.parts[i]; p.t += dt;
+      if (p.t >= p.l){ this.parts.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt;
+    }
+    for (let i = this.pops.length - 1; i >= 0; i--){
+      const p = this.pops[i]; p.t += dt;
+      if (p.t >= p.l) this.pops.splice(i, 1); else p.y -= dt * (p.big ? 14 : 22);
+    }
+    if (this.shakeT > 0){ this.shakeT -= dt; if (this.shakeT <= 0) this.shake = 0; }
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.6);
+  },
+  drawWorld(g, cam){
+    this.parts.forEach(p => {
+      const a = 1 - p.t / p.l;
+      g.globalAlpha = Math.max(0, Math.min(1, a * 1.4)); g.fillStyle = p.c;
+      const x = Math.round(p.x - cam), y = Math.round(p.y);
+      if (p.star){ g.fillRect(x - 1, y, 3, 1); g.fillRect(x, y - 1, 1, 3); }
+      else g.fillRect(x, y, p.sz, p.sz);
+    });
+    g.globalAlpha = 1;
+  },
+  drawUI(cam){
+    this.pops.forEach(p => {
+      const a = p.t > p.l - .25 ? (p.l - p.t) / .25 : 1;
+      ux.globalAlpha = Math.max(0, a);
+      txt(p.s, p.x - cam, p.y, { size:p.big ? 11 : 8, col:p.c, align:'center' });
+      ux.globalAlpha = 1;
+    });
+  },
+  reset(){ this.parts.length = 0; this.pops.length = 0; this.shake = 0; this.flash = 0; }
+};
+
+/* =========================== 9. DİYALOG =========================== */
+const NAMES = { mario:'MARIO', luigi:'LUIGI', toad:'TOAD', peach:'PRENSES PEACH',
+  bowser:'BOWSER', cackletta:'ELÇİ', cackletta2:'CACKLETTA', fawful:'FAWFUL',
+  goomba:'GOOMBA', narrator:'', toadsworth:'TOADSWORTH' };
+const NAMECOL = { mario:'#ff8a7d', luigi:'#8ff0a0', toad:'#ffffff', peach:'#ffb8dc',
+  bowser:'#ffd23f', cackletta:'#d9a6ff', cackletta2:'#d9a6ff', fawful:'#8fe05a', goomba:'#d9a06a', narrator:'#cfc6ef' };
+
+const DLG = {
+  on:false, q:[], i:0, chars:0, cb:null, line:null, t:0,
+  open(lines, cb){
+    this.q = lines.slice(); this.i = 0; this.chars = 0; this.on = true; this.cb = cb || null;
+    this.line = this.q[0]; this.t = 0;
+  },
+  close(){ this.on = false; this.line = null; IN.eat(); const c = this.cb; this.cb = null; if (c) c(); },
+  full(){ return this.line && this.chars >= this.line.text.length; },
+  advance(){
+    if (!this.on) return;
+    if (!this.full()){ this.chars = this.line.text.length; return; }
+    this.i++;
+    if (this.i >= this.q.length){ this.close(); return; }
+    this.line = this.q[this.i]; this.chars = 0; AUD.sfx('blip');
+  },
+  update(dt){
+    if (!this.on) return;
+    this.t += dt;
+    if (!this.full()){
+      const before = this.chars | 0;
+      this.chars = Math.min(this.line.text.length, this.chars + dt * (this.line.fast ? 90 : 46));
+      if ((this.chars | 0) !== before && (this.chars | 0) % 3 === 0) AUD.sfx('talk');
+    }
+    if (IN.hit('a') || IN.hit('b')) this.advance();
+  },
+  drawWorld(g){
+    if (!this.on) return;
+    const bx = 8, bw = VW - 16, bh = 42, by = VH - bh - 3;
+    frameBox(g, bx, by, bw, bh, '#1b1436', '#0d0a1c', '#5a4aa8');
+    rect(g, bx + 3, by + 3, bw - 6, 1, '#3b2f6b');
+    const who = this.line.who;
+    if (who && CH[who === 'cackletta2' ? 'cackletta' : who]){
+      const key = who === 'cackletta2' ? 'cackletta' : who;
+      const c = CH[key];
+      g.save();
+      g.beginPath(); g.rect(bx + 4, by + 4, 30, bh - 8); g.clip();
+      rect(g, bx + 4, by + 4, 30, bh - 8, '#2a1f52');
+      const anim = c.anims.talk ? 'talk' : 'idle';
+      drawChar(g, key, anim, (this.t * 6) | 0, bx + 19, by + 4 + c.h - 1, 1);
+      g.restore();
+      rect(g, bx + 4, by + 4, 30, 1, '#5a4aa8'); rect(g, bx + 4, by + bh - 5, 30, 1, '#5a4aa8');
+      rect(g, bx + 34, by + 4, 1, bh - 8, '#5a4aa8');
+    }
+    if (this.full() && ((this.t * 3) | 0) % 2 === 0){
+      const ax = bx + bw - 12, ay = by + bh - 11;
+      rect(g, ax, ay, 5, 1, '#ffd23f'); rect(g, ax + 1, ay + 1, 3, 1, '#ffd23f'); rect(g, ax + 2, ay + 2, 1, 1, '#ffd23f');
+    }
+  },
+  drawUI(){
+    if (!this.on) return;
+    const bx = 8, bw = VW - 16, bh = 42, by = VH - bh - 3;
+    const tx = bx + (this.line.who && CH[this.line.who === 'cackletta2' ? 'cackletta' : this.line.who] ? 40 : 8);
+    const name = NAMES[this.line.who] != null ? NAMES[this.line.who] : (this.line.who || '');
+    let ty = by + 4;
+    if (name){ txt(name, tx, ty, { size:7, col:NAMECOL[this.line.who] || '#ffd23f' }); ty += 8; }
+    const lines = wrap(this.line.text, bw - (tx - bx) - 12, 8);
+    let acc = 0;
+    for (let i = 0; i < lines.length && i < 3; i++){
+      const piece = lines[i];
+      const vis = Math.max(0, Math.min(piece.length, (this.chars | 0) - acc));
+      txt(piece.substr(0, vis), tx, ty + i * 9, { size:8, col:'#fdf3d6' });
+      acc += piece.length + 1;
+    }
+  }
+};
+
+/* =========================== 10. AKTÖRLER =========================== */
+function Actor(key, x, y, o){
+  o = o || {};
+  this.key = key; this.x = x; this.y = y; this.dir = o.dir || 1;
+  this.anim = o.anim || 'idle'; this.aT = Math.random() * 2; this.z = 0; this.vz = 0;
+  this.vis = o.vis !== false; this.alpha = 1; this.hop = 0; this.bob = o.bob || 0;
+  this.tag = o.tag || key; this.flip = 0; this.shadow = o.shadow !== false;
+}
+Actor.prototype.setAnim = function(a){ if (this.anim !== a){ this.anim = a; this.aT = 0; } };
+Actor.prototype.jump = function(p){ if (this.z <= 0){ this.vz = p || 150; AUD.sfx('jump'); } };
+Actor.prototype.update = function(dt){
+  this.aT += dt;
+  if (this.vz !== 0 || this.z > 0){
+    this.z += this.vz * dt; this.vz -= 520 * dt;
+    if (this.z <= 0){ this.z = 0; this.vz = 0; if (this.anim === 'jump'){ this.setAnim('idle'); AUD.sfx('land'); } }
+  }
+};
+Actor.prototype.frame = function(){
+  const c = CH[this.key], fps = (c.fps && c.fps[this.anim]) || 6;
+  return (this.aT * fps) | 0;
+};
+Actor.prototype.draw = function(g, cam){
+  if (!this.vis) return;
+  const c = CH[this.key];
+  const yb = this.y + (this.bob ? Math.sin(this.aT * 3) * this.bob : 0);
+  if (this.shadow) shadow(g, this.x - cam, this.y + 1, c.w * .34, this.z > 0 ? .18 : .3);
+  drawChar(g, this.key, this.anim, this.frame(), this.x - cam, yb - this.z, this.dir, this.alpha);
+};
+
+/* =========================== 11. DEKOR ÇİZİMİ =========================== */
+const SC = {
+  sky(g, a, b){
+    const grd = g.createLinearGradient(0, 0, 0, VH); grd.addColorStop(0, a); grd.addColorStop(1, b);
+    g.fillStyle = grd; g.fillRect(0, 0, VW, VH);
+  },
+  cloud(g, x, y, s){
+    const c = '#ffffff';
+    rect(g, x, y + 3 * s, 20 * s, 5 * s, c); rect(g, x + 4 * s, y, 12 * s, 5 * s, c);
+    rect(g, x + 13 * s, y + 1 * s, 9 * s, 4 * s, c); rect(g, x - 2 * s, y + 5 * s, 24 * s, 3 * s, c);
+    rect(g, x + 2 * s, y + 8 * s, 18 * s, 1 * s, '#dfe6f5');
+  },
+  hills(g, cam, par, base, col, light, h, step){
+    h = h || 26; step = step || 148;
+    const a = step * .42;
+    const o = ((cam * par) % step + step) % step;
+    for (let i = -1; i <= Math.ceil(VW / step) + 1; i++){
+      const hx = i * step - o + step / 2;
+      for (let k = 0; k <= h; k++){
+        const dy = (h - k) / h;
+        const w = Math.round(Math.sqrt(Math.max(0, 1 - dy * dy)) * a);
+        if (w <= 0) continue;
+        rect(g, hx - w, base - h + k, w * 2, 1, k < 3 ? light : col);
+      }
+    }
+  },
+  ground(g, cam, y, top, body, dark, tuft){
+    rect(g, 0, y, VW, VH - y, body);
+    rect(g, 0, y, VW, 3, top);
+    rect(g, 0, y + 3, VW, 1, dark);
+    const lite = '#9a6030';
+    for (let x = -(cam % 16); x < VW; x += 16){
+      rect(g, x, y + 7 + ((x + cam) % 32 === 0 ? 3 : 0), 3, 2, dark);
+      rect(g, x + 9, y + 13, 4, 2, dark);
+      rect(g, x + 4, y + 20, 2, 2, lite); rect(g, x + 12, y + 28, 3, 2, dark);
+      rect(g, x + 2, y + 34, 2, 2, lite);
+      if (tuft !== false){ rect(g, x + 5, y - 2, 1, 2, top); rect(g, x + 6, y - 3, 1, 3, top); rect(g, x + 7, y - 2, 1, 2, top); }
+    }
+  },
+  /* piksel daire (yaprak kümeleri için) */
+  disc(g, cx, cy, r, col, cut){
+    for (let k = -r; k <= r; k++){
+      if (cut != null && cy + k > cut) break;
+      const w = Math.round(Math.sqrt(Math.max(0, r * r - k * k)));
+      if (w > 0) rect(g, cx - w, cy + k, w * 2, 1, col);
+    }
+  },
+  bush(g, x, y, s){
+    const d = '#0b4a19', c = '#1f8a3a', l = '#46c25c';
+    this.disc(g, x + 6, y - 5, 7, d, y - 1); this.disc(g, x + 18, y - 5, 7, d, y - 1);
+    this.disc(g, x + 12, y - 8, 9, d, y - 1);
+    this.disc(g, x + 6, y - 5, 5, c, y - 2); this.disc(g, x + 18, y - 5, 5, c, y - 2);
+    this.disc(g, x + 12, y - 8, 7, c, y - 2);
+    rect(g, x + 9, y - 14, 5, 2, l); rect(g, x + 3, y - 8, 3, 1, l);
+    rect(g, x - 2, y - 1, 28, 1, '#0d4515');
+  },
+  tree(g, x, y){
+    const d = '#0b4a19', c = '#1f8a3a', l = '#46c25c';
+    rect(g, x + 4, y - 22, 10, 22, '#4e2d10'); rect(g, x + 6, y - 21, 5, 21, '#8a5620');
+    rect(g, x + 1, y - 2, 16, 2, '#3a1f0a');
+    rect(g, x + 2, y - 16, 3, 2, '#4e2d10'); rect(g, x + 13, y - 19, 3, 2, '#4e2d10');
+    const cx = x + 9, cy = y - 36;
+    this.disc(g, cx - 9, cy + 6, 11, d); this.disc(g, cx + 9, cy + 6, 11, d); this.disc(g, cx, cy, 15, d);
+    this.disc(g, cx - 9, cy + 6, 9, c); this.disc(g, cx + 9, cy + 6, 9, c); this.disc(g, cx, cy, 13, c);
+    this.disc(g, cx - 3, cy - 5, 5, l); rect(g, cx - 12, cy + 3, 4, 2, l);
+  },
+  pipe(g, x, y, h){
+    rect(g, x - 2, y - h - 6, 24, 7, '#1d7e34'); rect(g, x, y - h + 1, 20, h, '#2f9e42');
+    rect(g, x + 2, y - h + 1, 4, h, '#5fd977'); rect(g, x, y - h - 5, 20, 4, '#3cb955');
+    rect(g, x - 2, y - h - 6, 24, 1, '#0f5722'); rect(g, x + 16, y - h + 1, 3, h, '#1d7e34');
+  },
+  block(g, x, y, kind){
+    if (kind === 'q'){
+      rect(g, x, y, 16, 16, '#c9860f'); rect(g, x + 1, y + 1, 14, 14, '#ffd23f');
+      rect(g, x + 2, y + 2, 12, 1, '#ffe89a'); rect(g, x + 2, y + 13, 12, 1, '#c9860f');
+      const p = '#7c4a1e';
+      rect(g, x + 5, y + 4, 6, 2, p); rect(g, x + 9, y + 5, 2, 3, p); rect(g, x + 7, y + 7, 3, 2, p);
+      rect(g, x + 7, y + 11, 2, 2, p);
+      rect(g, x + 1, y + 1, 1, 1, '#ffe89a'); rect(g, x + 14, y + 14, 1, 1, '#c9860f');
+    } else if (kind === 'used'){
+      rect(g, x, y, 16, 16, '#6b3a16'); rect(g, x + 1, y + 1, 14, 14, '#9a6030'); rect(g, x + 2, y + 2, 12, 12, '#7c4a1e');
+    } else {
+      rect(g, x, y, 16, 16, '#6b3a16'); rect(g, x + 1, y + 1, 14, 14, '#b06a2a');
+      rect(g, x + 1, y + 5, 14, 1, '#6b3a16'); rect(g, x + 1, y + 10, 14, 1, '#6b3a16');
+      rect(g, x + 5, y + 1, 1, 4, '#6b3a16'); rect(g, x + 10, y + 6, 1, 4, '#6b3a16'); rect(g, x + 5, y + 11, 1, 4, '#6b3a16');
+    }
+  },
+  coin(g, x, y){
+    rect(g, x + 1, y, 4, 8, '#ffd23f'); rect(g, x, y + 1, 6, 6, '#ffd23f');
+    rect(g, x + 2, y + 2, 2, 4, '#c9860f'); rect(g, x + 1, y + 1, 1, 2, '#ffe89a');
+  },
+  house(g, x, y){
+    /* Mario & Luigi'nin mantar evi */
+    rect(g, x + 4, y - 30, 44, 30, '#e8d6a8'); rect(g, x + 4, y - 30, 44, 2, '#b09a6a');
+    rect(g, x + 4, y - 3, 44, 3, '#b09a6a');
+    rect(g, x - 4, y - 46, 60, 16, '#e5392b'); rect(g, x, y - 52, 52, 8, '#e5392b');
+    rect(g, x + 6, y - 56, 40, 6, '#e5392b'); rect(g, x - 4, y - 32, 60, 3, '#a81f18');
+    [[8,-50],[26,-54],[40,-48],[16,-38],[34,-38]].forEach(p => {
+      rect(g, x + p[0], y + p[1], 8, 6, '#fdf3d6'); rect(g, x + p[0] + 1, y + p[1] - 1, 6, 8, '#fdf3d6');
+    });
+    rect(g, x + 20, y - 18, 13, 18, '#7c4a1e'); rect(g, x + 21, y - 17, 11, 17, '#9a6030');
+    rect(g, x + 26, y - 17, 1, 17, '#7c4a1e'); rect(g, x + 29, y - 9, 2, 2, '#ffd23f');
+    rect(g, x + 9, y - 25, 10, 10, '#4fe6e0'); rect(g, x + 8, y - 26, 12, 1, '#b09a6a');
+    rect(g, x + 8, y - 15, 12, 1, '#b09a6a'); rect(g, x + 13, y - 25, 1, 10, '#b09a6a');
+    rect(g, x + 36, y - 25, 10, 10, '#4fe6e0'); rect(g, x + 35, y - 26, 12, 1, '#b09a6a');
+    rect(g, x + 35, y - 15, 12, 1, '#b09a6a'); rect(g, x + 40, y - 25, 1, 10, '#b09a6a');
+    rect(g, x + 22, y - 14, 4, 4, '#ffd23f'); rect(g, x + 23, y - 13, 2, 2, '#c9860f');
+  },
+  sign(g, x, y, arrow){
+    rect(g, x + 4, y - 10, 3, 10, '#7c4a1e');
+    rect(g, x - 4, y - 22, 20, 12, '#b09a6a'); rect(g, x - 3, y - 21, 18, 10, '#e8d6a8');
+    rect(g, x - 1, y - 18, 10, 2, '#7c4a1e');
+    if (arrow){ rect(g, x + 9, y - 19, 2, 4, '#7c4a1e'); rect(g, x + 11, y - 18, 1, 2, '#7c4a1e'); }
+  },
+  fence(g, x, y, n){
+    for (let i = 0; i < n; i++){ rect(g, x + i * 12, y - 12, 3, 12, '#e8d6a8'); rect(g, x + i * 12, y - 12, 3, 1, '#fdf3d6'); }
+    rect(g, x, y - 10, n * 12, 2, '#e8d6a8'); rect(g, x, y - 5, n * 12, 2, '#e8d6a8');
+  },
+  laundry(g, x, y){
+    rect(g, x, y - 34, 1, 34, '#7c4a1e'); rect(g, x + 70, y - 34, 1, 34, '#7c4a1e');
+    for (let i = 0; i < 70; i++) rect(g, x + i, y - 33 + Math.round(Math.sin(i / 70 * Math.PI) * 3), 1, 1, '#c9d2e0');
+    const hang = (hx, col, w, h) => {
+      const dy = Math.round(Math.sin(hx / 70 * Math.PI) * 3);
+      rect(g, x + hx, y - 33 + dy, w, h, col); rect(g, x + hx, y - 33 + dy, w, 1, '#17131f');
+    };
+    hang(10, '#e5392b', 12, 11); hang(28, '#35b84a', 12, 11); hang(46, '#3452d6', 13, 12);
+  },
+  castleExt(g, x, y){
+    const wall = '#e8d6a8', dark = '#b09a6a', roof = '#e5392b', roof2 = '#a81f18';
+    rect(g, x, y - 58, 96, 58, wall); rect(g, x, y - 58, 96, 2, dark);
+    rect(g, x - 14, y - 74, 22, 74, wall); rect(g, x + 88, y - 74, 22, 74, wall);
+    rect(g, x - 14, y - 74, 22, 2, dark); rect(g, x + 88, y - 74, 22, 2, dark);
+    const tower = (tx, th) => {
+      rect(g, tx, y - th, 22, th, wall); rect(g, tx, y - th, 22, 2, dark);
+      rect(g, tx - 3, y - th - 6, 28, 6, roof); rect(g, tx + 2, y - th - 13, 18, 7, roof);
+      rect(g, tx + 8, y - th - 18, 6, 5, roof2); rect(g, tx + 10, y - th - 24, 2, 6, '#fdf3d6');
+      rect(g, tx + 12, y - th - 24, 8, 5, '#4fe6e0');
+      rect(g, tx + 7, y - th + 10, 8, 10, '#3f7de0'); rect(g, tx + 8, y - th + 11, 6, 8, '#4fe6e0');
+    };
+    tower(x - 14, 74); tower(x + 88, 74);
+    rect(g, x + 22, y - 82, 52, 24, wall); rect(g, x + 22, y - 82, 52, 2, dark);
+    rect(g, x + 18, y - 90, 60, 8, roof); rect(g, x + 26, y - 98, 44, 8, roof);
+    rect(g, x + 38, y - 106, 20, 8, roof2); rect(g, x + 46, y - 116, 4, 10, '#c9d2e0');
+    rect(g, x + 50, y - 116, 12, 7, '#e5392b');
+    rect(g, x + 36, y - 76, 24, 16, '#ffd23f'); rect(g, x + 38, y - 74, 20, 12, '#ff8fc0');
+    rect(g, x + 44, y - 71, 8, 7, '#fdf3d6'); rect(g, x + 46, y - 69, 4, 4, '#ff8fc0');
+    rect(g, x + 38, y - 40, 20, 40, '#7c4a1e'); rect(g, x + 39, y - 38, 18, 38, '#9a6030');
+    rect(g, x + 47, y - 38, 2, 38, '#7c4a1e'); rect(g, x + 38, y - 44, 20, 5, '#b09a6a');
+    [12, 66].forEach(wx2 => { rect(g, x + wx2, y - 46, 12, 14, '#3f7de0'); rect(g, x + wx2 + 1, y - 45, 10, 12, '#4fe6e0');
+      rect(g, x + wx2 + 5, y - 45, 2, 12, '#3f7de0'); });
+    for (let i = 0; i < 6; i++) rect(g, x + 4 + i * 16, y - 60, 8, 4, wall);
+  },
+  hall(g, cam, w, noCarpet){
+    /* taht salonu */
+    rect(g, 0, 0, VW, VH, '#2a1f52');
+    for (let i = 0; i < 40; i++){
+      const px = -(cam * .6 % 64) + i * 64;
+      rect(g, px, 0, 34, 118, '#3b2f6b'); rect(g, px, 0, 2, 118, '#5a4aa8');
+      rect(g, px + 8, 22, 18, 40, '#1b1436'); rect(g, px + 9, 24, 16, 36, '#4fe6e0');
+      rect(g, px + 9, 24, 16, 12, '#ff8fc0'); rect(g, px + 16, 24, 2, 36, '#1b1436');
+      rect(g, px + 9, 40, 16, 2, '#1b1436');
+    }
+    const fy = 118;
+    rect(g, 0, fy, VW, VH - fy, '#e8d6a8');
+    for (let i = 0; i < 24; i++){
+      const px = -(cam % 36) + i * 36 - 36;
+      rect(g, px, fy, 18, 8, '#b09a6a'); rect(g, px + 18, fy + 8, 18, 9, '#b09a6a');
+      rect(g, px, fy + 17, 18, 10, '#b09a6a'); rect(g, px + 18, fy + 27, 18, 11, '#b09a6a');
+      rect(g, px, fy + 38, 18, 12, '#b09a6a'); rect(g, px + 18, fy + 50, 18, 13, '#b09a6a');
+    }
+    rect(g, 0, fy, VW, 2, '#7c4a1e');
+    for (let i = 0; i < 20; i++){
+      const px = -(cam * .6 % 64) + i * 64 + 8;
+      rect(g, px, 66, 14, 26, '#e5392b'); rect(g, px, 66, 14, 2, '#ffd23f');
+      rect(g, px + 5, 74, 4, 4, '#ffd23f'); rect(g, px, 92, 4, 4, '#e5392b'); rect(g, px + 10, 92, 4, 4, '#e5392b');
+      const fl = ((perf / 120 + i) | 0) % 2;
+      rect(g, px + 24, 74, 3, 12, '#7c4a1e');
+      rect(g, px + 22, 68 - fl, 7, 7, '#ff8a3d'); rect(g, px + 24, 66 - fl, 3, 5, '#ffd23f');
+    }
+    rect(g, 0, fy + 14, VW, VH - fy - 14, 'rgba(0,0,0,0)');
+    /* kırmızı halı */
+    if (noCarpet) return;
+    const cx = 436 - cam;
+    rect(g, cx - 40, fy, 80, VH - fy, '#a81f18'); rect(g, cx - 36, fy, 72, VH - fy, '#e5392b');
+    rect(g, cx - 40, fy, 2, VH - fy, '#ffd23f'); rect(g, cx + 38, fy, 2, VH - fy, '#ffd23f');
+  },
+  throne(g, x, y){
+    rect(g, x - 2, y - 46, 32, 46, '#c9860f'); rect(g, x, y - 44, 28, 44, '#ffd23f');
+    rect(g, x + 2, y - 40, 24, 30, '#ff8fc0'); rect(g, x + 2, y - 40, 24, 3, '#c7548c');
+    rect(g, x + 6, y - 56, 4, 12, '#ffd23f'); rect(g, x + 18, y - 56, 4, 12, '#ffd23f');
+    rect(g, x + 10, y - 52, 8, 8, '#ffd23f'); rect(g, x + 12, y - 50, 4, 4, '#3f7de0');
+    rect(g, x - 4, y - 10, 36, 10, '#c9860f'); rect(g, x - 2, y - 8, 32, 8, '#ffd23f');
+  },
+  roomIn(g, cam, w){
+    /* ev içi */
+    rect(g, 0, 0, VW, VH, '#c9860f');
+    rect(g, 0, 0, VW, 126, '#e8d6a8');
+    for (let i = 0; i < 30; i++){ const px = -(cam % 24) + i * 24; rect(g, px, 0, 1, 126, '#d8c497'); }
+    rect(g, 0, 120, VW, 6, '#b09a6a');
+    rect(g, 0, 126, VW, VH - 126, '#9a6030');
+    for (let i = 0; i < 30; i++){
+      const px = -(cam % 26) + i * 26; rect(g, px, 126, 24, VH - 126, '#7c4a1e');
+      rect(g, px, 130, 24, 1, '#5e3610'); rect(g, px, 142, 24, 1, '#5e3610');
+    }
+    rect(g, 0, 126, VW, 1, '#5e3610');
+  },
+  windowIn(g, x, y){
+    rect(g, x, y, 34, 26, '#7c4a1e'); rect(g, x + 2, y + 2, 30, 22, '#4fe6e0');
+    rect(g, x + 2, y + 2, 30, 8, '#8ff2ee'); rect(g, x + 16, y + 2, 2, 22, '#7c4a1e');
+    rect(g, x + 2, y + 12, 30, 2, '#7c4a1e');
+  },
+  dresser(g, x, y){
+    rect(g, x, y - 26, 30, 26, '#7c4a1e'); rect(g, x + 1, y - 25, 28, 24, '#9a6030');
+    rect(g, x + 3, y - 22, 24, 8, '#7c4a1e'); rect(g, x + 3, y - 12, 24, 8, '#7c4a1e');
+    rect(g, x + 13, y - 19, 4, 2, '#ffd23f'); rect(g, x + 13, y - 9, 4, 2, '#ffd23f');
+    rect(g, x - 1, y - 30, 32, 4, '#b09a6a');
+    rect(g, x + 6, y - 38, 6, 8, '#35b84a'); rect(g, x + 5, y - 40, 8, 3, '#2f9e42');
+    rect(g, x + 18, y - 36, 8, 6, '#3452d6');
+  },
+  bed(g, x, y, col){
+    rect(g, x, y - 16, 46, 16, '#7c4a1e'); rect(g, x + 2, y - 20, 42, 6, '#fdf3d6');
+    rect(g, x + 2, y - 14, 42, 10, col); rect(g, x + 2, y - 14, 42, 2, '#ffffff');
+    rect(g, x + 4, y - 24, 14, 6, '#ffffff'); rect(g, x + 4, y - 24, 14, 1, '#c9d2e0');
+    rect(g, x - 2, y - 28, 5, 28, '#9a6030'); rect(g, x + 43, y - 24, 5, 24, '#9a6030');
+  },
+  doorIn(g, x, y, col){
+    rect(g, x, y - 34, 22, 34, '#7c4a1e'); rect(g, x + 1, y - 32, 20, 32, col || '#9a6030');
+    rect(g, x + 17, y - 18, 3, 3, '#ffd23f');
+    rect(g, x + 4, y - 29, 14, 10, '#7c4a1e'); rect(g, x + 5, y - 28, 12, 8, col === '#4fe6e0' ? '#8ff2ee' : '#b06a2a');
+  },
+  cruiser(g, x, y){
+    /* Koopa Cruiser */
+    rect(g, x + 10, y, 86, 22, '#7c4a1e'); rect(g, x + 12, y + 2, 82, 18, '#9a6030');
+    rect(g, x, y + 6, 14, 12, '#7c4a1e'); rect(g, x + 96, y + 4, 16, 14, '#7c4a1e');
+    rect(g, x + 10, y + 20, 86, 4, '#5e3610');
+    rect(g, x + 18, y + 6, 10, 8, '#4fe6e0'); rect(g, x + 34, y + 6, 10, 8, '#4fe6e0');
+    rect(g, x + 50, y + 6, 10, 8, '#4fe6e0'); rect(g, x + 66, y + 6, 10, 8, '#4fe6e0');
+    rect(g, x + 40, y - 52, 4, 52, '#5e3610');
+    rect(g, x + 44, y - 52, 34, 24, '#e5392b'); rect(g, x + 46, y - 50, 30, 20, '#ffd23f');
+    rect(g, x + 52, y - 46, 6, 6, '#17131f'); rect(g, x + 64, y - 46, 6, 6, '#17131f');
+    rect(g, x + 54, y - 38, 14, 4, '#17131f'); rect(g, x + 56, y - 37, 3, 3, '#ffffff');
+    rect(g, x + 63, y - 37, 3, 3, '#ffffff');
+    rect(g, x + 96, y - 8, 4, 14, '#5e3610'); rect(g, x + 88, y - 14, 16, 8, '#35b84a');
+  },
+  airship(g, x, y){
+    rect(g, x, y, 40, 10, '#c9d2e0'); rect(g, x + 2, y + 2, 36, 6, '#e8d6a8');
+    rect(g, x + 8, y - 8, 22, 9, '#8a45b0'); rect(g, x + 11, y - 6, 16, 5, '#4fe6e0');
+    rect(g, x + 34, y - 6, 8, 8, '#8a45b0'); rect(g, x - 6, y + 2, 8, 5, '#8a45b0');
+  }
+};
+
+/* =========================== 12. ODALAR =========================== */
+const GAME = {
+  scene:'title', flags:Object.create(null), fade:0, fadeTo:0, fadeSpd:2.4,
+  coins:0, chapter:1, paused:false, ended:false
+};
+
+const ROOMS = {
+  /* ---- Mario & Luigi'nin evinin önü ---- */
+  house_out(){ return {
+    key:'house_out', w:560, gy:138, music:'home', name:'MANTAR OVASI — KARDEŞLERİN EVİ',
+    clouds:[[30,20,1],[100,50,.65],[140,34,.8],[250,14,1.2],[320,46,.7],[380,30,.9],[470,22,1],[520,52,.6]],
+    bg(g, cam){
+      SC.sky(g, '#6fc6ff', '#bdeaff');
+      this.clouds.forEach(c => SC.cloud(g, c[0] - cam * .25, c[1], c[2]));
+      SC.hills(g, cam, .18, 138, '#2a8b3c', '#3aa64d', 30, 210);
+      SC.hills(g, cam, .45, 140, '#3cb955', '#5fd977', 20, 132);
+      SC.ground(g, cam, this.gy, '#3cb955', '#7c4a1e', '#5e3610');
+    },
+    mid(g, cam){
+      SC.laundry(g, 46 - cam, this.gy);
+      SC.house(g, 176 - cam, this.gy);
+      SC.tree(g, 132 - cam, this.gy); SC.tree(g, 300 - cam, this.gy);
+      SC.bush(g, 350 - cam, this.gy, 1); SC.bush(g, 430 - cam, this.gy, 1);
+      SC.sign(g, 492 - cam, this.gy, true);
+      SC.pipe(g, 396 - cam, this.gy, 14);
+    },
+    exits:[
+      { x:203, w:24, to:'house_in', px:64, dir:1, label:'EVE GİR', up:true },
+      { x:548, w:24, to:'road', px:40, dir:1, label:'MANTAR YOLU', need:'luigiJoined' }
+    ]
+  };},
+
+  /* ---- ev içi ---- */
+  house_in(){ return {
+    key:'house_in', w:320, gy:138, music:'home', name:'KARDEŞLERİN EVİ', indoor:true,
+    bg(g, cam){ SC.roomIn(g, cam, this.w); },
+    mid(g, cam){
+      SC.windowIn(g, 60 - cam, 44);
+      SC.bed(g, 26 - cam, 140, '#e5392b'); SC.bed(g, 104 - cam, 140, '#35b84a');
+      SC.dresser(g, 176 - cam, 140);
+      SC.doorIn(g, 236 - cam, 140, '#4fe6e0');
+      SC.doorIn(g, 6 - cam, 140, '#9a6030');
+      rect(g, 216 - cam, 108, 62, 2, '#7c4a1e');
+      rect(g, 140 - cam, 60, 26, 20, '#7c4a1e'); rect(g, 142 - cam, 62, 22, 16, '#ffd23f');
+      rect(g, 146 - cam, 66, 6, 8, '#e5392b'); rect(g, 154 - cam, 66, 6, 8, '#35b84a');
+    },
+    exits:[
+      { x:12, w:22, to:'house_out', px:250, dir:-1, label:'DIŞARI ÇIK', up:true }
+    ]
+  };},
+
+  /* ---- Mantar Yolu ---- */
+  road(){ return {
+    key:'road', w:1440, gy:138, music:'field', name:'MANTAR YOLU',
+    clouds:[[40,18,1],[150,44,.7],[210,30,.8],[300,58,.6],[380,12,1.1],[470,40,.75],[560,28,.9],
+            [660,52,.65],[760,20,1],[870,38,.8],[980,32,.85],[1080,56,.6],[1180,16,1.1],[1300,34,.9]],
+    blocks:[{x:296,y:96,k:'q',hit:false},{x:312,y:96,k:'b'},{x:328,y:96,k:'q',hit:false},
+            {x:800,y:88,k:'q',hit:false},{x:816,y:88,k:'b'}],
+    bg(g, cam){
+      SC.sky(g, '#5fbcff', '#c9ecff');
+      this.clouds.forEach(c => SC.cloud(g, c[0] - cam * .25, c[1], c[2]));
+      SC.hills(g, cam, .16, 138, '#26803a', '#35a94c', 34, 230);
+      SC.hills(g, cam, .4, 139, '#35a94c', '#56cf6c', 22, 150);
+      SC.hills(g, cam, .7, 141, '#2f9e42', '#4bc45f', 13, 96);
+      SC.ground(g, cam, this.gy, '#3cb955', '#7c4a1e', '#5e3610');
+    },
+    mid(g, cam){
+      SC.tree(g, 120 - cam, this.gy); SC.bush(g, 200 - cam, this.gy, 1);
+      SC.pipe(g, 420 - cam, this.gy, 20); SC.tree(g, 600 - cam, this.gy);
+      SC.bush(g, 700 - cam, this.gy, 1); SC.pipe(g, 980 - cam, this.gy, 14);
+      SC.tree(g, 1080 - cam, this.gy); SC.bush(g, 1160 - cam, this.gy, 1);
+      SC.fence(g, 1240 - cam, this.gy, 6);
+      SC.sign(g, 1340 - cam, this.gy, true);
+      this.blocks.forEach(b => SC.block(g, b.x - cam, b.y, b.hit ? 'used' : b.k));
+    },
+    exits:[ { x:1424, w:24, to:'castle_out', px:44, dir:1, label:'PEACH ŞATOSU' } ]
+  };},
+
+  /* ---- şatonun önü ---- */
+  castle_out(){ return {
+    key:'castle_out', w:520, gy:138, music:'castle', name:'PEACH ŞATOSU — BAHÇE',
+    clouds:[[60,16,1],[150,44,.7],[240,28,.9],[330,52,.65],[420,18,1.1],[480,40,.8]],
+    bg(g, cam){
+      SC.sky(g, '#57b4ff', '#cfeaff');
+      this.clouds.forEach(c => SC.cloud(g, c[0] - cam * .22, c[1], c[2]));
+      SC.hills(g, cam, .18, 138, '#26803a', '#35a94c', 32, 220);
+      SC.hills(g, cam, .4, 140, '#35a94c', '#56cf6c', 18, 140);
+      SC.castleExt(g, 186 - cam, this.gy);
+      SC.ground(g, cam, this.gy, '#3cb955', '#7c4a1e', '#5e3610');
+    },
+    mid(g, cam){
+      SC.bush(g, 60 - cam, this.gy, 1); SC.bush(g, 400 - cam, this.gy, 1);
+      SC.fence(g, 100 - cam, this.gy, 4); SC.fence(g, 340 - cam, this.gy, 4);
+      SC.tree(g, 30 - cam, this.gy); SC.tree(g, 470 - cam, this.gy);
+      rect(g, 220 - cam, 134, 42, 6, '#b09a6a'); rect(g, 222 - cam, 136, 38, 4, '#e8d6a8');
+    },
+    exits:[
+      { x:232, w:26, to:'castle_hall', px:56, dir:1, label:'ŞATOYA GİR', up:true },
+      { x:2, w:18, to:'road', px:1400, dir:-1, label:'MANTAR YOLU' }
+    ]
+  };},
+
+  /* ---- taht salonu ---- */
+  castle_hall(){ return {
+    key:'castle_hall', w:560, gy:140, music:'castle', name:'PEACH ŞATOSU — TAHT SALONU', indoor:true,
+    bg(g, cam){ SC.hall(g, cam, this.w); },
+    mid(g, cam){ SC.throne(g, 436 - cam, this.gy); },
+    exits:[]
+  };}
+};
+
+/* =========================== 13. SAHA (overworld) =========================== */
+const FIELD = {
+  room:null, cam:0, actors:[], party:[], trail:[], locked:false, banner:0, bannerTxt:'',
+  hint:null, hintT:0,
+  enter(name, px, dir){
+    this.room = ROOMS[name]();
+    this.cam = 0; this.actors = []; this.trail = [];
+    this.hint = null; this.inputLock = .35;
+    this.bannerTxt = this.room.name; this.banner = 2.6;
+    const gy = this.room.gy;
+    this.party.forEach((a, i) => {
+      a.x = px - i * 16 * (dir > 0 ? 1 : -1); a.y = gy; a.dir = dir; a.z = 0; a.vz = 0;
+      a.setAnim('idle'); this.actors.push(a);
+    });
+    if (this.room.setup) this.room.setup(this);
+    if (this.room.music) AUD.play(this.room.music);
+    this.updateCam(true);
+  },
+  add(a){ this.actors.push(a); return a; },
+  get(tag){ for (const a of this.actors) if (a.tag === tag) return a; return null; },
+  remove(tag){ const i = this.actors.findIndex(a => a.tag === tag); if (i >= 0) this.actors.splice(i, 1); },
+  lead(){ return this.party[0]; },
+  mate(){ return this.party[1]; },
+  updateCam(snap){
+    const l = this.lead(); if (!l) return;
+    let target = l.x - VW / 2;
+    target = Math.max(0, Math.min(this.room.w - VW, target));
+    this.cam = snap ? target : this.cam + (target - this.cam) * .14;
+  },
+  interactables(){
+    const out = [];
+    const r = this.room;
+    (r.exits || []).forEach(e => { if (!e.need || GAME.flags[e.need]) out.push({ x:e.x + e.w / 2, y:r.gy, label:e.label, exit:e }); });
+    this.actors.forEach(a => { if (a.talkable && a !== this.lead() && a !== this.mate()) out.push({ x:a.x, y:a.y, label:a.label || 'KONUŞ', actor:a }); });
+    return out;
+  },
+  nearest(){
+    const l = this.lead(); if (!l) return null;
+    let best = null, bd = 22;
+    this.interactables().forEach(o => { const d = Math.abs(o.x - l.x); if (d < bd){ bd = d; best = o; } });
+    return best;
+  },
+  update(dt){
+    const r = this.room; if (!r) return;
+    const l = this.lead(), m = this.mate();
+    if (this.banner > 0) this.banner -= dt;
+    if (this.inputLock > 0) this.inputLock -= dt;
+    if (!this.locked && l && !DLG.on){
+      const spd = 74;
+      let mv = 0;
+      if (IN.l) mv -= 1;
+      if (IN.r) mv += 1;
+      const near = this.inputLock > 0 ? null : this.nearest();
+      this.hint = near;
+      if (near && (IN.hit('a') || (near.exit && near.exit.up && IN.hit('u')))){
+        if (near.exit){ this.useExit(near.exit); return; }
+        if (near.actor && near.actor.onTalk){ AUD.sfx('blip'); near.actor.onTalk(); return; }
+      } else if (IN.hit('a')){
+        l.jump(182); l.setAnim('jump');
+      }
+      if (IN.hit('b') && m && m.z <= 0){ m.jump(178); m.setAnim('jump'); }
+      if (mv !== 0){
+        l.x += mv * spd * dt; l.dir = mv;
+        if (l.z <= 0) l.setAnim('walk');
+      } else if (l.z <= 0) l.setAnim('idle');
+      l.x = Math.max(10, Math.min(r.w - 10, l.x));
+      /* blok çarpması */
+      (r.blocks || []).forEach(b => {
+        if (l.z > 0 && l.vz > 0 && Math.abs(l.x - (b.x + 8)) < 12){
+          const headY = l.y - l.z - CH[l.key].h;
+          if (headY < b.y + 16 && headY > b.y + 2){
+            l.vz = -40;
+            if (!b.hit && b.k === 'q'){ b.hit = true; GAME.coins++; AUD.sfx('coin');
+              FX.pop('+1', b.x + 8, b.y - 6, '#ffd23f'); FX.burst(b.x + 8, b.y, 6, '#ffd23f', 40, .5); }
+            else AUD.sfx('land');
+          }
+        }
+      });
+      /* takipçi izi: yalnız lider yürürken kaydedilir, yoksa üst üste binerler */
+      if (mv !== 0){
+        this.trail.unshift({ x:l.x, dir:l.dir });
+        if (this.trail.length > 40) this.trail.pop();
+      }
+      if (m){
+        const t = this.trail.length >= 16 ? this.trail[15] : null;
+        if (t){
+          const dx = t.x - m.x;
+          m.x += dx * Math.min(1, dt * 9);
+          if (Math.abs(dx) > .6){ m.dir = dx > 0 ? 1 : -1; if (m.z <= 0) m.setAnim('walk'); }
+          else if (m.z <= 0) m.setAnim('idle');
+        }
+      }
+      /* tetikleyiciler */
+      (r.triggers || []).forEach(tg => {
+        if (tg.done) return;
+        if (l.x > tg.x && l.x < tg.x + tg.w){ tg.done = true; tg.run(); }
+      });
+    }
+    this.actors.forEach(a => a.update(dt));
+    this.updateCam(false);
+  },
+  useExit(e){
+    const self = this;
+    AUD.sfx('blip');
+    fadeOut(() => {
+      self.enter(e.to, e.px, e.dir);
+      fadeIn();
+      if (self.room.onEnter) self.room.onEnter();
+      const scr = ENTRY_SCRIPTS[e.to];
+      if (scr) scr();
+    });
+  },
+  drawWorld(g){
+    const r = this.room; if (!r) return;
+    const cam = Math.round(this.cam + (FX.shake ? (Math.random() - .5) * FX.shake * 2 : 0));
+    r.bg(g, cam);
+    if (r.mid) r.mid(g, cam);
+    drawProps(g, cam);
+    const list = this.actors.slice().sort((a, b) => (a.y - b.y) || (a.zi || 0) - (b.zi || 0));
+    list.forEach(a => a.draw(g, cam));
+    FX.drawWorld(g, cam);
+    if (r.fg) r.fg(g, cam);
+    /* etkileşim balonu */
+    if (this.hint && !this.locked && !DLG.on){
+      const hx = Math.round(this.hint.x - cam), hy = Math.round(this.hint.y - 46 + Math.sin(perf / 220) * 2);
+      rect(g, hx - 7, hy, 14, 12, '#17131f'); rect(g, hx - 6, hy + 1, 12, 10, '#ffd23f');
+      rect(g, hx - 1, hy + 10, 2, 2, '#17131f');
+    }
+    DLG.drawWorld(g);
+  },
+  drawUI(){
+    const cam = this.cam;
+    FX.drawUI(cam);
+    if (this.hint && !this.locked && !DLG.on){
+      txt('A', this.hint.x - cam, this.hint.y - 45, { size:8, col:'#17131f', align:'center', shadow:false });
+      txt(this.hint.label, this.hint.x - cam, this.hint.y - 58, { size:7, col:'#fdf3d6', align:'center' });
+    }
+    if (this.banner > 0){
+      const a = Math.min(1, this.banner / .5);
+      ux.globalAlpha = a;
+      txt(this.bannerTxt, VW / 2, 12, { size:9, col:'#ffd23f', align:'center' });
+      ux.globalAlpha = 1;
+    }
+    /* para/HUD */
+    txt('✦ ' + GAME.coins, VW - 10, 8, { size:8, col:'#ffd23f', align:'right' });
+    DLG.drawUI();
+  }
+};
+
+function fadeOut(cb){ GAME.fadeTo = 1; GAME._fadeCb = cb; }
+function fadeIn(){ GAME.fadeTo = 0; }
+
+/* =========================== 14. ARA SAHNE MOTORU =========================== */
+const CUT = {
+  on:false, list:null, i:0, cur:null, t:0, cb:null, sub:null,
+  tok:0,
+  play(list, cb){
+    this.list = list.slice(); this.i = 0; this.on = true; this.cb = cb || null;
+    this.tok++;
+    GAME.scene = 'cut'; FIELD.locked = true; this.next();
+  },
+  next(){
+    if (this.i >= this.list.length){ this.finish(); return; }
+    this.cur = this.list[this.i++]; this.t = 0; this.sub = null;
+    this.begin(this.cur);
+  },
+  finish(){
+    this.on = false; this.cur = null; FIELD.locked = false;
+    /* sahne komutla değiştiyse (final, savaş) üstüne yazma */
+    if (GAME.scene === 'cut') GAME.scene = 'field';
+    const c = this.cb; this.cb = null; if (c) c();
+  },
+  begin(c){
+    const A = t => FIELD.get(t);
+    if (c.say != null){ DLG.open([{ who:c.who, text:c.say, fast:c.fast }], () => this.next()); return; }
+    if (c.lines){ DLG.open(c.lines, () => this.next()); return; }
+    if (c.wait != null){ this.sub = { kind:'wait', d:c.wait }; return; }
+    if (c.walk){ const a = A(c.walk); if (!a){ this.next(); return; }
+      a.setAnim(c.anim || 'walk'); this.sub = { kind:'walk', a:a, to:c.to, spd:c.spd || 60, after:c.after || 'idle' }; return; }
+    if (c.hop){ const a = A(c.hop); if (a){ a.jump(c.p || 130); a.setAnim('jump'); } this.sub = { kind:'wait', d:c.d || .4 }; return; }
+    if (c.face){ const a = A(c.face); if (a) a.dir = c.dir; this.next(); return; }
+    if (c.anim){ const a = A(c.anim); if (a) a.setAnim(c.a); this.next(); return; }
+    if (c.set){ const a = A(c.set); if (a){ if (c.x != null) a.x = c.x; if (c.y != null) a.y = c.y;
+        if (c.dir != null) a.dir = c.dir; if (c.vis != null) a.vis = c.vis; if (c.a) a.setAnim(c.a);
+        if (c.alpha != null) a.alpha = c.alpha; } this.next(); return; }
+    if (c.spawn){ const s = c.spawn; const a = new Actor(s.key, s.x, s.y == null ? FIELD.room.gy : s.y,
+        { dir:s.dir || 1, anim:s.anim || 'idle', shadow:s.shadow }); a.tag = s.tag || s.key;
+      a.talkable = !!s.talkable; a.label = s.label; a.onTalk = s.onTalk; a.zi = s.zi || 0;
+      if (s.alpha != null) a.alpha = s.alpha;
+      FIELD.add(a); this.next(); return; }
+    if (c.kill){ FIELD.remove(c.kill); this.next(); return; }
+    if (c.party){ FIELD.party = c.party.map(t => A(t)).filter(Boolean); this.next(); return; }
+    if (c.cam != null){ this.sub = { kind:'cam', to:c.cam, spd:c.spd || 90 }; return; }
+    if (c.fade){ if (c.fade === 'out') fadeOut(null); else fadeIn(); this.sub = { kind:'fade', to:c.fade === 'out' ? 1 : 0 }; return; }
+    if (c.room){ FIELD.enter(c.room, c.px, c.dir || 1); this.next(); return; }
+    if (c.shake){ FX.quake(c.shake, c.d || .4); this.next(); return; }
+    if (c.flash){ FX.blink(c.flash === true ? '#ffffff' : c.flash, c.p); this.next(); return; }
+    if (c.sfx){ AUD.sfx(c.sfx); this.next(); return; }
+    if (c.music !== undefined){ if (c.music) AUD.play(c.music); else AUD.stop(); this.next(); return; }
+    if (c.fx){ FIELD_FX(c); this.next(); return; }
+    if (c.battle){ const self = this; startBattle(c.battle, () => { GAME.scene = 'cut'; self.next(); }); return; }
+    /* fn yeni bir ara sahne başlatabilir: başlatırsa sırayı ona bırak */
+    if (c.fn){ const tk = this.tok; c.fn(); if (this.tok === tk) this.next(); return; }
+    if (c.flag){ GAME.flags[c.flag] = true; this.next(); return; }
+    if (c.ctrl){ this.finish(); return; }
+    this.next();
+  },
+  update(dt){
+    if (!this.on) return;
+    const s = this.sub; this.t += dt;
+    if (!s) return;
+    if (s.kind === 'wait'){ if (this.t >= s.d) this.next(); return; }
+    if (s.kind === 'walk'){
+      const a = s.a, dx = s.to - a.x, dir = dx > 0 ? 1 : -1;
+      a.dir = dir; a.x += dir * s.spd * dt;
+      if ((dir > 0 && a.x >= s.to) || (dir < 0 && a.x <= s.to)){ a.x = s.to; a.setAnim(s.after); this.next(); }
+      return;
+    }
+    if (s.kind === 'cam'){
+      const dx = s.to - FIELD.cam, dir = dx > 0 ? 1 : -1;
+      FIELD.cam += dir * s.spd * dt;
+      if ((dir > 0 && FIELD.cam >= s.to) || (dir < 0 && FIELD.cam <= s.to)){ FIELD.cam = s.to; this.next(); }
+      return;
+    }
+    if (s.kind === 'fade'){ if (Math.abs(GAME.fade - s.to) < .02){ GAME.fade = s.to; this.next(); } return; }
+  }
+};
+function FIELD_FX(c){
+  const x = c.x, y = c.y;
+  if (c.fx === 'boom'){ FX.burst(x, y, 26, '#ff8a3d', 90, .8); FX.burst(x, y, 16, '#ffd23f', 60, .7);
+    FX.smoke(x, y, 8); FX.quake(4, .6); AUD.sfx('boom'); }
+  else if (c.fx === 'smoke') FX.smoke(x, y, c.n || 8, c.col);
+  else if (c.fx === 'stars') FX.stars(x, y, c.n || 8);
+  else if (c.fx === 'burst') FX.burst(x, y, c.n || 12, c.col || '#ffd23f', 70, .7);
+  else if (c.fx === 'gas'){ for (let i = 0; i < 26; i++) FX.parts.push({ x:x + (Math.random() - .5) * 40, y:y - Math.random() * 30,
+      vx:(Math.random() - .5) * 26, vy:-8 - Math.random() * 14, g:-4, l:1.6, t:0, c:i % 2 ? '#8fe05a' : '#4fe6e0', sz:2 }); }
+}
+
+/* =========================== 15. SAVAŞ =========================== */
+const PARTY = {
+  mario:{ key:'mario', name:'MARIO', hp:40, max:40, bp:10, maxbp:10, pow:13, def:2, btn:'a', hx:78 },
+  luigi:{ key:'luigi', name:'LUIGI', hp:36, max:36, bp:10, maxbp:10, pow:12, def:2, btn:'b', hx:48 },
+  items:{ mushroom:3 }, luigiIn:false
+};
+
+const ENEMIES = {
+  goomba:{ key:'goomba', name:'GOOMBA', hp:18, pow:6, def:0, xp:2, small:true,
+    moves:['charge'], back:'field', music:'battle' },
+  bowser:{ key:'bowser', name:'BOWSER', hp:200, pow:9, def:3, boss:true,
+    moves:['fire','claw','spin'], back:'hall', music:'boss' }
+};
+
+const BAT = {
+  on:false, cb:null, phase:'', pt:0, foes:[], order:[], turn:0, cur:null,
+  menu:0, menuList:[], target:0, act:null, en:null, log:'', logT:0,
+  back:'field', flee:false, result:'', tipQ:[], shakeBox:0, first:true, roared:false, luigiJoin:false,
+  bx:{ mario:78, luigi:48 }, gy:128,
+
+  start(name, cb){
+    const def = ENEMIES[name];
+    this.on = true; this.cb = cb; this.back = def.back; this.result = '';
+    this.roared = false; this.first = true;
+    GAME.scene = 'battle';
+    this.foes = [];
+    const n = def.count || (name === 'goomba' ? 2 : 1);
+    for (let i = 0; i < n; i++){
+      const a = new Actor(def.key, 234 + i * 36, this.gy, { dir:-1 });
+      a.tag = 'foe' + i;
+      this.foes.push({ def:def, hp:def.hp, max:def.hp, act:a, alive:true, hurtT:0, name:def.name + (n > 1 ? ' ' + (i + 1) : '') });
+    }
+    this.bros = [PARTY.mario];
+    if (PARTY.luigiIn) this.bros.push(PARTY.luigi);
+    this.actors = {};
+    this.bros.forEach(b => {
+      const a = new Actor(b.key, this.bx[b.key], this.gy, { dir:1 });
+      a.homeX = this.bx[b.key]; this.actors[b.key] = a; b.hurtT = 0; b.down = false;
+    });
+    AUD.play(def.music);
+    this.atkCount = 0; this.act = null; this.en = null; this.luigiJoin = false; this.pendRoar = false;
+    this.phase = 'intro'; this.pt = 0;
+    this.log = def.boss ? 'BOWSER YOLU KESTİ!' : 'GOOMBA\'LAR SALDIRIYOR!';
+    this.logT = 2.2;
+    FX.reset();
+  },
+  aliveFoes(){ return this.foes.filter(f => f.alive); },
+  aliveBros(){ return this.bros.filter(b => b.hp > 0); },
+  actor(b){ return this.actors[b.key]; },
+  say(lines, after){ this.tipAfter = after || null; DLG.open(lines, () => { const f = this.tipAfter; this.tipAfter = null; if (f) f(); }); },
+  setLog(s, t){ this.log = s; this.logT = t || 1.8; },
+
+  /* ---------- tur akışı ---------- */
+  beginRound(){
+    this.order = this.aliveBros().slice();
+    this.turn = 0;
+    this.nextTurn();
+  },
+  nextTurn(){
+    if (!this.aliveFoes().length){ this.toWin(); return; }
+    if (!this.aliveBros().length){ this.toLose(); return; }
+    while (this.turn < this.order.length && this.order[this.turn].hp <= 0) this.turn++;
+    if (this.turn >= this.order.length){ this.phase = 'enemyPre'; this.pt = 0; return; }
+    this.cur = this.order[this.turn];
+    this.menuList = this.buildMenu();
+    this.menu = 0; this.target = this.foes.findIndex(f => f.alive);
+    this.phase = 'menu'; this.pt = 0;
+  },
+  buildMenu(){
+    const m = [{ id:'jump', label:'ZIPLA', info:'Zamanında Z/X = ekstra vuruş' }];
+    if (PARTY.luigiIn && this.cur.key === 'mario')
+      m.push({ id:'bros', label:'KARDEŞ ATAĞI', info:'3 BP — Splash Bros', bp:3 });
+    m.push({ id:'item', label:'EŞYA (' + PARTY.items.mushroom + ')', info:'Mantar: 20 HP', item:true });
+    m.push({ id:'guard', label:'SAVUN', info:'Bu tur hasarı yarıya indir' });
+    return m;
+  },
+  toWin(){
+    this.phase = 'win'; this.pt = 0; AUD.stop(); AUD.sfx('win');
+    this.setLog('KAZANDIN!', 4);
+    this.bros.forEach(b => { if (b.hp > 0) this.actor(b).setAnim('win'); });
+  },
+  toLose(){ this.phase = 'lose'; this.pt = 0; AUD.stop(); AUD.sfx('lose'); this.setLog('KARDEŞLER YENİLDİ...', 5); },
+  finish(){
+    this.on = false; const c = this.cb; this.cb = null;
+    FX.reset();
+    if (c) c();
+  },
+
+  /* ---------- oyuncu aksiyonu ---------- */
+  chooseCmd(){
+    const m = this.menuList[this.menu];
+    if (m.id === 'jump'){
+      const f = this.foes[this.target];
+      if (!f || !f.alive){ this.target = this.foes.findIndex(x => x.alive); return; }
+      AUD.sfx('sel');
+      this.act = { kind:'jump', bro:this.cur, foe:f, stage:0, t:0, press:-1, hits:0, bonus:false, quality:'' };
+      this.phase = 'act'; this.pt = 0;
+    } else if (m.id === 'bros'){
+      if (this.cur.bp < 3){ AUD.sfx('cancel'); this.setLog('BP YETERSİZ!', 1.2); return; }
+      const f = this.foes[this.target]; if (!f || !f.alive) return;
+      AUD.sfx('sel'); this.cur.bp -= 3;
+      this.act = { kind:'bros', bro:this.cur, foe:f, stage:0, t:0, press:-1, marks:[false,false,false], hits:0 };
+      this.phase = 'act'; this.pt = 0;
+    } else if (m.id === 'item'){
+      if (PARTY.items.mushroom <= 0){ AUD.sfx('cancel'); this.setLog('MANTAR KALMADI!', 1.2); return; }
+      PARTY.items.mushroom--;
+      const b = this.cur; const heal = Math.min(20, b.max - b.hp); b.hp += heal;
+      AUD.sfx('heal');
+      FX.pop('+' + heal, this.actor(b).x, this.gy - 40, '#8ff0a0');
+      FX.stars(this.actor(b).x, this.gy - 20, 8);
+      this.setLog(b.name + ' MANTAR YEDİ!', 1.4);
+      this.turn++; this.phase = 'wait'; this.pt = 0; this.waitFor = .9;
+    } else if (m.id === 'guard'){
+      AUD.sfx('sel'); this.cur.guard = true;
+      this.setLog(this.cur.name + ' SAVUNMAYA GEÇTİ', 1.2);
+      this.turn++; this.phase = 'wait'; this.pt = 0; this.waitFor = .6;
+    }
+  },
+  dealDamage(foe, dmg, crit){
+    foe.hp = Math.max(0, foe.hp - dmg);
+    foe.hurtT = .35; foe.act.setAnim('hurt');
+    FX.pop(String(dmg), foe.act.x, this.gy - CH[foe.def.key].h - 6, crit ? '#ffd23f' : '#ffffff', crit);
+    FX.burst(foe.act.x, this.gy - CH[foe.def.key].h / 2, crit ? 16 : 9, crit ? '#ffd23f' : '#ffffff', 80, .5);
+    FX.quake(crit ? 3 : 1.6, .22);
+    AUD.sfx(crit ? 'stomp' : 'hit');
+    if (foe.hp <= 0){
+      foe.alive = false;
+      foe.act.setAnim(foe.def.boss ? 'down' : 'flat');
+      FX.stars(foe.act.x, this.gy - 14, 10);
+    }
+    if (foe.def.boss && !this.roared && foe.hp > 0 && foe.hp <= foe.max * .5) this.pendRoar = true;
+  },
+  hurtBro(b, dmg){
+    if (b.guard) dmg = Math.max(1, Math.round(dmg * .5));
+    dmg = Math.max(1, dmg - b.def);
+    b.hp = Math.max(0, b.hp - dmg);
+    b.hurtT = .5; this.actor(b).setAnim('hurt');
+    FX.pop(String(dmg), this.actor(b).x, this.gy - 36, '#ff8a7d');
+    FX.quake(2.4, .25); AUD.sfx('hurt');
+    if (b.hp <= 0){ b.down = true; this.setLog(b.name + ' BAYILDI!', 1.6); }
+  },
+
+  /* ---------- düşman turu ---------- */
+  enemyStart(){
+    const f = this.aliveFoes()[0];
+    if (!f){ this.toWin(); return; }
+    const alive = this.aliveBros();
+    if (!alive.length){ this.toLose(); return; }
+    let mv;
+    if (f.def.boss){
+      const pool = this.roared ? ['fire','claw','spin','fire'] : ['fire','claw','fire'];
+      mv = this.first ? 'fire' : pool[(Math.random() * pool.length) | 0];
+      if (alive.length < 2 && mv === 'spin') mv = 'claw';
+    } else mv = 'charge';
+    const tgt = alive[(Math.random() * alive.length) | 0];
+    const fast = this.roared ? .82 : 1;
+    this.en = { kind:mv, foe:f, target:tgt, stage:0, t:0, dodged:false, seq:0, hitT:0, done:false, fast:fast,
+      targets: mv === 'spin' ? alive.slice() : [tgt] };
+    this.first = false;
+    const names = { fire:'ALEV PÜSKÜRTÜYOR!', claw:'PENÇE SALLIYOR!', spin:'KABUK FIRTINASI!', charge:'ÜSTÜNE KOŞUYOR!' };
+    this.setLog(f.def.name + ' ' + names[mv], 1.6);
+    this.phase = 'enemy'; this.pt = 0;
+  },
+  dodgeCheck(who, w0, w1){
+    const btn = who.btn;
+    return IN.hit(btn);
+  },
+
+  /* ---------- güncelle ---------- */
+  update(dt){
+    if (DLG.on){ DLG.update(dt); return; }
+    this.pt += dt; this.logT -= dt;
+    Object.keys(this.actors).forEach(k => this.actors[k].update(dt));
+    this.foes.forEach(f => { f.act.update(dt); if (f.hurtT > 0){ f.hurtT -= dt; if (f.hurtT <= 0 && f.alive) f.act.setAnim('idle'); } });
+    this.bros.forEach(b => { if (b.hurtT > 0){ b.hurtT -= dt; if (b.hurtT <= 0 && b.hp > 0) this.actor(b).setAnim('idle'); } });
+
+    switch (this.phase){
+      case 'intro':
+        if (this.pt > 1.6){
+          if (TUT.battleIntro && !GAME.flags.tutIntro){ GAME.flags.tutIntro = true; this.phase = 'tip';
+            this.say(TUT.battleIntro, () => { this.beginRound(); }); }
+          else this.beginRound();
+        }
+        break;
+      case 'tip': break;
+      case 'menu': this.updMenu(dt); break;
+      case 'act': this.updAct(dt); break;
+      case 'wait':
+        if (this.pt >= (this.waitFor || .6)){
+          this.bros.forEach(b => { if (b.hp > 0) this.actor(b).setAnim('idle'); });
+          this.nextTurn();
+        }
+        break;
+      case 'enemyPre':
+        if (this.pt > .5){
+          if (this.pendRoar){ this.pendRoar = false; this.roared = true; this.phase = 'roar'; this.pt = 0;
+            const f = this.aliveFoes()[0]; if (f) f.act.setAnim('roar');
+            AUD.sfx('roar'); FX.quake(5, 1); this.setLog('BOWSER KÜKREDİ! GÜCÜ ARTTI!', 2.2); break; }
+          if (!GAME.flags.tutDefend && this.aliveFoes()[0] && this.aliveFoes()[0].def.boss){
+            GAME.flags.tutDefend = true; this.phase = 'tip';
+            this.say(TUT.defend, () => this.enemyStart());
+          } else this.enemyStart();
+        }
+        break;
+      case 'roar':
+        if (this.pt > 1.8){ const f = this.aliveFoes()[0]; if (f) f.act.setAnim('idle'); this.enemyStart(); }
+        break;
+      case 'enemy': this.updEnemy(dt); break;
+      case 'postEnemy':
+        if (this.pt > .5){
+          this.bros.forEach(b => { b.guard = false; });
+          if (!this.aliveBros().length){ this.toLose(); break; }
+          if (this.luigiJoin){ this.luigiJoin = false; this.doLuigiJoin(); break; }
+          this.beginRound();
+        }
+        break;
+      case 'joinL': {
+        const la = this.actors.luigi;
+        if (la){
+          la.x += (la.homeX - la.x) * Math.min(1, dt * 3.4);
+          if (Math.abs(la.homeX - la.x) < 2){ la.x = la.homeX; la.setAnim('idle'); }
+          else la.setAnim('walk');
+        }
+        if (this.pt > 1.5){ this.phase = 'tip'; this.say(TUT.luigi, () => this.beginRound()); }
+        break;
+      }
+      case 'win': if (this.pt > 2.2 && (IN.any() || this.pt > 4)) this.finish(); break;
+      case 'lose':
+        if (this.pt > 2.4 && IN.any()){
+          this.bros.forEach(b => { b.hp = b.max; b.down = false; });
+          PARTY.items.mushroom = Math.max(PARTY.items.mushroom, 2);
+          this.start(this.foes[0].def === ENEMIES.bowser ? 'bowser' : 'goomba', this.cb);
+        }
+        break;
+    }
+  },
+  doLuigiJoin(){
+    PARTY.luigiIn = true;
+    if (!this.bros.includes(PARTY.luigi)){
+      this.bros.push(PARTY.luigi);
+      const a = new Actor('luigi', -20, this.gy, { dir:1 });
+      a.homeX = this.bx.luigi; this.actors.luigi = a;
+      PARTY.luigi.hurtT = 0;
+    }
+    this.phase = 'joinL'; this.pt = 0;
+    const a = this.actors.luigi; a.x = -20; a.setAnim('walk');
+    this.setLog('LUIGI YETİŞTİ!', 2);
+    this.joinAnim = true;
+  },
+  updMenu(dt){
+    if (IN.hit('u')){ this.menu = (this.menu + this.menuList.length - 1) % this.menuList.length; AUD.sfx('blip'); }
+    if (IN.hit('d')){ this.menu = (this.menu + 1) % this.menuList.length; AUD.sfx('blip'); }
+    if (this.aliveFoes().length > 1){
+      if (IN.hit('r')){ do { this.target = (this.target + 1) % this.foes.length; } while (!this.foes[this.target].alive); AUD.sfx('blip'); }
+      if (IN.hit('l')){ do { this.target = (this.target + this.foes.length - 1) % this.foes.length; } while (!this.foes[this.target].alive); AUD.sfx('blip'); }
+    }
+    if (IN.hit('a') || IN.hit('b')) this.chooseCmd();
+  },
+
+  /* ---------- zıplama saldırısı ---------- */
+  updAct(dt){
+    const A = this.act; if (!A) return;
+    A.t += dt;
+    const bro = A.bro, ba = this.actor(bro), foe = A.foe;
+    const fx = foe.act.x, fh = CH[foe.def.key].h;
+    if (A.kind === 'jump'){
+      if (A.stage === 0){
+        ba.setAnim('atk');
+        if (A.t > .3){ A.stage = 1; A.t = 0; A.sx = ba.x; A.tx = fx - 16; AUD.sfx('jump'); }
+      } else if (A.stage === 1 || A.stage === 3){
+        const dur = A.stage === 1 ? .52 : .46;
+        const p = Math.min(1, A.t / dur);
+        ba.x = A.sx + (A.tx - A.sx) * p;
+        ba.z = Math.sin(p * Math.PI) * (A.stage === 1 ? 52 : 40) + (A.stage === 3 ? 0 : 0);
+        ba.setAnim('atk');
+        if (A.press < 0 && IN.hit(bro.btn)) A.press = A.t;
+        if (A.t >= dur){
+          const d = A.press < 0 ? 99 : Math.abs(dur - A.press);
+          let mult = 1, q = '';
+          if (d <= .10){ mult = 1.9; q = 'MÜKEMMEL!'; }
+          else if (d <= .19){ mult = 1.45; q = 'GÜZEL!'; }
+          const base = bro.pow + ((Math.random() * 5) | 0) - foe.def.def;
+          const dmg = Math.max(1, Math.round(base * mult * (A.stage === 3 ? .7 : 1)));
+          this.dealDamage(foe, dmg, mult > 1.3);
+          if (q){ FX.pop(q, ba.x, this.gy - 74, '#ffd23f', true); AUD.sfx('great'); }
+          A.hits++;
+          ba.z = 24; ba.x = A.tx;
+          if (mult > 1.3 && A.stage === 1 && foe.alive && A.hits < 2){
+            A.stage = 3; A.t = 0; A.sx = ba.x; A.tx = fx - 16; A.press = -1;
+          } else { A.stage = 4; A.t = 0; A.sx = ba.x; }
+          FX.hold(.06);
+        }
+      } else if (A.stage === 4){
+        const p = Math.min(1, A.t / .34);
+        ba.x = A.sx + (ba.homeX - A.sx) * p;
+        ba.z = Math.sin(p * Math.PI) * 18;
+        if (p >= 1){
+          ba.x = ba.homeX; ba.z = 0; ba.setAnim('idle');
+          this.act = null; this.turn++;
+          this.atkCount = (this.atkCount || 0) + 1;
+          if (this.foes[0] && this.foes[0].def.boss && this.atkCount === 2 && !GAME.flags.tutAttack){
+            GAME.flags.tutAttack = true; this.phase = 'tip';
+            this.say(TUT.attack, () => { this.phase = 'wait'; this.pt = 0; this.waitFor = .1; });
+          } else { this.phase = 'wait'; this.pt = 0; this.waitFor = .25; }
+        }
+      }
+      return;
+    }
+    if (A.kind === 'bros'){
+      /* SPLASH BROS: Mario, Luigi'nin ellerinden fırlar */
+      const la = this.actors.luigi, ma = this.actors.mario;
+      if (A.stage === 0){
+        la.x += (ma.homeX + 14 - la.x) * Math.min(1, dt * 7);
+        la.setAnim('idle'); ma.setAnim('atk');
+        if (A.t > .6){ A.stage = 1; A.t = 0; A.sx = ma.x; this.setLog('Z tuşuna tam zamanında bas!', 1.4); }
+      } else if (A.stage === 1){
+        const p = Math.min(1, A.t / .5);
+        ma.x = A.sx + (la.x - A.sx) * p; ma.z = Math.sin(p * Math.PI) * 30;
+        if (A.press < 0 && IN.hit('a')) A.press = A.t;
+        if (p >= 1){
+          const d = A.press < 0 ? 9 : Math.abs(.5 - A.press);
+          A.marks[0] = d <= .16;
+          if (A.marks[0]){ AUD.sfx('ok'); FX.pop('OK!', ma.x, this.gy - 60, '#8ff0a0'); }
+          A.stage = 2; A.t = 0; ma.z = 16;
+          this.setLog('Şimdi X ile fırlat!', 1.2);
+        }
+      } else if (A.stage === 2){
+        ma.z = 16 + Math.sin(A.t * 14) * 2; la.setAnim('atk');
+        if (IN.hit('b')){ A.marks[1] = A.t > .18 && A.t < .62; A.stage = 3; A.t = 0; A.sx = ma.x;
+          AUD.sfx(A.marks[1] ? 'ok' : 'cancel'); if (A.marks[1]) FX.pop('OK!', la.x, this.gy - 60, '#8ff0a0'); }
+        else if (A.t > .95){ A.stage = 3; A.t = 0; A.sx = ma.x; }
+      } else if (A.stage === 3){
+        const p = Math.min(1, A.t / .42);
+        ma.x = A.sx + (fx - 16 - A.sx) * p; ma.z = 16 + Math.sin(p * Math.PI) * 46;
+        ma.setAnim('atk');
+        if (A.press2 == null && IN.hit('a')) A.press2 = A.t;
+        if (p >= 1){
+          const d = A.press2 == null ? 9 : Math.abs(.42 - A.press2);
+          A.marks[2] = d <= .15;
+          const good = A.marks.filter(Boolean).length;
+          const dmg = Math.max(1, Math.round((22 + good * 9 + ((Math.random() * 6) | 0)) - foe.def.def));
+          this.dealDamage(foe, dmg, good >= 2);
+          FX.pop(good === 3 ? 'MÜKEMMEL!' : good === 2 ? 'GÜZEL!' : 'İDARE EDER', ma.x, this.gy - 78,
+            good >= 2 ? '#ffd23f' : '#ffffff', good >= 2);
+          if (good >= 2) AUD.sfx('great');
+          A.stage = 4; A.t = 0; A.sx = ma.x; FX.hold(.08);
+        }
+      } else if (A.stage === 4){
+        const p = Math.min(1, A.t / .4);
+        ma.x = A.sx + (ma.homeX - A.sx) * p; ma.z = Math.sin(p * Math.PI) * 20 * (1 - p);
+        la.x += (la.homeX - la.x) * Math.min(1, dt * 6);
+        if (p >= 1){
+          ma.x = ma.homeX; ma.z = 0; ma.setAnim('idle'); la.x = la.homeX; la.setAnim('idle');
+          this.act = null; this.turn++; this.phase = 'wait'; this.pt = 0; this.waitFor = .3;
+        }
+      }
+      return;
+    }
+  },
+
+  /* ---------- düşman saldırısı ---------- */
+  updEnemy(dt){
+    const E = this.en; if (!E){ this.phase = 'postEnemy'; this.pt = 0; return; }
+    E.t += dt;
+    const foe = E.foe, fa = foe.act;
+    const tgt = E.targets[E.seq] || E.target;
+    const ta = tgt ? this.actor(tgt) : null;
+    if (!ta){ this.phase = 'postEnemy'; this.pt = 0; return; }
+
+    if (E.stage === 0){                                  /* hazırlık */
+      fa.setAnim(E.kind === 'claw' ? 'idle' : 'roar');
+      const tele = (E.kind === 'claw' ? .62 : .8) * E.fast;
+      if (E.t > tele){
+        E.stage = 1; E.t = 0; E.press = -1;
+        E.hitT = (E.kind === 'fire' ? .78 : E.kind === 'claw' ? .46 : .6) * E.fast;
+        if (E.kind === 'fire'){ AUD.sfx('fire'); E.px = fa.x - 16; }
+        if (E.kind === 'claw'){ fa.setAnim('atk'); E.sx = fa.x; }
+        if (E.kind === 'spin'){ AUD.sfx('roar'); E.sx = fa.x; }
+        if (E.kind === 'charge'){ E.sx = fa.x; fa.setAnim('atk'); }
+      }
+      return;
+    }
+    if (E.stage === 1){                                  /* geliş + kaçınma penceresi */
+      const p = Math.min(1, E.t / E.hitT);
+      if (E.kind === 'fire') E.px = (fa.x - 16) + (ta.x + 12 - (fa.x - 16)) * p;
+      else if (E.kind === 'claw' || E.kind === 'charge') fa.x = E.sx + (ta.x + 26 - E.sx) * p;
+      else if (E.kind === 'spin') fa.x = E.sx + (ta.x + 22 - E.sx) * p;
+      if (E.press < 0 && IN.hit(tgt.btn)){
+        E.press = E.t;
+        ta.jump(E.kind === 'spin' ? 120 : 150); ta.setAnim('jump');
+      }
+      if (p >= 1){
+        const d = E.press < 0 ? 9 : Math.abs(E.hitT - E.press);
+        const win = (this.roared ? .16 : .2);
+        if (d <= win){
+          E.dodged = true;
+          FX.pop('KAÇTI!', ta.x, this.gy - 62, '#8ff0a0');
+          AUD.sfx('ok');
+          if (d <= .09 && E.kind === 'claw'){        /* kusursuz kaçış = karşı atak */
+            const dmg = Math.max(1, Math.round(tgt.pow * .8) - foe.def.def);
+            this.dealDamage(foe, dmg, true);
+            FX.pop('KARŞI ATAK!', ta.x, this.gy - 78, '#ffd23f', true);
+          }
+        } else {
+          const base = foe.def.pow + (this.roared ? 3 : 0) + ((Math.random() * 4) | 0);
+          this.hurtBro(tgt, base);
+          if (E.kind === 'fire'){ FX.burst(ta.x, this.gy - 20, 14, '#ff8a3d', 70, .6); AUD.sfx('fire'); }
+        }
+        E.stage = 2; E.t = 0;
+      }
+      return;
+    }
+    if (E.stage === 2){                                  /* toparlanma / sıradaki hedef */
+      if (E.kind === 'claw' || E.kind === 'charge' || E.kind === 'spin')
+        fa.x += (236 + (this.foes.indexOf(foe)) * 34 - fa.x) * Math.min(1, dt * 5);
+      if (E.t > .55){
+        E.seq++;
+        if (E.kind === 'spin' && E.seq < E.targets.length && E.targets[E.seq].hp > 0){
+          E.stage = 1; E.t = 0; E.press = -1; E.sx = fa.x;
+          E.hitT = .5 * E.fast;
+        } else {
+          fa.x = 236 + (this.foes.indexOf(foe)) * 34;
+          fa.setAnim('idle');
+          /* ilk saldırıdan sonra Luigi savaşa katılır (senaryo) */
+          if (foe.def.boss && !PARTY.luigiIn && GAME.flags.luigiShouldJoin) this.luigiJoin = true;
+          this.phase = 'postEnemy'; this.pt = 0;
+        }
+      }
+      return;
+    }
+  },
+
+  /* ---------- çizim ---------- */
+  drawWorld(g){
+    const sh = FX.shake ? (Math.random() - .5) * FX.shake * 2 : 0;
+    g.save(); g.translate(Math.round(sh), Math.round(sh * .5));
+    if (this.back === 'hall'){
+      SC.hall(g, 120, 560, true);
+      rect(g, 0, 0, VW, 40, 'rgba(23,19,31,.35)');
+    } else {
+      SC.sky(g, '#5fbcff', '#c9ecff');
+      SC.cloud(g, 30, 18, 1); SC.cloud(g, 210, 30, .8); SC.cloud(g, 150, 10, 1.1);
+      SC.hills(g, 40, 1, this.gy + 2, '#35a94c', '#56cf6c', 24, 160);
+      SC.ground(g, 0, this.gy, '#3cb955', '#7c4a1e', '#5e3610');
+    }
+    if (this.back === 'hall') rect(g, 0, this.gy, VW, VH - this.gy, 'rgba(23,19,31,.12)');
+    /* savaş zemini vurgusu */
+    g.globalAlpha = .18; rect(g, 0, this.gy - 2, VW, 2, '#17131f'); g.globalAlpha = 1;
+
+    this.foes.forEach(f => {
+      if (!f.alive && f.def.boss && this.phase !== 'win' && this.phase !== 'lose'){ f.act.draw(g, 0); return; }
+      if (f.hurtT > 0 && ((perf / 60) | 0) % 2 === 0) { g.globalAlpha = .55; }
+      f.act.draw(g, 0); g.globalAlpha = 1;
+    });
+    this.bros.forEach(b => {
+      const a = this.actor(b);
+      if (b.hp <= 0){ g.globalAlpha = .5; a.setAnim('hurt'); }
+      if (b.hurtT > 0 && ((perf / 60) | 0) % 2 === 0) g.globalAlpha = .5;
+      a.draw(g, 0); g.globalAlpha = 1;
+    });
+    /* alev mermisi */
+    const E = this.en;
+    if (E && E.kind === 'fire' && E.stage === 1){
+      const fy = this.gy - 16, px = E.px;
+      for (let i = 0; i < 3; i++){
+        const o = i * 5, s = 6 - i;
+        rect(g, px + o, fy - s / 2 + Math.sin((perf / 40) + i) * 1.5, s, s, i === 0 ? '#ffd23f' : '#ff8a3d');
+      }
+      FX.parts.push({ x:px + 6, y:fy, vx:20 + Math.random() * 20, vy:-10 - Math.random() * 10, g:-20, l:.3, t:0,
+        c:Math.random() > .5 ? '#ffd23f' : '#ff6a3d', sz:2 });
+    }
+    /* düşman uyarısı */
+    if (E && E.stage === 1){
+      const tgt = E.targets[E.seq] || E.target;
+      if (tgt){
+        const ta = this.actor(tgt), bx = ta.x, by = this.gy - CH[tgt.key].h - 14;
+        if (((perf / 90) | 0) % 2 === 0){
+          rect(g, bx - 2, by, 4, 8, '#e5392b'); rect(g, bx - 2, by + 10, 4, 3, '#e5392b');
+        }
+      }
+    }
+    FX.drawWorld(g, 0);
+    g.restore();
+    this.drawBoxes(g);
+    DLG.drawWorld(g);
+  },
+  drawBoxes(g){
+    if (DLG.on) return;                 /* ipucu kutusu açıkken panelleri gizle */
+    /* kardeş durum panelleri */
+    this.bros.forEach((b, i) => {
+      const x = 6 + i * 88, y = VH - 30;
+      frameBox(g, x, y, 84, 24, '#1b1436', '#0d0a1c', b.hp > 0 ? '#5a4aa8' : '#7a2530');
+      const w = 52, hp = Math.max(0, b.hp / b.max);
+      rect(g, x + 28, y + 7, w, 5, '#0d0a1c');
+      rect(g, x + 28, y + 7, Math.round(w * hp), 5, hp > .5 ? '#35b84a' : hp > .25 ? '#ffd23f' : '#e5392b');
+      const bp = Math.max(0, b.bp / b.maxbp);
+      rect(g, x + 28, y + 15, w, 4, '#0d0a1c');
+      rect(g, x + 28, y + 15, Math.round(w * bp), 4, '#3f7de0');
+      drawChar(g, b.key, 'idle', 0, x + 14, y + 23, 1);
+    });
+    /* düşman HP */
+    this.foes.forEach((f, i) => {
+      if (!f.alive) return;
+      const x = f.act.x - 26, y = this.gy - CH[f.def.key].h - 16;
+      frameBox(g, x, y, 52, 10, '#1b1436', '#0d0a1c', '#5a4aa8');
+      const w = 44, hp = Math.max(0, f.hp / f.max);
+      rect(g, x + 4, y + 4, w, 3, '#0d0a1c');
+      rect(g, x + 4, y + 4, Math.round(w * hp), 3, f.def.boss ? '#e5392b' : '#ffd23f');
+    });
+    /* komut kutusu */
+    if (this.phase === 'menu'){
+      const bw = 116, bh = 12 + this.menuList.length * 12, bx = VW - bw - 6, by = VH - bh - 34;
+      frameBox(g, bx, by, bw, bh, '#1b1436', '#0d0a1c', '#5a4aa8');
+      const my = by + 6 + this.menu * 12;
+      rect(g, bx + 4, my - 1, bw - 8, 11, '#3b2f6b');
+      rect(g, bx + 5, my, 2, 2, '#ffd23f');
+    }
+  },
+  drawUI(){
+    if (DLG.on){ FX.drawUI(0); DLG.drawUI(); return; }
+    if (this.logT > 0 && this.log){
+      txt(this.log, VW / 2, 8, { size:9, col:'#ffd23f', align:'center' });
+    }
+    this.bros.forEach((b, i) => {
+      const x = 6 + i * 88, y = VH - 30;
+      txt(b.name, x + 28, y + 1, { size:7, col:b.hp > 0 ? '#fdf3d6' : '#ff8a7d' });
+      txt(b.hp + '/' + b.max, x + 82, y + 1, { size:6, col:'#cfc6ef', align:'right' });
+    });
+    this.foes.forEach((f, i) => {
+      if (!f.alive) return;
+      const x = f.act.x - 26, y = this.gy - CH[f.def.key].h - 16;
+      const lbl = this.foes.length > 1 ? (i + 1) + '' : f.name;
+      txt(lbl, x + 26, y - 8, { size:6, col:'#fdf3d6', align:'center' });
+    });
+    if (this.phase === 'menu'){
+      const bw = 116, bh = 12 + this.menuList.length * 12, bx = VW - bw - 6, by = VH - bh - 34;
+      this.menuList.forEach((m, i) => {
+        const sel = i === this.menu;
+        txt(m.label, bx + 10, by + 7 + i * 12, { size:8, col:sel ? '#ffd23f' : '#cfc6ef' });
+      });
+      txt(this.menuList[this.menu].info, VW - 6, by - 10, { size:6, col:'#8ff0a0', align:'right' });
+      txt(this.cur.name + ' SIRASI', 6, VH - 44, { size:7, col:'#ffd23f' });
+      if (this.aliveFoes().length > 1){
+        const f = this.foes[this.target];
+        if (f && f.alive) txt('▼', f.act.x, this.gy - CH[f.def.key].h - 26, { size:9, col:'#ffd23f', align:'center' });
+      }
+    }
+    /* tuş göstergesi */
+    const A = this.act;
+    if (A && A.kind === 'jump' && (A.stage === 1 || A.stage === 3)){
+      const ba = this.actor(A.bro);
+      txt(A.bro.btn === 'a' ? 'Z' : 'X', ba.x, this.gy - ba.z - CH[A.bro.key].h - 16, { size:9, col:'#ffd23f', align:'center' });
+    }
+    const E = this.en;
+    if (E && E.stage === 1){
+      const tgt = E.targets[E.seq] || E.target;
+      if (tgt) txt(tgt.btn === 'a' ? 'Z!' : 'X!', this.actor(tgt).x, this.gy - CH[tgt.key].h - 30,
+        { size:9, col:'#ff8a7d', align:'center' });
+    }
+    FX.drawUI(0);
+    if (this.phase === 'win'){
+      txt('ZAFER!', VW / 2, 60, { size:16, col:'#ffd23f', align:'center' });
+      if (this.pt > 2.2) txt('DEVAM ETMEK İÇİN Z', VW / 2, 80, { size:8, col:'#fdf3d6', align:'center' });
+    }
+    if (this.phase === 'lose'){
+      rect(wx, 0, 0, VW, VH, 'rgba(10,8,18,.6)');
+      txt('YENİLDİN...', VW / 2, 66, { size:16, col:'#e5392b', align:'center' });
+      if (this.pt > 2.4) txt('TEKRAR DENEMEK İÇİN Z', VW / 2, 88, { size:8, col:'#fdf3d6', align:'center' });
+    }
+    DLG.drawUI();
+  }
+};
+function startBattle(name, cb){ BAT.start(name, cb); }
+
+/* ---- savaş içi öğretici metinler ---- */
+const TUT = {
+  battleIntro:[
+    { who:'toad', text:'Mario! Savaşlar sıra tabanlı ama parmaklarını uyutma!' },
+    { who:'toad', text:'ZIPLA komutunu seç, sonra tam düşmana değeceğin an Z tuşuna bas!' }
+  ],
+  attack:[
+    { who:'toad', text:'Gördün mü? Tam zamanında Z\'ye basarsan ikinci kez sekersin: iki kat hasar!' },
+    { who:'toad', text:'Erken basarsan sadece normal vuruş olur. Ritmi yakala!' }
+  ],
+  defend:[
+    { who:'toad', text:'Dikkat! Bowser saldırıyor! Üzerindeki kırmızı ünlem hedef olduğun anlamına gelir.' },
+    { who:'toad', text:'Saldırı tam sana değerken Z\'ye bas ve üstünden zıpla. Pençeyi kusursuz zamanlarsan karşı atak yaparsın!' }
+  ],
+  luigi:[
+    { who:'luigi', text:'M-Mario! Seni yalnız bırakır mıyım... (biraz geciktim ama!)' },
+    { who:'toad', text:'Luigi X tuşuyla oynanıyor! Onun sırasında X ile zıpla, ona saldırırken X ile kaç!' },
+    { who:'toad', text:'Ve artık KARDEŞ ATAĞI açıldı: Splash Bros! Z, X, sonra tekrar Z. Zamanlamayı tutturursan Bowser uçar!' }
+  ]
+};
+
+/* =========================== 16. SAHNE EŞYALARI =========================== */
+FIELD.props = [];
+function prop(id, kind, x, y, o){ const p = Object.assign({ id:id, kind:kind, x:x, y:y, t:0 }, o || {}); FIELD.props.push(p); return p; }
+function unprop(id){ const i = FIELD.props.findIndex(p => p.id === id); if (i >= 0) FIELD.props.splice(i, 1); }
+function drawProps(g, cam){
+  FIELD.props.forEach(p => {
+    const x = Math.round(p.x - cam), y = Math.round(p.y);
+    if (p.kind === 'gift'){
+      rect(g, x - 10, y - 18, 20, 18, '#c7548c'); rect(g, x - 9, y - 17, 18, 16, '#ff8fc0');
+      rect(g, x - 2, y - 18, 4, 18, '#ffd23f'); rect(g, x - 10, y - 11, 20, 3, '#ffd23f');
+      rect(g, x - 7, y - 24, 6, 6, '#ffd23f'); rect(g, x + 1, y - 24, 6, 6, '#ffd23f');
+      rect(g, x - 10, y - 18, 20, 2, '#ffb8dc');
+    } else if (p.kind === 'gift_open'){
+      rect(g, x - 10, y - 12, 20, 12, '#c7548c'); rect(g, x - 9, y - 11, 18, 10, '#ff8fc0');
+      rect(g, x - 12, y - 22, 22, 5, '#ffd23f');
+    } else if (p.kind === 'bomb'){
+      const bob = Math.sin(p.t * 9) * 1;
+      rect(g, x - 5, y - 10 + bob, 10, 10, '#17131f'); rect(g, x - 6, y - 8 + bob, 12, 6, '#17131f');
+      rect(g, x - 3, y - 8 + bob, 3, 3, '#ffffff');
+      rect(g, x + 1, y - 13 + bob, 2, 4, '#c9860f');
+      rect(g, x + 2, y - 16 + bob, 2, 2, ((p.t * 12) | 0) % 2 ? '#ffd23f' : '#ff6a3d');
+      rect(g, x - 6, y - 1 + bob, 4, 2, '#ffd23f'); rect(g, x + 2, y - 1 + bob, 4, 2, '#ffd23f');
+    } else if (p.kind === 'bubble'){
+      const w = 44, h = 22;
+      rect(g, x - w / 2, y - h, w, h, '#17131f'); rect(g, x - w / 2 + 1, y - h + 1, w - 2, h - 2, '#fdf3d6');
+      rect(g, x - 6, y, 5, 4, '#17131f'); rect(g, x - 5, y, 3, 3, '#fdf3d6');
+      const n = '#17131f';
+      rect(g, x - 12, y - h + 6, 2, 8, n); rect(g, x - 12, y - h + 4, 6, 2, n); rect(g, x - 15, y - h + 12, 5, 4, n);
+      rect(g, x + 4, y - h + 8, 2, 7, n); rect(g, x + 4, y - h + 6, 5, 2, n); rect(g, x + 1, y - h + 13, 5, 4, n);
+    } else if (p.kind === 'steam'){
+      if (((p.t * 10) | 0) % 2 === 0) FX.smoke(p.x, p.y, 1, '#e8f4ff');
+    } else if (p.kind === 'column'){
+      shadow(g, x, y + 2, 16, .25);
+      rect(g, x - 13, y - 96, 26, 96, '#7c6ac0'); rect(g, x - 13, y - 96, 5, 96, '#a89ae0');
+      rect(g, x + 8, y - 96, 5, 96, '#4a3a90');
+      for (let i = 0; i < 9; i++) rect(g, x - 8, y - 90 + i * 10, 16, 1, '#5a4aa8');
+      rect(g, x - 17, y - 102, 34, 7, '#a89ae0'); rect(g, x - 17, y - 96, 34, 2, '#4a3a90');
+      rect(g, x - 17, y - 8, 34, 8, '#a89ae0'); rect(g, x - 17, y - 2, 34, 2, '#4a3a90');
+    } else if (p.kind === 'hole'){
+      rect(g, x - 28, y - 56, 56, 56, '#0d0a1c');
+      for (let i = 0; i < 10; i++){
+        const a = i / 10 * 6.283, r = 30;
+        rect(g, x + Math.cos(a) * r - 3, y - 28 + Math.sin(a) * r * .9, 6, 6, '#3b2f6b');
+      }
+    }
+    p.t += 1 / 60;
+  });
+}
+
+/* =========================== 17. HİKÂYE =========================== */
+const ENTRY_SCRIPTS = {};
+
+/* ---------- PROLOG: sesin çalınışı ---------- */
+function scenePrologue(){
+  GAME.chapter = 0;
+  FIELD.party = [];
+  FIELD.props.length = 0;
+  FIELD.enter('castle_hall', 300, 1);
+  FIELD.cam = 240;
+  const gy = FIELD.room.gy;
+  FIELD.add(Object.assign(new Actor('peach', 470, gy, { dir:-1 }), { tag:'peach' }));
+  FIELD.add(Object.assign(new Actor('toad', 432, gy, { dir:-1 }), { tag:'toad' }));
+  AUD.play('castle');
+  CUT.play([
+    { wait:.6 },
+    { say:'Mantar Krallığı... Güneşli, sakin, sıradan bir gün. Yani şimdilik.', who:'narrator' },
+    { say:'Prenses! Komşu Fasulye Krallığı\'ndan iki elçi geldi. Sizi görmek istiyorlar!', who:'toad' },
+    { say:'Fasulye Krallığı mı? Ne güzel! Hemen buyur etsinler.', who:'peach' },
+    { music:'evil' },
+    { spawn:{ key:'cackletta', tag:'amb', x:250, dir:1, anim:'hood' } },
+    { spawn:{ key:'fawful', tag:'fawful', x:226, dir:1, anim:'idle' } },
+    { walk:'amb', to:356, spd:64, anim:'hood', after:'hood' },
+    { walk:'fawful', to:328, spd:70, after:'idle' },
+    { say:'Selamlar, ışıltılı prenses. Komşularınızdan bir dostluk hediyesi getirdik.', who:'cackletta' },
+    { fn:() => prop('gift', 'gift', 372, 140) },
+    { sfx:'blip' },
+    { say:'Kutu! Parlak kutu! Fawful\'un içi hediye vermekle doluyor!', who:'fawful' },
+    { say:'Ne kadar naziksiniz... Böyle bir jest, iki krallığın dostluğunu taçlandırır.', who:'peach' },
+    { walk:'peach', to:400, spd:26, anim:'walk', after:'idle' },
+    { say:'Açın, prenses. Açın da... hediyemiz sizi bulsun.', who:'cackletta' },
+    { sfx:'machine' },
+    { fn:() => { unprop('gift'); prop('gift2', 'gift_open', 372, 140); } },
+    { fx:'gas', x:378, y:138 },
+    { flash:'#8fe05a', p:.7 },
+    { anim:'peach', a:'shock' },
+    { sfx:'steam' },
+    { wait:.9 },
+    { say:'...!', who:'peach' },
+    { say:'Prenses?! Prenses, sesiniz... sesiniz nerede?!', who:'toad' },
+    { sfx:'laugh' },
+    { anim:'amb', a:'cackle' },
+    { say:'Hi hi hi... HAH HAH HAH! Ne tatlı bir ses. Artık BENİM!', who:'cackletta' },
+    { set:'amb', a:'cackle' },
+    { say:'Ben Cackletta! Ve bu ses, Fasulye Krallığı\'nın uyuyan devini uyandıracak!', who:'cackletta2' },
+    { say:'Fawful\'un kafası zafer ile dolu! Şimdi kaçışımızı izleyin, mantar kafalılar!', who:'fawful' },
+    { anim:'fawful', a:'fly' },
+    { sfx:'machine' },
+    { fx:'smoke', x:340, y:150, n:14 },
+    { walk:'fawful', to:210, spd:150, anim:'fly', after:'fly' },
+    { walk:'amb', to:200, spd:140, anim:'hood', after:'hood' },
+    { kill:'fawful' }, { kill:'amb' }, { fn:() => unprop('gift2') },
+    { music:'danger' },
+    { say:'Muhafızlar! Muhafızlaaar! Prensesin sesi çalındı!', who:'toad' },
+    { walk:'peach', to:420, spd:24, anim:'walk', after:'idle' },
+    { face:'peach', dir:-1 },
+    { say:'(Bir şeyler söylemeye çalışıyor...)', who:'narrator' },
+    { fn:() => prop('bub', 'bubble', 420, 84) },
+    { sfx:'blip' }, { wait:.5 },
+    { fn:() => { unprop('bub'); prop('bo1', 'bomb', 404, 108); prop('bo2', 'bomb', 430, 104); } },
+    { wait:.5 },
+    { fn:() => { unprop('bo1'); unprop('bo2'); } },
+    { fx:'boom', x:416, y:134 },
+    { flash:'#ffffff', p:.9 },
+    { shake:6, d:.8 },
+    { anim:'toad', a:'panic' },
+    { wait:.7 },
+    { say:'Sesinin yerine... BOMBA mı kondu?! Mario! MARİOOO! Mario\'yu bulmalıyım!', who:'toad' },
+    { walk:'toad', to:250, spd:110, anim:'walk', after:'walk' },
+    { fade:'out' },
+    { fn:() => { FIELD.props.length = 0; chapter1(); } }
+  ]);
+}
+
+/* ---------- BÖLÜM 1: Toad, Mario'yu arıyor ---------- */
+function chapter1(){
+  GAME.chapter = 1;
+  SAVE.set('ch1');
+  const toad = new Actor('toad', 520, 138, { dir:-1 }); toad.tag = 'toad';
+  FIELD.party = [toad];
+  FIELD.enter('house_out', 520, -1);
+  FIELD.props.length = 0;
+  fadeIn();
+  CUT.play([
+    { wait:.4 },
+    { say:'Mario kardeşlerin evi! Uf... Koşmaktan mantarım eğildi.', who:'toad' },
+    { say:'Kapıya git ve A (Z) tuşuyla içeri gir! Sol/sağ ok tuşlarıyla yürünür.', who:'narrator' },
+    { ctrl:true }
+  ]);
+}
+
+/* ---------- ev içi: duş sahnesi ---------- */
+ENTRY_SCRIPTS.house_in = function(){
+  if (GAME.flags.metMario) return;
+  const door = new Actor('toad', 247, 138, { vis:false });
+  door.tag = 'bathdoor'; door.talkable = true; door.label = 'KAPIYI ÇAL'; door.shadow = false;
+  door.onTalk = sceneBathroom;
+  FIELD.add(door);
+  prop('steam', 'steam', 247, 116);
+  CUT.play([
+    { say:'Su sesi geliyor... Mario duşta olmalı! Banyo kapısına git ve A ile çal.', who:'toad' },
+    { ctrl:true }
+  ]);
+};
+
+function sceneBathroom(){
+  const gy = FIELD.room.gy;
+  CUT.play([
+    { sfx:'blip' },
+    { say:'MARİO! MARIO, ACİL DURUM! Prensesin sesi çalındı!', who:'toad' },
+    { sfx:'steam' },
+    { fx:'smoke', x:247, y:128, n:12 },
+    { spawn:{ key:'mario', tag:'mario', x:248, y:gy, dir:-1, anim:'idle' } },
+    { fn:() => unprop('steam') },
+    { say:'Mamma mia! Bir dakika... Toad?', who:'mario' },
+    { say:'Prenses! Ses! Kutu! Elçiler! Bom! BOOOM!', who:'toad' },
+    { walk:'toad', to:200, spd:150, anim:'walk', after:'walk' },
+    { sfx:'hit' },
+    { shake:3, d:.3 },
+    { fx:'stars', x:196, y:118, n:8 },
+    { anim:'toad', a:'panic' },
+    { say:'...Şifonyere çarptı.', who:'narrator' },
+    { walk:'mario', to:216, spd:64, after:'idle' },
+    { face:'mario', dir:-1 },
+    { say:'Toad! Toad, kendine gel!', who:'mario' },
+    { anim:'toad', a:'idle' },
+    { face:'toad', dir:1 },
+    { say:'Ah! Mario! Fasulye Krallığı\'ndan gelen elçiler sahteymiş. Prensesin sesini çaldılar!', who:'toad' },
+    { say:'Şimdi Prenses konuşunca ağzından... bomba çıkıyor. Şatoda taş üstünde taş kalmayacak!', who:'toad' },
+    { say:'Bomba mı? Peach! Hemen şatoya gidiyoruz. Ama önce...', who:'mario' },
+    { say:'Luigi! Yine çamaşır asarken kaytarıyordur. Onsuz olmaz.', who:'mario' },
+    { fn:() => {
+        const m = FIELD.get('mario'), t = FIELD.get('toad');
+        FIELD.party = [m, t]; FIELD.trail = [];
+        GAME.flags.metMario = true;
+        FIELD.remove('bathdoor');
+      } },
+    { say:'Evden çık ve evin arkasındaki çamaşır ipine git. Luigi orada saklanıyor olmalı!', who:'narrator' },
+    { ctrl:true }
+  ]);
+}
+
+/* ---------- evin önü: Luigi'yi bulma ---------- */
+ENTRY_SCRIPTS.house_out = function(){
+  if (!GAME.flags.metMario || GAME.flags.luigiJoined) return;
+  const gy = FIELD.room.gy;
+  const lu = new Actor('luigi', 74, gy, { dir:1, anim:'scared' }); lu.tag = 'luigi';
+  FIELD.add(lu);
+  FIELD.room.triggers = [{ x:40, w:74, run:sceneLuigi }];
+  CUT.play([
+    { say:'Bak! Çamaşırların arkasında yeşil bir şey titriyor...', who:'toad' },
+    { ctrl:true }
+  ]);
+};
+
+function sceneLuigi(){
+  CUT.play([
+    { music:'home' },
+    { walk:'luigi', to:100, spd:90, anim:'scared', after:'scared' },
+    { say:'MAMMA MIA! B-ben bir şey duymadım, görmedim, buradaydım... hayır, burada değildim!', who:'luigi' },
+    { say:'Luigi, sakin ol. Prensesin sesi çalındı. Şatoya gidiyoruz.', who:'mario' },
+    { anim:'luigi', a:'idle' },
+    { say:'Ş-şatoya mı? Bombalı bir prensesin yanına mı? ...Tamam. Sen gidiyorsan ben de gidiyorum.', who:'luigi' },
+    { say:'Ben koşup şatoya haber vereyim! Siz Mantar Yolu\'ndan gelin!', who:'toad' },
+    { walk:'toad', to:556, spd:130, anim:'walk', after:'walk' },
+    { kill:'toad' },
+    { flag:'luigiJoined' },
+    { fn:() => { SAVE.set('ch2'); } },
+    { fn:() => {
+        const m = FIELD.get('mario'), l = FIELD.get('luigi');
+        FIELD.party = [m, l]; FIELD.trail = [];
+        PARTY.luigiIn = false;
+      } },
+    { say:'Artık iki kardeşsiniz! Z ile Mario, X ile Luigi zıplar. Sağa doğru yolu tut!', who:'narrator' },
+    { music:'field' },
+    { ctrl:true }
+  ]);
+}
+
+/* ---------- Mantar Yolu ---------- */
+ENTRY_SCRIPTS.road = function(){
+  if (GAME.flags.roadDone) return;
+  GAME.flags.roadDone = true;
+  const gy = FIELD.room.gy;
+  const npc = new Actor('toad', 520, gy, { dir:-1 }); npc.tag = 'villager';
+  npc.talkable = true; npc.label = 'KONUŞ';
+  npc.onTalk = () => CUT.play([
+    { say:'Kardeşler! Şatoda korkunç bir gürültü var. Bir de Bowser\'ın gemisi tepemizde dolanıyor!', who:'toad' },
+    { say:'Sarı bloklara alttan zıplarsan (Z) içinden para çıkar. Yolda işine yarar!', who:'toad' },
+    { ctrl:true }
+  ]);
+  FIELD.add(npc);
+  FIELD.room.triggers = [{ x:690, w:30, run:sceneGoomba }];
+};
+
+function sceneGoomba(){
+  const gy = FIELD.room.gy;
+  CUT.play([
+    { music:'danger' },
+    { spawn:{ key:'goomba', tag:'g1', x:820, y:gy, dir:-1, anim:'walk' } },
+    { spawn:{ key:'goomba', tag:'g2', x:846, y:gy, dir:-1, anim:'walk' } },
+    { walk:'g1', to:760, spd:60, after:'idle' },
+    { say:'Goomba\'lar! Bowser\'ın adamları yolu kesmiş!', who:'luigi' },
+    { say:'Tam zamanı. Luigi, savaşmayı hatırlıyor musun? Zıpla ve tam değdiğin an tuşa bas!', who:'mario' },
+    { kill:'g1' }, { kill:'g2' },
+    { fn:() => { PARTY.luigiIn = true; } },
+    { battle:'goomba' },
+    { music:'field' },
+    { say:'Uf! Bu kadar mı? B-ben hiç korkmamıştım zaten.', who:'luigi' },
+    { say:'Devam edelim. Şato hemen ileride!', who:'mario' },
+    { ctrl:true }
+  ]);
+}
+
+ENTRY_SCRIPTS.castle_out = function(){
+  if (GAME.flags.sawCastle) return;
+  GAME.flags.sawCastle = true;
+  SAVE.set('ch3');
+  CUT.play([
+    { music:'castle' },
+    { say:'İşte Peach Şatosu... Ama o duman da ne?', who:'luigi' },
+    { say:'Prenses konuşmuş olmalı. Çabuk!', who:'mario' },
+    { ctrl:true }
+  ]);
+};
+
+/* ---------- ŞATO: Bowser sahnesi ---------- */
+ENTRY_SCRIPTS.castle_hall = function(){
+  if (GAME.flags.bowserDone) return;
+  SAVE.set('ch4');
+  sceneCastle();
+};
+
+function sceneCastle(){
+  const gy = FIELD.room.gy;
+  FIELD.props.length = 0;
+  prop('col1', 'column', 296, gy);
+  FIELD.add(Object.assign(new Actor('peach', 452, gy, { dir:-1 }), { tag:'peach' }));
+  FIELD.add(Object.assign(new Actor('toad', 414, gy, { dir:-1 }), { tag:'toad' }));
+  CUT.play([
+    { music:'danger' },
+    { walk:'luigi', to:330, spd:78, after:'idle' },
+    { walk:'mario', to:362, spd:82, after:'idle' },
+    { say:'Prenses! İyi misiniz?', who:'mario' },
+    { face:'peach', dir:-1 },
+    { anim:'peach', a:'talk' },
+    { say:'(Prenses bir şey söylemeye çalışıyor!)', who:'narrator' },
+    { fn:() => prop('bub', 'bubble', 466, 84) },
+    { sfx:'blip' }, { wait:.4 },
+    { fn:() => { unprop('bub'); prop('bo1', 'bomb', 452, 112); } },
+    { say:'EĞİLİN!', who:'toad' },
+    { wait:.4 },
+    { fn:() => unprop('bo1') },
+    { fx:'boom', x:452, y:136 },
+    { flash:'#ffffff', p:.8 }, { shake:5, d:.7 },
+    { anim:'luigi', a:'scared' },
+    { say:'MAMMA MIAAA! Prenses bomba konuşuyor!', who:'luigi' },
+    { say:'Sesini Cackletta adında bir cadı çaldı! Yerine patlayıcı bir ses koymuşlar!', who:'toad' },
+    { say:'Cackletta... Demek Fasulye Krallığı\'na gitmemiz gerekecek.', who:'mario' },
+    { music:null },
+    { wait:.5 },
+    { sfx:'machine' },
+    { say:'(Dışarıdan motor sesi geliyor... ve duvar çatırdıyor!)', who:'narrator' },
+    { sfx:'crash' },
+    { flash:'#ffd23f', p:.9 }, { shake:7, d:1 },
+    { fx:'boom', x:530, y:128 },
+    { fn:() => prop('hole', 'hole', 540, 138) },
+    { music:'danger' },
+    { spawn:{ key:'bowser', tag:'bowser', x:548, y:gy, dir:-1, anim:'walk' } },
+    { walk:'bowser', to:492, spd:50, anim:'walk', after:'idle' },
+    { anim:'bowser', a:'roar' }, { sfx:'roar' },
+    { say:'GWA HA HA! Duvar mı yıkılmış? Bowser kapıdan girmez, kapı Bowser\'a göre açılır!', who:'bowser' },
+    { anim:'bowser', a:'idle' },
+    { say:'Prensesi kaçırmaya geldim. Yine. Her zamanki gibi. Hey, sen de mi buradasın, sıhhi tesisatçı?', who:'bowser' },
+    { say:'Bugün olmaz Bowser! Peach\'in başı yeterince dertte!', who:'mario' },
+    { say:'Ohooo! O zaman önce seni ezerim, sonra prensesi alırım. İki iş bir arada!', who:'bowser' },
+    { anim:'luigi', a:'scared' },
+    { say:'B-ben... ben şu sütunun arkasından taktik desteği vereceğim!', who:'luigi' },
+    { walk:'luigi', to:296, spd:130, anim:'scared', after:'scared' },
+    { set:'luigi', vis:false },
+    { say:'LUIGI! ...Tamam. Bu sefer tek başıma.', who:'mario' },
+    { fn:() => {
+        PARTY.luigiIn = false;
+        GAME.flags.luigiShouldJoin = true;
+        PARTY.mario.hp = PARTY.mario.max;
+        PARTY.luigi.hp = PARTY.luigi.max;
+      } },
+    { battle:'bowser' },
+    { fn:() => { GAME.flags.bowserDone = true; } },
+    { fn:sceneFinale }
+  ]);
+}
+
+/* ---------- FİNAL ---------- */
+function sceneFinale(){
+  const gy = FIELD.room.gy;
+  const bw = FIELD.get('bowser');
+  if (bw){ bw.setAnim('hurt'); bw.x = 492; }
+  const lu = FIELD.get('luigi'); if (lu){ lu.vis = true; lu.x = 296; lu.setAnim('scared'); }
+  CUT.play([
+    { music:'victory' },
+    { wait:1 },
+    { music:null },
+    { say:'Gwah... Bu kadar mı? Kabuğumun cilası gitti!', who:'bowser' },
+    { anim:'bowser', a:'idle' },
+    { walk:'luigi', to:336, spd:80, anim:'walk', after:'idle' },
+    { say:'Harikaydın Mario! Ben de tam yardıma geliyordum, cidden!', who:'luigi' },
+    { say:'Neyse! Prensesi alıp gidiyorum. Hadi prenses, bir şeyler söyle de...', who:'bowser' },
+    { walk:'bowser', to:486, spd:50, anim:'walk', after:'idle' },
+    { face:'peach', dir:1 },
+    { anim:'peach', a:'talk' },
+    { fn:() => prop('bub', 'bubble', 466, 84) },
+    { wait:.4 },
+    { fn:() => { unprop('bub'); prop('bo1', 'bomb', 450, 112); prop('bo2', 'bomb', 462, 108); } },
+    { say:'...bu ne şimdi?', who:'bowser' },
+    { wait:.5 },
+    { fn:() => { unprop('bo1'); unprop('bo2'); } },
+    { fx:'boom', x:456, y:134 },
+    { flash:'#ffffff', p:1 }, { shake:8, d:1.2 },
+    { anim:'bowser', a:'hurt' },
+    { wait:.8 },
+    { say:'GWAAAH! Patlayan sesli prenses mi? Böyle bir prensesi kaçıramam ki! Kalem odam yanar!', who:'bowser' },
+    { anim:'bowser', a:'idle' },
+    { say:'Sesini Cackletta çaldı. Onu Fasulye Krallığı\'nda bulacağız.', who:'mario' },
+    { say:'Cackletta, ha? Benim prensesimi bozan cadıya haddini bildirmem gerek.', who:'bowser' },
+    { anim:'bowser', a:'roar' }, { sfx:'roar' }, { anim:'bowser', a:'idle' },
+    { say:'Dinle sıhhi tesisatçı: Koopa Cruiser\'ım dışarıda. Sizi Fasulye Krallığı\'na götürürüm.', who:'bowser' },
+    { say:'Ama bu bir ateşkes! Prensesin sesi geri gelince kaldığımız yerden devam ederiz!', who:'bowser' },
+    { say:'Bowser\'la aynı gemi... Mamma mia. Hayatımın en kötü fikri bu.', who:'luigi' },
+    { say:'Anlaştık Bowser. Gidelim!', who:'mario' },
+    { say:'Prenses, sizi bırakmıyoruz! Sesinizi geri getireceğiz!', who:'toad' },
+    { fade:'out' },
+    { fn:() => { GAME.scene = 'end'; ENDING.start(); } }
+  ]);
+}
+
+/* =========================== 18. FİNAL SAHNESİ =========================== */
+const ENDING = {
+  t:0, stage:0,
+  start(){ SAVE.clear(); this.t = 0; this.stage = 0; GAME.scene = 'end'; GAME.fade = 1; GAME.fadeTo = 0; FX.reset(); AUD.play('title'); },
+  update(dt){
+    this.t += dt;
+    if (this.stage === 0 && this.t > 9){ this.stage = 1; this.t = 0; }
+    if (this.stage === 1 && this.t > 1.5 && IN.any()){ location.reload(); }
+  },
+  drawWorld(g){
+    if (this.stage === 0){
+      const t = this.t;
+      SC.sky(g, '#7fd0ff', '#ffe6b0');
+      for (let i = 0; i < 7; i++){
+        const cx = ((i * 70 - t * 26) % 400 + 400) % 400 - 40;
+        SC.cloud(g, cx, 16 + (i % 3) * 26, .7 + (i % 3) * .2);
+      }
+      SC.hills(g, t * 22, 1, 178, '#35a94c', '#56cf6c', 26, 170);
+      rect(g, 0, 168, VW, 12, '#2f9e42');
+      const sx = -60 + t * 42, sy = 74 + Math.sin(t * 1.6) * 5;
+      SC.cruiser(g, sx, sy);
+      drawChar(g, 'mario', 'idle', (t * 3) | 0, sx + 24, sy + 3, 1);
+      drawChar(g, 'luigi', 'idle', (t * 2) | 0, sx + 42, sy + 3, 1);
+      drawChar(g, 'bowser', 'idle', (t * 3) | 0, sx + 86, sy + 4, -1);
+      if (((t * 6) | 0) % 3 === 0) FX.smoke(sx + 100, sy + 12, 1, '#c9d2e0');
+      FX.drawWorld(g, 0);
+    } else {
+      rect(g, 0, 0, VW, VH, '#0a0812');
+      for (let i = 0; i < 40; i++){
+        const x = (i * 97) % VW, y = (i * 53) % VH;
+        if (((this.t * 2 + i) | 0) % 3 === 0) rect(g, x, y, 1, 1, '#3b2f6b');
+      }
+      drawChar(g, 'mario', 'win', 0, 118, 150, 1);
+      drawChar(g, 'luigi', 'win', 0, 146, 150, 1);
+      drawChar(g, 'bowser', 'idle', (this.t * 3) | 0, 200, 152, -1);
+      drawChar(g, 'toad', 'idle', (this.t * 2) | 0, 92, 150, 1);
+    }
+  },
+  drawUI(){
+    if (this.stage === 0){
+      const a = Math.min(1, Math.max(0, this.t - .6));
+      ux.globalAlpha = Math.min(1, a);
+      txt('KOOPA CRUISER, FASULYE KRALLIĞI\'NA DOĞRU...', VW / 2, 150, { size:8, col:'#fdf3d6', align:'center' });
+      ux.globalAlpha = 1;
+    } else {
+      txt('BÖLÜM 1 SONU', VW / 2, 26, { size:16, col:'#ffd23f', align:'center' });
+      txt('SESİ ÇALINAN PRENSES', VW / 2, 46, { size:9, col:'#ff8fc0', align:'center' });
+      txt('Toplanan para: ' + GAME.coins, VW / 2, 66, { size:8, col:'#fdf3d6', align:'center' });
+      txt('Bowser yenildi — ateşkes imzalandı', VW / 2, 78, { size:8, col:'#8ff0a0', align:'center' });
+      txt('DEVAM EDECEK — BÖLÜM 2: FASULYE KRALLIĞI', VW / 2, 96, { size:8, col:'#4fe6e0', align:'center' });
+      if (this.t > 1.5 && ((this.t * 2) | 0) % 2 === 0)
+        txt('BAŞA DÖNMEK İÇİN Z', VW / 2, 166, { size:8, col:'#cfc6ef', align:'center' });
+    }
+  }
+};
+
+/* =========================== 19. BAŞLIK EKRANI =========================== */
+const TITLE = {
+  t:0, save:null,
+  update(dt){
+    this.t += dt;
+    if (this.t < .4) return;
+    if (this.save === null) this.save = SAVE.get() || false;
+    if (IN.hit('b') && this.save){ AUD.init(); AUD.sfx('coin'); loadChapter(this.save.ck); return; }
+    if (IN.hit('a') || IN.hit('start')){ AUD.init(); AUD.sfx('coin'); startGame(); }
+  },
+  drawWorld(g){
+    const t = this.t;
+    SC.sky(g, '#3a5bd9', '#7fd0ff');
+    for (let i = 0; i < 6; i++) SC.cloud(g, ((i * 62 - t * 8) % 380 + 380) % 380 - 30, 12 + (i % 3) * 22, .8 + (i % 2) * .3);
+    SC.hills(g, t * 6, 1, 150, '#2a8b3c', '#3aa64d', 34, 210);
+    SC.hills(g, t * 6.5, 1, 152, '#35a94c', '#56cf6c', 20, 132);
+    SC.castleExt(g, 108, 150);
+    SC.ground(g, 0, 150, '#3cb955', '#7c4a1e', '#5e3610');
+    SC.bush(g, 16, 150, 1); SC.bush(g, 268, 150, 1);
+    const hop = Math.abs(Math.sin(t * 2.2)) * 10;
+    drawChar(g, 'mario', 'idle', (t * 3) | 0, 96, 150 - (hop > 6 ? hop - 6 : 0), 1);
+    drawChar(g, 'luigi', 'idle', (t * 2.6) | 0, 126, 150, 1);
+    drawChar(g, 'toad', 'idle', (t * 2) | 0, 66, 150, 1);
+    drawChar(g, 'bowser', 'idle', (t * 3) | 0, 232, 152, -1);
+    shadow(g, 96, 151, 6, .25);
+    /* logo çerçevesi */
+    frameBox(g, 40, 18, 240, 44, '#1b1436', '#0d0a1c', '#ffd23f');
+    rect(g, 44, 22, 232, 1, '#5a4aa8');
+    if (((t * 2) | 0) % 2 === 0) frameBox(g, 76, 150, 168, 16, '#1b1436', '#0d0a1c', '#5a4aa8');
+  },
+  drawUI(){
+    txt('SUPER MARIO', VW / 2, 24, { size:22, col:'#e5392b', align:'center' });
+    txt('SAGA', VW / 2, 44, { size:14, col:'#ffd23f', align:'center' });
+    txt('BÖLÜM 1: SESİ ÇALINAN PRENSES', VW / 2, 68, { size:8, col:'#fdf3d6', align:'center' });
+    if (((this.t * 2) | 0) % 2 === 0)
+      txt(this.save ? 'Z: YENİ OYUN' : 'BAŞLAMAK İÇİN  Z  /  EKRANA DOKUN', VW / 2, 152,
+        { size:8, col:'#ffd23f', align:'center' });
+    if (this.save)
+      txt('X: DEVAM ET \u2014 ' + (CHAPTERS[this.save.ck] || ''), VW / 2, 162, { size:7, col:'#8ff0a0', align:'center' });
+    txt('Z: MARIO   X: LUIGI   OK: YÜRÜ   ESC: MOLA', VW / 2, 172, { size:7, col:'#cfc6ef', align:'center' });
+  }
+};
+
+/* ---------- kayıt / devam ---------- */
+const SAVE = {
+  key:'superMarioSaga_v1',
+  set(ck){ try { localStorage.setItem(this.key, JSON.stringify({ ck:ck, coins:GAME.coins })); } catch (e){} },
+  get(){ try { return JSON.parse(localStorage.getItem(this.key) || 'null'); } catch (e){ return null; } },
+  clear(){ try { localStorage.removeItem(this.key); } catch (e){} }
+};
+const CHAPTERS = { ch1:'TOAD KOŞUYOR', ch2:'MANTAR YOLU', ch3:'PEACH ŞATOSU', ch4:'BOWSER İLE KARŞILAŞMA' };
+function loadChapter(ck){
+  const sv = SAVE.get();
+  GAME.flags = Object.create(null);
+  GAME.coins = (sv && sv.coins) || 0;
+  PARTY.mario.hp = PARTY.mario.max; PARTY.luigi.hp = PARTY.luigi.max;
+  PARTY.mario.bp = PARTY.mario.maxbp; PARTY.luigi.bp = PARTY.luigi.maxbp;
+  PARTY.items.mushroom = 3;
+  GAME.scene = 'cut'; GAME.fade = 1; GAME.fadeTo = 0;
+  FIELD.props.length = 0;
+  if (ck === 'ch1'){ chapter1(); return; }
+  GAME.flags.metMario = true; GAME.flags.luigiJoined = true;
+  const m = new Actor('mario', 60, 138, { dir:1 }); m.tag = 'mario';
+  const l = new Actor('luigi', 40, 138, { dir:1 }); l.tag = 'luigi';
+  FIELD.party = [m, l];
+  if (ck === 'ch2'){
+    PARTY.luigiIn = false;
+    FIELD.enter('road', 44, 1); GAME.scene = 'field'; ENTRY_SCRIPTS.road();
+  } else if (ck === 'ch3'){
+    PARTY.luigiIn = true; GAME.flags.roadDone = true;
+    FIELD.enter('castle_out', 44, 1); GAME.scene = 'field'; ENTRY_SCRIPTS.castle_out();
+  } else {
+    PARTY.luigiIn = true; GAME.flags.roadDone = true; GAME.flags.sawCastle = true;
+    FIELD.enter('castle_hall', 56, 1); sceneCastle();
+  }
+}
+
+function startGame(){
+  GAME.scene = 'cut';
+  GAME.flags = Object.create(null);
+  GAME.coins = 0;
+  PARTY.mario.hp = PARTY.mario.max; PARTY.luigi.hp = PARTY.luigi.max;
+  PARTY.mario.bp = PARTY.mario.maxbp; PARTY.luigi.bp = PARTY.luigi.maxbp;
+  PARTY.items.mushroom = 3; PARTY.luigiIn = false;
+  scenePrologue();
+}
+
+/* =========================== 20. ANA DÖNGÜ =========================== */
+let perf = 0, lastT = 0;
+const pauseEl = document.getElementById('pause');
+document.getElementById('resumeBtn').onclick = () => { GAME.paused = false; pauseEl.classList.add('hidden'); };
+document.getElementById('restartBtn').onclick = () => location.reload();
+pauseEl.classList.add('hidden');
+
+function update(dt){
+  AUD.pump();
+  if (IN.hit('start') && GAME.scene !== 'title'){
+    GAME.paused = !GAME.paused;
+    pauseEl.classList.toggle('hidden', !GAME.paused);
+  }
+  if (GAME.paused) return;
+
+  /* solma */
+  if (GAME.fade !== GAME.fadeTo){
+    const d = Math.sign(GAME.fadeTo - GAME.fade) * GAME.fadeSpd * dt;
+    GAME.fade = Math.abs(GAME.fadeTo - GAME.fade) < Math.abs(d) ? GAME.fadeTo : GAME.fade + d;
+    if (GAME.fade === 1 && GAME._fadeCb){ const c = GAME._fadeCb; GAME._fadeCb = null; c(); }
+  }
+  if (FX.freeze > 0){ FX.freeze -= dt; FX.update(dt * .2); return; }
+  FX.update(dt);
+
+  if (GAME.scene === 'title'){ TITLE.update(dt); return; }
+  if (GAME.scene === 'end'){ ENDING.update(dt); return; }
+  if (GAME.scene === 'battle'){ BAT.update(dt); return; }
+  if (DLG.on) DLG.update(dt);
+  CUT.update(dt);
+  FIELD.update(dt);
+}
+
+function render(){
+  wx.clearRect(0, 0, VW, VH);
+  ux.clearRect(0, 0, VW, VH);
+  if (GAME.scene === 'title'){ TITLE.drawWorld(wx); TITLE.drawUI(); }
+  else if (GAME.scene === 'end'){ ENDING.drawWorld(wx); ENDING.drawUI(); }
+  else if (GAME.scene === 'battle'){ BAT.drawWorld(wx); BAT.drawUI(); }
+  else {
+    FIELD.drawWorld(wx);
+    FIELD.drawUI();
+  }
+  if (FX.flash > 0){
+    wx.save(); wx.globalAlpha = Math.min(1, FX.flash); wx.fillStyle = FX.flashCol;
+    wx.fillRect(0, 0, VW, VH); wx.restore();
+  }
+  if (GAME.fade > 0){
+    wx.save(); wx.globalAlpha = GAME.fade; wx.fillStyle = '#0a0812'; wx.fillRect(0, 0, VW, VH); wx.restore();
+  }
+}
+
+function loop(ts){
+  if (!lastT) lastT = ts;
+  let dt = (ts - lastT) / 1000; lastT = ts; perf = ts;
+  if (dt > .05) dt = .05;
+  update(dt);
+  render();
+  IN.clear();
+  requestAnimationFrame(loop);
+}
+
+/* geliştirici kancası: sahne atlama ve sprite testi için */
+window.__SMS = { CH:CH, PAL:PAL, bake:bake, drawChar:drawChar, SC:SC, GAME:GAME, FIELD:FIELD, BAT:BAT,
+  CUT:CUT, DLG:DLG, IN:IN, PARTY:PARTY, TITLE:TITLE, ENDING:ENDING, FX:FX,
+  startGame:startGame, chapter1:chapter1, sceneCastle:sceneCastle, sceneFinale:sceneFinale,
+  goto:function(where){
+    DLG.on = false; DLG.cb = null; CUT.on = false; CUT.cb = null; FIELD.locked = false;
+    GAME.flags = Object.create(null); GAME.coins = 0;
+    PARTY.mario.hp = PARTY.mario.max; PARTY.luigi.hp = PARTY.luigi.max; PARTY.items.mushroom = 3;
+    if (where === 'house'){ GAME.scene = 'cut'; chapter1(); return; }
+    if (where === 'road' || where === 'castle' || where === 'hall'){
+      GAME.flags.metMario = true; GAME.flags.luigiJoined = true; PARTY.luigiIn = true;
+      const m = new Actor('mario', 60, 138, { dir:1 }); m.tag = 'mario';
+      const l = new Actor('luigi', 40, 138, { dir:1 }); l.tag = 'luigi';
+      FIELD.party = [m, l]; FIELD.props.length = 0;
+      if (where === 'road'){ FIELD.enter('road', 40, 1); GAME.scene = 'field'; ENTRY_SCRIPTS.road(); }
+      else if (where === 'castle'){ GAME.flags.sawCastle = true; FIELD.enter('castle_out', 40, 1); GAME.scene = 'field'; }
+      else { FIELD.enter('castle_hall', 60, 1); GAME.scene = 'cut'; sceneCastle(); }
+      GAME.fade = 0; GAME.fadeTo = 0;
+      return;
+    }
+    if (where === 'end'){ GAME.scene = 'end'; ENDING.start(); }
+  }
+};
+
+resize();
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
