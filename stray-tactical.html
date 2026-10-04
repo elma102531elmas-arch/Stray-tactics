@@ -2565,7 +2565,7 @@ function startMatch(mode,opts){
   if(remote.char) remote.char.root.visible=false;
   setupLoadout(mode==='range'?match.testDef:null);
   player._rangeSlot=mode==='range'&&match.testDef?match.testDef.slot:null;
-  if(mode==='range'){ setupRange(); player.infAmmo=true; }
+  if(mode==='range'){ setupRange(); }
   else player.infAmmo=false;
   if(mode==='bot'){ if(!bot) bot=new Bot(CFG.botDiff); else { bot.diff=CFG.botDiff; } bot.reset(spawnFor(1)); $('nmOp').textContent='BOT '+['KOLAY','NORMAL','ZOR'][CFG.botDiff]; }
   if(mode==='net'){ $('nmOp').textContent=net.opName||'RAKİP'; remote.alive=true; }
