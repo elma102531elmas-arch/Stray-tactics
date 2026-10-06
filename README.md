@@ -30,6 +30,13 @@ Oyunun adı ve alt başlığı **DEV → PROJE AYARLARI** bölümünden değişt
 - Karıştırıcı kanalları: silahlar, efektler, spiker, müzik, arayüz; HRTF 3D konumlama, yankı, flaş sonrası kulak çınlaması.
 - **Spiker:** "Bomb has been planted", "Bomb has been defused", "Terrorists win", "Counter-Terrorists win" ve bomba çağrıları — İngilizce / Türkçe tarayıcı sesiyle ya da kendi kayıtlarınla.
 
+## Ses paketi
+- Kendi bilgisayarındaki CS:GO / CS2 ses dosyalarını oyuna aktarabilirsin: **DEV → Ses atölyesi → Paket yükle** (ZIP ya da wav / mp3 / ogg / flac dosyaları), **Klasör** ya da dosyaları ses atölyesine sürükle-bırak. **Ayarlar → Ses → Ses paketi** bölümünden de yüklenir.
+- Dosya adları otomatik eşlenir: `ak47_01.wav` → AK-47 ateş, `ak47_clipout.wav` → şarjör çıkarma, `usp_unsilenced_01.wav` → susturucusuz USP-S, `c4_beep1.wav` → C4 bipi, `knife_hit_01.wav` → bıçak isabeti … Eşleşmeyen dosyalar ses atölyesindeki **SES PAKETİ** sayfasında elle bir yuvaya atanabilir.
+- Her silahın ateş / çekme / şarjör grubu için **PAKET** ve **PAKET 2** versiyonları V1-V2-V3'ün yanına eklenir; "Kendi dosyan" her zaman önce çalar, paket kapalıysa ya da pakette o ses yoksa kodla üretilen ses çalar. **Paketi kullan** ile tamamen kapatılabilir.
+- Dosyalar **yalnızca senin tarayıcında** (IndexedDB) saklanır; hiçbir yere yüklenmez. **Paketi sil** hepsini kaldırır.
+- Bu depo hiçbir oyun ses dosyası içermez.
+
 ## DEV
 - İlk açılışta **proje kurulumu** soruları: oyunun adı, varsayılan silah ses versiyonu, spiker dili.
 - **Silah atölyesi** — Unity benzeri viewmodel silah editörü (hiyerarşi, Inspector, profil çizici, materyaller, el tutuşları, istatistikler, ses profili ve versiyonları).
@@ -43,10 +50,11 @@ Oyunun adı ve alt başlığı **DEV → PROJE AYARLARI** bölümünden değişt
 - Atölyede yaptığın haritalar **★** ile listelenir.
 
 ## Silahlar
-- **Tabancalar:** Glock-18, USP-S, P250, Desert Eagle
-- **SMG ve pompalı:** MAC-10, MP9, Nova
-- **Tüfekler:** Galil AR, FAMAS, AK-47, M4A4, M4A1-S, SSG 08, AWP
-- **Bombalar:** HE, flaş, sis, molotof, yangın bombası — sis görüşü keser, molotofu söndürür.
+- **Tabancalar:** Glock-18, USP-S, P250, Tec-9, Desert Eagle
+- **SMG ve pompalı:** MAC-10, MP9, P90, Nova
+- **Tüfekler:** Galil AR, FAMAS, AK-47, M4A4, M4A1-S, AUG (1,7× dürbün), SSG 08, AWP
+- **Bombalar:** HE, flaş, sis, molotof, yangın bombası, dekoy — sis görüşü keser, molotofu söndürür; dekoy 15 sn boyunca senin silahının sesiyle sahte ateş eder ve rakip radarında görünür.
+- **Susturucu:** USP-S ve M4A1-S'de sağ tık (mobilde SUS.) susturucuyu takar / söker.
 - **Ekipman:** C4, kevlar, kask, imha kiti
 
 ## Harita atölyesi
@@ -70,4 +78,4 @@ Tüm tuşlar **Ayarlar → Klavye / Fare** bölümünden değiştirilebilir. Var
 Mobilde dokunmatik kontroller otomatik açılır (E ve $ düğmeleri dahil).
 
 ## Not
-Bu bağımsız bir hayran projesidir; Valve ya da Counter-Strike ile bir bağlantısı yoktur ve onlara ait isim, logo, harita veya ses dosyası içermez. Tüm sesler kodla üretilir.
+Bu bağımsız bir hayran projesidir; Valve ya da Counter-Strike ile bir bağlantısı yoktur ve onlara ait isim, logo, harita veya ses dosyası içermez. Oyunla gelen tüm sesler kodla üretilir; ses paketi özelliği yalnızca oyuncunun kendi cihazından seçtiği dosyaları tarayıcıda kullanır.

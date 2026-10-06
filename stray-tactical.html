@@ -496,6 +496,8 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 .bmItem .kn{grid-row:1/3;font-family:var(--f-mono);font-size:11px;color:var(--m-mut);}
 .bmItem img{filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));background:transparent;object-fit:contain;}
 .bmItem .gi{background:transparent;} .bmItem .gi svg{width:30px;height:30px;}
+/* five buy columns (incl. bombs) stay on one row down to ~900px wide */
+@media (max-width:1100px){ #bmGrid{grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:8px;padding:10px;} .bmItem{grid-template-columns:14px 54px 1fr;padding:5px 6px;} .bmItem img,.bmItem .gi{width:54px;height:30px;} .bmItem .nm{font-size:14px;} }
 #bmHint{font-family:var(--f-ui);font-size:12px;color:var(--m-txt2);letter-spacing:.06em;}
 .sbTeam td.mv{color:#ffd24a;}
 #cbTime svg{display:block;margin:2px auto;}
@@ -661,7 +663,7 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 .sRow>label{font-size:15px;color:var(--m-txt);}
 .sCtl{display:flex;justify-content:flex-end;align-items:center;gap:8px;min-width:0;}
 .sCtl input[type=range]{flex:1;min-width:90px;max-width:260px;accent-color:#e9edf2;}
-.sCtl.btnRow{flex-wrap:wrap;gap:6px;} .sCtl .cBtn.sm{white-space:nowrap;font-size:13px;letter-spacing:.06em;padding:0 10px;}
+.sCtl.btnRow{flex-wrap:wrap;gap:6px;} .sCtl .sInfoVal{font-family:var(--f-cs);font-size:17px;letter-spacing:.04em;color:#fff;} .sCtl .cBtn.sm{white-space:nowrap;font-size:13px;letter-spacing:.06em;padding:0 10px;}
 .sCtl .num{flex:none;width:70px;height:30px;background:rgba(0,0,0,.4);border:1px solid var(--m-line2);color:#fff;font-family:var(--f-mono);font-size:12px;text-align:center;}
 .sCtl select{height:32px;min-width:180px;background:#1d222a;border:1px solid var(--m-line2);color:#fff;font-family:var(--f-ui);font-size:14px;padding:0 8px;}
 .sCtl input[type=text]:not(.num){height:32px;width:100%;max-width:240px;background:rgba(0,0,0,.4);border:1px solid var(--m-line2);color:#fff;font-family:var(--f-cs);font-size:17px;letter-spacing:.06em;padding:0 10px;}
@@ -759,6 +761,30 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 .verBtn.on button.v{background:var(--ed-sel);color:#fff;}
 .verBtn button.p{padding:0 8px;border-left:1px solid #2a2e34;}
 .custTag{font-size:11px;color:var(--amber);}
+.sndStatus{padding:4px 12px;font-size:12px;color:#cfe6ff;background:#1d3550;border-bottom:1px solid #2a4a6c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sndDrop{position:absolute;inset:8px;z-index:5;display:flex;align-items:center;justify-content:center;border:3px dashed var(--ed-acc);border-radius:8px;background:rgba(18,30,44,.88);pointer-events:none;text-align:center;}
+.sndDrop b{display:block;font-family:var(--f-cs);font-size:34px;color:#fff;letter-spacing:.04em;}
+.sndDrop small{display:block;color:var(--ed-mut);font-size:13px;margin-top:6px;}
+.verBtn.pk button.v{color:#ffd57a;}
+.verBtn.pk.on button.v{color:#fff;}
+.pkSum{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px;}
+.pkSum span{background:#262b31;border:1px solid #1a1d21;padding:5px 10px;font-size:12px;color:#cfd4da;border-radius:3px;}
+.pkSum span b{color:#fff;font-size:15px;margin-right:4px;}
+.pkSec{margin:16px 0 6px;font-size:11px;letter-spacing:.12em;color:var(--ed-mut);font-weight:700;text-transform:uppercase;}
+.pkW{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:start;padding:8px 12px;background:#262b31;border:1px solid #1a1d21;margin-bottom:5px;}
+.pkW>b{font-size:13px;color:#fff;display:flex;flex-direction:column;gap:3px;}
+.pkW>b img{height:22px;max-width:120px;object-fit:contain;object-position:left;}
+.pkW>b small{font-weight:400;color:var(--ed-mut);font-size:11px;}
+.pkActs{display:flex;flex-wrap:wrap;gap:4px;}
+.pkAct{display:flex;align-items:center;border:1px solid #444b55;border-radius:3px;overflow:hidden;font-size:11px;color:#dfe3e8;background:#30353c;}
+.pkAct span{padding:0 7px;white-space:nowrap;}
+.pkAct button{background:#3a3f47;border:none;border-left:1px solid #2a2e34;color:#dfe3e8;height:24px;padding:0 7px;cursor:pointer;font-size:11px;font-weight:600;}
+.pkAct button:hover{background:#4a515b;}
+.pkUn{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:5px 10px;background:#262b31;border:1px solid #1a1d21;margin-bottom:3px;font-size:12px;}
+.pkUn .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
+.pkUn small{display:block;color:var(--ed-mut);font-size:11px;}
+.pkUn select{background:var(--ed-field);color:#dfe3e8;border:1px solid #3a3f47;height:26px;font-size:12px;max-width:230px;}
+.pkWarn{color:#ffb3b3;}
 .askBox{width:min(100%,560px);}
 .askBox .mb{gap:14px;}
 .askQ{display:flex;flex-direction:column;gap:6px;}
@@ -774,7 +800,7 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
   .sInfo{display:none;} .sRow{grid-template-columns:1fr;gap:6px;padding:8px 12px;} .sCtl{justify-content:flex-start;flex-wrap:wrap;}
   .invWrap{flex-direction:column;overflow:auto;} .invCats{width:auto;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--m-line);padding:6px;}
   .invCats button{white-space:nowrap;gap:8px;} .invGrid{overflow:visible;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));} .invSide{width:auto;border-left:none;} .invPrev{min-height:170px;}
-  .sndBody{flex-direction:column;} .sndList{width:auto;max-height:30vh;} .sndRow{grid-template-columns:1fr;}
+  .sndBody{flex-direction:column;} .sndList{width:auto;max-height:30vh;} .sndRow{grid-template-columns:1fr;} .pkW{grid-template-columns:1fr;} .pkUn{grid-template-columns:1fr;} .sndTop{flex-wrap:wrap;}
   .pTab{padding:0 11px;font-size:15px;} .sTabs .cBtn{font-size:12px;padding:0 8px;} .sClose{width:34px;}
 }
 /* landscape phones: keep the home screen in two columns so the agent stays visible in the middle */
@@ -944,7 +970,7 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
     <button class="devCard" id="devSound">
       <span class="k">ENGINE · SOUND WORKSHOP</span>
       <span class="t">SES ATÖLYESİ</span>
-      <span class="d">Her silah için ateş, çekme ve şarjör seslerinde 3 versiyon. Dinle, seç ya da kendi ses dosyanı yükle. Spiker anonslarını kaydet.</span>
+      <span class="d">Her silah için ateş, çekme ve şarjör seslerinde 3 versiyon. CS ses paketi (ZIP) içe aktarma: dosyalar silahlara otomatik eşlenir. Dinle, seç ya da kendi ses dosyanı yükle. Spiker anonslarını kaydet.</span>
       <svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="4"><path d="M14 40h14l20-16v52L28 60H14z M62 34c8 8 8 24 0 32 M72 24c14 14 14 38 0 52"/></svg>
     </button>
     <button class="devCard" id="devRange">
@@ -964,8 +990,11 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 
 <!-- SOUND WORKSHOP -->
 <div id="soundScreen" class="hidden">
-  <div class="sndTop"><div class="edLogo"><span data-brandword>STRIKE</span><b>ENGINE</b> <span class="edBadge">SES</span></div><span class="tnGrow"></span><div class="edGroup"><button data-allv="1">Hepsi V1</button><button data-allv="2">Hepsi V2</button><button data-allv="3">Hepsi V3</button></div><div class="edGroup"><button id="sndExit">Çık</button></div></div>
+  <div class="sndTop"><div class="edLogo"><span data-brandword>STRIKE</span><b>ENGINE</b> <span class="edBadge">SES</span></div><span class="tnGrow"></span><div class="edGroup"><button id="sndPackBtn" title="CS ses paketi: ZIP ya da ses dosyaları (wav, mp3, ogg, flac)">Paket yükle</button><button id="sndPackDirBtn" title="Ses dosyalarının olduğu klasörü seç">Klasör</button></div><div class="edGroup"><button data-allv="1">Hepsi V1</button><button data-allv="2">Hepsi V2</button><button data-allv="3">Hepsi V3</button><button data-allv="P" id="sndAllP">Hepsi PAKET</button></div><div class="edGroup"><button id="sndExit">Çık</button></div>
+    <input type="file" id="sndPackFile" multiple accept=".zip,.wav,.mp3,.ogg,.m4a,.flac,audio/*" hidden><input type="file" id="sndPackDir" multiple webkitdirectory hidden></div>
+  <div class="sndStatus hidden" id="sndPackStatus"></div>
   <div class="sndBody"><div class="sndList" id="sndList"></div><div class="sndMain" id="sndMain"></div></div>
+  <div class="sndDrop hidden" id="sndDrop"><div><b>Ses paketini bırak</b><small>ZIP, ses dosyaları ya da klasör · dosyalar yalnızca bu tarayıcıda saklanır</small></div></div>
 </div>
 
 <!-- DEV asks: project setup -->
@@ -1284,7 +1313,7 @@ const CFG_DEF={
   keys:Object.assign({},KEY_DEF),
   loadout:{primary:'ak47', secondary:'usps', melee:'knife'}, agent:'CT',
   comp:{map:'kumvadisi', size:5, side:'rand', len:'short'}, playMode:'comp', duelMap:'avlu', duelTarget:5, practice:'range',
-  brand:{name:'STRIKE POINT', tag:'TACTICAL SHOOTER'}, sv:{}, svDefault:1, devAsked:0, lastMap:null, lastEdit:null
+  brand:{name:'STRIKE POINT', tag:'TACTICAL SHOOTER'}, sv:{}, svDefault:1, packOn:1, devAsked:0, lastMap:null, lastEdit:null
 };
 const CFG=Object.assign({isTouch:('ontouchstart' in window)||navigator.maxTouchPoints>0},deepClone(CFG_DEF));
 function saveCfg(){ try{ const o={}; for(const k in CFG) if(k!=='isTouch') o[k]=CFG[k]; localStorage.setItem('strayTacCfg2',JSON.stringify(o)); }catch(e){} }
@@ -1294,6 +1323,8 @@ function loadCfg(){
     if(CFG[k]&&typeof CFG[k]==='object'&&!Array.isArray(CFG[k])&&typeof s[k]==='object'&&!Array.isArray(s[k])) Object.assign(CFG[k],s[k]); else CFG[k]=s[k]; } } }catch(e){}
   if(!CFG.quality) CFG.quality = CFG.isTouch ? 'med' : 'high';
   for(const k in KEY_DEF) if(!CFG.keys[k]) CFG.keys[k]=KEY_DEF[k];
+  CFG.packOn=(CFG.packOn===0||CFG.packOn===false||CFG.packOn==='0')?0:1; if(!CFG.sv||typeof CFG.sv!=='object'||Array.isArray(CFG.sv)) CFG.sv={};   // sound pack switch; sv values may be 1|2|3|'P'|'P2'
+  if(![1,2,3].includes(+CFG.svDefault)) CFG.svDefault=1; else CFG.svDefault=+CFG.svDefault;
 }
 loadCfg();
 
@@ -3045,25 +3076,41 @@ function updateListener(){
      SFX_LIB.ids()          -> array of every valid id
      SFX_LIB.profiles       -> weapon sound-profile key -> Turkish display label
      SFX_LIB.variants(id)   -> number of useful round-robin variants (c4:key has 7 keypad tones)
-     SFX_LIB.loop(id)       -> true for seamless loops (nade:fireloop, c4:defusing, mus:menu)
+     SFX_LIB.loop(id)       -> true for seamless loops (nade:fireloop, nade:decoy, c4:defusing, mus:menu)
      SFX_LIB.versionNames   -> {1:'Klasik', 2:'Ağır', 3:'Keskin'}
+
+   IDS (<P> = weapon profile key, see PROFILES / SFX_LIB.profiles):
+     fire:<P> far:<P> draw:<P> clipout:<P> clipin:<P> boltback:<P> boltfwd:<P> dry:<P>
+         P = ak47 m4a4 m4a1s m4a1u galil famas aug awp ssg08 mac10 mp9 p90 nova glock usps uspu p250 tec9 deagle
+             (m4a1u / uspu = M4A1-S / USP-S with the suppressor removed) | generic: rifle smg pistol sniper shotgun silenced silpistol
+     zoom:in zoom:out (scope lever + lens ring) | sil:on sil:off (suppressor screwed on / off)
+     knife:slash|stab|hit|hitwall|draw
+     nade:draw|pin|throw|bounce|he|hefar|flash|smoke|molotov|fireloop|extinguish|decoy|decoypop
+     c4:draw|key|planted|initiate|beep|defusestart|defusing|defused|explode
+     hit:helmet|head|body|kevlar|self  impact:stone|sand|metal|wood|flesh  whiz  death
+     step:<surf> land:<surf> (surf = stone|sand|metal|wood)  jump  shell:rifle|pistol|shotgun
+     ui:hover|click|back|buy|deny|equip|pickup|tab  radio:in|out  ring
+     mus:roundwin|roundlose|bombplanted|tensec|matchwin|matchlose|menu
 
    Output contract: stereo, equal length, starts at 0 (short fade-in), ends with a fade to exactly 0,
    high-passed at 25 Hz (DC-free), sanitized (no NaN/Inf, tiny values flushed), peak <= 0.98.
    Loops (loop(id) === true) are crossfade-wrapped instead of faded so they repeat without a click.
 
    LEVEL GUIDE (peak of the rendered buffer; the game plays everything at unity gain):
-     fire:   AK-47 V1 0.95 (reference) | AWP 0.98 | SSG 08 0.93 | Nova 0.95 | Deagle 0.90 | Galil 0.88
-             M4A4 0.85 | FAMAS 0.84 | MP9 0.76 | MAC-10 0.75 | P250 0.72 | Glock 0.68 | M4A1-S 0.45 | USP-S 0.35
+     fire:   AK-47 V1 0.95 (reference) | AWP 0.98 | SSG 08 0.93 | Nova 0.95 | Deagle 0.90 | Galil 0.88 | AUG 0.86
+             M4A4 0.85 | M4A1-S unsuppressed 0.85 | FAMAS 0.84 | P90 0.78 | MP9 0.76 | MAC-10 0.75
+             USP-S unsuppressed 0.74 | P250 0.72 | Tec-9 0.72 | Glock 0.68 | M4A1-S 0.45 | USP-S 0.35
              generic: rifle 0.88, sniper 0.95, shotgun 0.93, smg 0.75, pistol 0.70, silenced 0.45, silpistol 0.35
      far:    0.55 x the gun's fire level (AK far 0.52, AWP far 0.54, USP-S far 0.19)
      handling: clipout 0.48 (pistol 0.45), clipin 0.52 (pistol 0.50), boltback 0.50 (pistol 0.45),
                boltfwd 0.55 (pistol 0.52), sniper bolt 0.55, shotgun pump 0.55, shotgun shell load 0.45,
                draw 0.40, dry fire 0.40
      knife:  slash 0.50, stab 0.55, hit 0.60, hitwall 0.60, draw 0.45
+     scope / suppressor: zoom in / out 0.35 | sil on / off 0.45
      nades:  draw 0.40, pin 0.45, throw 0.45, bounce 0.50, HE 0.98, HE far 0.60, flash 0.95, smoke 0.70,
-             molotov 0.85, fire loop 0.50, extinguish 0.60
-     C4:     draw 0.40, key 0.35, planted 0.45, beep 0.55, defusestart 0.45, defusing loop 0.35, defused 0.45, explode 0.98
+             molotov 0.85, fire loop 0.50, extinguish 0.60, decoy fizz loop 0.30, decoy pop 0.60
+     C4:     draw 0.40, key 0.35, planted 0.45, initiate 0.45, beep 0.55, defusestart 0.45, defusing loop 0.35,
+             defused 0.45, explode 0.98
      hits:   helmet 0.65, head 0.60, body 0.55, kevlar 0.55, self 0.60 | impacts 0.45 | whiz 0.50 | death 0.50
      moves:  steps 0.33-0.38 (sand 0.33, metal 0.38), landings 0.45, jump 0.25 | shells 0.22
      UI:     0.25 (hover 0.12, tab 0.18, pickup 0.30) | radio 0.30 | ring (tinnitus) 0.35 | music 0.50
@@ -3677,6 +3724,44 @@ const GUNS = {
     mc: [[0.008, 1300, 0.45, 2.2, 0.3, 0.6], [0.022, 1050, 0.42, 2.5, 0.4, 0.55]],
     tl: { len: 0.7, g: 0.32, lp0: 3300, lp1: 450, er: 6, t0: 0.035, t1: 0.22, erg: 0.36, roll: 0.25 },
     dr: 2.4, as: 0.08, gr: [3.0, 0.22], far: { lp: 1150, len: 1.58 }, h: { size: 1.0, heavy: 1.1, ring: 1.6, poly: 0 } },
+  // FN P90 (5.7x28 bullpup, ~857 rpm): tight snappy high-mid crack, small supersonic snap, light body, hollow polymer
+  // shell resonance, bolt right next to the ear, short dry tail
+  p90: { cls: 'smg', lvl: 0.78, bl: [0.95, 0.8], cr: [3600, 0.0021, 0.62, 7200], nw: [0.00022, 0.28],
+    bk: [2250, 1.6, 0.014, 1.0, 4100, 0.45, 0], bd: [150, 350, 0.0045, 0.017, 0.4],
+    rs: [[980, 0.018, 0.03], [3050, 0.022, 0.045], [4550, 0.018, 0.04], [6300, 0.014, 0.035]],
+    mc: [[0.003, 2700, 0.22, 0.55, 0, 0.85], [0.009, 2000, 0.36, 0.7, 0.18, 0.75], [0.024, 3300, 0.1, 0.5, 0, 0.9]],
+    tl: { len: 0.3, g: 0.2, lp0: 4000, lp1: 650, er: 4, t0: 0.026, t1: 0.12, erg: 0.26, roll: 0.12 },
+    dr: 1.9, as: 0.05, gr: [2.8, 0.18], far: { lp: 1450, len: 1.1 }, h: { size: 1.12, heavy: 0.75, ring: 0.8, poly: 0.65 } },
+  // Tec-9 (9 mm, steel upper): sharper, brighter and harsher than the Glock, ringing metallic frame, hard blowback bolt
+  tec9: { cls: 'pistol', lvl: 0.72, bl: [0.9, 0.78], cr: [3800, 0.0024, 0.68, 7400], nw: [0, 0],
+    bk: [1950, 1.75, 0.015, 1.0, 3900, 0.5, 0], bd: [145, 330, 0.0048, 0.017, 0.4],
+    rs: [[3150, 0.04, 0.07], [4420, 0.034, 0.065], [5950, 0.027, 0.055], [7700, 0.02, 0.045]],
+    mc: [[0.005, 2600, 0.3, 1.0, 0.05, 0.85], [0.014, 1950, 0.4, 1.2, 0.12, 0.8]],
+    tl: { len: 0.42, g: 0.23, lp0: 4200, lp1: 640, er: 4, t0: 0.03, t1: 0.15, erg: 0.3, roll: 0.15 },
+    dr: 2.15, as: 0.08, gr: [2.8, 0.18], far: { lp: 1450, len: 1.06 }, h: { size: 1.15, heavy: 0.7, ring: 1.25, poly: 0.3 } },
+  // Steyr AUG (5.56 bullpup): punchy rifle with a tighter, more tonal 'pang' and a brighter top than the M4A4,
+  // extra bolt tick near the ear, translucent polymer magazine
+  aug: { cls: 'rifle', lvl: 0.86, bl: [1.3, 0.95], cr: [3500, 0.0027, 0.85, 7300], nw: [0.0003, 0.4],
+    bk: [1550, 1.85, 0.019, 1.0, 3400, 0.62, 0], bd: [105, 300, 0.006, 0.028, 0.6],
+    rs: [[2050, 0.04, 0.055], [2990, 0.034, 0.055], [4180, 0.028, 0.055], [5900, 0.02, 0.045], [7950, 0.012, 0.03]],
+    mc: [[0.003, 2200, 0.2, 0.7, 0, 0.8], [0.008, 3000, 0.12, 0.5, 0, 0.9], [0.015, 1500, 0.38, 1.1, 0.3, 0.65]], sp: [0.011, 1450, 900, 0.06, 0.05],
+    tl: { len: 0.46, g: 0.27, lp0: 3900, lp1: 520, er: 5, t0: 0.03, t1: 0.17, erg: 0.31, roll: 0.2 },
+    dr: 2.1, as: 0.06, gr: [3.0, 0.2], far: { lp: 1300, len: 1.32 }, h: { size: 1.05, heavy: 0.95, ring: 1.05, poly: 0.45 } },
+  // USP-S with the suppressor removed (.45 ACP, subsonic): loud, deeper and punchier than Glock / P250, no N-wave
+  uspu: { cls: 'pistol', lvl: 0.74, bl: [1.5, 0.98], cr: [2900, 0.0028, 0.58, 5600], nw: [0, 0],
+    bk: [1200, 1.3, 0.021, 1.0, 2500, 0.38, 0], bd: [95, 280, 0.007, 0.029, 0.75],
+    rs: [[2250, 0.035, 0.05], [3300, 0.028, 0.045], [4550, 0.022, 0.04]],
+    mc: [[0.006, 2150, 0.3, 0.8, 0.15, 0.7], [0.018, 1600, 0.38, 1.0, 0.25, 0.65]],
+    tl: { len: 0.5, g: 0.27, lp0: 3400, lp1: 500, er: 5, t0: 0.032, t1: 0.17, erg: 0.32, roll: 0.2 },
+    dr: 2.25, as: 0.07, gr: [2.9, 0.2], far: { lp: 1250, len: 1.2 }, h: { size: 1.25, heavy: 0.6, ring: 0.9, poly: 0.2 } },
+  // M4A1-S with the suppressor removed: full 5.56 report, a little lower / rounder bark and longer tail than the M4A4,
+  // same action + buffer spring as the M4A1-S
+  m4a1u: { cls: 'rifle', lvl: 0.85, bl: [1.5, 0.92], cr: [3150, 0.003, 0.64, 6500], nw: [0.0003, 0.38],
+    bk: [1220, 1.45, 0.025, 1.0, 2500, 0.4, 0], bd: [100, 255, 0.007, 0.033, 0.64],
+    rs: [[2000, 0.038, 0.05], [2960, 0.032, 0.045], [4380, 0.026, 0.04], [5750, 0.02, 0.035]],
+    mc: [[0.004, 2050, 0.17, 0.75, 0, 0.7], [0.018, 1450, 0.38, 1.2, 0.28, 0.62]], sp: [0.012, 1250, 760, 0.08, 0.055],
+    tl: { len: 0.48, g: 0.28, lp0: 3500, lp1: 480, er: 5, t0: 0.032, t1: 0.19, erg: 0.32, roll: 0.22 },
+    dr: 2.1, as: 0.07, gr: [3.0, 0.2], far: { lp: 1220, len: 1.36 }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
 };
 // generic class fallbacks: sensible averages of their class
 GUNS.rifle = { ...GUNS.galil, lvl: 0.88, bk: [1000, 1.35, 0.027, 1.0, 2100, 0.38, 0], bd: [95, 240, 0.008, 0.037, 0.72],
@@ -3689,8 +3774,9 @@ GUNS.shotgun = { ...GUNS.nova, lvl: 0.93, bk: [700, 0.75, 0.038, 1.0, 1600, 0.5,
 GUNS.silenced = { ...GUNS.m4a1s, lvl: 0.45, bk: [1000, 0.55, 0.019, 1.0, 2300, 0.25, 0.0012] };
 GUNS.silpistol = { ...GUNS.usps, lvl: 0.35, bk: [850, 0.6, 0.013, 1.0, 1800, 0.2, 0.0012] };
 
-const PROFILES = { ak47: 'AK-47', m4a4: 'M4A4', m4a1s: 'M4A1-S', galil: 'Galil AR', famas: 'FAMAS', awp: 'AWP', ssg08: 'SSG 08',
-  mac10: 'MAC-10', mp9: 'MP9', nova: 'Nova', glock: 'Glock-18', usps: 'USP-S', p250: 'P250', deagle: 'Desert Eagle',
+const PROFILES = { ak47: 'AK-47', m4a4: 'M4A4', m4a1s: 'M4A1-S', m4a1u: 'M4A1-S (susturucusuz)', galil: 'Galil AR', famas: 'FAMAS',
+  aug: 'AUG', awp: 'AWP', ssg08: 'SSG 08', mac10: 'MAC-10', mp9: 'MP9', p90: 'P90', nova: 'Nova', glock: 'Glock-18', usps: 'USP-S',
+  uspu: 'USP-S (susturucusuz)', p250: 'P250', tec9: 'Tec-9', deagle: 'Desert Eagle',
   rifle: 'Genel tüfek', smg: 'Genel hafif makineli', pistol: 'Genel tabanca', sniper: 'Genel keskin nişancı tüfeği',
   shotgun: 'Genel pompalı', silenced: 'Genel susturuculu tüfek', silpistol: 'Genel susturuculu tabanca' };
 
@@ -4630,6 +4716,128 @@ function musicSnd(kind) {
   return { L: out.L.slice(), R: out.R.slice() };
 }
 
+/* ------------------------------ scope zoom (lever + lens ring) ------------------------------ */
+function zoomSnd(kind, R, v) {
+  const out = new Float32Array(ns(0.45)), pre = 20, hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0;
+  const p = (1 - 0.06 * hv + 0.07 * sh) * R.j(1, 0.03), lens = (f) => [[f * p, 0.03 * (1 + 0.2 * hv), 0.1], [f * 1.42 * p, 0.022 * (1 + 0.2 * hv), 0.07]];
+  if (kind === 'in') {                        // lever flick tick, short rising slide, firm lens-ring click with a glassy ring
+    addClick(out, pre, { f: 2300 * p, g: 0.35, ring: 0.5, n: 5, poly: 0.6, br: 0.6 }, R);
+    addScrape(out, pre + ns(0.012), { dur: 0.045, f0: 2600 * p, f1: 3800 * p, q: 1.6, g: 0.12, rate: 1400, imp: 0.6, grit: 0.4, att: 0.3, rel: 0.3, modes: [[4200 * p, 20, 1]] }, R);
+    addClick(out, pre + ns(0.062), { f: 1900 * p, g: 0.8, ring: 0.9 + 0.15 * hv, n: 7, br: 0.65 + 0.15 * sh, thud: 0.2, thudF: 260 }, R);
+    addModes(out, pre + ns(0.062), lens(5200), 1, R);
+    addClick(out, pre + ns(0.105), { f: 3000 * p, g: 0.16, ring: 0.4, n: 5, br: 0.7 }, R);
+  } else {                                    // out: lens release click first, falling slide, lower plastic lever clack + settle
+    addClick(out, pre, { f: 2600 * p, g: 0.5, ring: 0.6, n: 6, br: 0.7 }, R);
+    addModes(out, pre, lens(4700), 0.7, R);
+    addScrape(out, pre + ns(0.014), { dur: 0.055, f0: 3500 * p, f1: 2200 * p, q: 1.5, g: 0.12, rate: 1200, rate1: 800, imp: 0.6, grit: 0.45, att: 0.25, rel: 0.35, modes: [[3700 * p, 20, 1]] }, R);
+    addClick(out, pre + ns(0.078), { f: 1450 * p, g: 0.8, ring: 0.8 + 0.15 * hv, n: 7, poly: 0.45, thud: 0.3, thudF: 200 }, R);
+    addRattle(out, pre + ns(0.092), { n: 2, t: 0.03, f: 3200 * p, g: 0.05 }, R);
+  }
+  return foley(out, 0.35, v, R, { room: 0.08, eq: 0.4 });
+}
+
+/* ------------------------------ suppressor screwed on / off ------------------------------ */
+function silSnd(kind, R, v) {
+  const on = kind === 'on', hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0, out = new Float32Array(ns(1.7)), pre = 20;
+  const p = 1 - 0.06 * hv + 0.06 * sh, rg = 1 + 0.35 * hv - 0.15 * sh;
+  const can = (f) => [[f * p, 0.05 * rg, 1], [f * 1.53 * p, 0.04 * rg, 0.7], [f * 2.31 * p, 0.03 * rg, 0.5]];   // tube modes of the can
+  let t = 0.03;
+  if (on) {                                   // can meets the muzzle: light tube tink
+    addClick(out, pre + ns(t), { f: 2900 * p, g: 0.45, ring: 1.2, n: 7, br: 0.75 }, R);
+    addModes(out, pre + ns(t), can(3400), 0.06, R);
+    t += R.r(0.11, 0.13);
+  } else {                                    // breaking the seat: firm unlock click with a knock
+    addClick(out, pre + ns(t), { f: 1500 * p, g: 0.75, ring: 1.0, n: 8, br: 0.55, thud: 0.35, thudF: 220 }, R);
+    addModes(out, pre + ns(t), can(2600), 0.08, R);
+    t += R.r(0.15, 0.17);
+  }
+  for (let j = 0; j < 4; j++) {               // four wrist turns: thread friction + small metallic thread ticks, re-grip pause
+    const d = R.r(0.12, 0.15);
+    addScrape(out, pre + ns(t), { dur: d, f0: R.r(380, 520) * p, f1: R.r(600, 850) * p, q: 0.9, g: 0.24, rate: 260, rate1: 380, imp: 0.7, grit: 0.7, att: 0.2, rel: 0.4,
+      modes: [[5400 * p, 25, 1], [7900 * p, 30, 0.5]] }, R);
+    for (let q = 0; q < 2; q++) addClick(out, pre + ns(t + d * R.r(0.2, 0.9)), { f: R.r(4200, 5600) * p, g: R.r(0.3, 0.5) * (1 + 0.2 * sh), ring: 0.5, n: 5, br: 0.8 }, R);
+    t += d + R.r(0.06, 0.085);
+  }
+  if (on) {                                   // seated: firm clack, tube ring, tiny settle rattle
+    addClick(out, pre + ns(t), { f: 1350 * p, g: 0.85, ring: 1.2, n: 9, br: 0.55, thud: 0.45 * (1 + 0.4 * hv), thudF: 200 }, R);
+    addModes(out, pre + ns(t), can(2600), 0.1, R);
+    addRattle(out, pre + ns(t + 0.02), { n: 2, t: 0.03, f: 3200, g: 0.05 }, R);
+  } else {                                    // lighter release: can slides off the last thread, soft tick, short ring
+    addScrape(out, pre + ns(t), { dur: 0.05, f0: 2200 * p, f1: 3200 * p, q: 1.4, g: 0.12, rate: 900, imp: 0.6, grit: 0.4, att: 0.2, rel: 0.5 }, R);
+    addClick(out, pre + ns(t + 0.045), { f: 3100 * p, g: 0.35, ring: 0.9, n: 6, br: 0.75 }, R);
+    addModes(out, pre + ns(t + 0.045), can(3400), 0.04, R);
+  }
+  return foley(out, 0.45, v, R, { room: 0.12, eq: 0.4 });
+}
+
+/* ------------------------------ C4 arming after the plant ------------------------------ */
+function c4Initiate(R, v) {
+  const hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0, out = new Float32Array(ns(1.9)), pre = 40;
+  // arming switch / cover: three mechanical clicks (plastic housing, metal contacts)
+  addClick(out, pre, { f: 1600, g: 0.55, ring: 0.5, n: 6, poly: 0.7, thud: 0.3, thudF: 240 }, R);
+  addClick(out, pre + ns(0.13 * R.j(1, 0.05)), { f: 2300, g: 0.45, ring: 0.6, n: 6, br: 0.65 }, R);
+  addClick(out, pre + ns(0.27 * R.j(1, 0.04)), { f: 1250, g: 0.7, ring: 0.7 + 0.3 * hv, n: 7, poly: 0.5, thud: 0.35 * (1 + 0.5 * hv), thudF: 200 }, R);
+  addRattle(out, pre + ns(0.29), { n: 2, t: 0.03, f: 2800, g: 0.05 }, R);
+  // two short electronic confirmation beeps (lower and rounder than the armed beep)
+  const fb = 1480 * (1 - 0.03 * hv + 0.03 * sh), hm = sh ? [1, 0.32, 0.15, 0.07] : hv ? [1, 0.18, 0.06] : [1, 0.25, 0.1, 0.04];
+  addBeep(out, pre + ns(0.5), fb, 0.075, 0.38, { att: 0.002, rel: 0.01, harm: hm });
+  addBeep(out, pre + ns(0.655), fb, 0.075, 0.38, { att: 0.002, rel: 0.01, harm: hm });
+  // faint rising electronic charge whine as the circuit arms, dying away by ~1.6 s
+  { const n = ns(0.8), at = pre + ns(0.76); let ph = 0;
+    for (let i = 0; i < n; i++) { const u = i / n, f = 5200 + 2400 * u; ph += TAU * f * INV_SR; out[at + i] += 0.035 * Math.min(1, i / ns(0.06)) * Math.pow(1 - u, 1.6) * Math.sin(ph); } }
+  return foley(out, 0.45, v, R, { room: 0.1, eq: 0.3 });
+}
+
+/* ------------------------------ decoy grenade ------------------------------ */
+function decoySnd(kind, R, v) {
+  const hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0;
+  if (kind === 'decoypop') {                  // burn-out: small pop + casing tick, short sputtering fizzle
+    const N = ns(0.8), Lc = new Float32Array(N), Rc = new Float32Array(N), m = new Float32Array(N), pre = 40;
+    const bT = (0.7 + 0.2 * hv - 0.15 * sh) * 1e-3 * SR, nb = Math.ceil(bT * 12);
+    for (let i = 0; i < nb; i++) { const x = i / bT; m[pre + i] += 0.7 * (1 - x) * Math.exp(-1.6 * x) * (i < 3 ? (i + 1) / 4 : 1); }
+    addBurst(m, pre, 0.45, { tau: 0.002, seed: R.seed(), f: [['hp', 1800, 0.7]] });
+    addThud(m, pre, { f: 160, tau: 0.012, g: 0.3 + 0.1 * hv }, R);
+    addClick(m, pre, { f: 1700, g: 0.35, ring: 0.7, n: 6, br: 0.5 }, R);
+    addPan(Lc, Rc, m, 0, 1, 0);
+    const fz = burst({ att: 0.004, hold: 0.04, tau: 0.09, tau2: 0.16 * (1 + 0.2 * hv), m2: 0.3, am: 0.75, amT: 0.003, seed: R.seed(), f: [['hp', 2500, 0.7], ['pk', 6000 * (1 + 0.1 * sh), 1, 4]], len: 0.6 });
+    { const a = ns(0.36), b = fz.length; for (let i = a; i < b; i++) fz[i] *= 0.5 + 0.5 * Math.cos(Math.PI * (i - a) / (b - a)); }
+    normRms(fz, 0.08, ns(0.1)); const fr = fz.slice(); allpass(fr, 89, 0.6);
+    mix(Lc, fz, pre + ns(0.006)); mix(Rc, fr, pre + ns(0.006));
+    for (const ch of [Lc, Rc]) addGrains(ch, pre + ns(0.004), { n: 26, t0: 0, t1: 0.45, shape: 1.7, f: [2000, 9000], Q: [3, 8], len: [0.0002, 0.0009], amp: 0.14 * (1 + 0.3 * sh), decay: 2.5 }, R);
+    addTail(Lc, Rc, pre, { rise: 0.01, len: 0.3, g: 0.03, lp0: 4000, lp1: 1200, hp: 150 }, R);
+    eqVer(Lc, Rc, v, 0.4);
+    return finish(Lc, Rc, 0.6);
+  }
+  // decoy: 2.5 s seamless sparking fizz bed (fluttering hiss + sputter body swelling with bursty spark clusters + crackle)
+  const L0 = 2.5, X = 0.25, W = 0.08, T = L0 + X + W, n = ns(T), Lc = new Float32Array(n), Rc = new Float32Array(n), D = 4, nl = Math.ceil(n / D) + 2;
+  const cl = []; for (let j = 0; j < 22 + 4 * sh; j++) cl.push([R.r(0, T - 0.12), R.r(0.03, 0.12), R.i(5, 14)]);   // shared sputter clusters
+  const sput = new Float32Array(nl);                                                              // cluster envelope at SR/D
+  for (let i = 0; i < nl; i++) { const t = i * D * INV_SR; let e = 0.35; for (const c of cl) { const z = (t - c[0] - c[1] * 0.5) / (c[1] * 0.6); if (z > -3 && z < 3) e += 0.9 * Math.exp(-z * z); } sput[i] = e; }
+  for (const ch of [Lc, Rc]) {
+    const hs = white(n, R.seed()), fq = [R.r(5, 9), R.r(13, 21)], ph = [R.u() * TAU, R.u() * TAU];
+    let a0 = 1;
+    for (let i = 0; i < n; i += 32) {
+      const t = (i + 32) * INV_SR, e = Math.min(n, i + 32), sp = sput[Math.min(nl - 1, (i / D) | 0)];
+      const a1 = (0.6 + 0.22 * Math.sin(TAU * fq[0] * t + ph[0]) + 0.18 * Math.sin(TAU * fq[1] * t + ph[1])) * (0.75 + 0.25 * sp);
+      if (i === 0) a0 = a1;
+      for (let j = i; j < e; j++) hs[j] *= a0 + (a1 - a0) * (j - i) / 32;
+      a0 = a1;
+    }
+    filt(hs, 'bp', 5000 * (1 + 0.12 * sh - 0.1 * hv), 0.6); filt(hs, 'hp', 1500, 0.7);
+    normRms(hs, 0.06); mix(ch, hs, 0);
+    const bd = pinkf(nl, R.seed());
+    for (let i = 0; i < nl; i++) bd[i] *= sput[i];
+    filt(bd, 'bp', 1100 * D * (1 - 0.15 * hv), 0.8); normRms(bd, 0.03 * (1 + 0.6 * hv)); upmix(ch, bd, D, 0);
+    addGrains(ch, 0, { n: 260, t0: 0, t1: T, f: [2500, 10000], Q: [3, 10], len: [0.0001, 0.0006], amp: 0.16, ampJ: 0.9 }, R);
+    for (const c of cl) addGrains(ch, ns(c[0]), { n: c[2] >> 1, t0: 0, t1: c[1], shape: 1.4, f: [1800, 9000], Q: [2, 8], len: [0.0001, 0.0008], amp: 0.26 * (1 + 0.2 * sh), ampJ: 0.8, decay: 1.5 }, R);
+    addGrains(ch, 0, { n: 10, t0: 0, t1: T, f: [700, 2500], Q: [2, 5], len: [0.0005, 0.002], amp: 0.22, ampJ: 0.6 }, R);
+    satur(ch, 1.6, 0);                                                                            // tame spark peaks (steadier bed)
+    hp1(ch, 25);
+  }
+  const w0 = ns(W), Ls = loopWrap(Lc.subarray(w0), ns(L0), ns(X)), Rs = loopWrap(Rc.subarray(w0), ns(L0), ns(X));
+  return finish(Ls, Rs, 0.3, { loop: true });
+}
+
 /* ------------------------------ registry ------------------------------ */
 const REG = Object.create(null);
 /** def(id, fn(R, version, variant) -> {L,R}, {vars: round-robin count, loop}) */
@@ -4662,6 +4870,11 @@ def('radio:in', (R, v) => radioSnd('in', R, v)); def('radio:out', (R, v) => radi
 def('ring', (R, v) => ringSnd(R, v));
 for (const k of ['roundwin', 'roundlose', 'bombplanted', 'tensec', 'matchwin', 'matchlose', 'menu'])
   def('mus:' + k, () => musicSnd(k), { loop: k === 'menu' });
+for (const k of ['in', 'out']) def('zoom:' + k, (R, v) => zoomSnd(k, R, v), { vars: 2 });
+for (const k of ['on', 'off']) def('sil:' + k, (R, v) => silSnd(k, R, v));
+def('c4:initiate', (R, v) => c4Initiate(R, v));
+def('nade:decoypop', (R, v) => decoySnd('decoypop', R, v), { vars: 2 });
+def('nade:decoy', (R, v) => decoySnd('decoy', R, v), { loop: true });
 //@@CONT@@
 
 /* ------------------------------ public API ------------------------------ */
@@ -4688,7 +4901,7 @@ return {
    custom sound files, announcer (speech or your own recordings), music stingers
    ===================================================================== */
 const SND={ bus:{}, bank:new Map(), custom:new Map(), rr:{}, lastImpact:0, menuMusic:null, warm:[], warmT:0, ids:new Set(), voiceT:0 };
-const SND_VERSIONS={1:'V1 · Klasik',2:'V2 · Ağır',3:'V3 · Keskin'};
+const SND_VERSIONS={1:'V1 · Klasik',2:'V2 · Ağır',3:'V3 · Keskin',P:'PAKET',P2:'PAKET 2'};
 const SND_PROFILE_ALIAS={ak:'ak47',rifle:'rifle',silenced:'silenced',sniper:'sniper',pistol:'pistol',deagle:'deagle',smg:'smg',shotgun:'shotgun',knife:'knife'};
 const SND_WEAPON_PROFILE={ak47:'ak47',m4a4:'m4a4',m4a1s:'m4a1s',galil:'galil',famas:'famas',awp:'awp',ssg08:'ssg08',mac10:'mac10',mp9:'mp9',nova:'nova',glock:'glock',usps:'usps',p250:'p250',deagle:'deagle',p90:'p90',tec9:'tec9',aug:'aug'};
 function sndProfiles(){ return SFX_LIB?SFX_LIB.profiles:{rifle:'Tüfek',ak:'AK',silenced:'Susturuculu',sniper:'Keskin',pistol:'Tabanca',deagle:'Ağır tabanca',smg:'SMG',shotgun:'Pompalı'}; }
@@ -4703,9 +4916,17 @@ function sndProfile(def,o){ if(!def) return 'rifle'; const st=def.stats||{}, s=s
   const t=def.type; return t==='pistol'?'pistol':t==='smg'?'smg':t==='sniper'?'sniper':t==='shotgun'?'shotgun':'rifle'; }
 // legacy sound kind (muzzle flash / fallback synth) that matches an SFX profile
 function sndLegacyKind(p){ return /^(m4a1s|usps|silenced|silpistol)$/.test(p)?'silenced':/^(awp|ssg08|sniper)$/.test(p)?'sniper':p==='ak47'?'ak':p==='deagle'?'deagle':/^(glock|p250|tec9|uspu|pistol)$/.test(p)?'pistol':/^(mac10|mp9|p90|smg)$/.test(p)?'smg':/^(nova|shotgun)$/.test(p)?'shotgun':'rifle'; }
-const SND_ACT_GROUP={fire:'fire',far:'fire',dry:'fire',draw:'draw',clipout:'reload',clipin:'reload',boltback:'reload',boltfwd:'reload'};
-function soundVer(def,grp){ const o=CFG.sv[def.id]; return (o&&o[grp])||(def.stats.sv&&def.stats.sv[grp])||CFG.svDefault||1; }
-function setSoundVer(def,grp,v){ const o=CFG.sv[def.id]||(CFG.sv[def.id]={}); o[grp]=v; saveCfg(); }
+// act -> workshop version group (the extra acts follow the group whose version decides pack vs procedural)
+const SND_ACT_GROUP={fire:'fire',far:'fire',dry:'fire',draw:'draw',inspect:'draw',zoomin:'draw',zoomout:'draw',silon:'draw',siloff:'draw',clipout:'reload',clipin:'reload',cliphit:'reload',cliprelease:'reload',boltback:'reload',boltfwd:'reload'};
+const SND_ACT_PROC={zoomin:'zoom:in',zoomout:'zoom:out',silon:'sil:on',siloff:'sil:off'};   // procedural ids shared by every gun
+const SND_PACK_ONLY=new Set(['cliphit','cliprelease','inspect']);                           // no procedural sound: silent without a pack
+function svNum(v){ v=+v; return v===2||v===3?v:1; }
+function isPackVer(v){ return v==='P'||v==='P2'; }
+function soundVerRaw(def,grp){ const o=CFG.sv[def.id]; return (o&&o[grp])||(def.stats.sv&&def.stats.sv[grp])||CFG.svDefault||1; }
+// effective version 1|2|3|'P'|'P2': a pack version counts only while packs are on and the pack has sounds for that group, else the default V1-V3
+function soundVer(def,grp){ const v=soundVerRaw(def,grp); if(isPackVer(v)) return CFG.packOn!==0&&packHasGroup(def.id,grp)?v:svNum(CFG.svDefault); return svNum(v); }
+function soundVerNum(def,grp){ const v=soundVer(def,grp); return isPackVer(v)?svNum(CFG.svDefault):v; }   // procedural version (fallback of a pack version)
+function setSoundVer(def,grp,v){ const o=CFG.sv[def.id]||(CFG.sv[def.id]={}); o[grp]=isPackVer(v)?v:svNum(v); saveCfg(); }
 /* ---- buses ---- */
 function sndBuildBuses(){
   const ctx=AUD.ctx; if(!ctx||SND.bus.weapons) return;
@@ -4718,13 +4939,16 @@ function applyVolumes(){ if(!AUD.ctx) return; AUD.master.gain.value=CFG.vol; con
   B.weapons.gain.value=CFG.volW; B.fx.gain.value=CFG.volFx; B.voice.gain.value=CFG.volVoice; B.music.gain.value=CFG.volMusic*CFG.vol; B.ui.gain.value=CFG.volUi*CFG.vol; }
 /* ---- bank ---- */
 function sndBuf(id,v,variant){
-  if(!SFX_LIB) return null; const key=id+'|'+(v||1)+'|'+(variant|0); let b=SND.bank.get(key); if(b) return b;
-  try{ const r=SFX_LIB.render(id,v||1,variant|0); b=new AudioBuffer({length:Math.max(1,r.L.length),numberOfChannels:2,sampleRate:SFX_LIB.SR}); b.copyToChannel(r.L,0); b.copyToChannel(r.R,1); SND.bank.set(key,b); return b; }catch(e){ console.warn('sfx',id,e); SND.bank.set(key,null); return null; }
+  if(!SFX_LIB) return null; v=svNum(v); const key=id+'|'+v+'|'+(variant|0); let b=SND.bank.get(key); if(b) return b;
+  try{ const r=SFX_LIB.render(id,v,variant|0); b=new AudioBuffer({length:Math.max(1,r.L.length),numberOfChannels:2,sampleRate:SFX_LIB.SR}); b.copyToChannel(r.L,0); b.copyToChannel(r.R,1); SND.bank.set(key,b); return b; }catch(e){ console.warn('sfx',id,e); SND.bank.set(key,null); return null; }
 }
 function sndVariant(id){ let n=1; try{ n=SFX_LIB?SFX_LIB.variants(id)||1:1; }catch(e){} let r=Math.floor(Math.random()*n); if(n>1&&r===SND.rr[id]) r=(r+1)%n; SND.rr[id]=r; return r; }
 function sndPlay(id,o){
   o=o||{}; ensureAudio(); const ctx=AUD.ctx; if(!ctx||!SND.bus.fx) return null;
-  const buf=o.buf||sndBuf(id,o.v||1,o.variant!==undefined?o.variant:sndVariant(id)); if(!buf) return null;
+  let buf=o.buf;
+  if(!buf&&id&&!o.noPack&&CFG.packOn!==0&&packHas(id,'any')) buf=packPick(id,o.pset||'P',o.variant);   // sound pack overrides shared ids (c4:*, knife:*, nade:*); null until decoded
+  if(!buf&&id&&SND.ids.size&&!SND.ids.has(id)) return null;                                           // pack-only id (c4:beep2, c4:debris ...) not decoded yet
+  if(!buf) buf=sndBuf(id,o.v||1,o.variant!==undefined?o.variant:sndVariant(id)); if(!buf) return null;
   const src=ctx.createBufferSource(); src.buffer=buf; src.playbackRate.value=(o.rate||1)*(o.jit===0?1:1+(Math.random()-.5)*(o.jit||.04)); src.loop=!!o.loop;
   const g=ctx.createGain(); g.gain.value=o.vol===undefined?1:o.vol; src.connect(g); let node=g;
   if(o.lp){ const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=o.lp; node.connect(f); node=f; }
@@ -4739,14 +4963,26 @@ function sndPlay(id,o){
   return {src,g,stop:(t)=>{ try{ const n=ctx.currentTime; g.gain.setTargetAtTime(0,n,(t||.15)/3); src.stop(n+(t||.15)+.05); }catch(e){} }};
 }
 /* ---- weapons ---- */
+// resolution: your own file ("Kendi dosyan") > sound pack (version 'P'/'P2', packs on, pack has "<id>:<act>") > procedural bank (V1-V3)
 function weaponSound(def,act,o){
-  if(!def) return null; o=o||{}; const grp=SND_ACT_GROUP[act]||act, ck=def.id+':'+(act==='far'?'fire':act), cust=!o.noCustom&&SND.custom.get(o.unsup?ck+':unsup':ck);
-  if(cust) return sndPlay('',Object.assign({buf:cust,bus:'weapons'},o));
+  if(!def) return null; o=o||{}; const T=def.type, knife=T==='knife', ka=knife?(['draw','hit','hitwall','stab'].includes(act)?act:'slash'):act;   // knife: fire / dry = swing
+  const ck=def.id+':'+(knife?(ka==='slash'?'fire':ka):act==='far'?'fire':act), cust=!o.noCustom&&SND.custom.get(o.unsup?ck+':unsup':ck);
+  if(cust) return sndPlay('',Object.assign({bus:'weapons'},o,{buf:cust}));
   if(!SFX_LIB){ if(act==='fire'||act==='far') playShotLegacy(o.unsup?(def.type==='pistol'?'pistol':'rifle'):(def.stats.sound||'rifle'),o.pos,o.dist); else if(act==='draw') SFX_OLD.draw(); else if(act==='clipout') SFX_OLD.magOut(); else if(act==='clipin') SFX_OLD.magIn(); else if(act==='boltback') SFX_OLD.boltBack(); else if(act==='boltfwd') SFX_OLD.boltFwd(); else if(act==='dry') SFX_OLD.dry(); return null; }
-  if(def.type==='knife'){ return sndPlay(act==='draw'?'knife:draw':'knife:slash',Object.assign({bus:'weapons',v:soundVer(def,grp)},o)); }
-  if(def.type==='grenade'){ return act==='draw'?sndPlay('nade:draw',Object.assign({bus:'weapons'},o)):null; }
-  if(def.type==='c4'){ return act==='draw'?sndPlay('c4:draw',Object.assign({bus:'weapons'},o)):null; }
-  return sndPlay(act+':'+sndProfile(def,o),Object.assign({bus:'weapons',v:soundVer(def,grp)},o));
+  if(knife) return sndPlay('knife:'+ka,Object.assign({bus:'weapons'},o,{v:svNum(o.v!==undefined?o.v:soundVerNum(def,ka==='draw'?'draw':'fire'))}));   // pack knife:* override in sndPlay
+  if(T==='grenade'){ if(act!=='draw') return null; return sndPack(o.noPack?[]:def.id+':draw','nade:draw',Object.assign({bus:'weapons'},o)); }
+  if(T==='c4') return act==='draw'?sndPlay('c4:draw',Object.assign({bus:'weapons'},o)):null;
+  const ver=o.v!==undefined?o.v:soundVer(def,SND_ACT_GROUP[act]||act);
+  if(isPackVer(ver)&&CFG.packOn!==0){ const S=def.id+':', has=a=>packHas(S+a,'any'); let a=act, x=null;
+    if(o.unsup&&(act==='fire'||act==='far')&&has(act+'u')) a=act+'u';                                    // USP-S / M4A1-S without suppressor
+    if(act==='far'&&!has(a)){ a=o.unsup&&has('fireu')?'fireu':'fire'; x={lp:1800,vol:(o.vol===undefined?1:o.vol)*.63}; }   // no distant file: the close shot, muffled
+    else if(act==='zoomout'&&!has(a)) a='zoomin';
+    else if(act==='boltfwd'&&!has(a)&&has('boltback')) return null;   // CS bolt-pull files (ak47_boltpull) already contain the release
+    const b=has(a)?packPick(S+a,ver,o.variant):null;
+    if(b) return sndPlay('',Object.assign({bus:'weapons'},o,x,{buf:b}));
+  }
+  if(SND_PACK_ONLY.has(act)) return null;
+  return sndPlay(SND_ACT_PROC[act]||act+':'+sndProfile(def,o),Object.assign({bus:'weapons'},o,{v:isPackVer(ver)?svNum(CFG.svDefault):svNum(ver)}));
 }
 // o (optional) is passed through to weaponSound: {unsup:true} = removable suppressor is off
 function weaponFire(def,pos,dist,o){
@@ -4795,14 +5031,16 @@ function sndInstallHooks(){
     kill(){}, hurt(){ sndPlay('hit:self',{bus:'fx',vol:1}); }, die(){ sndPlay('death',{bus:'fx'}); },
     win(){ sndPlay(SND.ids.has('mus:matchwin')?'mus:matchwin':'ui:buy',{bus:'music'}); }, lose(){ sndPlay(SND.ids.has('mus:matchlose')?'mus:matchlose':'ui:deny',{bus:'music'}); },
     click(){ uiSound('click'); },
-    pin(){ sndPlay('nade:pin',{bus:'weapons'}); }, clink(p){ sndPlay('nade:bounce',{pos:p,ref:2,bus:'fx'}); },
-    boom(p,big){ const d=p.distanceTo(camera.position); if(big) sndPlay('c4:explode',{pos:p,ref:14,roll:.45,rev:.4,bus:'fx'}); else { sndPlay(d>40?'nade:hefar':'nade:he',{pos:p,ref:8,roll:.6,rev:.35,bus:'fx'}); } },
-    flashbang(p){ sndPlay('nade:flash',{pos:p,ref:8,roll:.6,rev:.25,bus:'fx'}); },
+    pin(){ sndPack('nade:pinstart','nade:pin',{bus:'weapons'}); }, clink(p,id,kind){ sndPack(id?[id+':bounce',kind+':bounce']:[],'nade:bounce',{pos:p,ref:2,bus:'fx'}); },   // id = grenade def id (incgren's kind is molotov)
+    boom(p,big){ const d=p.distanceTo(camera.position);
+      if(big){ sndPlay('c4:explode',{pos:p,ref:14,roll:.45,rev:.4,bus:'fx'}); sndPack('c4:debris',null,{pos:p,ref:14,roll:.45,rev:.3,bus:'fx',delay:.35}); }
+      else sndPack(d>40?['he:detonatefar','he:detonate']:'he:detonate',d>40?'nade:hefar':'nade:he',{pos:p,ref:8,roll:.6,rev:.35,bus:'fx'}); },
+    flashbang(p){ sndPack('flash:detonate','nade:flash',{pos:p,ref:8,roll:.6,rev:.25,bus:'fx'}); },
     ring(dur){ sndPlay('ring',{bus:'fx',vol:clamp(dur/3,.25,1)}); muffle(dur); },
-    hiss(p){ sndPlay('nade:smoke',{pos:p,ref:4,bus:'fx'}); },
-    fire(p){ sndPlay('nade:molotov',{pos:p,ref:5,bus:'fx'}); },
-    beep(p){ sndPlay('c4:beep',{pos:p,ref:5,roll:.8,bus:'fx',jit:0}); },
-    plant(){ sndPlay('c4:planted',{bus:'fx'}); announce('planted'); music('mus:bombplanted'); },
+    hiss(p){ if(sndPack('smoke:detonate',null,{pos:p,ref:4,bus:'fx'})) sndPack('smoke:emit',null,{pos:p,ref:4,bus:'fx',vol:.55}); else sndPlay('nade:smoke',{pos:p,ref:4,bus:'fx'}); },
+    fire(p,id){ id=id||'molotov'; sndPack((p.distanceTo(camera.position)>30?[id+':detonatefar']:[]).concat(id+':detonate'),'nade:molotov',{pos:p,ref:5,bus:'fx'}); },   // incgren: incgren:detonate(far) · molotov: molotov:detonate
+    beep(p,t){ const id=!(t<=10)?'c4:beep':t>5?'c4:beep2':'c4:beep3'; sndPack(id==='c4:beep'?[]:id,'c4:beep',{pos:p,ref:5,roll:.8,bus:'fx',jit:0}); },   // faster beep sounds in the last 10 / 5 s when the pack has them
+    plant(){ sndPlay('c4:planted',{bus:'fx'}); sndPlay('c4:initiate',{bus:'fx',delay:.3}); announce('planted'); music('mus:bombplanted'); },
     defused(){ sndPlay('c4:defused',{bus:'fx'}); announce('defused'); },
     go(){ sndPlay('radio:in',{bus:'voice',vol:.6}); }
   });
@@ -4815,9 +5053,15 @@ function menuMusic(on){
   if(on&&!SND.menuMusic){ SND.menuMusic=sndPlay('mus:menu',{bus:'music',loop:true,jit:0,vol:.8}); }
   else if(!on&&SND.menuMusic){ SND.menuMusic.stop(1.2); SND.menuMusic=null; }
 }
-function previewWeaponSound(def,act,v){ if(!def) return; ensureAudio(); weaponSound(def,act,v?{v,noCustom:true}:{}); }
+// v = 1|2|3 (procedural, no pack override) or 'P'|'P2' (waits until those pack files are decoded)
+function previewWeaponSound(def,act,v){ if(!def) return; ensureAudio();
+  if(isPackVer(v)){ const L=[act].concat(act==='far'?['fire','fireu']:act==='zoomout'?['zoomin']:[]); Promise.all(L.map(a=>packReady(def.id+':'+a,v))).then(()=>weaponSound(def,act,{v,noCustom:true})); return; }
+  weaponSound(def,act,v?{v,noCustom:true,noPack:true}:{}); }
 function previewReload(def,v){ const parts=def.type==='shotgun'?[['clipout',0],['clipin',.42],['boltback',.95],['boltfwd',1.25]]:def.type==='sniper'?[['clipout',0],['clipin',.7],['boltback',1.3],['boltfwd',1.65]]:[['clipout',0],['clipin',.65],['boltback',1.05],['boltfwd',1.3]];
-  for(const [a,t] of parts) setTimeout(()=>previewWeaponSound(def,a,v),t*1000); }
+  if(!isPackVer(v)){ for(const [a,t] of parts) setTimeout(()=>previewWeaponSound(def,a,v),t*1000); return; }
+  const S=def.id+':', co=parts[0][1]+.1, ci=parts[1][1]+.1, L=parts.map(([a,t])=>[a,t+.1]);
+  if(packHas(S+'cliprelease','any')) L.push(['cliprelease',co-.05]); if(packHas(S+'cliphit','any')) L.push(['cliphit',ci+.12]);
+  ensureAudio(); Promise.all(L.map(([a])=>packReady(S+a,v))).then(()=>{ for(const [a,t] of L) setTimeout(()=>weaponSound(def,a,{v,noCustom:true}),t*1000); }); }
 /* ---- announcer: browser speech or your own recordings ---- */
 const VOICE_LINES={ planted:{en:'Bomb has been planted.',tr:'Bomba kuruldu.',l:'Bomba kuruldu'}, defused:{en:'Bomb has been defused.',tr:'Bomba imha edildi.',l:'Bomba çözüldü'},
   twin:{en:'Terrorists win.',tr:'Teröristler kazandı.',l:'Teröristler kazandı'}, ctwin:{en:'Counter-Terrorists win.',tr:'Anti-terör kazandı.',l:'Anti-terör kazandı'},
@@ -4841,6 +5085,350 @@ function announce(line,lang,preview){
 if('speechSynthesis' in window){ try{ speechSynthesis.onvoiceschanged=()=>{}; speechSynthesis.getVoices(); }catch(e){} }
 /* ---- custom sound files (any slot) ---- */
 async function sndDecode(buf){ const C=window.OfflineAudioContext||window.webkitOfflineAudioContext; const oc=new C(2,44100,44100); return await new Promise((res,rej)=>{ const p=oc.decodeAudioData(buf.slice(0),res,rej); if(p&&p.then) p.then(res,rej); }); }
+/* ---- SOUND PACKS: CS:GO / CS2-style sound files imported at runtime from the player's own device (zip, loose files or a folder).
+   Nothing ships with the game: files are unzipped in the browser, every file name is mapped to a "<weaponId>:<act>" slot,
+   bytes are stored once per content hash in IndexedDB (blob 'pk_<sha1>', manifest 'pk_manifest') and decoded with sndDecode.
+   Sets: P = main / newer files (ak47_01), P2 = older / alternate files (ak47-1). CFG.packOn===0 turns packs off globally. ---- */
+const PACK={ files:{}, unmatched:[], slots:new Map(), bufs:new Map(), loading:null, rr:{}, pend:new Map(), mem:new Map(), bad:new Set(), err:{}, gen:0, ready:false, busy:null, ver:0 };
+const PACK_AUDIO=/\.(wav|mp3|ogg|oga|opus|m4a|aac|flac|webm|weba)$/i;
+const PACK_MAX=40*1024*1024;
+const PACK_SHARED_IDS=new Set(['knife','c4','nade']);   // slots named exactly like the SFX bank ids (knife:slash, c4:beep, nade:pin ...)
+const PACK_NOGUN=new Set(['he','flash','smoke','molotov','incgren','decoy','c4','knife','tagrenade','breachcharge','bumpmine','snowball','healthshot']);
+const PACK_GROUPS={fire:['fire','far','fireu','faru'],draw:['draw'],reload:['clipout','clipin','cliphit','cliprelease','boltback','boltfwd']};
+const PACK_PRIO=['fire','fireu','far','faru','draw','clipout','clipin','boltback','boltfwd','cliphit','cliprelease','dry'];
+// weapon names used in CS sound files -> game ids. [id, 'alias|alias', flag]  flag 1 = short prefix, must be followed by '_' and never used as a folder hint; 2 = folder hint only.
+// Ids the game does not have are listed too: they map to their own id, so they work automatically once such a weapon is added to LIB.
+const PACK_WEAPONS=[
+  ['ak47','ak47|ak-47|ak_47'],['aug','aug'],['awp','awp'],['deagle','deagle|desert_eagle|deserteagle'],['deagle','de',1],['glock','glock18|glock-18|glock_18|glock'],
+  ['mac10','mac10|mac-10|mac_10'],['p250','p250'],['p90','p90'],['tec9','tec9|tec-9|tec_9'],['usps','usp-s|usp_s|usps|usp'],['usps','usp_silencer',2],
+  ['m4a1s','m4a1s|m4a1-s|m4a1_s'],['m4a1s','m4a1_silencer',2],['m4a4','m4a4|m4a1'],['famas','famas'],['galil','galilar|galil'],['ssg08','ssg08|ssg-08|ssg_08|scout'],
+  ['mp9','mp9'],['nova','nova'],['he','hegrenade|he_grenade'],['he','he',1],['flash','flashbang|flash'],['molotov','molotov'],
+  ['incgren','inc_grenade|incgrenade|incendiary|incgren'],['smoke','smokegrenade|smoke_grenade|smoke'],['smoke','sg',1],['decoy','decoy'],['c4','c4'],['knife','knife'],
+  ['mp7','mp7'],['mp5sd','mp5sd|mp5'],['ump45','ump45|ump'],['bizon','bizon|ppbizon|pp-bizon'],['xm1014','xm1014'],['mag7','mag7|mag-7'],['sawedoff','sawedoff|sawed-off|sawed_off'],
+  ['negev','negev'],['m249','m249'],['sg556','sg556|sg553|sg_556'],['scar20','scar20|scar-20'],['g3sg1','g3sg1'],['cz75a','cz75a|cz75|cz75-auto'],
+  ['fiveseven','fiveseven|five-seven|five_seven'],['elite','elite|dualies|dual_berettas|berettas'],['revolver','revolver|r8'],['hkp2000','hkp2000|p2000'],['taser','taser|zeus'],
+  ['healthshot','healthshot'],['tagrenade','tagrenade'],['breachcharge','breachcharge'],['bumpmine','bumpmine'],['shield','shield'],['snowball','snowball']
+];
+const PACK_ALIAS=PACK_WEAPONS.flatMap(([id,a,f])=>a.split('|').map(s=>({s,id,f:f|0,h:new RegExp('(?:^|_)'+s.replace(/-/g,'_')+'(?=_|\\d|$)')}))).sort((a,b)=>b.s.length-a.s.length);
+// whole-name rules, checked first: [regex, slot, set]. The first numeric capture is the order (round-robin / sequence index).
+const PACK_NAME_RULES=[
+  [/^knife_slash_?(\d*)$/,'knife:slash'],[/^knife_hitwall_?(\d*)$/,'knife:hitwall'],[/^knife_hit_(\d+)$/,'knife:hit'],[/^knife_hit(\d+)$/,'knife:hit','P2'],[/^knife_hit$/,'knife:hit'],
+  [/^knife_stab_?(\d*)$/,'knife:stab'],[/^knife_(?:deploy|draw)_?(\d*)$/,'knife:draw'],
+  [/^key_?press_?(\d*)$/,'c4:key'],[/^c4_beep_?(1?)$/,'c4:beep'],[/^c4_beep_?2$/,'c4:beep2'],[/^c4_beep_?3$/,'c4:beep3'],[/^c4_click$/,'c4:plantstart'],
+  [/^c4_plant_quiet$/,'c4:planted','P2'],[/^c4_plant(?:ed)?$/,'c4:planted'],[/^c4_initiate$/,'c4:initiate'],[/^c4_disarm_?start$/,'c4:defusestart'],[/^c4_disarm_?finish$/,'c4:defused'],
+  [/^c4_disarm(?:ing)?$/,'c4:defusing'],[/^c4_explode_?(\d*)$/,'c4:explode'],[/^c4_exp(?:losion)?_?deb(?:ris)?_?(\d*)$/,'c4:debris'],[/^c4_(?:draw|deploy)$/,'c4:draw'],
+  [/^pinpull_start$/,'nade:pinstart'],[/^pinpull$/,'nade:pin'],[/^grenade_throw_?(\d*)$/,'nade:throw'],[/^(?:grenade_hit|he_bounce)[-_]?(\d*)$/,'nade:bounce'],
+  [/^decoy_?2?_long$/,'decoy:active'],[/^decoy_?2$/,'decoy:active','P2']
+];
+// rules for the part after the weapon name (or "_<name>" when only the folder names the weapon): [regex, act, set, opts]
+// opts.gun: guns only (not grenades/knife/c4) · opts.frame: the capture is an inspect animation frame · opts.to: {fromId:toId} store under another weapon
+const PACK_ACT_RULES=[
+  [/^(?:_silencer)?_(\d+)$/,'fire','P',{gun:1}],[/^-(\d+)$|^(\d+)$/,'fire','P2',{gun:1}],
+  [/^(?:_silencer)?_distant(?:_?(\d+))?$|^(?:_silencer)?_(\d+)_distant$/,'far','P',{gun:1}],[/^-?(\d+)-distant$/,'far','P2',{gun:1}],
+  [/^_unsil(?:enced)?_(\d+)$/,'fireu','P',{gun:1}],[/^_unsil(?:enced)?-(\d+)$/,'fireu','P2',{gun:1}],
+  [/^_unsil(?:enced)?_distant(?:_?(\d+))?$|^_unsil(?:enced)?_(\d+)_distant$/,'faru','P',{gun:1}],[/^_unsil(?:enced)?-(\d+)-distant$/,'faru','P2',{gun:1}],
+  [/^_(?:draw|deploy)_?(\d*)$/,'draw'],[/^_(?:clip|mag)_?out_?(\d*)$/,'clipout'],[/^_(?:clip|mag)_?in_?(\d*)$/,'clipin'],[/^_insert_?shell_?(\d*)$/,'clipin'],
+  [/^_clip_?hit_?(\d*)$/,'cliphit'],[/^_clip_?release_?(\d*)$/,'cliprelease'],
+  [/^_(?:bolt_?pull|bolt_?back|slide_?back|pump)_?(\d*)$/,'boltback'],[/^_(?:bolt_?forward|bolt_?release|slide_?release|slide_?forward)_?(\d*)$/,'boltfwd'],
+  [/clip_?empty|^_dry_?fire_?(\d*)$|^_empty$/,'dry'],[/^_zoom(?:_?in)?_?(\d*)$/,'zoomin'],[/^_zoom_?out_?(\d*)$/,'zoomout'],
+  [/^_silencer_on_?(\d*)$/,'silon'],[/^_silencer_off_?(\d*)$/,'siloff'],[/^_silencer_screw(?:_?(\d+)|_on_start|_off_end)?$/,'silscrew'],
+  [/^_special_lookat_f(\d+)$/,'inspect','P',{frame:1}],[/^_(?:inspect|lookat)_?(\d*)$/,'inspect'],
+  [/^_throw_?(\d*)$/,'throw'],[/^_bounce[-_]?(\d*)$/,'bounce'],[/^_detonate_swt_?(\d*)$/,'detonate','P2'],
+  [/^_(?:detonate|explode)_?(\d*)_distant$|^_distant_(?:detonate|explode)_?(\d*)$|^_(?:detonate|explode)_distant_?(\d*)$/,'detonatefar'],
+  [/^_(?:detonate|explode)_?(\d*)$/,'detonate'],[/^_emit_?(\d*)$/,'emit'],[/^_extinguish_?(\d*)$/,'extinguish'],
+  [/^_fire_loop_fade_?out_?(\d*)$/,'fireend','P',{to:{incgren:'molotov'}}],[/^_fire_(?:idle_)?loop_?(\d*)$/,'fireloop','P',{to:{incgren:'molotov'}}]
+];
+function packNorm(s){ return String(s||'').toLowerCase().replace(/\.[a-z0-9_]{1,8}$/,'').replace(/\s*\(\d+\)$/,'').trim().replace(/\s+/g,'_'); }
+function packNum(m){ for(let i=1;i<m.length;i++) if(m[i]) return parseInt(m[i],10)||0; return 0; }
+function packHaveFn(h){ if(!h) return ()=>true; if(typeof h==='function') return h; if(h instanceof Set||h instanceof Map) return id=>h.has(id); if(Array.isArray(h)) return id=>h.includes(id); return id=>Object.prototype.hasOwnProperty.call(h,id); }
+function packKnownIds(){ try{ return LIB&&LIB.byId&&Object.keys(LIB.byId).length?new Set(Object.keys(LIB.byId)):null; }catch(e){ return null; } }
+function packHint(dirs){ for(const d of dirs){ const s=String(d).toLowerCase().replace(/[^a-z0-9]+/g,'_'); for(const a of PACK_ALIAS) if(a.f!==1&&a.h.test(s)) return a.id; } return null; }
+// pure: file path (folders give the weapon hint) -> {weapon, act, slot, set, order, frame?} | {unmatched:true, reason, weapon?, unsupported?}
+function packMapName(path,have){
+  const parts=String(path||'').split(/[\\/]+/).filter(Boolean), file=parts.pop()||'', dirs=parts.reverse();
+  if(!PACK_AUDIO.test(file)) return {unmatched:true,unsupported:true,reason:/\.vsnd/i.test(file)?'CS2 .vsnd_c dosyası (önce WAV\'a dönüştür)':'ses dosyası değil'};
+  const n=packNorm(file), ok=packHaveFn(have);
+  const res=(w,act,set,order,frame)=>{ if(!PACK_SHARED_IDS.has(w)&&!ok(w)) return {unmatched:true,reason:'oyunda yok: '+w,weapon:w,act}; const r={weapon:w,act,slot:w+':'+act,set:set||'P',order:order|0}; if(frame!==undefined) r.frame=frame; return r; };
+  for(const [re,slot,set] of PACK_NAME_RULES){ const m=n.match(re); if(m){ const i=slot.indexOf(':'); return res(slot.slice(0,i),slot.slice(i+1),set,packNum(m)); } }
+  let w=null, rest='';
+  for(const a of PACK_ALIAS){ if(a.f===2||!n.startsWith(a.s)) continue; const c=n.charAt(a.s.length); if(a.f===1?c==='_':!/[a-z]/.test(c)){ w=a.id; rest=n.slice(a.s.length); if(a.s==='m4a1'&&/^_(?:silencer|unsil)/.test(rest)) w='m4a1s'; break; } }
+  if(!w){ w=packHint(dirs); if(!w) return {unmatched:true,reason:'silah belirlenemedi'}; rest='_'+n; }
+  if(!PACK_SHARED_IDS.has(w)&&!ok(w)) return {unmatched:true,reason:'oyunda yok: '+w,weapon:w};
+  for(const [re,act,set,o] of PACK_ACT_RULES){ if(o&&o.gun&&PACK_NOGUN.has(w)) continue; const m=rest.match(re); if(!m) continue; const num=packNum(m); return res((o&&o.to&&o.to[w])||w,act,set,num,o&&o.frame?num:undefined); }
+  return {unmatched:true,reason:'ses türü tanınmadı',weapon:w};
+}
+/* ---- zip reader (no libraries): EOCD -> central directory -> local headers; stored + deflate (DecompressionStream) ---- */
+async function packInflate(u8){
+  const DS=window.DecompressionStream, Rs=window.Response; if(!DS||!Rs) throw new Error('tarayıcı ZIP açamıyor (DecompressionStream yok)');
+  return new Uint8Array(await new Rs(new Blob([u8]).stream().pipeThrough(new DS('deflate-raw'))).arrayBuffer());
+}
+// -> [{name, data:Uint8Array}] ; entries that cannot be read come back as {name, data:null, err}, entries refused by want(name) as {name, data:null, skip:true}.
+// Directories, __MACOSX/, AppleDouble "._*" and .DS_Store/Thumbs.db are left out. Throws only when the archive itself is unreadable.
+async function packReadZip(buf,want){
+  const u8=buf instanceof Uint8Array?buf:new Uint8Array(buf), n=u8.length, dv=new DataView(u8.buffer,u8.byteOffset,n), td=new window.TextDecoder('utf-8');
+  const lat=b=>{ let s=''; for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]); return s; }, big=o=>Number(dv.getBigUint64(o,true));
+  let e=-1; for(let i=n-22;i>=Math.max(0,n-22-65535);i--) if(dv.getUint32(i,true)===0x06054b50){ e=i; break; }
+  if(e<0) throw new Error('ZIP değil ya da bozuk (dizin sonu yok)');
+  let cnt=dv.getUint16(e+10,true), cdo=dv.getUint32(e+16,true);
+  if(cnt===0xFFFF||cdo===0xFFFFFFFF||dv.getUint32(e+12,true)===0xFFFFFFFF){ const L=e-20;
+    if(L<0||dv.getUint32(L,true)!==0x07064b50) throw new Error('ZIP64 dizini bulunamadı (desteklenmiyor)');
+    const o=big(L+8); if(o+56>n||dv.getUint32(o,true)!==0x06064b50) throw new Error('ZIP64 dizini bozuk (desteklenmiyor)'); cnt=big(o+32); cdo=big(o+48); }
+  const out=[]; let p=cdo;
+  for(let k=0;k<cnt;k++){
+    if(p+46>n||dv.getUint32(p,true)!==0x02014b50){ out.push({name:'(merkez dizin #'+k+')',data:null,err:'ZIP merkez dizini bozuk'}); break; }
+    const fl=dv.getUint16(p+8,true), meth=dv.getUint16(p+10,true), nl=dv.getUint16(p+28,true), xl=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true);
+    let cs=dv.getUint32(p+20,true), us=dv.getUint32(p+24,true), lho=dv.getUint32(p+42,true), z64=false;
+    const nb=u8.subarray(p+46,p+46+nl); let name=(fl&0x800)?td.decode(nb):lat(nb);
+    for(let q=p+46+nl,qe=Math.min(n,q+xl);q+4<=qe;){ const id=dv.getUint16(q,true), sz=dv.getUint16(q+2,true), d=q+4;
+      if(id===1){ let r=d; z64=true; if(us===0xFFFFFFFF&&r+8<=d+sz){ us=big(r); r+=8; } if(cs===0xFFFFFFFF&&r+8<=d+sz){ cs=big(r); r+=8; } if(lho===0xFFFFFFFF&&r+8<=d+sz){ lho=big(r); r+=8; } }
+      else if(id===0x7075&&sz>5&&!(fl&0x800)){ try{ name=td.decode(u8.subarray(d+5,d+sz)); }catch(er){ /* keep the raw name */ } }
+      q=d+sz; }
+    p+=46+nl+xl+cl; name=name.replace(/\\/g,'/');
+    const base=name.split('/').pop();
+    if(name.endsWith('/')||/(^|\/)__MACOSX\//i.test(name)||base.startsWith('._')||/^(\.ds_store|thumbs\.db|desktop\.ini)$/i.test(base)) continue;
+    if((fl&1)||meth===99){ out.push({name,data:null,err:'şifreli ZIP kaydı (desteklenmiyor)'}); continue; }
+    if(meth!==0&&meth!==8){ out.push({name,data:null,err:'sıkıştırma yöntemi '+meth+' desteklenmiyor'}); continue; }
+    if(cs===0xFFFFFFFF||us===0xFFFFFFFF||lho===0xFFFFFFFF){ out.push({name,data:null,err:'ZIP64 kaydı okunamadı (desteklenmiyor)'}); continue; }
+    if(want&&!want(name)){ out.push({name,data:null,skip:true}); continue; }
+    if(lho+30>n||dv.getUint32(lho,true)!==0x04034b50){ out.push({name,data:null,err:'yerel başlık bozuk'}); continue; }
+    const ds=lho+30+dv.getUint16(lho+26,true)+dv.getUint16(lho+28,true);
+    if(ds+cs>n){ out.push({name,data:null,err:'ZIP kesik (dosya eksik)'}); continue; }
+    try{ const raw=u8.subarray(ds,ds+cs), data=meth===0?raw.slice():await packInflate(raw);
+      if(!z64&&data.length!==us) throw new Error('boyut tutmuyor'); out.push({name,data}); }
+    catch(er){ out.push({name,data:null,err:'açılamadı: '+((er&&er.message)||er)}); }
+  }
+  return out;
+}
+/* ---- helpers ---- */
+async function packHash(u8){
+  const c=window.crypto; if(c&&c.subtle){ try{ const h=new Uint8Array(await c.subtle.digest('SHA-1',u8)); let s=''; for(let i=0;i<h.length;i++) s+=(h[i]<16?'0':'')+h[i].toString(16); return s; }catch(e){ /* insecure context: fall through */ } }
+  let a=0x811c9dc5^u8.length, b=0x9e3779b9, d=0x7f4a7c15; for(let i=0;i<u8.length;i++){ const x=u8[i]; a=Math.imul(a^x,16777619); b=Math.imul(b^x,2246822519); d=Math.imul(d+x,3266489917)^(d>>>13); }
+  return 'h'+[a,b,d,u8.length].map(v=>(v>>>0).toString(16).padStart(8,'0')).join('');
+}
+function packSniff(u8){ if(u8.length<12) return false; const s=String.fromCharCode.apply(null,u8.subarray(0,12));
+  return /^(RIFF|RF64|RIFX)/.test(s)||s.startsWith('ID3')||s.startsWith('OggS')||s.startsWith('fLaC')||s.slice(4,8)==='ftyp'||s.startsWith('\x1aE\xdf\xa3')||(u8[0]===0xFF&&(u8[1]&0xE0)===0xE0); }
+function packCount(){ return Object.keys(PACK.files).length; }
+function packWeaponOf(slot){ return String(slot).slice(0,String(slot).indexOf(':')); }
+function packDelBlobs(keys){ if(!Store.db||!keys.length) return Promise.resolve(false); return Store._req('blobs','readwrite',s=>{ for(const k of keys) s.delete(k); }).then(()=>true,()=>false); }
+function packDelBlob(key){ return packDelBlobs([key]); }
+function packSaveManifest(){ return Store.putBlob('pk_manifest',JSON.stringify({v:1,files:PACK.files,unmatched:PACK.unmatched})); }
+async function packReadManifest(){
+  if(PACK.ready) return; if(!Store.db){ packRebuild(); return; }   // DB not open (yet): stay "not ready" so a later call reads the real manifest
+  let m=null; try{ const s=await Store.getBlob('pk_manifest'); if(s) m=JSON.parse(typeof s==='string'?s:new window.TextDecoder().decode(s)); }catch(e){ console.warn('pack manifest',e); }
+  if(m&&m.v===1&&m.files&&typeof m.files==='object'){ for(const k in m.files) if(!PACK.files[k]) PACK.files[k]=m.files[k];
+    const un=Array.isArray(m.unmatched)?m.unmatched:[]; for(const u of un) if(u&&PACK.files[u.sha]&&!PACK.files[u.sha].slot&&!PACK.unmatched.some(x=>x.sha===u.sha)) PACK.unmatched.push(u); }
+  PACK.ready=true; packRebuild();
+}
+function packRefs(f){ const r=[]; if(f&&f.slot) r.push(f); if(f&&Array.isArray(f.alt)) for(const a of f.alt) if(a&&a.slot) r.push(a); return r; }
+// add a slot mapping to a stored file (identical bytes may serve several slots, e.g. one draw sound shared by 4 pistols). false when already there.
+function packAddRef(f,ref){
+  if(packRefs(f).some(x=>x.slot===ref.slot&&(x.set||'P')===(ref.set||'P'))) return false;
+  const o={weapon:ref.weapon,slot:ref.slot,set:ref.set||'P',order:ref.order|0}; if(ref.frame!==undefined) o.frame=ref.frame;
+  if(!f.slot) Object.assign(f,o); else (f.alt||(f.alt=[])).push(Object.assign({name:ref.name||f.name},o)); return true;
+}
+// manifest -> PACK.slots: Map(slot -> {P:[sha],P2:[sha],meta:{P:[{sha,name,order,frame}],P2:[...]},promoted}). A slot with only P2 files gets them promoted to P.
+function packRebuild(){
+  const S=new Map(), add=(sha,m,f)=>{ let e=S.get(m.slot); if(!e) S.set(m.slot,e={P:[],P2:[],meta:{P:[],P2:[]},promoted:false}); const s=m.set==='P2'?'P2':'P'; if(!e.meta[s].some(x=>x.sha===sha)) e.meta[s].push({sha,name:m.name||f.name,order:m.order|0,frame:m.frame}); };
+  for(const sha in PACK.files){ const f=PACK.files[sha]; for(const r of packRefs(f)) add(sha,r,f); }
+  for(const e of S.values()){ for(const s of ['P','P2']){ e.meta[s].sort((a,b)=>a.order-b.order||String(a.name).localeCompare(String(b.name))); e[s]=e.meta[s].map(x=>x.sha); }
+    if(!e.P.length&&e.P2.length){ e.P=e.P2; e.meta.P=e.meta.P2; e.P2=[]; e.meta.P2=[]; e.promoted=true; } }
+  PACK.slots=S; for(const k in PACK.rr){ const e=S.get(k.slice(0,k.lastIndexOf('|'))); if(!e) delete PACK.rr[k]; } PACK.ver++;
+}
+/* ---- decoding: P at boot / after import (batched, yields to the event loop), P2 lazily on first request ---- */
+function packDecode(sha){
+  if(PACK.bufs.has(sha)) return Promise.resolve(PACK.bufs.get(sha)); if(PACK.bad.has(sha)) return Promise.resolve(null);
+  let p=PACK.pend.get(sha); if(p) return p; const g=PACK.gen;
+  p=(async()=>{ try{ let ab=PACK.mem.get(sha)||await Store.getBlob('pk_'+sha); if(!ab) throw new Error('kayıtlı dosya bulunamadı');
+      if(ab instanceof Blob) ab=await ab.arrayBuffer(); else if(ArrayBuffer.isView(ab)) ab=ab.buffer.slice(ab.byteOffset,ab.byteOffset+ab.byteLength);
+      const b=await sndDecode(ab); if(!b) throw new Error('çözülemedi'); if(g===PACK.gen) PACK.bufs.set(sha,b); return b; }
+    catch(e){ if(g===PACK.gen){ PACK.bad.add(sha); PACK.err[sha]=String((e&&e.message)||e||'çözülemedi'); } return null; } })();
+  PACK.pend.set(sha,p); p.then(()=>{ if(PACK.pend.get(sha)===p) PACK.pend.delete(sha); }); return p;
+}
+function packWant(list){ for(const sha of list) if(!PACK.bufs.has(sha)&&!PACK.bad.has(sha)&&!PACK.pend.has(sha)) packDecode(sha); }
+function packPrio(slot){ const w=packWeaponOf(slot), i=PACK_PRIO.indexOf(slot.slice(w.length+1)); return PACK_SHARED_IDS.has(w)?50:i<0?90:i; }
+function packShas(set,slots){ const L=[...(slots||PACK.slots.keys())].filter(s=>PACK.slots.has(s)).sort((a,b)=>packPrio(a)-packPrio(b)), out=[], seen=new Set();
+  for(const s of L) for(const sha of PACK.slots.get(s)[set==='P2'?'P2':'P']) if(!seen.has(sha)){ seen.add(sha); out.push(sha); } return out; }
+async function packDecodeList(shas,onp){
+  const L=shas.filter(s=>!PACK.bufs.has(s)&&!PACK.bad.has(s)); let done=0;
+  for(let i=0;i<L.length;i+=3){ await Promise.all(L.slice(i,i+3).map(packDecode)); done=Math.min(L.length,i+3); if(onp) try{ onp(done,L.length); }catch(e){ /* UI callback */ } await new Promise(r=>setTimeout(r,0)); }
+  return done;
+}
+// boot: read manifest, rebuild slots, decode every P buffer (unless CFG.packOn===0). Safe to call again; returns the running promise.
+function packLoad(){
+  if(PACK.loading) return PACK.loading;
+  const p=(async()=>{ await packReadManifest(); if(PACK.ready) await packRemap(); if(CFG.packOn!==0&&PACK.slots.size) await packDecodeList(packShas('P')); })().catch(e=>console.warn('pack load',e));
+  PACK.loading=p; p.then(()=>{ if(PACK.loading===p) PACK.loading=null; }); return p;
+}
+/* ---- queries for the sound engine / UI ---- */
+function packHas(slot,set){ const e=PACK.slots.get(slot); if(!e) return false; return set==='any'?!!(e.P.length||e.P2.length):!!e[set==='P2'?'P2':'P'].length; }
+function packList(slot,set){ const e=PACK.slots.get(slot); return e?e.meta[set==='P2'?'P2':'P'].map(x=>Object.assign({ready:PACK.bufs.has(x.sha)},x)):[]; }
+// AudioBuffer|null. Uses the asked set, or the other one when that set is empty. A numeric variant in range picks that index (order-sorted, e.g. c4:key 0..6 or inspect frames),
+// otherwise round-robin in order (never the same file twice in a row). Starts decoding on demand and returns null until a buffer is ready. Honours CFG.packOn.
+function packPick(slot,set,variant){
+  if(CFG.packOn===0) return null; const e=PACK.slots.get(slot); if(!e) return null;
+  let s=set==='P2'?'P2':'P'; if(!e[s].length) s=s==='P'?'P2':'P'; const L=e[s]; if(!L.length) return null;
+  const k=slot+'|'+s, fixed=typeof variant==='number'&&variant>=0&&variant<L.length; let i;
+  if(fixed) i=variant|0; else { const last=PACK.rr[k]; i=last===undefined||last>=L.length?0:(last+1)%L.length; PACK.rr[k]=i; }
+  const b=PACK.bufs.get(L[i]); if(b) return b; packWant(L);
+  if(!fixed) for(let j=1;j<L.length;j++){ const x=PACK.bufs.get(L[(i+j)%L.length]); if(x){ PACK.rr[k]=(i+j)%L.length; return x; } }
+  return null;
+}
+// weapon helper: act fire|far|draw|clipout|... ; unsil=true picks fireu/faru (USP-S / M4A1-S without silencer)
+function packForWeapon(id,act,set,unsil,variant){ return packPick(id+':'+(unsil&&(act==='fire'||act==='far')?act+'u':act),set,variant); }
+function packGroups(id){ const o={}; for(const g in PACK_GROUPS){ let P=false,P2=false; for(const a of PACK_GROUPS[g]){ const e=PACK.slots.get(id+':'+a); if(e){ P=P||e.P.length>0; P2=P2||e.P2.length>0; } } o[g]={P,P2}; } return o; }
+function packGroupSnap(){ const o={}; for(const slot of PACK.slots.keys()){ const w=packWeaponOf(slot); if(PACK_SHARED_IDS.has(w)||o[w]) continue; const G=packGroups(w); o[w]={}; for(const g in G) o[w][g]=G[g].P||G[g].P2; } return o; }
+// compare group availability before/after a change: newly available groups -> CFG.sv[id][grp]='P'; groups that vanished lose their 'P'/'P2' choice
+function packApplyGroups(before){
+  const after=packGroupSnap(), neu={}; let ch=false; CFG.sv=CFG.sv||{};
+  for(const w in after) for(const g in after[w]) if(after[w][g]&&!(before[w]&&before[w][g])){ (neu[w]||(neu[w]=[])).push(g); (CFG.sv[w]||(CFG.sv[w]={}))[g]='P'; ch=true; }
+  for(const w in before) for(const g in before[w]) if(before[w][g]&&!(after[w]&&after[w][g])){ const o=CFG.sv[w]; if(o&&(o[g]==='P'||o[g]==='P2')){ delete o[g]; ch=true; } }
+  if(ch) saveCfg(); return neu;
+}
+function packSummary(){
+  const W={},S={}; let bytes=0; for(const k in PACK.files) bytes+=PACK.files[k].size||0;
+  for(const [slot,e] of PACK.slots){ const w=packWeaponOf(slot), a=slot.slice(w.length+1), c={P:e.P.length,P2:e.P2.length,promoted:e.promoted,ready:[...e.P,...e.P2].filter(x=>PACK.bufs.has(x)).length};
+    if(PACK_SHARED_IDS.has(w)) S[slot]=c; else (W[w]||(W[w]={}))[a]=c; }
+  return {files:packCount(),bytes,decoded:PACK.bufs.size,weapons:W,shared:S,unmatched:PACK.unmatched.map(u=>Object.assign({size:(PACK.files[u.sha]||{}).size||0},u)),
+    errors:Object.keys(PACK.err).map(sha=>({sha,name:(PACK.files[sha]||{}).name||sha,reason:PACK.err[sha]})),on:CFG.packOn!==0,loading:!!PACK.loading,ready:PACK.ready};
+}
+/* ---- import ---- */
+function packItems(input){
+  if(!input) return []; if(!(input instanceof Blob)&&input.files&&input.length===undefined) input=input.files;   // <input> element or DataTransfer
+  const a=(input instanceof Blob||!(typeof input.length==='number'||input[Symbol.iterator]))?[input]:Array.from(input);
+  return a.map(x=>{ if(!x) return null; const clean=s=>String(s||'').replace(/\\/g,'/').replace(/^\/+/,'');
+    if(x instanceof Blob) return {path:clean(x.packPath||x.webkitRelativePath||x.name||'dosya'),blob:x};
+    if(x.file instanceof Blob) return {path:clean(x.path||x.file.webkitRelativePath||x.file.name),blob:x.file};
+    if(x.data) return {path:clean(x.path||x.name||'dosya'),data:x.data}; return null; }).filter(Boolean);
+}
+// drag & drop helper (folders included). Call it synchronously inside the drop handler: packImport(await packDropFiles(e.dataTransfer)).
+async function packDropFiles(dt){
+  const ents=dt&&dt.items?Array.from(dt.items).map(i=>i.kind==='file'&&i.webkitGetAsEntry?i.webkitGetAsEntry():null).filter(Boolean):[];
+  if(!ents.length) return Array.from((dt&&dt.files)||[]);
+  const out=[], walk=async e=>{ if(e.isFile){ const f=await new Promise((res,rej)=>e.file(res,rej)).catch(()=>null); if(f) out.push({file:f,path:String(e.fullPath||f.name).replace(/^\/+/,'')}); }
+    else if(e.isDirectory){ const r=e.createReader(); for(;;){ const b=await new Promise((res,rej)=>r.readEntries(res,rej)).catch(()=>[]); if(!b.length) break; for(const x of b) await walk(x); } } };
+  for(const e of ents) await walk(e); return out;
+}
+async function packAddFile(vp,disp,zip,u8,C){
+  const R=C.R, m=packMapName(vp,C.have), parts=vp.split('/'), base=parts.pop(), dir=parts.join('/');
+  if(m.unsupported){ R.unsupported.push({name:disp,reason:m.reason}); return; }
+  if(!u8||!u8.byteLength){ R.unsupported.push({name:disp,reason:'boş dosya'}); return; }
+  if(u8.byteLength>PACK_MAX){ R.unsupported.push({name:disp,reason:'çok büyük (en fazla 40 MB)'}); return; }
+  if(!packSniff(u8)){ R.unsupported.push({name:disp,reason:'tanınmayan ses biçimi'}); return; }
+  const sha=await packHash(u8), row={name:disp,sha,size:u8.byteLength}; R.files.push(row); C.n++;
+  let f=PACK.files[sha];
+  if(f){ row.dup=true; R.duplicates++; }
+  else{ const ab=u8.byteOffset===0&&u8.byteLength===u8.buffer.byteLength?u8.buffer:u8.slice().buffer;
+    let ok=false; try{ ok=await Store.putBlob('pk_'+sha,ab); }catch(e){ ok=false; } if(!ok){ PACK.mem.set(sha,ab); R.notSaved++; }
+    f=PACK.files[sha]={name:base,dir,zip:zip||null,size:u8.byteLength,weapon:m.weapon||null,slot:null,set:null,order:0}; R.added++; }
+  const src=f.src||(f.src=[]); if(!src.includes(vp)&&src.length<8) src.push(vp);   // every name these bytes arrived under, for packRemap
+  if(!m.unmatched){ const had=!!f.slot; if(packAddRef(f,{weapon:m.weapon,slot:m.slot,set:m.set,order:m.order,frame:m.frame,name:base})){ row.linked=row.dup; if(row.dup) R.linked++; }
+    if(!had) PACK.unmatched=PACK.unmatched.filter(u=>u.sha!==sha);
+    Object.assign(row,{slot:m.slot,set:m.set,order:m.order}); if(m.frame!==undefined) row.frame=m.frame; C.touch.add(sha+'|'+m.slot+'|'+m.set); }
+  else{ row.reason=m.reason; if(!f.slot&&!PACK.unmatched.some(u=>u.sha===sha)) PACK.unmatched.push({sha,name:base,reason:m.reason}); R.unmatched.push({name:disp,reason:m.reason,sha}); }
+  if(C.onp&&C.n%4===0) C.onp({phase:'file',files:C.n,item:C.i+1,items:C.items,name:disp});
+}
+async function packIngest(path,disp,u8,zip,depth,C){
+  if(/\.zip$/i.test(path)){
+    if(depth>2){ C.R.unsupported.push({name:disp,reason:'iç içe ZIP çok derin'}); return; }
+    let ents; try{ ents=await packReadZip(u8,nm=>PACK_AUDIO.test(nm)||/\.zip$/i.test(nm)); }catch(e){ C.R.unsupported.push({name:disp,reason:(e&&e.message)||'ZIP okunamadı'}); return; }
+    const vb=path.replace(/\.zip$/i,''), zn=disp.replace(/^.*[:/]\s*/,'');
+    for(const en of ents){ const d=disp+': '+en.name;
+      if(en.err){ C.R.unsupported.push({name:d,reason:en.err}); continue; }
+      if(en.skip){ C.R.unsupported.push({name:d,reason:'ses dosyası değil'}); continue; }
+      await packIngest(vb+'/'+en.name,d,en.data,zn,depth+1,C); }
+    return;
+  }
+  await packAddFile(path,disp,zip,u8,C);
+}
+// re-run the mapper over every stored source name (e.g. after weapons were added to LIB: files that were "oyunda yok" now find their slot).
+// Only adds mappings; files the player assigned by hand (f.manual) are left alone. Returns the number of new mappings.
+async function packRemap(have){
+  have=have||packKnownIds(); if(!have) return 0; const before=packGroupSnap(); let n=0;
+  for(const sha in PACK.files){ const f=PACK.files[sha]; if(!f||f.manual) continue; const src=Array.isArray(f.src)&&f.src.length?f.src:[(f.dir?f.dir+'/':'')+f.name];
+    for(const p of src){ const m=packMapName(p,have); if(!m.unmatched&&packAddRef(f,{weapon:m.weapon,slot:m.slot,set:m.set,order:m.order,frame:m.frame,name:String(p).split('/').pop()})) n++; }
+    if(f.slot) PACK.unmatched=PACK.unmatched.filter(u=>u.sha!==sha); }
+  if(n){ packRebuild(); packApplyGroups(before); await packSaveManifest(); } return n;
+}
+async function packImportRun(input,onProgress){
+  const R={added:0,duplicates:0,linked:0,total:0,perWeapon:{},shared:{},unmatched:[],unsupported:[],newGroups:{},promoted:[],decoded:0,decodeErrors:[],notSaved:0,saved:true,files:[],remapped:0};
+  const onp=o=>{ if(onProgress) try{ onProgress(o); }catch(e){ /* UI callback */ } };
+  try{
+    await packReadManifest(); R.remapped=await packRemap();
+    const items=packItems(input), before=packGroupSnap(), C={R,have:packKnownIds(),touch:new Set(),n:0,i:0,items:items.length,onp};
+    for(let i=0;i<items.length;i++){ const it=items[i]; C.i=i; onp({phase:'read',item:i+1,items:items.length,name:it.path,files:C.n});
+      const isZip=/\.zip$/i.test(it.path);
+      if(!isZip){ const mm=packMapName(it.path); if(mm.unsupported){ R.unsupported.push({name:it.path,reason:mm.reason}); continue; } }
+      if(it.blob&&it.blob.size>(isZip?1.5e9:PACK_MAX)){ R.unsupported.push({name:it.path,reason:'çok büyük'}); continue; }
+      let u8; try{ const d=it.blob?await it.blob.arrayBuffer():it.data; u8=d instanceof Uint8Array?d:new Uint8Array(d); }catch(e){ R.unsupported.push({name:it.path,reason:'okunamadı: '+((e&&e.message)||e)}); continue; }
+      try{ await packIngest(it.path,it.path,u8,null,0,C); }catch(e){ R.unsupported.push({name:it.path,reason:'hata: '+((e&&e.message)||e)}); }
+      if(isZip) R.saved=(await packSaveManifest())&&R.saved;   // persist after every zip so an interrupted import leaves no orphans
+    }
+    R.saved=(await packSaveManifest())&&R.saved; packRebuild();
+    for(const t of C.touch){ const [,slot,set]=t.split('|'), w=packWeaponOf(slot), a=slot.slice(w.length+1);
+      const o=PACK_SHARED_IDS.has(w)?(R.shared[slot]||(R.shared[slot]={P:0,P2:0})):((R.perWeapon[w]||(R.perWeapon[w]={}))[a]||(R.perWeapon[w][a]={P:0,P2:0})); o[set==='P2'?'P2':'P']++; }
+    const ts=new Set([...C.touch].map(t=>t.split('|')[1])); for(const s of ts){ const e=PACK.slots.get(s); if(e&&e.promoted) R.promoted.push(s); }
+    R.newGroups=packApplyGroups(before);
+    R.unmatched=R.unmatched.filter(u=>!(PACK.files[u.sha]&&PACK.files[u.sha].slot)).map(u=>({name:u.name,reason:u.reason}));
+    if(CFG.packOn!==0){ const L=packShas('P',ts); R.decoded=await packDecodeList(L,(d,t)=>onp({phase:'decode',done:d,total:t}));
+      for(const sha of L) if(PACK.bad.has(sha)) R.decodeErrors.push({name:(PACK.files[sha]||{}).name||sha,reason:PACK.err[sha]}); }
+  }catch(e){ console.warn('pack import',e); R.error=String((e&&e.message)||e); }
+  R.total=packCount(); onp({phase:'done',report:R}); return R;
+}
+// import File/FileList/[File|{file,path}|{name,path,data}] (zips, loose audio files, folder picks). Never throws; imports run one at a time.
+function packImport(input,onProgress){ const run=()=>packImportRun(input,onProgress), p=(PACK.busy||Promise.resolve()).then(run,run); PACK.busy=p.catch(()=>{}); return p; }
+// manual mapping of a stored file: slot 'weapon:act' (set 'P'|'P2'); add=true keeps its other slots; slot=null moves it back to "unmatched"
+async function packAssign(sha,slot,set,add){
+  const f=PACK.files[sha]; if(!f) return false; const before=packGroupSnap(); f.manual=true;
+  if(!slot){ f.slot=null; f.set=null; f.weapon=f.weapon||null; delete f.alt; delete f.frame; if(!PACK.unmatched.some(u=>u.sha===sha)) PACK.unmatched.push({sha,name:f.name,reason:'elle kaldırıldı'}); }
+  else{ slot=String(slot).toLowerCase(); if(!/^[a-z0-9_]+:[a-z0-9_]+$/.test(slot)) return false;
+    const w=packWeaponOf(slot), a=slot.slice(w.length+1), mm=packMapName(f.name), num=(String(f.name).match(/(\d+)(?:\.[a-z0-9]+)?$/i)||[])[1];
+    const ref={weapon:w,slot,set:set==='P2'?'P2':'P',order:mm.order!==undefined&&!mm.unmatched?mm.order:parseInt(num||'0',10),name:f.name}; if(a==='inspect'&&mm.frame!==undefined) ref.frame=mm.frame;
+    if(!add){ f.slot=null; f.set=null; delete f.alt; delete f.frame; } packAddRef(f,ref); PACK.unmatched=PACK.unmatched.filter(u=>u.sha!==sha); }
+  packRebuild(); packApplyGroups(before); const ok=await packSaveManifest(); if(slot&&CFG.packOn!==0) packDecode(sha); return ok!==false;
+}
+// delete one stored file (blob + manifest entry)
+async function packRemove(sha){ if(!PACK.files[sha]) return false; const before=packGroupSnap(); delete PACK.files[sha]; PACK.unmatched=PACK.unmatched.filter(u=>u.sha!==sha);
+  PACK.bufs.delete(sha); PACK.mem.delete(sha); PACK.bad.delete(sha); delete PACK.err[sha]; packRebuild(); packApplyGroups(before); await packDelBlob('pk_'+sha); await packSaveManifest(); return true; }
+// delete every pack blob + manifest, reset PACK, drop 'P'/'P2' choices from CFG.sv
+async function packClear(){
+  try{ await PACK.busy; }catch(e){ /* ignore */ } PACK.gen++;
+  let keys=Object.keys(PACK.files).map(s=>'pk_'+s);
+  try{ if(Store.db){ const all=await Store._req('blobs','readonly',s=>s.getAllKeys()); if(Array.isArray(all)) for(const k of all) if(typeof k==='string'&&k.startsWith('pk_')&&!keys.includes(k)) keys.push(k); } }catch(e){ /* keep known keys */ }
+  if(!keys.includes('pk_manifest')) keys.push('pk_manifest'); const ok=await packDelBlobs(keys);
+  Object.assign(PACK,{files:{},unmatched:[],slots:new Map(),bufs:new Map(),loading:null,rr:{},pend:new Map(),mem:new Map(),bad:new Set(),err:{},ready:true}); PACK.ver++;
+  CFG.sv=CFG.sv||{}; for(const id in CFG.sv){ const o=CFG.sv[id]; if(!o||typeof o!=='object') continue; for(const g in o) if(o[g]==='P'||o[g]==='P2') delete o[g]; if(!Object.keys(o).length) delete CFG.sv[id]; }
+  saveCfg(); return ok;
+}
+/* ---- sound pack glue: engine helpers, boot load, status line, import runner ---- */
+const PACK_UI={imp:'',timer:null,rep:null,pv:{},clr:0};
+function packHasGroup(id,grp){ const G=PACK_GROUPS[grp]; return !!G&&G.some(a=>packHas(id+':'+a,'any')); }
+function pkHas(slot){ return CFG.packOn!==0&&packHas(slot,'any'); }
+// first ready pack sound among `ids` (pack slots), else the procedural id `fb` (sndPlay still lets the pack override fb itself). Returns the sndPlay handle or null.
+function sndPack(ids,fb,o){ o=o||{};
+  if(CFG.packOn!==0&&!o.noPack) for(const id of [].concat(ids)){ if(!packHas(id,'any')) continue; const b=packPick(id,o.pset||'P',o.variant); if(b) return sndPlay('',Object.assign({},o,{buf:b})); }
+  return fb?sndPlay(fb,o):null; }
+// resolves when every file of slot/set (or the other set when that one is empty) is decoded
+function packReady(slot,set){ const e=PACK.slots.get(slot); if(!e) return Promise.resolve(); let s=set==='P2'?'P2':'P'; if(!e[s].length) s=s==='P'?'P2':'P'; return Promise.all(e[s].map(packDecode)); }
+// workshop preview of one pack slot/set (works even while packs are switched off), cycling through its files
+async function packPreview(slot,set){ ensureAudio(); const L=packList(slot,set); if(!L.length) return null; const k=slot+'|'+set, i=PACK_UI.pv[k]=((PACK_UI.pv[k]===undefined?-1:PACK_UI.pv[k])+1)%L.length;
+  const b=await packDecode(L[i].sha); if(!b){ toast('Ses çözülemedi: '+L[i].name,2400); return null; } return sndPlay('',{buf:b,bus:'weapons',jit:0}); }
+function packStatusText(){ if(PACK_UI.imp) return PACK_UI.imp; if(PACK.loading&&CFG.packOn!==0&&PACK.slots.size){ const L=packShas('P'); return 'Ses paketi çözülüyor… '+L.filter(x=>PACK.bufs.has(x)||PACK.bad.has(x)).length+' / '+L.length; } return ''; }
+function packStatus(){ const e=$('sndPackStatus'), t=packStatusText(); if(e){ e.textContent=t; e.classList.toggle('hidden',!t); }
+  if((t||PACK.loading)&&!PACK_UI.timer) PACK_UI.timer=setTimeout(()=>{ PACK_UI.timer=null; packStatus(); },300); }   // keeps polling while loading / importing
+function packRefreshUI(){ if(curScreen==='soundScreen'&&!$('soundScreen').classList.contains('hidden')) renderSoundWorkshop(); else if(sTab==='audio'&&!$('settingsScreen').classList.contains('hidden')) renderSettings(); }
+// boot (and "Paketi kullan" on): read the manifest, decode the P files in the background, then refresh whatever sound UI is open
+function packBoot(){ const p=packLoad(); packStatus(); p.then(()=>{ packStatus(); packRefreshUI(); }); return p; }
+// import from the file pickers, the folder picker or drag & drop; progress goes to the workshop status line (and toasts outside the workshop)
+async function packRunImport(files){
+  const items=Array.isArray(files)?files:Array.from(files||[]); if(!items.length) return null;
+  if(PACK_UI.imp){ toast('Bir içe aktarma zaten sürüyor…'); return null; }
+  const inWs=()=>curScreen==='soundScreen'&&!$('soundScreen').classList.contains('hidden');
+  PACK_UI.imp='Ses paketi okunuyor…'; packStatus(); if(!inWs()) toast('Ses paketi içe aktarılıyor…',60000); ensureAudio();
+  const R=await packImport(items,o=>{ PACK_UI.imp=o.phase==='read'?'Okunuyor ('+o.item+'/'+o.items+'): '+o.name:o.phase==='file'?'Dosyalar eşleştiriliyor… '+o.files:o.phase==='decode'?'Sesler çözülüyor… '+o.done+' / '+o.total:'Tamamlandı'; packStatus(); });
+  PACK_UI.imp=''; PACK_UI.rep=R; packStatus();
+  toast(R.error?'İçe aktarma hatası: '+R.error:'Ses paketi: '+R.added+' yeni ses'+(R.duplicates?', '+R.duplicates+' zaten vardı':'')+(R.unmatched.length?', '+R.unmatched.length+' eşleşmedi':'')+(R.unsupported.length?', '+R.unsupported.length+' desteklenmiyor':''),3600);
+  if(inWs()){ sndSel='__pack'; renderSoundWorkshop(); } else packRefreshUI();
+  return R; }
 async function sndLoadCustom(){
   CFG.sndCustom=CFG.sndCustom||{};
   for(const slot in CFG.sndCustom){ try{ const buf=await Store.getBlob(CFG.sndCustom[slot]); if(buf) SND.custom.set(slot,await sndDecode(buf)); }catch(e){ console.warn('custom sound',slot,e); } }
@@ -4855,8 +5443,11 @@ function sndInit(){
   SND_PLAYSHOT_OLD=playShot; if(SFX_LIB) SND.ids=new Set(SFX_LIB.ids()); sndInstallHooks(); sndLoadCustom();
   if(!SFX_LIB) return;
   const L=[]; const add=(id,v)=>{ for(let k=0;k<(SFX_LIB.variants(id)||1);k++) L.push([id,v||1,k]); };
-  for(const d of LIB.list){ if(!['primary','secondary'].includes(d.slot)) continue; const p=sndProfile(d), v=soundVer(d,'fire'), vr=soundVer(d,'reload'), vd=soundVer(d,'draw');
-    add('fire:'+p,v); L.push(['far:'+p,v,0]); L.push(['draw:'+p,vd,0]); for(const a of ['clipout','clipin','boltback','boltfwd']) L.push([a+':'+p,vr,0]); }
+  for(const d of LIB.list){ if(!['primary','secondary'].includes(d.slot)) continue; const p=sndProfile(d), v=soundVerNum(d,'fire'), vr=soundVerNum(d,'reload'), vd=soundVerNum(d,'draw');
+    add('fire:'+p,v); L.push(['far:'+p,v,0]); L.push(['draw:'+p,vd,0]); for(const a of ['clipout','clipin','boltback','boltfwd']) L.push([a+':'+p,vr,0]);
+    if(d.stats.silencer){ const u=sndProfile(d,{unsup:true}); add('fire:'+u,v); L.push(['far:'+u,v,0]); }   // suppressor removed (uspu / m4a1u)
+    L.push(['dry:'+p,v,0]); }
+  for(const v of new Set(LIB.list.filter(d=>d.stats.silencer||(d.stats.scope|0)>0).map(d=>soundVerNum(d,'draw')))) for(const id of ['zoom:in','zoom:out','sil:on','sil:off']) add(id,v);
   for(const s of ['stone','sand','metal','wood']){ add('step:'+s); L.push(['land:'+s,1,0]); }
   for(const id of ['hit:helmet','hit:head','hit:body','hit:kevlar','hit:self','whiz','ui:hover','ui:click','ui:tab','ui:buy','ui:deny','ui:equip','c4:beep','radio:in','radio:out']) add(id);
   L.sort((a,b)=>(b[0].startsWith('fire:')?1:0)-(a[0].startsWith('fire:')?1:0));
@@ -4871,26 +5462,39 @@ function sndInit(){
 let sndSel=null;
 function openSoundWorkshop(id){
   hideAllScreens(); unlockPointer(); match.state='menu'; $('hud').classList.add('hidden'); $('touch').classList.remove('active');
-  $('soundScreen').classList.remove('hidden'); curScreen='soundScreen'; if(id&&LIB.byId[id]) sndSel=id; renderSoundWorkshop(); ensureAudio();
+  $('soundScreen').classList.remove('hidden'); curScreen='soundScreen'; if(id==='__pack'||id==='__voice'||(id&&LIB.byId[id])) sndSel=id; PACK_UI.clr=0; renderSoundWorkshop(); ensureAudio(); packStatus();
 }
+const PACK_ACT_ORDER=['fire','fireu','far','faru','draw','clipout','cliprelease','clipin','cliphit','boltback','boltfwd','dry','zoomin','zoomout','silon','siloff','silscrew','inspect','pin','pinstart','throw','bounce','detonate','detonatefar','emit','active','fireloop','fireend','extinguish','key','plantstart','planted','initiate','beep','beep2','beep3','defusestart','defusing','defused','explode','debris','slash','hit','hitwall','stab'];
+const PACK_ACT_NAMES={fire:'Ateş',far:'Uzak',fireu:'Ateş · susturucusuz',faru:'Uzak · susturucusuz',draw:'Çekme',clipout:'Şarjör çıkar',clipin:'Şarjör tak',cliphit:'Şarjör vur',cliprelease:'Şarjör bırak',boltback:'Mekanizma geri',boltfwd:'Mekanizma ileri',dry:'Boş tetik',
+  zoomin:'Dürbün aç',zoomout:'Dürbün kapat',silon:'Susturucu tak',siloff:'Susturucu sök',silscrew:'Susturucu vida',inspect:'İnceleme',throw:'Atma',bounce:'Sekme',detonate:'Patlama',detonatefar:'Patlama · uzak',emit:'Duman',active:'Aktif',fireloop:'Ateş döngüsü',fireend:'Ateş sönüşü',extinguish:'Söndürme',
+  pin:'Pim',pinstart:'Pim başı',key:'Tuş',beep:'Bip',beep2:'Bip 2 (son 10 sn)',beep3:'Bip 3 (son 5 sn)',plantstart:'Kurma başı',planted:'Kuruldu',initiate:'Başlatma',defusestart:'İmha başı',defusing:'İmha ediliyor',defused:'İmha edildi',explode:'Patlama',debris:'Enkaz',slash:'Savurma',hit:'İsabet',hitwall:'Duvar',stab:'Saplama'};
+function packActName(a){ return PACK_ACT_NAMES[a]||a; }
+function packActIdx(a){ const i=PACK_ACT_ORDER.indexOf(a); return i<0?99:i; }
+function verTag(v){ return isPackVer(v)?v:'V'+v; }
+function packSetOn(v){ CFG.packOn=v?1:0; saveCfg(); if(v) packBoot(); packRefreshUI(); }
 function sndWeapons(){ return LIB.list.filter(d=>['primary','secondary','melee'].includes(d.slot)); }
 function renderSoundWorkshop(){
-  const list=sndWeapons(); if(sndSel!=='__voice'&&(!sndSel||!LIB.byId[sndSel])) sndSel=(list.find(d=>d.id===CFG.loadout.primary)||list[0]).id;
-  const L=$('sndList'); L.innerHTML='';
+  const list=sndWeapons(); if(sndSel!=='__voice'&&sndSel!=='__pack'&&(!sndSel||!LIB.byId[sndSel])) sndSel=(list.find(d=>d.id===CFG.loadout.primary)||list[0]).id;
+  const L=$('sndList'); L.innerHTML=''; const pn=packCount(); $('sndAllP').classList.toggle('hidden',!PACK.slots.size||CFG.packOn===0);
+  L.appendChild(el('div',{class:'tGrp'},'SES PAKETİ')); const rp=el('div',{class:'tRow'+(sndSel==='__pack'?' sel':''),id:'sndPackRow'}); rp.style.paddingLeft='10px';
+  rp.innerHTML='<span class="nm">Paket ('+pn+' ses)</span><span class="edBadge">'+(!pn?'boş':CFG.packOn===0?'kapalı':'açık')+'</span>'; rp.addEventListener('click',()=>{ sndSel='__pack'; PACK_UI.clr=0; renderSoundWorkshop(); }); L.appendChild(rp);
   const groups=[['primary','BİRİNCİL'],['secondary','TABANCALAR'],['melee','BIÇAKLAR']];
   for(const [slot,lb] of groups){ L.appendChild(el('div',{class:'tGrp'},lb)); for(const d of list.filter(x=>x.slot===slot)){ const r=el('div',{class:'tRow'+(d.id===sndSel?' sel':'')}); r.style.paddingLeft='10px';
-      const ic=weaponIcon(d); r.innerHTML=(ic?'<img alt="" src="'+ic+'">':'')+'<span class="nm">'+esc(d.name)+'</span><span class="edBadge">'+['fire','draw','reload'].map(g=>'V'+soundVer(d,g)).join(' ')+'</span>';
+      const ic=weaponIcon(d); r.innerHTML=(ic?'<img alt="" src="'+ic+'">':'')+'<span class="nm">'+esc(d.name)+'</span><span class="edBadge">'+(d.type==='knife'?[['fire','knife:slash'],['draw','knife:draw']].map(([g,k])=>pkHas(k)?'P':verTag(soundVer(d,g))):['fire','draw','reload'].map(g=>verTag(soundVer(d,g)))).join(' ')+'</span>';   // knives: shared pack knife:* sounds override
       r.addEventListener('click',()=>{ sndSel=d.id; renderSoundWorkshop(); }); L.appendChild(r); } }
   L.appendChild(el('div',{class:'tGrp'},'SPİKER')); const rv=el('div',{class:'tRow'+(sndSel==='__voice'?' sel':'')}); rv.style.paddingLeft='10px'; rv.innerHTML='<span class="nm">Anonslar</span><span class="edBadge">'+(CFG.voiceLang==='off'?'kapalı':CFG.voiceLang.toUpperCase())+'</span>'; rv.addEventListener('click',()=>{ sndSel='__voice'; renderSoundWorkshop(); }); L.appendChild(rv);
   const M=$('sndMain'); M.innerHTML='';
   if(sndSel==='__voice'){ renderVoiceWorkshop(M); return; }
-  const d=LIB.byId[sndSel], ic=weaponIcon(d), prof=sndProfile(d), P=sndProfiles();
-  M.insertAdjacentHTML('beforeend','<div class="sndHead">'+(ic?'<img alt="" src="'+ic+'">':'')+'<div><h3>'+esc(d.name)+'</h3><small>Ses profili: '+esc(d.type==='knife'?'Bıçak':(P[prof]||prof))+' · seçimin hemen oyuna uygulanır</small></div></div>');
+  if(sndSel==='__pack'){ renderPackPage(M); return; }
+  const d=LIB.byId[sndSel], ic=weaponIcon(d), prof=sndProfile(d), P=sndProfiles(), knife=d.type==='knife', pkOn=CFG.packOn!==0, pg=knife?null:packGroups(d.id);
+  const unsup=!knife&&d.stats.silencer?' · susturucusuz: '+(P[sndProfile(d,{unsup:true})]||''):'';
+  M.insertAdjacentHTML('beforeend','<div class="sndHead">'+(ic?'<img alt="" src="'+ic+'">':'')+'<div><h3>'+esc(d.name)+'</h3><small>Ses profili: '+esc(knife?'Bıçak':(P[prof]||prof))+esc(unsup)+' · seçimin hemen oyuna uygulanır</small></div></div>');
   if(!SFX_LIB) M.insertAdjacentHTML('beforeend','<p class="iNote">Ses kütüphanesi yüklenemedi; eski sesler kullanılıyor.</p>');
   const rows=d.type==='knife'?[['draw','ÇEKME','Bıçağı çıkarma (pullout)'],['fire','SALLAMA','Havada savurma']]:[['fire','ATEŞ','Ateş sesi (yakın) + uzaktan duyulan versiyon'],['draw','ÇEKME','Silahı çıkarma (pullout)'],['reload','ŞARJÖR','Şarjör çıkar / tak, mekanizmayı çek / bırak']];
   for(const [grp,title,sub] of rows){
     const row=el('div',{class:'sndRow'}); row.innerHTML='<b>'+title+'<small>'+sub+'</small></b>'; const vs=el('div',{class:'vers'});
-    for(const v of [1,2,3]){ const w=el('div',{class:'verBtn'+(soundVer(d,grp)===v?' on':'')}); const a=el('button',{class:'v'},SND_VERSIONS[v]), p=el('button',{class:'p',title:'Dinle'},'▶');
+    const vers=[1,2,3]; if(pg&&pkOn){ if(pg[grp].P) vers.push('P'); if(pg[grp].P2) vers.push('P2'); }   // PAKET buttons only where the pack has sounds for this group / set
+    for(const v of vers){ const w=el('div',{class:'verBtn'+(isPackVer(v)?' pk':'')+(soundVer(d,grp)===v?' on':''),'data-ver':grp+':'+v}); const a=el('button',{class:'v'},SND_VERSIONS[v]), p=el('button',{class:'p',title:'Dinle'},'▶');
       const play=()=>{ if(grp==='reload') previewReload(d,v); else { previewWeaponSound(d,grp,v); if(grp==='fire'&&d.type!=='knife') setTimeout(()=>previewWeaponSound(d,'far',v),900); } };
       a.addEventListener('click',()=>{ setSoundVer(d,grp,v); play(); renderSoundWorkshop(); }); p.addEventListener('click',play); w.append(a,p); vs.appendChild(w); }
     const slot=d.id+':'+(grp==='reload'?'clipin':grp), has=SND.custom.has(slot);
@@ -4898,8 +5502,76 @@ function renderSoundWorkshop(){
     vs.appendChild(up);
     if(has){ const cl=el('button',{class:'eb dan'},'Kaldır'); cl.addEventListener('click',()=>{ (grp==='reload'?['clipout','clipin','boltback','boltfwd']:[grp]).forEach(a=>sndClearCustom(d.id+':'+a)); renderSoundWorkshop(); }); vs.appendChild(cl); vs.insertAdjacentHTML('beforeend','<span class="custTag">özel dosya aktif</span>'); }
     row.appendChild(vs); M.appendChild(row); }
-  M.insertAdjacentHTML('beforeend','<p class="iNote" style="margin-top:12px">V1 klasik, V2 ağır (daha dolgun ve uzun yankı), V3 keskin (daha parlak, mekanik detay önde). “Kendi dosyan” ile istediğin sesi yükleyebilirsin; şarjör için yüklediğin dosya şarjör takma anına yerleşir. Tüm silahları birden değiştirmek için üstteki “Hepsi V1/V2/V3”.</p>');
+  if(pg&&PACK.slots.size){ const ex=['fireu','faru','cliprelease','cliphit','dry','zoomin','zoomout','silon','siloff','inspect'].filter(a=>packHas(d.id+':'+a,'any'));
+    if(ex.length) M.insertAdjacentHTML('beforeend','<p class="iNote" style="margin-top:10px">Paketten ek sesler: '+ex.map(a=>esc(packActName(a))+(a==='inspect'?' ×'+packList(d.id+':inspect','P').length:'')).join(' · ')+(pkOn?'. Grubu PAKET olunca otomatik çalar'+(ex.includes('inspect')?' (inceleme her zaman, F)':'')+'.':'. Paket kapalı.')+'</p>'); }
+  if(knife&&PACK.slots.size&&[...PACK.slots.keys()].some(k=>k.startsWith('knife:'))) M.insertAdjacentHTML('beforeend','<p class="iNote" style="margin-top:10px">'+(pkOn?'Ses paketindeki bıçak sesleri (savurma, isabet, duvar, saplama, çekme) V1/V2/V3 yerine çalar; ▶ ile dinlediğin sürümler pakete göre değil kütüphaneye göredir. Kapatmak için SES PAKETİ → Paketi kullan: KAPALI.':'Ses paketinde bıçak sesleri var ama paket kapalı.')+'</p>');
+  M.insertAdjacentHTML('beforeend','<p class="iNote" style="margin-top:12px">V1 klasik, V2 ağır (daha dolgun ve uzun yankı), V3 keskin (daha parlak, mekanik detay önde). PAKET / PAKET 2: içe aktardığın ses paketindeki dosyalar (yalnızca pakette o silahın sesi varsa görünür). “Kendi dosyan” her zaman önce çalar; şarjör için yüklediğin dosya şarjör takma anına yerleşir. Tüm silahları birden değiştirmek için üstteki “Hepsi V1/V2/V3/PAKET”.</p>');
 }
+// SES PAKETİ page: import, on/off, delete (two-step), last import report, what the pack holds per weapon / shared sounds, files to assign by hand
+function renderPackPage(M){
+  const S=packSummary(), n=S.files, on=CFG.packOn!==0, R=PACK_UI.rep;
+  M.insertAdjacentHTML('beforeend','<div class="sndHead"><div><h3>Ses paketi</h3><small>'+(n?n+' ses · '+(S.bytes/1048576).toFixed(1)+' MB · '+S.decoded+' çözüldü'+(on?'':' · paket kapalı'):'Henüz paket yok')+'</small></div></div>');
+  const row=(t,sub)=>{ const r=el('div',{class:'sndRow'}); r.innerHTML='<b>'+t+'<small>'+sub+'</small></b>'; const v=el('div',{class:'vers'}); r.appendChild(v); M.appendChild(r); return v; };
+  const v1=row('İÇE AKTAR','ZIP, wav / mp3 / ogg / flac ya da klasör; dosyaları bu ekrana sürükleyip bırakabilirsin');
+  const bf=el('button',{class:'eb pri',id:'pkImportBtn'},'Paket yükle…'), bd=el('button',{class:'eb'},'Klasör…'); bf.addEventListener('click',()=>$('sndPackFile').click()); bd.addEventListener('click',()=>$('sndPackDir').click()); v1.append(bf,bd);
+  const v2=row('PAKETİ KULLAN','Kapalıyken silahlar V1 / V2 / V3 sesini kullanır; paket silinmez'); v2.id='pkUseSeg';
+  for(const [v,l] of [[0,'KAPALI'],[1,'AÇIK']]){ const w=el('div',{class:'verBtn'+((on?1:0)===v?' on':'')}), a=el('button',{class:'v','data-pkon':String(v)},l); a.addEventListener('click',()=>packSetOn(v)); w.appendChild(a); v2.appendChild(w); }
+  if(n){ const v3=row('PAKETİ SİL','Tüm paket dosyaları bu tarayıcıdan silinir');
+    if(!PACK_UI.clr){ const b=el('button',{class:'eb dan',id:'pkClearBtn'},'Paketi sil'); b.addEventListener('click',()=>{ PACK_UI.clr=1; renderSoundWorkshop(); }); v3.appendChild(b); }
+    else { v3.insertAdjacentHTML('beforeend','<span class="pkWarn">'+n+' ses silinecek. Emin misin?</span>'); const y=el('button',{class:'eb dan',id:'pkClearYes'},'Evet, sil'), c=el('button',{class:'eb',id:'pkClearNo'},'Vazgeç');
+      y.addEventListener('click',async()=>{ y.disabled=true; c.disabled=true; await packClear(); PACK_UI.clr=0; PACK_UI.rep=null; PACK_UI.pv={}; toast('Ses paketi silindi'); renderSoundWorkshop(); });
+      c.addEventListener('click',()=>{ PACK_UI.clr=0; renderSoundWorkshop(); }); v3.append(y,c); } }
+  M.insertAdjacentHTML('beforeend','<p class="iNote">Dosyalar yalnızca bu tarayıcıda (IndexedDB) saklanır: hiçbir yere yüklenmez ve oyunla birlikte dağıtılmaz; tarayıcı verilerini silersen paket de gider. Dosya adları CS:GO / CS2 adlandırmasına göre eşlenir (ak47_01 → AK-47 ateş, ak47_clipout → şarjör çıkarma, c4_beep1 → C4 bip …). İçe aktarınca yeni bulunan gruplar PAKET versiyonuna geçer; silah sayfalarından V1 / V2 / V3 / PAKET arasında seçebilirsin.</p>');
+  if(R){ M.insertAdjacentHTML('beforeend','<div class="pkSec">Son içe aktarma</div><div class="pkSum" id="pkReport"><span><b>'+R.added+'</b>yeni ses</span><span><b>'+R.duplicates+'</b>zaten vardı'+(R.linked?' ('+R.linked+' başka yuvaya da bağlandı)':'')+'</span><span><b>'+R.unmatched.length+'</b>eşleşmedi</span><span><b>'+R.unsupported.length+'</b>desteklenmiyor</span><span><b>'+R.decoded+'</b>çözüldü</span>'
+      +(R.decodeErrors.length?'<span class="pkWarn"><b>'+R.decodeErrors.length+'</b>çözülemedi</span>':'')+(R.saved?'':'<span class="pkWarn">tarayıcı depolamasına yazılamadı: bazı sesler yalnızca bu oturumda</span>')+(R.error?'<span class="pkWarn">'+esc(R.error)+'</span>':'')+'</div>');
+    if(R.unsupported.length) M.insertAdjacentHTML('beforeend','<details class="iNote"><summary>Desteklenmeyen dosyalar ('+R.unsupported.length+')</summary>'+R.unsupported.slice(0,100).map(u=>esc(u.name)+' — '+esc(u.reason)).join('<br>')+'</details>'); }
+  if(!n) return;
+  const W=S.weapons, guns=[], nades=[], idx=id=>{ const i=LIB.list.findIndex(d=>d.id===id); return i<0?999:i; };
+  for(const id in W){ const d=LIB.byId[id]; if(d&&d.type==='grenade') nades.push(id); else guns.push(id); }
+  guns.sort((a,b)=>idx(a)-idx(b)); nades.sort((a,b)=>idx(a)-idx(b));
+  const sh=g=>{ const o={}; for(const k in S.shared) if(k.startsWith(g+':')) o[k.slice(g.length+1)]=S.shared[k]; return o; }, C4=sh('c4'), NA=sh('nade'), KN=sh('knife');
+  const un=S.unmatched.filter(u=>!/^oyunda yok/.test(u.reason||'')), missing=S.unmatched.filter(u=>/^oyunda yok/.test(u.reason||''));
+  M.insertAdjacentHTML('beforeend','<div class="pkSum" id="pkTotals"><span><b>'+n+'</b>dosya</span><span><b>'+PACK.slots.size+'</b>yuva</span><span><b>'+guns.length+'</b>silah</span><span><b>'+nades.length+'</b>bomba</span><span><b>'+(Object.keys(C4).length+Object.keys(NA).length+Object.keys(KN).length)+'</b>ortak ses</span><span><b>'+S.unmatched.length+'</b>eşleşmedi</span></div>');
+  if(guns.length){ M.insertAdjacentHTML('beforeend','<div class="pkSec">Silahlar</div>');
+    for(const id of guns){ const d=LIB.byId[id], G=packGroups(id), used=d?['fire','draw','reload'].filter(g=>G[g].P||G[g].P2).map(g=>({fire:'ateş',draw:'çekme',reload:'şarjör'})[g]+' '+verTag(soundVer(d,g))).join(' · '):'oyunda yok';
+      M.appendChild(packBlock(d?d.name:id,d?weaponIcon(d):null,W[id],id+':',used)); } }
+  if(Object.keys(C4).length||Object.keys(NA).length||Object.keys(KN).length||nades.length){ M.insertAdjacentHTML('beforeend','<div class="pkSec">Ortak sesler</div>');
+    if(Object.keys(C4).length) M.appendChild(packBlock('C4',LIB.byId.c4?weaponIcon(LIB.byId.c4):null,C4,'c4:','bomba kurma, bip, imha, patlama'));
+    if(Object.keys(NA).length) M.appendChild(packBlock('Bombalar',null,NA,'nade:','tüm el bombaları: pim, atma, sekme'));
+    for(const id of nades){ const d=LIB.byId[id]; M.appendChild(packBlock(d.name,weaponIcon(d),W[id],id+':','el bombası')); }
+    if(Object.keys(KN).length) M.appendChild(packBlock('Bıçak',LIB.byId.knife?weaponIcon(LIB.byId.knife):null,KN,'knife:','tüm bıçaklar')); }
+  if(missing.length){ const G={}; for(const u of missing){ const w=String(u.reason).replace(/^oyunda yok:\s*/,''); (G[w]||(G[w]=[])).push(u); }
+    M.insertAdjacentHTML('beforeend','<div class="pkSec">Oyunda olmayan silahlar ('+missing.length+' dosya)</div><p class="iNote">Bu dosyalar saklandı; aynı kimlikte bir silah eklenince (Silah Atölyesi) otomatik eşlenir. İstersen elle bir yuvaya da atayabilirsin.</p>');
+    const opts=packSlotOpts(); for(const w in G){ const det=el('details',{class:'pkMiss'}); det.innerHTML='<summary class="iNote">'+esc(w)+' — '+G[w].length+' dosya (oyunda yok)</summary>'; for(const u of G[w].slice(0,60)) det.appendChild(packUnRow(u,opts)); M.appendChild(det); } }
+  if(un.length){ M.insertAdjacentHTML('beforeend','<div class="pkSec">Eşleşmeyen dosyalar ('+un.length+')</div><p class="iNote">Dosya adından silah ya da ses türü bulunamadı. ▶ ile dinle, sonra bir yuvaya ata (PAKET ya da PAKET 2 setine).</p>');
+    const opts=packSlotOpts(); for(const u of un.slice(0,150)) M.appendChild(packUnRow(u,opts)); if(un.length>150) M.insertAdjacentHTML('beforeend','<p class="iNote">… ve '+(un.length-150)+' dosya daha</p>'); }
+  if(S.errors.length) M.insertAdjacentHTML('beforeend','<div class="pkSec">Çözülemeyen dosyalar ('+S.errors.length+')</div><p class="iNote pkWarn">'+S.errors.slice(0,60).map(e=>esc(e.name)+' — '+esc(e.reason)).join('<br>')+'</p>');
+}
+function packBlock(name,ic,acts,pre,sub){
+  const b=el('div',{class:'pkW','data-pk':pre.slice(0,-1)}); b.innerHTML='<b>'+(ic?'<img alt="" src="'+ic+'">':'')+esc(name)+(sub?'<small>'+esc(sub)+'</small>':'')+'</b>'; const A=el('div',{class:'pkActs'});
+  for(const a of Object.keys(acts).sort((x,y)=>packActIdx(x)-packActIdx(y))){ const c=acts[a], x=el('div',{class:'pkAct'});
+    x.appendChild(el('span',null,esc(packActName(a))+' ×'+c.P+(c.P2?' · P2 ×'+c.P2:'')));
+    const p1=el('button',{title:'Dinle (PAKET)','data-slot':pre+a},'▶'); p1.addEventListener('click',()=>packPreview(pre+a,'P')); x.appendChild(p1);
+    if(c.P2){ const p2=el('button',{title:'Dinle (PAKET 2)'},'▶2'); p2.addEventListener('click',()=>packPreview(pre+a,'P2')); x.appendChild(p2); }
+    A.appendChild(x); }
+  b.appendChild(A); return b; }
+// <option>s for manual assignment: every gun / grenade in the game plus the shared knife / C4 / grenade ids
+function packSlotOpts(){
+  const G=[], gun=['fire','far','fireu','faru','draw','clipout','clipin','cliphit','cliprelease','boltback','boltfwd','dry','zoomin','zoomout','silon','siloff','inspect'];
+  for(const d of LIB.list){ if(['primary','secondary'].includes(d.slot)) G.push([d.name,d.id,gun.filter(a=>(!/^(fireu|faru|silon|siloff)$/.test(a)||d.stats.silencer)&&(!/^zoom/.test(a)||(d.stats.scope|0)>0))]);
+    else if(d.type==='grenade') G.push([d.name,d.id,['draw','throw','bounce','detonate','detonatefar','emit'].concat(d.id==='decoy'?['active']:[],d.id==='molotov'?['fireloop','extinguish']:[])]); }
+  G.push(['Bıçak','knife',['slash','hit','hitwall','stab','draw']],['C4','c4',['draw','key','plantstart','planted','initiate','beep','beep2','beep3','defusestart','defusing','defused','explode','debris']],['Bombalar (ortak)','nade',['pin','pinstart','throw','bounce']]);
+  return '<option value="">Yuvaya ata…</option>'+G.map(([nm,id,acts])=>'<optgroup label="'+esc(nm)+'">'+acts.map(a=>'<option value="'+id+':'+a+'">'+esc(nm+' · '+packActName(a))+'</option>').join('')+'</optgroup>').join('');
+}
+function packUnRow(u,opts){
+  const f=PACK.files[u.sha]||{}, r=el('div',{class:'pkUn','data-sha':u.sha}), pl=el('button',{class:'eb',title:'Dinle'},'▶'); pl.style.padding='2px 8px';
+  pl.addEventListener('click',async()=>{ ensureAudio(); const b=await packDecode(u.sha); if(b) sndPlay('',{buf:b,bus:'weapons',jit:0}); else toast('Ses çözülemedi',2000); });
+  const info=el('div'); info.style.cssText='display:flex;gap:8px;align-items:center;min-width:0'; const tx=el('div'); tx.style.minWidth='0';
+  tx.innerHTML='<div class="nm" title="'+esc((f.dir?f.dir+'/':'')+u.name)+'">'+esc(u.name)+'</div><small>'+esc(u.reason||'')+'</small>'; info.append(pl,tx);
+  const st=el('select',{class:'pkSet',title:'Set'}); st.innerHTML='<option value="P">PAKET</option><option value="P2">PAKET 2</option>';
+  const sel=el('select',{class:'pkSel'}); sel.innerHTML=opts;
+  sel.addEventListener('change',async()=>{ if(!sel.value) return; sel.disabled=true; const lb=sel.options[sel.selectedIndex].text, ok=await packAssign(u.sha,sel.value,st.value); toast(ok?u.name+' → '+lb+(st.value==='P2'?' (PAKET 2)':''):'Atanamadı',2600); renderSoundWorkshop(); });
+  r.append(info,st,sel); return r; }
 function pickSoundFile(slots,reload){
   const inp=document.createElement('input'); inp.type='file'; inp.accept='audio/*,.wav,.mp3,.ogg,.m4a';
   inp.addEventListener('change',async()=>{ const f=inp.files[0]; if(!f) return; try{ const buf=await f.arrayBuffer(); await sndSetCustom(reload?slots[1]:slots[0],buf); toast('Ses yüklendi: '+f.name); renderSoundWorkshop(); }catch(e){ toast('Ses dosyası okunamadı',2400); } });
@@ -4927,8 +5599,22 @@ async function recordVoice(slot,btn){
     rec.start(); setTimeout(()=>{ if(rec.state!=='inactive') rec.stop(); },3000);
   }catch(e){ toast('Mikrofon açılamadı: '+e.message,2600); }
 }
-document.querySelectorAll('[data-allv]').forEach(b=>b.addEventListener('click',()=>{ const v=+b.dataset.allv; for(const d of sndWeapons()) CFG.sv[d.id]={fire:v,draw:v,reload:v}; CFG.svDefault=v; saveCfg(); renderSoundWorkshop(); previewWeaponSound(LIB.byId[sndSel]||getWeapon('ak47'),'fire'); toast('Tüm silahlar '+SND_VERSIONS[v]); }));
+document.querySelectorAll('[data-allv]').forEach(b=>b.addEventListener('click',()=>{ const a=b.dataset.allv;
+  if(a==='P'){ let n=0; for(const d of sndWeapons()) for(const g of ['fire','draw','reload']) if(d.type!=='knife'&&packHasGroup(d.id,g)){ (CFG.sv[d.id]||(CFG.sv[d.id]={}))[g]='P'; n++; } saveCfg(); renderSoundWorkshop();
+    if(CFG.packOn===0||!n){ toast(CFG.packOn===0?'Paket kapalı: SES PAKETİ → Paketi kullan: AÇIK':'Pakette silah sesi yok',2600); return; }
+    const d=LIB.byId[sndSel]&&packHasGroup(sndSel,'fire')?LIB.byId[sndSel]:sndWeapons().find(x=>packHasGroup(x.id,'fire')); if(d) previewWeaponSound(d,'fire','P'); toast('Paket sesi olan tüm silahlar PAKET ('+n+' grup)'); return; }
+  const v=+a; for(const d of sndWeapons()) CFG.sv[d.id]={fire:v,draw:v,reload:v}; CFG.svDefault=v; saveCfg(); renderSoundWorkshop(); previewWeaponSound(LIB.byId[sndSel]||getWeapon('ak47'),'fire'); toast('Tüm silahlar '+SND_VERSIONS[v]); }));
 $('sndExit').addEventListener('click',()=>{ $('soundScreen').classList.add('hidden'); showScreen('devScreen'); });
+// sound pack import: two pickers in the top bar (files / folder) + drag & drop anywhere on the workshop
+$('sndPackBtn').addEventListener('click',()=>$('sndPackFile').click());
+$('sndPackDirBtn').addEventListener('click',()=>$('sndPackDir').click());
+for(const id of ['sndPackFile','sndPackDir']) $(id).addEventListener('change',e=>{ const f=Array.from(e.target.files||[]); e.target.value=''; packRunImport(f); });
+(()=>{ const S=$('soundScreen'), O=$('sndDrop'); let depth=0; const isF=e=>!!e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files');
+  S.addEventListener('dragenter',e=>{ if(!isF(e)) return; e.preventDefault(); depth++; O.classList.remove('hidden'); });
+  S.addEventListener('dragover',e=>{ if(!isF(e)) return; e.preventDefault(); e.dataTransfer.dropEffect='copy'; O.classList.remove('hidden'); });
+  S.addEventListener('dragleave',e=>{ if(!isF(e)) return; depth=Math.max(0,depth-1); if(!depth) O.classList.add('hidden'); });
+  S.addEventListener('drop',e=>{ if(!isF(e)) return; e.preventDefault(); depth=0; O.classList.add('hidden'); packDropFiles(e.dataTransfer).then(packRunImport,er=>toast('Bırakılan dosyalar okunamadı: '+((er&&er.message)||er),2600)); });   // packDropFiles reads the items synchronously
+})();
 
 /* =====================================================================
    HANDS + ARMS (shared by viewmodel and editor)
@@ -5043,11 +5729,17 @@ function vmFire(R){
   R.flashStar.scale.setScalar(sil?.05:rand(.12,.19)); R.flash.children.forEach((c,i)=>{ if(i>0){ c.visible=!sil; c.scale.setScalar(rand(.7,1.3)); } });
   if(t==='sniper'||t==='shotgun') R.rechamberT=0;
 }
-function vmReload(R,dur){ R.reloadT=dur; R.reloadDur=dur; R.inspectT=-1; const T=R.def.type, d=R.def, w=a=>()=>weaponSound(d,a);
-  const cues=T==='pistol'?[[.14,w('clipout')],[.6,w('clipin')],[.8,w('boltback')],[.86,w('boltfwd')]]:T==='shotgun'?[[.12,w('clipout')],[.34,w('clipin')],[.56,w('clipout')],[.76,w('boltback')],[.85,w('boltfwd')]]:[[.18,w('clipout')],[.64,w('clipin')],[.76,w('boltback')],[.83,w('boltfwd')]];
-  R.cues=R.sounds?cues.map(c=>({p:c[0],f:c[1]})):[]; }
-function vmInspect(R){ if(R.reloadT>0||R.drawT>0||R.knifeT>=0||R.silT>=0) return; R.inspectT=0; }
-function vmKnife(R,kind){ R.knifeT=0; R.knifeKind=kind; R.inspectT=-1; if(R.sounds) kind?sfx.stab():sfx.swing(); }
+function vmReload(R,dur){ R.reloadT=dur; R.reloadDur=dur; R.inspectT=-1; const T=R.def.type, d=R.def;
+  const cues=T==='pistol'?[[.14,'clipout'],[.6,'clipin'],[.8,'boltback'],[.86,'boltfwd']]:T==='shotgun'?[[.12,'clipout'],[.34,'clipin'],[.56,'clipout'],[.76,'boltback'],[.85,'boltfwd']]:[[.18,'clipout'],[.64,'clipin'],[.76,'boltback'],[.83,'boltfwd']];
+  if(R.sounds&&SFX_LIB&&isPackVer(soundVer(d,'reload'))){ const has=a=>packHas(d.id+':'+a,'any'), k=1/Math.max(.2,dur), co=cues.find(c=>c[1]==='clipout'), ci=cues.find(c=>c[1]==='clipin');   // pack-only cues
+    if(has('cliprelease')) cues.push([Math.max(0,co[0]-.05*k),'cliprelease']); if(has('cliphit')) cues.push([Math.min(.99,ci[0]+.12*k),'cliphit']); }
+  R.cues=R.sounds?cues.map(c=>({p:c[0],f:()=>weaponSound(d,c[1])})):[]; }
+function vmInspect(R){ if(R.reloadT>0||R.drawT>0||R.knifeT>=0||R.silT>=0) return; R.inspectT=0; R.icues=R.sounds?inspectCues(R.def,R.inspectDur):null; }
+// pack inspect files ("<id>_special_lookat_f057"): played at frame/30 s, time-scaled so the last one lands at 90% of the inspect animation
+function inspectCues(d,dur){ if(!SFX_LIB||!d||!pkHas(d.id+':inspect')) return null; const slot=d.id+':inspect'; let L=packList(slot,'P'); if(!L.length) L=packList(slot,'P2'); if(!L.length) return null;
+  const fr=L.map((x,i)=>typeof x.frame==='number'?x.frame:Math.round((i+.5)*dur*30/L.length)), k=.9*dur/(Math.max(1,...fr)/30); packReady(slot,'P');
+  return fr.map((f,i)=>({t:f/30*k,i})); }
+function vmKnife(R,kind,quiet){ R.knifeT=0; R.knifeKind=kind; R.inspectT=-1; if(R.sounds&&!quiet) kind?sfx.stab():sfx.swing(); }
 const _gq=new THREE.Quaternion(), _hq=new THREE.Quaternion(), _hp=new THREE.Vector3(), _sq=new THREE.Quaternion(), _sv=new THREE.Vector3();
 // silencer toggle pose: gun rot/pos offsets (rad / m), where the left hand grabs the suppressor (0 = rear end, 1 = front), hand offset + rotation, pull-off distance, where the suppressor is carried to
 const SIL_POSE={pistol:{rot:[.05,1.0,.1],pos:[-.08,.02,.05],grab:.55,hand:[0,-.002,0],q:[90,0,25],pull:.035,down:[-.02,-.17,.05]},
@@ -5059,7 +5751,7 @@ function updateRig(R,dt,mv){
   if(R.drawT>0) R.drawT=Math.max(0,R.drawT-dt);
   if(R.flashT>0){ R.flashT-=dt; if(R.flashT<=0) R.flash.visible=false; }
   R.slideT=Math.min(1,R.slideT+dt/.09); R.hammerT=Math.min(1,R.hammerT+dt/.14);
-  if(R.inspectT>=0){ R.inspectT+=dt; if(R.inspectT>R.inspectDur) R.inspectT=-1; }
+  if(R.inspectT>=0){ R.inspectT+=dt; if(R.icues) for(let i=R.icues.length-1;i>=0;i--) if(R.inspectT>=R.icues[i].t){ weaponSound(D,'inspect',{v:'P',variant:R.icues[i].i,jit:0}); R.icues.splice(i,1); } if(R.inspectT>R.inspectDur) R.inspectT=-1; }
   if(R.knifeT>=0){ R.knifeT+=dt; if(R.knifeT>(R.knifeKind?.9:.5)) R.knifeT=-1; }
   if(R.rechamberT>=0){ R.rechamberT+=dt; if(R.rechamberT>1.2) R.rechamberT=-1; if(R.sounds){ if(R.rechamberT>(T==='shotgun'?.3:.35)&&!R.rb){ R.rb=1; weaponSound(D,'boltback'); } if(R.rechamberT>(T==='shotgun'?.55:.7)&&R.rb===1){ R.rb=2; weaponSound(D,'boltfwd'); } } } else R.rb=0;
   let rp=-1;
@@ -5304,6 +5996,8 @@ function cycleSlot(){ const o=SLOT_ORDER.filter(k=>player.slots[k]); const i=o.i
 function setScope(l){ player.scope=l; const st=player.slots[player.cur], s=st&&st.def?st.def.stats:{};
   const z=l===0?1:(l===1?(s.scopeZoom||2.4):6.5); player.zoom=z; camera.fov=csFovToV(CFG.fov)/z; camera.updateProjectionMatrix(); updateParticleScale();
   $('scope').classList.toggle('on',l>0); $('scope').classList.toggle('aug',l>0&&s.scopeType==='aug'); VM.rig.visible=l===0; $('crosshair').style.display=l>0?'none':''; }
+// right click / touch scope button: next zoom level + scope sound (AWP level 1 -> 2 counts as zoom in). Automatic unscoping (shot, reload, death) stays silent.
+function cycleScope(d){ const n=(player.scope+1)%((d.stats.scope|0)+1); setScope(n); player.rescope=0; if(SFX_LIB) weaponSound(d,n>0?'zoomin':'zoomout'); else sfx.click(); }
 // removable suppressor: right click / touch (USP-S, M4A1-S or any def with stats.silencer and no scope)
 function toggleSilencer(){ const P=player, st=slotState(), d=st&&st.def, R=VM;
   if(!d||!d.stats.silencer||(d.stats.scope|0)>0||match.state!=='live'||!P.alive||buyOpen||P.reloading||P.pendingThrow||P.planting||P.defusing||!R||R.def!==d) return false;
@@ -5502,15 +6196,17 @@ function dealHit(h,def){
   else if(match.mode==='duel'||match.mode==='comp'){ const b=bots.find(x=>x.char===h.char); if(b) damageAgent(b,h.raw,h.zone,def,player); }
   else if(match.mode==='range'){ const d=RANGE.dummies.find(x=>x.char===h.char); if(d){ const dmg=applyDamage(d,h.raw,h.zone,s.armorPen,s.head); d.hp-=dmg; rangeHit(d,dmg,h.zone,h.dist,h.point); } }
 }
-function tryKnife(kind){ const P=player; if(VM.knifeT>=0||!P.alive||!canAct()) return; vmKnife(VM,kind); P.pendingKnife={kind,t:kind?.28:.12}; }
+function tryKnife(kind){ const P=player; if(VM.knifeT>=0||!P.alive||!canAct()) return; vmKnife(VM,kind,true); P.pendingKnife={kind,t:kind?.28:.12}; }   // the sound comes with the hit result (doKnifeHit)
 function doKnifeHit(kind){
   const origin=camera.position.clone(), dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   const range=(curDef().stats.range||1.7)*(kind?.85:1);
   const wh=rayWorld(origin,dir,range); const ch=rayCharacters(origin,dir,wh?wh.dist:range,opponents());
   if(ch){ const fw=new THREE.Vector3(-Math.sin(ch.char.yaw),0,-Math.cos(ch.char.yaw)); const back=fw.dot(dir)>.4;
     const raw=back?(kind?180:90):(kind?65:curDef().stats.dmg||40); impactFX(ch.point,dir.clone().negate(),'flesh');
+    weaponSound(curDef(),kind?'stab':'hit');
     dealHit({char:ch.char,zone:'chest',raw,dist:ch.dist,point:ch.point},Object.assign({},curDef(),{stats:Object.assign({},curDef().stats,{armorPen:.85,head:1})})); }
-  else if(wh){ impactFX(wh.point,wh.normal,wh.surf); sfx.dry(); }
+  else if(wh){ impactFX(wh.point,wh.normal,wh.surf); weaponSound(curDef(),'hitwall'); }
+  else weaponSound(curDef(),'slash');   // miss: just the swing
 }
 function tryReload(){
   const st=slotState(), s=st.def.stats, P=player;
@@ -5653,7 +6349,7 @@ class TeamBot{
       const rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw));
       const knife=this.w.def.type==='knife';
       const shooting=!knife&&this.seeT>this.react+dist*.006&&Math.abs(dy)<.12&&this.w.mag>0&&this.reloadT<=0;
-      if(knife){ moveDir.set(to.x,0,to.z).normalize(); if(dist<1.8){ this.fireCd-=dt; if(this.fireCd<=0){ this.fireCd=.6; damageAgent(T,40,'chest',this.w.def,this); sfx.swing(); } } }
+      if(knife){ moveDir.set(to.x,0,to.z).normalize(); if(dist<1.8){ this.fireCd-=dt; if(this.fireCd<=0){ this.fireCd=.6; damageAgent(T,40,'chest',this.w.def,this); sndPlay('knife:hit',{pos:this.pos.clone().setY(this.pos.y+1.2),ref:3,bus:'weapons'}); } } }
       else if(!shooting||this.diff>=1) moveDir.addScaledVector(rt,this.strafeDir*(shooting&&this.diff<2?0:1));
       if(shooting&&this.diff<2) maxs*=.2;
       this.fireCd-=dt;
@@ -5681,7 +6377,7 @@ class TeamBot{
   objectiveAction(dt){
     const bomb=COMP.bomb; if(!bomb) return false;
     if(this.team==='T'&&this.hasBomb&&!this.target){ const site=COMP.sites.find(s=>colContains(s.col,this.pos.x,this.pos.y+.5,this.pos.z)); if(site){ this.planting=true; this.plantT+=dt; c4Sounds(this,'plant',this.plantT,this.pos); if(this.plantT>=3.2){ this.plantT=0; plantBomb(this,site.name); } return true; } }
-    this.plantT=0; this._c4k=0;
+    this.plantT=0; this._c4k=0; this._c4s=0;
     if(this.team==='CT'&&bomb.state==='planted'&&!this.target&&this.pos.distanceTo(bomb.pos)<1.4&&(!bomb.defuser||bomb.defuser===this)){
       this.defusing=true; bomb.defuser=this; this.defuseT+=dt; c4Sounds(this,'defuse',this.defuseT,bomb.pos); if(this.defuseT>=(this.kit?5:10)){ this.defuseT=0; defuseBomb(this); } return true; }
     if(bomb.defuser===this){ bomb.defuser=null; } this.defuseT=0; this._dfs=0;
@@ -5914,7 +6610,7 @@ function compTick(dt){
   else if(COMP.phase==='live'){
     COMP.liveT+=dt; const B=COMP.bomb;
     if(B.state==='planted'){ const pt=B.t; B.t-=dt; B.beepT-=dt; const rate=B.t>20?1:B.t>10?.5:B.t>5?.25:.12; if(pt>10&&B.t<=10) music('mus:tensec');
-      if(B.beepT<=0){ B.beepT=rate; sfx.beep(B.pos); if(B.led) B.led.visible=true; } else if(B.led&&B.beepT<rate*.7) B.led.visible=false;
+      if(B.beepT<=0){ B.beepT=rate; sfx.beep(B.pos,B.t); if(B.led) B.led.visible=true; } else if(B.led&&B.beepT<rate*.7) B.led.visible=false;
       if(B.t<=0) explodeBomb(); }
     else { COMP.t-=dt; if(COMP.t<=0) endRound('CT','time'); }
     if(B.state==='dropped'&&player.alive&&player.team==='T'&&player.pos.distanceTo(B.pos)<1.2&&performance.now()>(B.noPick||0)) pickupBomb(player);
@@ -5940,12 +6636,13 @@ function updateUse(dt){
     if(!P.planting&&!P.defusing){ const d=nearestDrop(P.pos,1.7); if(d){ hint=keyName(KU)+': '+d.def.name.toUpperCase()+' AL'; if((keys[KU]||touchState.use)&&!P._eHeld) pickupDrop(d); } }
   }
   P._eHeld=!!(keys[KU]||touchState.use);
-  if(!P.planting&&!P.defusing){ P.useT=0; P._c4k=0; P._dfs=0; if(B&&B.defuser===P) B.defuser=null; setProgress(null); }
+  if(!P.planting&&!P.defusing){ P.useT=0; P._c4k=0; P._c4s=0; P._dfs=0; if(B&&B.defuser===P) B.defuser=null; setProgress(null); }
   $('useHint').textContent=hint; $('useHint').classList.toggle('hidden',!hint); $('useBtnTouch').classList.toggle('hidden',!hint);
 }
 function c4Sounds(a,kind,t,pos){
   if(!SFX_LIB) return; const local=a===player, at=local?null:pos.clone().setY(pos.y+.4);
-  if(kind==='plant'){ a._c4k=a._c4k|0; if(a._c4k<7&&t>=.22+a._c4k*.38){ sndPlay('c4:key',{variant:a._c4k,pos:at,ref:3,bus:'fx',jit:0}); a._c4k++; } return; }
+  if(kind==='plant'){ a._c4k=a._c4k|0; if(!a._c4k&&!a._c4s){ a._c4s=1; sndPack('c4:plantstart',null,{pos:at,ref:3,bus:'fx',jit:0}); }   // pack only: c4_click when planting starts
+    if(a._c4k<7&&t>=.22+a._c4k*.38){ sndPlay('c4:key',{variant:a._c4k,pos:at,ref:3,bus:'fx',jit:0}); a._c4k++; } return; }
   if(!a._dfs){ a._dfs=1; a._dfl=t; sndPlay('c4:defusestart',{pos:local?null:at,ref:3,bus:'fx'}); }
   else if(t-a._dfl>1){ a._dfl=t; sndPlay('c4:defusing',{pos:local?null:at,ref:3,bus:'fx'}); }
 }
@@ -6193,7 +6890,7 @@ function releaseNade(){
   const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
   const pos=camera.position.clone().addScaledVector(dir,.45).add(new THREE.Vector3(0,-.08,0));
   const vel=dir.clone().multiplyScalar(firing2?9:17).add(new THREE.Vector3(0,2.4,0)).addScaledVector(P.vel,.6);
-  throwNade(d,pos,vel,P); if(SFX_LIB) sndPlay('nade:throw',{bus:'weapons'});
+  throwNade(d,pos,vel,P); if(SFX_LIB) sndPack(d.id+':throw','nade:throw',{bus:'weapons'});
   if(CFG.nadeCalls){ const kd=d.stats.nade||'he'; announce(kd==='flash'?'flashout':kd==='smoke'?'smokeout':kd==='molotov'||kd==='incgren'?'molotovout':kd==='decoy'?'decoyout':'fireinhole'); }
   if(match.mode!=='range'){ const i=P.nades.indexOf(d.id); if(i>=0) P.nades.splice(i,1); }
   refreshNadeSlot();
@@ -6210,7 +6907,7 @@ function updateNades(dt){
     if(!n.rest){ n.vel.y-=GRAV*.85*dt; const step=n.vel.clone().multiplyScalar(dt), L=step.length();
       if(L>1e-5){ const hit=rayWorld(n.g.position,step.clone().multiplyScalar(1/L),L+.07);
         if(hit){ n.g.position.copy(hit.point).addScaledVector(hit.normal,.07); const vn=n.vel.dot(hit.normal); n.vel.addScaledVector(hit.normal,-1.5*vn).multiplyScalar(.5);
-          if(Math.abs(vn)>1.5) sfx.clink(n.g.position);
+          if(Math.abs(vn)>1.5) sfx.clink(n.g.position,n.def&&n.def.id,n.kind);
           if((n.kind==='molotov'||n.kind==='incgren')&&hit.normal.y>.7){ detonate(n,hit.point); NADES.splice(i,1); continue; }
           if(hit.normal.y>.7&&n.vel.length()<1.1){ n.rest=true; n.vel.set(0,0,0); } }
         else n.g.position.add(step); }
@@ -6244,7 +6941,7 @@ function detonate(n,at){
   else if(n.kind==='smoke'){ SMOKES.push({pos:p.setY(p.y+.1),t:0,dur:18,r:3.6,emit:0}); sfx.hiss(p); }
   else { const g=rayWorld(p.clone().setY(p.y+.3),new THREE.Vector3(0,-1,0),6); const fp=g?g.point:p;
     if(SMOKES.some(s=>s.pos.distanceTo(fp)<s.r)){ if(SFX_LIB) sndPlay('nade:extinguish',{pos:fp,ref:4}); else sfx.hiss(fp); return; }
-    FIRES.push({pos:fp,t:0,dur:7,r:2.7,tick:0,owner,def:n.def,snd:SFX_LIB?sndPlay('nade:fireloop',{pos:fp.clone().setY(fp.y+.4),loop:true,ref:4,roll:1,bus:'fx',jit:0}):null}); sfx.fire(fp); }
+    FIRES.push({pos:fp,t:0,dur:7,r:2.7,tick:0,owner,def:n.def,snd:SFX_LIB?sndPack('molotov:fireloop','nade:fireloop',{pos:fp.clone().setY(fp.y+.4),loop:true,ref:4,roll:1,bus:'fx',jit:0}):null}); sfx.fire(fp,n.def&&n.def.id); }
 }
 function bigExplosion(p,s){
   worldFlash.position.copy(p).setY(p.y+.5); worldFlash.intensity=60*s;
@@ -6269,7 +6966,7 @@ function updateDecoy(n,dt){
   return false; }
 function decoyStart(n){ const g=decoyGun(n.owner), p=n.g.position.clone();
   n.dc={t:0,dur:15,gun:g.def,unsup:g.unsup,cd:rand(.25,.6),left:0,bursts:0,shots:0,seen:0,pos:p,team:n.owner?n.owner.team:null,
-    snd:SFX_LIB?sndPlay('nade:decoy',{pos:p.clone(),loop:true,ref:3,bus:'fx',vol:.6}):null};
+    snd:SFX_LIB?(sndPack('decoy:active',null,{pos:p.clone(),ref:3,bus:'fx',vol:.45})||sndPlay('nade:decoy',{pos:p.clone(),loop:true,ref:3,bus:'fx',vol:.6})):null};   // pack: one long decoy recording instead of the fizz loop
   DECOYS.push(n); }
 function decoyBurst(n){ const D=n.dc; D.bursts++; D.seen=performance.now();
   if(D.team&&(match.mode==='comp'||match.mode==='duel')) for(const b of bots){ if(b.alive&&b.team!==D.team&&b.pos.distanceTo(D.pos)<30) b.alert(D.pos); } }
@@ -6424,7 +7121,7 @@ addEventListener('mousemove',e=>{
 addEventListener('mousedown',e=>{ if(!pointerLocked||!gameInput()) return;
   if(!player.alive&&match.mode==='comp'){ player._specNext=true; return; }
   if(e.button===0){ firing=true; tryFire(true); }
-  if(e.button===2){ firing2=true; const d=curDef(); if(d.type==='knife') tryKnife(1); else if(d.type==='grenade'){ if(canAct()) startThrow(); } else if((d.stats.scope|0)>0&&!player.reloading){ setScope((player.scope+1)%((d.stats.scope|0)+1)); player.rescope=0; sfx.click(); } else if(d.stats.silencer) toggleSilencer(); } });
+  if(e.button===2){ firing2=true; const d=curDef(); if(d.type==='knife') tryKnife(1); else if(d.type==='grenade'){ if(canAct()) startThrow(); } else if((d.stats.scope|0)>0&&!player.reloading){ cycleScope(d); } else if(d.stats.silencer) toggleSilencer(); } });
 addEventListener('mouseup',e=>{ if(e.button===0) firing=false; if(e.button===2) firing2=false; });
 addEventListener('contextmenu',e=>{ if(match.state==='live'||!$('editor').classList.contains('hidden')||!$('mapEditor').classList.contains('hidden')) e.preventDefault(); });
 addEventListener('wheel',e=>{ if(!gameInput()||buyOpen) return; const o=SLOT_ORDER.filter(k=>player.slots[k]); const i=o.indexOf(player.cur); switchSlot(o[(i+(e.deltaY>0?1:o.length-1))%o.length]); },{passive:true});
@@ -6448,7 +7145,7 @@ bindHold('jumpBtn',()=>{ touchState.jump=true; },()=>{ touchState.jump=false; })
 bindHold('crouchBtn',()=>{ touchState.crouch=!touchState.crouch; $('crouchBtn').style.background=touchState.crouch?'rgba(255,59,77,.35)':''; });
 bindHold('reloadBtnTouch',()=>tryReload());
 bindHold('swapBtnTouch',()=>cycleSlot());
-bindHold('scopeBtnTouch',()=>{ const d=curDef(); if((d.stats.scope|0)>0){ if(!player.reloading){ setScope((player.scope+1)%((d.stats.scope|0)+1)); player.rescope=0; } } else if(d.stats.silencer) toggleSilencer(); });
+bindHold('scopeBtnTouch',()=>{ const d=curDef(); if((d.stats.scope|0)>0){ if(!player.reloading) cycleScope(d); } else if(d.stats.silencer) toggleSilencer(); });
 bindHold('pauseBtnTouch',()=>{ if(buyOpen) toggleBuy(false); togglePause(); });
 bindHold('useBtnTouch',()=>{ touchState.use=true; },()=>{ touchState.use=false; });
 bindHold('buyBtnTouch',()=>toggleBuy());
@@ -6710,7 +7407,11 @@ function sDefs(tab){
     {t:'btns',l:'Anonsları dinle',d:'Seçili dilde örnek anonslar.',btns:[['BOMBA KURULDU',()=>announce('planted')],['BOMBA ÇÖZÜLDÜ',()=>announce('defused')],['T KAZANDI',()=>announce('twin')],['AT KAZANDI',()=>announce('ctwin')]]},
     {sec:'SİLAH SESLERİ'},
     SEG('Varsayılan ses versiyonu','Ses Atölyesi’nde ayrıca seçmediğin silahlar bu versiyonu kullanır. V1 klasik, V2 ağır, V3 keskin.',[[1,'V1 · KLASİK'],[2,'V2 · AĞIR'],[3,'V3 · KESKİN']],()=>CFG.svDefault,v=>{ CFG.svDefault=+v; previewWeaponSound(getWeapon(CFG.loadout.primary,'primary'),'fire'); }),
-    {t:'btns',l:'Ses Atölyesi',d:'Her silah için ateş, çekme ve şarjör seslerini tek tek dinle ve seç ya da kendi ses dosyanı yükle.',btns:[['SES ATÖLYESİNİ AÇ',()=>openSoundWorkshop()]]}
+    {t:'btns',l:'Ses Atölyesi',d:'Her silah için ateş, çekme ve şarjör seslerini tek tek dinle ve seç ya da kendi ses dosyanı yükle.',btns:[['SES ATÖLYESİNİ AÇ',()=>openSoundWorkshop()]]},
+    {sec:'SES PAKETİ'},
+    {t:'btns',l:'Ses paketi',d:'CS:GO / CS2 ses dosyalarını (ZIP, wav, mp3, ogg, flac ya da klasör) içe aktar; dosya adlarından silahlara otomatik eşlenir. Dosyalar yalnızca bu tarayıcıda saklanır.',btns:[['PAKET YÜKLE',()=>$('sndPackFile').click()],['SES ATÖLYESİNDE AÇ',()=>openSoundWorkshop('__pack')]]},
+    TG('Paketi kullan','Kapalıyken silahlar V1 / V2 / V3 sesini kullanır; paket silinmez.',()=>CFG.packOn!==0,v=>packSetOn(v)),
+    {t:'info',l:'Yüklü paket',d:'Bu tarayıcıda saklanan paket sesleri.',get:()=>PACK_UI.imp?PACK_UI.imp:packCount()?packCount()+' ses yüklü'+(PACK.loading&&CFG.packOn!==0?' · çözülüyor…':''):'Paket yok'}
   ];
   if(tab==='video') return [
     {sec:'KALİTE'},
@@ -6778,6 +7479,7 @@ function renderSettings(){
     else if(it.t==='text'){ const t=el('input',{type:'text',maxlength:'12'}); t.value=it.get(); t.addEventListener('input',()=>it.set(t.value)); t.addEventListener('change',done); ctl.appendChild(t); }
     else if(it.t==='color'){ const c=el('input',{type:'color'}); c.value=it.get(); c.addEventListener('input',()=>{ it.set(c.value); refreshCrosshair(); }); c.addEventListener('change',done); ctl.appendChild(c); }
     else if(it.t==='select'){ const s=el('select'); for(const k in it.opts) s.appendChild(el('option',{value:k},esc(it.opts[k]))); s.value=it.get(); s.addEventListener('change',()=>{ it.set(s.value); done(); }); ctl.appendChild(s); }
+    else if(it.t==='info'){ ctl.appendChild(el('span',{class:'sInfoVal'},esc(it.get()))); }
     else if(it.t==='btns'){ ctl.classList.add('btnRow'); for(const [lb,fn] of it.btns){ const b=el('button',{class:'cBtn sm'},esc(lb)); b.addEventListener('click',()=>{ uiSound('click'); fn(); }); ctl.appendChild(b); } }
     else if(it.t==='key'){ const b=el('button',{class:'keyBtn'},esc(keyName(CFG.keys[it.k]))); b.addEventListener('click',()=>{ uiSound('click'); document.querySelectorAll('.keyBtn.wait').forEach(x=>{ x.classList.remove('wait'); x.textContent=keyName(CFG.keys[x.dataset.k]); }); keyWait=it.k; b.dataset.k=it.k; b.classList.add('wait'); b.textContent='BİR TUŞA BAS…'; }); b.dataset.k=it.k; ctl.appendChild(b); }
     else if(it.t==='chcode'){ const t=el('input',{type:'text',maxlength:'60'}); t.value=chCode(); t.style.maxWidth='230px'; t.style.fontFamily='var(--f-mono)'; t.style.fontSize='12px';
@@ -6796,7 +7498,7 @@ $('settingsBack').addEventListener('click',()=>{ saveCfg(); uiSound('back'); if(
 $('sReset').addEventListener('click',async()=>{ if(!(await confirmBox('Varsayılanlar','Bu sekmedeki ayarlar varsayılana dönsün mü?','Sıfırla','Vazgeç'))) return;
   const D=deepClone(CFG_DEF);
   if(sTab==='game'){ for(const k of ['botDiff','autoEquip','hitmarker','dmgNums','vmFov','vmOff','vmPreset','leftHand','vmBob','showFps']) CFG[k]=D[k]; applyVmFov(); applyHand(); }
-  if(sTab==='audio'){ for(const k of ['vol','volW','volFx','volVoice','volMusic','volUi','voiceLang','radioFx','nadeCalls','svDefault']) CFG[k]=D[k]; applyVolumes(); }
+  if(sTab==='audio'){ for(const k of ['vol','volW','volFx','volVoice','volMusic','volUi','voiceLang','radioFx','nadeCalls','svDefault','packOn']) CFG[k]=D[k]; applyVolumes(); packBoot(); }
   if(sTab==='video'){ CFG.fov=D.fov; applyQuality(CFG.isTouch?'med':'high'); CFG.video.scale=1; CFG.video.exposure=D.video.exposure; renderer.toneMappingExposure=CFG.video.exposure; applyVideo(); }
   if(sTab==='input'){ CFG.sens=D.sens; CFG.zoomSens=D.zoomSens; CFG.invertY=D.invertY; CFG.keys=Object.assign({},KEY_DEF); }
   if(sTab==='crosshair') CFG.ch=D.ch; if(sTab==='hud'){ CFG.hud=D.hud; applyHud(); }
@@ -7297,7 +7999,7 @@ function edRenderInspector(){
       if(SFX_LIB&&!['knife','grenade','c4'].includes(D.type)) iSelect(b,'Ses profili',sndProfiles(),()=>sndProfile(D),v=>{ D.stats.sndProfile=v; D.stats.sound=sndLegacyKind(v); },false);
       else iSelect(b,'Ses',SOUNDS,()=>D.stats.sound,v=>{ D.stats.sound=v; },false);
       iBtns(b,[['Ateşi dinle',()=>previewWeaponSound(D,'fire')],['Çekme',()=>previewWeaponSound(D,'draw')],['Şarjör',()=>previewReload(D)],['Ses Atölyesi',()=>{ CFG.sv[D.id]=CFG.sv[D.id]||{}; toast('Kaydedip DEV → Ses Atölyesi’nden V1/V2/V3 seçebilirsin'); }]]);
-      for(const [g,lb] of [['fire','Ateş sesi'],['draw','Çekme sesi'],['reload','Şarjör sesi']]) iSelect(b,lb,SND_VERSIONS,()=>String((D.stats.sv&&D.stats.sv[g])||CFG.svDefault||1),v=>{ D.stats.sv=Object.assign({},D.stats.sv||{},{[g]:+v}); },false);
+      for(const [g,lb] of [['fire','Ateş sesi'],['draw','Çekme sesi'],['reload','Şarjör sesi']]) iSelect(b,lb,{1:SND_VERSIONS[1],2:SND_VERSIONS[2],3:SND_VERSIONS[3]},()=>String(svNum((D.stats.sv&&D.stats.sv[g])||CFG.svDefault||1)),v=>{ D.stats.sv=Object.assign({},D.stats.sv||{},{[g]:svNum(v)}); },false);
     }));
     const S=D.stats;
     B.appendChild(iSec('st','İstatistikler',b=>{
@@ -7416,7 +8118,7 @@ function edRenderLib(){
 async function edSave(){
   const d=deepClone(ED.def); d.builtin=0; normalizeDef(d);
   const ok=await Store.putWeapon(d); if(!ok){ toast('Kaydedilemedi (depolama kapalı olabilir)'); return false; }
-  const i=LIB.list.findIndex(x=>x.id===d.id); if(i>=0) LIB.list[i]=d; else LIB.list.push(d); rebuildLibIndex();
+  const i=LIB.list.findIndex(x=>x.id===d.id); if(i>=0) LIB.list[i]=d; else LIB.list.push(d); rebuildLibIndex(); packRemap().catch(()=>{});   // sound-pack files for a weapon id that now exists get mapped
   ED.dirty=false; ED.isNew=false; CFG.lastEdit=d.id; saveCfg(); edTitle(); edRenderLib(); toast('Kaydedildi: '+d.name); return true;
 }
 async function edExit(){
@@ -7990,7 +8692,7 @@ async function init(){
   setLoad(68,'Işık ve gökyüzü...'); buildEnvironment(); initFX(); await nextFrame();
   setLoad(80,'Silah kütüphanesi...'); await loadLibrary();
   VM=createRig(vmFlashLight); vmCam.add(VM.rig); setupLoadout(); vmEquip(VM,curDef(),true); VM.sounds=true;
-  setLoad(90,'Son ayarlar...'); document.body.classList.toggle('touch',CFG.isTouch); applyBrand(); applyHud(); applyHand(); applyVmFov(); refreshCrosshair(); applyVideo(); onResize(); updateHUD(); sndInit();
+  setLoad(90,'Son ayarlar...'); document.body.classList.toggle('touch',CFG.isTouch); applyBrand(); applyHud(); applyHand(); applyVmFov(); refreshCrosshair(); applyVideo(); onResize(); updateHUD(); sndInit(); packBoot();   // sound pack: loads + decodes in the background
   try{ renderer.compile(scene,camera); }catch(e){}
   setLoad(100,'Hazır'); window.__booted=true;
   setTimeout(()=>{ $('loading').classList.add('hidden');
@@ -7998,7 +8700,7 @@ async function init(){
     else showScreen('nameScreen'); },200);
   animate();
 }
-window.__game={ get bots(){return bots;}, MapBuilder, MOBJ, buildMapFromData, buildWeaponObject, scene, get COMP(){return COMP;}, startComp, toggleBuy, buyItem, showScoreboard, openMapEditor, MAPLIB, WORLD, ME, get meCam(){return meCam;}, meSelect, meAdd, setScope, throwNade, dropCurrent, step:(n,dt)=>{ window.__manual=true; for(let i=0;i<n;i++) tick(dt||1/60,i===n-1); }, resume:()=>{ window.__manual=false; }, edStep:(n)=>{ for(let i=0;i<n;i++){ ED.last=performance.now()-16; } }, cmd:(s)=>{ const [c,...a]=s.split(/\s+/); CMDS[c](a); }, fire:()=>tryFire(true), switchSlot, tryReload, get CFG(){return CFG;}, get match(){return match;}, get player(){return player;}, startMatch, openEditor, LIB, ED, edSetView, edSelect, setMap, camera, applyQuality, applyVideo, showScreen, get VM(){return VM;}, vmFire, vmReload, vmInspect, updateRig, renderInventory, edFocus, openProfile, edPart, renderMapPreview, MENU, MENU_POSE, STATS, openDevAsk, weaponIcon, get curScreen(){return curScreen;}, renderer, vmScene, vmCam, get composer(){return composer;}, SND, sndPlay, weaponSound, announce, get AUD(){return AUD;}, ensureAudio, openSoundWorkshop, damageAgent, getWeapon, toggleSilencer, isSuppressed, SIL_POSE, DECOYS, NADES, DROPS, radarDecoys, updateHUD, inaccuracy };
+window.__game={ get bots(){return bots;}, MapBuilder, MOBJ, buildMapFromData, buildWeaponObject, scene, get COMP(){return COMP;}, startComp, toggleBuy, buyItem, showScoreboard, openMapEditor, MAPLIB, WORLD, ME, get meCam(){return meCam;}, meSelect, meAdd, setScope, throwNade, dropCurrent, step:(n,dt)=>{ window.__manual=true; for(let i=0;i<n;i++) tick(dt||1/60,i===n-1); }, resume:()=>{ window.__manual=false; }, edStep:(n)=>{ for(let i=0;i<n;i++){ ED.last=performance.now()-16; } }, cmd:(s)=>{ const [c,...a]=s.split(/\s+/); CMDS[c](a); }, fire:()=>tryFire(true), switchSlot, tryReload, get CFG(){return CFG;}, get match(){return match;}, get player(){return player;}, startMatch, openEditor, LIB, ED, edSetView, edSelect, setMap, camera, applyQuality, applyVideo, showScreen, get VM(){return VM;}, vmFire, vmReload, vmInspect, updateRig, renderInventory, edFocus, openProfile, edPart, renderMapPreview, MENU, MENU_POSE, STATS, openDevAsk, weaponIcon, get curScreen(){return curScreen;}, renderer, vmScene, vmCam, get composer(){return composer;}, SND, sndPlay, weaponSound, weaponFire, announce, get PACK(){return PACK;}, PACK_UI, packImport, packLoad, packClear, packSummary, packPick, packHas, packGroups, packCount, packList, packAssign, packRemap, packRunImport, packPreview, soundVer, soundVerRaw, setSoundVer, sndProfile, Store, renderSoundWorkshop, renderSettings, cycleScope, doKnifeHit, c4Sounds, sfx, get AUD(){return AUD;}, ensureAudio, openSoundWorkshop, damageAgent, getWeapon, toggleSilencer, isSuppressed, SIL_POSE, DECOYS, NADES, DROPS, radarDecoys, updateHUD, inaccuracy };
 init().catch(e=>{ window.__showErr('KRİTİK HATA: '+e.message+'\n'+(e.stack||'')); $('loadTxt').textContent='Hata oluştu — aşağıya bak'; });
 </script>
 </body>
