@@ -180,6 +180,9 @@
   .kf .k{color:#fff;} .kf.mine{background:rgba(40,120,40,.8);} .kf.dead{background:rgba(150,20,30,.8);}
   @keyframes kfIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
   #ping{position:absolute;left:calc(56px + var(--sl));top:calc(14px + var(--st));font-size:11px;color:#d6ccff;text-shadow:var(--ol1);}
+  #espCv{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
+  #cheatBtn{position:absolute;left:calc(8px + var(--sl));top:calc(52px + var(--st));pointer-events:auto;z-index:5;}
+  #cheatPanel{position:absolute;left:calc(8px + var(--sl));top:calc(96px + var(--st));pointer-events:auto;z-index:5;display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
   #exitBtn{position:absolute;left:calc(8px + var(--sl));top:calc(8px + var(--st));pointer-events:auto;z-index:5;}
   #centerMsg{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);font-size:min(13vw,74px);text-shadow:-3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000,0 6px 0 #000;
     text-align:center;white-space:nowrap;}
@@ -325,6 +328,7 @@
   <div class="panel">
     <h2 class="o">AYARLAR</h2>
     <div class="rRow"><span>İSİM</span><input id="sName" class="txtIn" maxlength="12" style="width:170px;padding:6px;font-size:16px"></div>
+    <div class="rRow"><span>İSMİMİ GİZLE</span><div class="seg" id="sHide"><button data-h="1">GİZLİ</button><button data-h="0">GÖRÜNÜR</button></div></div>
     <div class="rRow"><span>GRAFİK</span><div class="seg" id="sQ"><button data-q="low">DÜŞÜK</button><button data-q="med">ORTA</button><button data-q="high">YÜKSEK</button></div></div>
     <div class="rRow"><span>SES</span><div class="seg" id="sSnd"><button data-s="1">AÇIK</button><button data-s="0">KAPALI</button></div></div>
     <div class="rRow"><span>KONTROL</span><div class="seg" id="sCtl"><button data-c="auto">OTOMATİK</button><button data-c="touch">DOKUNMATİK</button><button data-c="mouse">FARE</button></div></div>
@@ -347,6 +351,11 @@
   <div id="killFeed"></div>
   <div id="ping"></div>
   <button id="exitBtn" class="btn sm gray">✕</button>
+  <button id="cheatBtn" class="btn sm purple">🛠</button>
+  <div id="cheatPanel" class="hidden">
+    <button class="btn sm gray" data-ck="esp"></button><button class="btn sm gray" data-ck="noclip"></button>
+    <button class="btn sm gray" data-ck="aim"></button><button class="btn sm gray" data-ck="trig"></button>
+  </div>
   <div id="centerMsg"></div>
   <div id="subMsg"></div>
   <div id="ctrlHint" class="o1">WASD: YÜRÜ · FARE: NİŞAN · SOL TIK: SALDIR · SAĞ TIK / E: SÜPER · BOŞLUK: OTO NİŞAN</div>
@@ -401,15 +410,20 @@ function toast(msg,ms){ const t=$('toast'); t.textContent=msg; t.style.opacity=1
 /* ===================== CONFIG ===================== */
 const QS=new URLSearchParams(location.search);
 const TOUCH_DETECTED=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-const CFG={ name:'', brawler:'pompa', mode:'gem', quality:'med', sound:true, trophies:0, fill:true, ctl:'auto', isTouch:TOUCH_DETECTED };
+const CFG={ name:'', brawler:'pompa', mode:'gem', quality:'med', sound:true, trophies:0, fill:true, ctl:'auto', hideName:true, isTouch:TOUCH_DETECTED };
 const LS_KEY='strayBrawlCfg';
-function saveCfg(){ try{ localStorage.setItem(LS_KEY,JSON.stringify({name:CFG.name,brawler:CFG.brawler,mode:CFG.mode,quality:CFG.quality,sound:CFG.sound,trophies:CFG.trophies,fill:CFG.fill,ctl:CFG.ctl})); }catch(e){} }
+function saveCfg(){ try{ localStorage.setItem(LS_KEY,JSON.stringify({name:CFG.name,brawler:CFG.brawler,mode:CFG.mode,quality:CFG.quality,sound:CFG.sound,trophies:CFG.trophies,fill:CFG.fill,ctl:CFG.ctl,hideName:CFG.hideName})); }catch(e){} }
 function loadCfg(){ try{ const s=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
-  ['name','brawler','mode','quality','sound','trophies','fill','ctl'].forEach(k=>{ if(s[k]!==undefined) CFG[k]=s[k]; }); }catch(e){}
+  ['name','brawler','mode','quality','sound','trophies','fill','ctl','hideName'].forEach(k=>{ if(s[k]!==undefined) CFG[k]=s[k]; }); }catch(e){}
   if(!BRAWLERS[CFG.brawler]) CFG.brawler='pompa'; if(CFG.mode!=='gem'&&CFG.mode!=='sd') CFG.mode='gem';
   if(QS.get('touch')==='1') CFG.ctl='touch'; else if(QS.get('touch')==='0') CFG.ctl='mouse';
   applyCtl(); }
 function applyCtl(){ CFG.isTouch = CFG.ctl==='touch' || (CFG.ctl==='auto' && TOUCH_DETECTED); document.body.classList.toggle('touch',CFG.isTouch); }
+
+/* ===================== İSİM GİZLEME & HİLE MENÜSÜ ===================== */
+const HIDDEN_NAME=':(&₺@“-?,!';
+const shownName=()=>CFG.hideName?HIDDEN_NAME:CFG.name;
+const CHEAT={esp:false,noclip:false,aim:false,trig:false};
 
 /* ===================== BRAWLERS ===================== */
 const CRATE_HP=2400;
@@ -775,7 +789,7 @@ function hostCreateRoom(){
   if(err) return;
   destroyNet(); NET.mode='host'; NET.myId='p0'; NET.code=randCode();
   LOBBY.mode=CFG.mode; LOBBY.fill=CFG.fill;
-  LOBBY.players=[{id:'p0',name:CFG.name,b:CFG.brawler,team:0,host:true,conn:null}];
+  LOBBY.players=[{id:'p0',name:shownName(),b:CFG.brawler,team:0,host:true,conn:null}];
   renderRoom();
   const P=PeerCtor();
   try{ NET.peer=new P(PREFIX+NET.code,{debug:1}); }catch(e){ $('rStatus').textContent='Hata: '+e.message; return; }
@@ -808,7 +822,7 @@ function hostOnData(c,d){
   if(!d||typeof d!=='object') return;
   const lp=LOBBY.players.find(p=>p.conn===c); if(!lp) return; lp.seen=performance.now();
   switch(d.t){
-    case 'hello': lp.name=cleanName(d.n)||'OYUNCU'; if(BRAWLERS[d.b]) lp.b=d.b; broadcastLobby(); break;
+    case 'hello': lp.name=d.h?HIDDEN_NAME:(cleanName(d.n)||'OYUNCU'); if(BRAWLERS[d.b]) lp.b=d.b; broadcastLobby(); break;
     case 'pick': if(BRAWLERS[d.b]&&!inMatch){ lp.b=d.b; broadcastLobby(); } break;
     case 'team': if(!inMatch&&LOBBY.mode==='gem'&&teamCount(1-lp.team)<3){ lp.team=1-lp.team; broadcastLobby(); } break;
     case 'ping': sendTo(c,{t:'pong',s:d.s}); break;
@@ -827,7 +841,7 @@ function clientJoin(code){
   try{ NET.peer=new P(undefined,{debug:1}); }catch(e){ st.textContent='Hata: '+e.message; return; }
   NET.peer.on('open',()=>{
     const c=NET.peer.connect(PREFIX+code,{reliable:true,serialization:'json'}); NET.host=c;
-    c.on('open',()=>{ done=true; NET.lastHost=performance.now(); sendHost({t:'hello',n:CFG.name,b:CFG.brawler}); });
+    c.on('open',()=>{ done=true; NET.lastHost=performance.now(); sendHost({t:'hello',n:CFG.name,h:CFG.hideName?1:0,b:CFG.brawler}); });
     c.on('data',clientOnData);
     c.on('close',clientLost); c.on('error',()=>{ if(!done) st.textContent='Oda bulunamadı. Kodu kontrol et.'; else clientLost(); });
     setTimeout(()=>{ if(!done&&NET.mode==='client'){ st.textContent='Bağlanamadı. Kodu kontrol et ya da başka ağ dene.'; } },10000);
@@ -1131,14 +1145,21 @@ function ownerMove(p,mx,mz,dt){
   if(p.leap){ const L=p.leap; L.t+=dt; const f=Math.min(1,L.t/L.dur); p.x=lerp(L.sx,L.tx,f); p.z=lerp(L.sz,L.tz,f); p.moving=false; if(f>=1) p.leap=null; return; }
   const B=BRAWLERS[p.b]; let vx=mx*B.spd,vz=mz*B.spd;
   if(p.kbT>0){ p.kbT-=dt; vx+=p.kbx; vz+=p.kbz; }
-  if(vx||vz) moveCircle(G.map,p,vx*dt,vz*dt);
+  if(vx||vz){ if(CHEAT.noclip&&p.id===NET.myId){ p.x+=vx*dt; p.z+=vz*dt; } else moveCircle(G.map,p,vx*dt,vz*dt); }
   p.x=clamp(p.x,PR,G.map.W-PR); p.z=clamp(p.z,PR,G.map.H-PR);
   p.moving=mx*mx+mz*mz>.01;
   p.faceT-=dt; if(p.moving&&p.faceT<=0) p.ang=Math.atan2(mx,mz);
 }
 function reloadAmmo(p,dt){ const A=BRAWLERS[p.b].atk; if(p.ammo<3) p.ammo=Math.min(3,p.ammo+dt/A.reload); p.atkCd-=dt; }
+function cheatTarget(p,range){ let best=null,bd=1e9;
+  for(const q of G.players){ if(!q.alive||q.team===p.team||airborne(q)) continue; const d=Math.hypot(q.x-p.x,q.z-p.z); if(d<bd){ bd=d; best=q; } }
+  return best&&bd<=range?{q:best,d:bd}:null; }
+function cheatAim(p,k){ const B=BRAWLERS[p.b],A=k==='sup'?B.sup:B.atk,t=cheatTarget(p,A.range+.6); if(!t) return null; const q=t.q;
+  const tt=(A.type==='lob'||A.type==='leap')?A.dur:t.d/(A.spd||15),tx=q.x+(q.vx||0)*tt*.8,tz=q.z+(q.vz||0)*tt*.8,dd=Math.hypot(tx-p.x,tz-p.z);
+  return {a:Math.atan2(tx-p.x,tz-p.z),d01:clamp(dd/A.range,0,1),d:t.d,q}; }
 function ownerFire(p,k,ang,d01){
   if(!p||!p.alive||G.state!=='live'||p.leap) return false;
+  if(CHEAT.aim&&p.id===NET.myId){ const c=cheatAim(p,k); if(c){ ang=c.a; d01=c.d01; } }
   const B=BRAWLERS[p.b],A=k==='sup'?B.sup:B.atk;
   if(k==='atk'){ if(p.ammo<1||p.atkCd>0) return false; p.ammo-=1; p.atkCd=A.cd; }
   else { if(p.superC<.98||p.supLock>G.t) return false; p.supLock=G.t+.9; }
@@ -1438,10 +1459,11 @@ function renderUpdate(dt){
   const my=me(),myTeam=my?my.team:-1;
   for(const p of G.players){
     const M=p.model; if(!M) continue;
-    if(!isOwned(p)){ const k=1-Math.exp(-dt*14); p.rx=lerp(p.rx,p.x,k); p.rz=lerp(p.rz,p.z,k); if(Math.hypot(p.rx-p.x,p.rz-p.z)>4){ p.rx=p.x; p.rz=p.z; } }
+    if(!isOwned(p)){ const ox=p.rx,oz=p.rz,k=1-Math.exp(-dt*14); p.rx=lerp(p.rx,p.x,k); p.rz=lerp(p.rz,p.z,k); if(Math.hypot(p.rx-p.x,p.rz-p.z)>4){ p.rx=p.x; p.rz=p.z; }
+      if(!isHost()&&dt>0){ p.vx=lerp(p.vx,(p.rx-ox)/dt,.2); p.vz=lerp(p.vz,(p.rz-oz)/dt,.2); } }
     else { p.rx=p.x; p.rz=p.z; }
     const lf=leapFrac(p),h=lf>=0?Math.sin(clamp(lf,0,1)*Math.PI)*2.3:0;
-    const vis=p.alive&&(isVisibleTo(p,myTeam)||p.id===NET.myId);
+    const vis=p.alive&&(isVisibleTo(p,myTeam)||p.id===NET.myId||CHEAT.esp);
     M.root.visible=vis;
     if(vis){
       M.root.position.set(p.rx,h,p.rz);
@@ -1463,7 +1485,7 @@ function renderUpdate(dt){
   for(const k in crateMesh){ const cm=crateMesh[k],u=cm.userData; if(u.shake>0){ u.shake-=dt; cm.position.x=u.bx+(Math.random()-.5)*.12; } else cm.position.x=u.bx; }
   if(mineGlow) mineGlow.material.color.setHSL(.78,.8,.55+Math.sin(t*4)*.12);
   if(waterIM) waterIM.material.color.setHSL(.57,.85,.6+Math.sin(t*1.5)*.04);
-  updateGas(); updateBushes(dt); stepParticles(dt); stepRings(dt); updateAim();
+  updateGas(); updateBushes(dt); stepParticles(dt); stepRings(dt); updateAim(); espDraw();
 }
 
 /* ===================== AIM INDICATOR ===================== */
@@ -1498,7 +1520,8 @@ addEventListener('keydown',e=>{ if(e.target&&e.target.tagName==='INPUT') return;
   if(!inMatch) return;
   if(e.code==='Escape'){ openExit(); return; }
   if(e.code==='Space'){ e.preventDefault(); const p=me(); if(p){ const a=autoAim(p,'atk'); ownerFire(p,'atk',a.a,a.d01); } }
-  if(e.code==='KeyE') MOUSE.e=true; });
+  if(e.code==='KeyE') MOUSE.e=true;
+  const ci=['Digit1','Digit2','Digit3','Digit4'].indexOf(e.code); if(ci>=0) toggleCheat(CHEAT_KEYS[ci]); });
 addEventListener('keyup',e=>{ KEYS[e.code]=false; if(!inMatch) return; if(e.code==='KeyE'&&MOUSE.e){ MOUSE.e=false; mouseSuper(); } });
 const rc=new THREE.Raycaster(),ndc=new THREE.Vector2(),gPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),gHit=new THREE.Vector3();
 function mouseAim(p){ ndc.set(MOUSE.x/innerWidth*2-1,-(MOUSE.y/innerHeight)*2+1); rc.setFromCamera(ndc,camera);
@@ -1564,7 +1587,28 @@ function localControl(dt){
     const m=mouseAim(p),B=BRAWLERS[p.b],sup=MOUSE.e&&p.superC>=.98; AIM.k=sup?'sup':'atk'; AIM.a=m.a; AIM.d=clamp(m.dist/(sup?B.sup:B.atk).range,0,1); AIM.op=sup?.36:.2;
     if(MOUSE.l) ownerFire(p,'atk',m.a,clamp(m.dist/B.atk.range,0,1));
   }
+  if(CHEAT.trig&&!p.leap){
+    const B=BRAWLERS[p.b],base=AIM.k?AIM.a:p.ang,sup=p.superC>=.98&&p.supLock<=G.t;
+    for(const k of sup?['sup','atk']:['atk']){ const A=k==='sup'?B.sup:B.atk,c=cheatAim(p,k); if(!c||c.d>A.range) continue;
+      if(A.type!=='lob'&&A.type!=='leap'&&!losClear(G.map,p.x,p.z,c.q.x,c.q.z)) continue;
+      if(!CHEAT.aim&&Math.abs(angWrap(c.a-base))>.1+.6/Math.max(c.d,1)) continue;
+      if(ownerFire(p,k,CHEAT.aim?c.a:base,CHEAT.aim?c.d01:(AIM.k?AIM.d:c.d01))) break; }
+  }
 }
+const espCv=document.createElement('canvas'); espCv.id='espCv'; const espX=espCv.getContext('2d');
+function espDraw(){
+  if(espCv.width!==innerWidth||espCv.height!==innerHeight){ espCv.width=innerWidth; espCv.height=innerHeight; }
+  espX.clearRect(0,0,espCv.width,espCv.height); const p=me(); if(!CHEAT.esp||!p||!G) return;
+  const a=toScreen(p.rx,.8,p.rz); if(!a) return; espX.lineWidth=2; espX.font='14px Lilita One,Arial'; espX.textAlign='center';
+  for(const q of G.players){ if(!q.alive||q.team===p.team) continue; const b=toScreen(q.rx,.8,q.rz); if(!b) continue;
+    espX.strokeStyle='rgba(255,70,85,.85)'; espX.beginPath(); espX.moveTo(a[0],a[1]); espX.lineTo(b[0],b[1]); espX.stroke();
+    espX.strokeRect(b[0]-18,b[1]-34,36,50); espX.fillStyle='#fff'; espX.strokeStyle='#000'; const t=Math.round(Math.hypot(q.rx-p.rx,q.rz-p.rz))+'m';
+    espX.strokeText(t,b[0],b[1]+32); espX.fillText(t,b[0],b[1]+32); }
+}
+const CHEAT_LBL={esp:'ESP',noclip:'NOCLIP',aim:'AIMBOT',trig:'TETİKBOT'},CHEAT_KEYS=['esp','noclip','aim','trig'];
+function refreshCheat(){ document.querySelectorAll('#cheatPanel button').forEach(b=>{ const k=b.dataset.ck,on=CHEAT[k];
+  b.textContent=(CHEAT_KEYS.indexOf(k)+1)+' · '+CHEAT_LBL[k]+(on?' ✔':''); b.classList.toggle('green',on); b.classList.toggle('gray',!on); }); }
+function toggleCheat(k){ CHEAT[k]=!CHEAT[k]; if(k==='noclip'&&!CHEAT.noclip&&G){ const p=me(); if(p) resolveCircle(G.map,p); } refreshCheat(); toast(CHEAT_LBL[k]+(CHEAT[k]?' AÇIK':' KAPALI'),900); }
 
 /* ===================== HUD ===================== */
 const HUD={};
@@ -1614,7 +1658,7 @@ function teardownMatch(){
 }
 function startOffline(){
   destroyNet(); NET.mode='off'; NET.myId='p0';
-  const roster=buildRoster(CFG.mode,[{id:'p0',name:CFG.name,b:CFG.brawler,team:0}],true);
+  const roster=buildRoster(CFG.mode,[{id:'p0',name:shownName(),b:CFG.brawler,team:0}],true);
   startMatch(CFG.mode,roster); goFullscreen();
 }
 function hostStart(){
@@ -1718,6 +1762,7 @@ function renderRoom(){
 function refreshSettings(){ $('sName').value=CFG.name;
   document.querySelectorAll('#sQ button').forEach(b=>b.classList.toggle('on',b.dataset.q===CFG.quality));
   document.querySelectorAll('#sSnd button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===!!CFG.sound));
+  document.querySelectorAll('#sHide button').forEach(b=>b.classList.toggle('on',(b.dataset.h==='1')===!!CFG.hideName));
   document.querySelectorAll('#sCtl button').forEach(b=>b.classList.toggle('on',b.dataset.c===CFG.ctl)); }
 function goFullscreen(){ if(!CFG.isTouch) return; try{ const d=document.documentElement; const r=d.requestFullscreen?d.requestFullscreen():d.webkitRequestFullscreen?d.webkitRequestFullscreen():null;
   if(r&&r.then) r.then(()=>{ try{ screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{}); }catch(e){} }).catch(()=>{}); }catch(e){} }
@@ -1749,11 +1794,15 @@ $('rShare').addEventListener('click',()=>{ const url=location.origin+location.pa
 $('cBack').addEventListener('click',()=>{ showScreen(charReturn); });
 $('sName').addEventListener('input',e=>{ const v=cleanName(e.target.value); if(v.length>=2){ CFG.name=v; saveCfg(); } });
 document.querySelectorAll('#sQ button').forEach(b=>b.addEventListener('click',()=>{ applyQuality(b.dataset.q); saveCfg(); refreshSettings(); if(menuModel){ menuModel.bid=null; } }));
+document.querySelectorAll('#sHide button').forEach(b=>b.addEventListener('click',()=>{ CFG.hideName=b.dataset.h==='1'; saveCfg(); refreshSettings(); }));
 document.querySelectorAll('#sSnd button').forEach(b=>b.addEventListener('click',()=>{ CFG.sound=b.dataset.s==='1'; saveCfg(); refreshSettings(); }));
 document.querySelectorAll('#sCtl button').forEach(b=>b.addEventListener('click',()=>{ CFG.ctl=b.dataset.c; applyCtl(); saveCfg(); refreshSettings(); }));
 $('sFull').addEventListener('click',()=>{ try{ const d=document.documentElement; (d.requestFullscreen||d.webkitRequestFullscreen).call(d); }catch(e){ toast('Tam ekran desteklenmiyor'); } });
 $('sBack').addEventListener('click',()=>showScreen('menu'));
 $('exitBtn').addEventListener('click',openExit);
+$('hud').insertBefore(espCv,$('labels'));
+$('cheatBtn').addEventListener('click',()=>{ refreshCheat(); $('cheatPanel').classList.toggle('hidden'); });
+document.querySelectorAll('#cheatPanel button').forEach(b=>b.addEventListener('click',()=>toggleCheat(b.dataset.ck)));
 $('exNo').addEventListener('click',()=>$('exitModal').classList.add('hidden'));
 $('exYes').addEventListener('click',leaveMatch);
 $('eCont').addEventListener('click',()=>{ const mode=NET.mode; teardownMatch(); if(mode==='off') showScreen('menu'); else showScreen('roomScr'); });
