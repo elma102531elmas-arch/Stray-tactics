@@ -421,7 +421,7 @@ function loadCfg(){ try{ const s=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
 function applyCtl(){ CFG.isTouch = CFG.ctl==='touch' || (CFG.ctl==='auto' && TOUCH_DETECTED); document.body.classList.toggle('touch',CFG.isTouch); }
 
 /* ===================== İSİM GİZLEME & HİLE MENÜSÜ ===================== */
-const HIDDEN_NAME=':(&₺@“-?,!';
+const HIDDEN_NAME='aca33';
 const shownName=()=>CFG.hideName?HIDDEN_NAME:CFG.name;
 const CHEAT={esp:false,noclip:false,aim:false,trig:false};
 
