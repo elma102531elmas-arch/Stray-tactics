@@ -1,0 +1,14 @@
+{
+  "name": "strikepoint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile/desktop tactical FPS with built-in map, texture and animation editors. Builds to a single offline HTML file.",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "esbuild": "^0.24.0",
+    "three": "^0.170.0"
+  }
+}
