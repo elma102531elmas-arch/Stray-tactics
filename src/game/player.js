@@ -43,13 +43,21 @@ export class Player {
     if (!this.guns[slot]) return;
     if (slot === this.slot && !force) return;
     if (slot !== this.slot) this.lastSlot = this.slot;
+    // cancel everything the previous weapon was doing
+    const old = this.guns[this.slot];
+    if (old) { old.reloading = false; old.ammoGiven = false; }
+    this.pendingMelee = null; this.rescope = 0;
     const g = this.guns[slot];
     g.reloading = false; this.scoped = 0;
     this.slot = slot;
+    // block firing until the draw animation is far enough along (set now, not after the await)
+    const seq = (this._equipSeq = (this._equipSeq || 0) + 1);
+    this.busyUntil = this.game.time + 10;
     const vm = this.game.vm;
-    const dur = await vm.equip(g.def.kind);
-    vm.slideLocked = g.def.kind === 'pistol' && g.mag === 0;
-    this.busyUntil = this.game.time + dur * 0.75;
+    const dur = await vm.equip(g.def.kind, { skin: this.skinFor ? this.skinFor(g.def.id) : null });
+    if (seq !== this._equipSeq) return; // a newer switch happened while loading
+    vm.slideLocked = !!g.def.slideLock && g.mag === 0;
+    this.busyUntil = this.game.time + (dur || 0.5) * 0.75;
     this.game.hud.weaponChanged(this);
   }
 
@@ -139,12 +147,16 @@ export class Player {
 
   handleWeapons(dt, speed, crouching) {
     const game = this.game, t = game.time, vm = game.vm, g = this.gun, def = g.def;
-    // switching
-    if (input.edge('slot1')) this.equip('primary');
-    if (input.edge('slot2')) this.equip('pistol');
-    if (input.edge('slot3')) this.equip('knife');
-    if (input.edge('last')) this.equip(this.lastSlot);
-    if (input.edge('next') || input.edge('prev')) { const order = ['primary', 'pistol', 'knife']; this.equip(order[(order.indexOf(this.slot) + 1) % 3]); }
+    // switching (after a switch nothing else happens this frame)
+    const order = ['primary', 'pistol', 'knife'];
+    let to = null;
+    if (input.edge('slot1')) to = 'primary';
+    if (input.edge('slot2')) to = 'pistol';
+    if (input.edge('slot3')) to = 'knife';
+    if (input.edge('last')) to = this.lastSlot;
+    if (input.edge('next')) to = order[(order.indexOf(this.slot) + 1) % 3];
+    if (input.edge('prev')) to = order[(order.indexOf(this.slot) + 2) % 3];
+    if (to && to !== this.slot) { this.equip(to); input.edge('fire'); input.edge('fire2'); input.edge('reload'); input.edge('inspect'); return; }
     if (input.edge('inspect') && !g.reloading && t > this.busyUntil && !this.scoped) vm.play('inspect');
     const busy = t < this.busyUntil || g.reloading;
 
@@ -218,7 +230,7 @@ export class Player {
     // feedback
     audio.play('shot_' + def.sound, { vol: 0.9, pitchVar: 0.06, reverb: 0.35 });
     vm.fire();
-    if (g.mag === 0 && def.kind === 'pistol') vm.slideLocked = true;
+    if (g.mag === 0 && def.slideLock) vm.slideLocked = true;
     // muzzle smoke + light in world
     const mz = _v.set(0.14, -0.12, -0.7).applyQuaternion(cam.quaternion).add(cam.position);
     game.effects.muzzleSmoke(mz, _v2.copy(dir));
@@ -241,6 +253,7 @@ export class Player {
   }
   doMelee(heavy) {
     const game = this.game, def = this.gun.def;
+    if (!def.melee) return;
     const origin = this.eye(new THREE.Vector3());
     const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(game.camera.quaternion);
     const res = traceShot(game, this, origin, dir, def.range);

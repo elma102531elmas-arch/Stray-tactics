@@ -137,8 +137,8 @@ input, select, textarea { font-family: var(--font); }
 .ammo-nums span { font-size: 20px; color: #c2c9d3; }
 .ammo.low .ammo-nums b { color: var(--bad); }
 .w-name { font-size: 13px; letter-spacing: 3px; color: var(--accent); }
-.slots { position: absolute; right: 18px; bottom: 120px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-.slot { display: flex; align-items: center; gap: 8px; padding: 4px 10px; background: rgba(10, 12, 16, 0.45); border-right: 3px solid transparent; opacity: 0.55; font-size: 13px; }
+.slots { position: absolute; right: 18px; bottom: 120px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; z-index: 6; }
+.slot { display: flex; align-items: center; gap: 8px; padding: 6px 12px; min-height: 36px; background: rgba(10, 12, 16, 0.45); border-right: 3px solid transparent; opacity: 0.55; font-size: 13px; }
 .slot img { height: 20px; }
 .slot.on { opacity: 1; border-color: var(--accent); }
 .reload-bar { position: absolute; left: 50%; top: 58%; width: 120px; height: 3px; margin-left: -60px; background: rgba(0, 0, 0, 0.4); display: none; }
@@ -173,7 +173,7 @@ input, select, textarea { font-family: var(--font); }
 .me-score { font-size: 46px; }
 
 /* ---------- touch ---------- */
-.touch { position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; }
+.touch { position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 2; }
 .t-stick { position: absolute; left: 50px; bottom: 50px; width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.05); opacity: 0.5; }
 .t-stick.active { opacity: 1; }
 .t-knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }

@@ -133,7 +133,8 @@ export class HUD {
     [['primary', '1'], ['pistol', '2'], ['knife', '3']].forEach(([s, k]) => {
       const gg = p.guns[s]; if (!gg) return;
       const b = el('div', { class: 'slot' + (p.slot === s ? ' on' : '') }, el('span', {}, k), el('img', { src: weaponIcon(gg.def.id), alt: '' }));
-      b.addEventListener('click', () => p.equip(s)); b.addEventListener('touchstart', (e) => { e.preventDefault(); p.equip(s); }, { passive: false });
+      b.addEventListener('click', () => p.equip(s));
+      b.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); p.equip(s); }, { passive: false });
       this.slots.appendChild(b);
     });
   }
@@ -199,7 +200,8 @@ export class HUD {
     this.hpNum.textContent = Math.ceil(p.hp); this.hpFill.style.width = p.hp + '%';
     this.hp.classList.toggle('low', p.hp < 30);
     this.sA.textContent = game.score[0]; this.sB.textContent = game.score[1];
-    const tl = Math.max(0, game.timeLeft); this.timer.textContent = Math.floor(tl / 60) + ':' + String(Math.floor(tl % 60)).padStart(2, '0');
+    if (isFinite(game.timeLeft)) { const tl = Math.max(0, game.timeLeft); this.timer.textContent = Math.floor(tl / 60) + ':' + String(Math.floor(tl % 60)).padStart(2, '0'); }
+    else this.timer.textContent = game.opts.mode === 'practice' ? 'PRACTICE' : '∞';
     this.spreadPx *= Math.exp(-dt * 7);
     const g = p.gun;
     const moveSpread = g && !g.def.melee ? Math.min(30, (Math.hypot(p.vel.x, p.vel.z) / 5.4) * g.def.moveSpread * 300 + (p.st.onGround ? 0 : 18)) : 0;

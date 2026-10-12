@@ -38,6 +38,7 @@ class Bucket {
 
 export class GeoSink {
   constructor(opts = {}) {
+    this.models = []; // {name, matrix} placements of glTF props (instanced later)
     this.buckets = new Map();
     this.caster = { pos: [], idx: [], count: 0 };
     this.cell = opts.cell || 0.5; // AO subdivision cell size
@@ -79,6 +80,34 @@ export class GeoSink {
       for (const [fu, fv] of p) cb.pos.push(o.x + ua.x * fu + va.x * fv, o.y + ua.y * fu + va.y * fv, o.z + ua.z * fu + va.z * fv);
       cb.idx.push(cbase, cbase + 1, cbase + 2, cbase, cbase + 2, cbase + 3);
       cb.count += 4;
+    }
+  }
+
+  // Vertical strip through a list of columns {x,z,nx,nz,u} (world), from y0 to y1.
+  // Used for rounded walls: smooth normals, texture continuous around corners.
+  strip(mat, cols, y0, y1, cell = this.cell, flags = {}) {
+    const b = this.bucket(mat);
+    const tile = this.tileOf(mat);
+    const vs = gradedLines(y1 - y0, cell);
+    const base = b.count, row = cols.length;
+    for (let j = 0; j < vs.length; j++) {
+      const y = y0 + vs[j];
+      for (const c of cols) { b.pos.push(c.x, y, c.z); b.nor.push(c.nx, 0, c.nz); b.uv.push(c.u / tile, y / tile); b.noAO.push(flags.noAO ? 1 : 0); }
+    }
+    for (let j = 0; j < vs.length - 1; j++) for (let i = 0; i < row - 1; i++) {
+      const a = base + j * row + i;
+      if (flags.flip) b.idx.push(a, a + row + 1, a + 1, a, a + row, a + row + 1);
+      else b.idx.push(a, a + 1, a + row + 1, a, a + row + 1, a + row);
+    }
+    b.count += vs.length * row;
+    if (!flags.noCast) {
+      const cb = this.caster;
+      for (let i = 0; i < row - 1; i++) {
+        const A = cols[i], B = cols[i + 1], cbase = cb.count;
+        cb.pos.push(A.x, y0, A.z, B.x, y0, B.z, B.x, y1, B.z, A.x, y1, A.z);
+        cb.idx.push(cbase, cbase + 1, cbase + 2, cbase, cbase + 2, cbase + 3);
+        cb.count += 4;
+      }
     }
   }
 
@@ -162,6 +191,81 @@ export class Emitter {
     if (opts.collide) this.col && this.col.add({ type: 'box', pos: [wc.x, wc.y, wc.z], size: [hx * 2, hy * 2, hz * 2], yaw, mat, solid: true });
   }
 
+  // place a glTF prop (rendered instanced) at a local transform
+  model(name, localMatrix) {
+    this.sink.models.push({ name, matrix: new THREE.Matrix4().multiplyMatrices(this.matrix, localMatrix || new THREE.Matrix4()) });
+  }
+
+  // perimeter of a rounded rectangle (local half sizes hx,hz, radius r), world-space columns
+  _roundPerimeter(center, hx, hz, r, yaw, cell, inward = 0) {
+    const c = Math.cos(yaw), s = Math.sin(yaw);
+    const pts = [];
+    const push = (lx, lz, nx, nz) => pts.push({ x: center.x + c * lx + s * lz, z: center.z - s * lx + c * lz, nx: c * nx + s * nz, nz: -s * nx + c * nz });
+    const seg = 5;
+    // traversal: +X face going -Z, corner, -Z face going -X, corner, -X face going +Z, corner, +Z face going +X, corner
+    const faces = [
+      { sx: hx, z0: hz - r, z1: -(hz - r), axis: 'z', n: [1, 0], corner: [hx - r, -(hz - r), 0] },
+      { sz: -hz, x0: hx - r, x1: -(hx - r), axis: 'x', n: [0, -1], corner: [-(hx - r), -(hz - r), -Math.PI / 2] },
+      { sx: -hx, z0: -(hz - r), z1: hz - r, axis: 'z', n: [-1, 0], corner: [-(hx - r), hz - r, Math.PI] },
+      { sz: hz, x0: -(hx - r), x1: hx - r, axis: 'x', n: [0, 1], corner: [hx - r, hz - r, Math.PI / 2] },
+    ];
+    for (const f of faces) {
+      const a = f.axis === 'z' ? f.z0 : f.x0, b = f.axis === 'z' ? f.z1 : f.x1;
+      const L = Math.abs(b - a), lines = gradedLines(Math.max(L, 1e-3), cell);
+      for (let i = 0; i < lines.length - (r > 0.001 ? 1 : 0); i++) {
+        const t = a + Math.sign(b - a) * lines[i];
+        if (f.axis === 'z') push(f.sx, t, f.n[0], f.n[1]); else push(t, f.sz, f.n[0], f.n[1]);
+      }
+      if (r > 0.001) {
+        // quarter arc from this face's normal to the next face's normal
+        const [cx, cz, a0] = f.corner;
+        for (let k = 0; k < seg; k++) {
+          const ang = a0 - (k / seg) * (Math.PI / 2);
+          const nx = Math.cos(ang), nz = Math.sin(ang);
+          push(cx + nx * r, cz + nz * r, nx, nz);
+        }
+      }
+    }
+    pts.push({ ...pts[0] }); // close loop
+    let u = 0;
+    for (let i = 0; i < pts.length; i++) { if (i) u += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); pts[i].u = u; }
+    if (inward) for (const p of pts) { p.nx = -p.nx; p.nz = -p.nz; }
+    return pts;
+  }
+
+  // box with rounded vertical edges. center/size local; radius in meters
+  roundBox(mat, center, size, radius, opts = {}) {
+    const hx = size[0] / 2 * this.scale, hy = size[1] / 2 * this.scale, hz = size[2] / 2 * this.scale;
+    const r = Math.min(radius * this.scale, hx * 0.45, hz * 0.45);
+    const wc = this._toWorld(center[0], center[1], center[2], new THREE.Vector3());
+    const yaw = this.yaw + (opts.yaw || 0) * DEG;
+    const cell = opts.cell || this.sink.cell;
+    const cols = this._roundPerimeter(wc, hx, hz, r, yaw, cell);
+    this.sink.strip(mat, cols, wc.y - hy, wc.y + hy, cell, opts);
+    if (opts.top !== false) {
+      const sh = roundedRectShape(hx, hz, r);
+      const g = new THREE.ShapeGeometry(sh, 4); g.rotateX(-Math.PI / 2);
+      this.sink.geometry(opts.topMat || mat, g, new THREE.Matrix4().compose(new THREE.Vector3(wc.x, wc.y + hy, wc.z), new THREE.Quaternion().setFromAxisAngle(_Y, yaw), new THREE.Vector3(1, 1, 1)), opts);
+      g.dispose();
+    }
+    if (opts.collide) this.col && this.col.add({ type: 'box', pos: [wc.x, wc.y, wc.z], size: [hx * 2, hy * 2, hz * 2], yaw, mat, solid: true });
+  }
+
+  // hollow rounded ring wall (parapets): outer + inner faces + top cap
+  roundRing(mat, center, size, radius, thick, opts = {}) {
+    const hx = size[0] / 2, hy = size[1] / 2, hz = size[2] / 2;
+    const wc = this._toWorld(center[0], center[1], center[2], new THREE.Vector3());
+    const yaw = this.yaw;
+    const r = Math.min(radius, hx * 0.45, hz * 0.45), ri = Math.max(0.01, r - thick);
+    const cell = 1.0;
+    this.sink.strip(mat, this._roundPerimeter(wc, hx, hz, r, yaw, cell), wc.y - hy, wc.y + hy, cell, opts);
+    this.sink.strip(mat, this._roundPerimeter(wc, hx - thick, hz - thick, ri, yaw, cell, 1), wc.y - hy, wc.y + hy, cell, { ...opts, flip: true, noCast: true });
+    const sh = roundedRectShape(hx, hz, r); sh.holes.push(roundedRectShape(hx - thick, hz - thick, ri));
+    const g = new THREE.ShapeGeometry(sh, 4); g.rotateX(-Math.PI / 2);
+    this.sink.geometry(mat, g, new THREE.Matrix4().compose(new THREE.Vector3(wc.x, wc.y + hy, wc.z), new THREE.Quaternion().setFromAxisAngle(_Y, yaw), new THREE.Vector3(1, 1, 1)), opts);
+    g.dispose();
+  }
+
   // generic geometry in local space; m4 local matrix
   geo(mat, geometry, localMatrix, flags) {
     const m = new THREE.Matrix4().multiplyMatrices(this.matrix, localMatrix || new THREE.Matrix4());
@@ -219,6 +323,18 @@ export class Emitter {
     }
     if (opts.collide !== false && this.col) this.col.add({ type: 'ramp', pos: [wc.x, wc.y, wc.z], size: [w, h, d], yaw, mat });
   }
+}
+
+const _Y = new THREE.Vector3(0, 1, 0);
+function roundedRectShape(hx, hz, r) {
+  // shape in XY (y -> -z after rotateX(-90deg))
+  const s = new THREE.Shape();
+  if (r <= 0.001) { s.moveTo(-hx, -hz); s.lineTo(hx, -hz); s.lineTo(hx, hz); s.lineTo(-hx, hz); s.closePath(); return s; }
+  s.moveTo(-hx + r, -hz); s.lineTo(hx - r, -hz); s.quadraticCurveTo(hx, -hz, hx, -hz + r);
+  s.lineTo(hx, hz - r); s.quadraticCurveTo(hx, hz, hx - r, hz);
+  s.lineTo(-hx + r, hz); s.quadraticCurveTo(-hx, hz, -hx, hz - r);
+  s.lineTo(-hx, -hz + r); s.quadraticCurveTo(-hx, -hz, -hx + r, -hz);
+  return s;
 }
 
 // --------------------------------------------------------------------------
@@ -314,34 +430,75 @@ function emitBuilding(o, em, size, mat, rngBase) {
   const [W, H, D] = size;
   const trim = o.trim || 'sandstone';
   const rng = mulberry(o.seed || 1);
-  em.box(mat, [0, H / 2, 0], [W, H, D], { collide: true });
-  // base skirting
-  em.box(trim, [0, 0.35, 0], [W + 0.12, 0.7, D + 0.12], {});
+  // adobe/plaster buildings get soft rounded corners, stone ones sharp corners with quoins
+  const isStone = mat.startsWith('sandstone');
+  const round = o.round ?? (isStone ? 0 : 0.35);
+  if (round > 0) {
+    em.roundBox(mat, [0, H / 2, 0], [W, H, D], round, { collide: true, top: false });
+    em.roundBox(trim, [0, 0.35, 0], [W + 0.12, 0.7, D + 0.12], round + 0.06, { top: true });
+  } else {
+    em.box(mat, [0, H / 2, 0], [W, H, D], { collide: true });
+    em.box(trim, [0, 0.35, 0], [W + 0.12, 0.7, D + 0.12], {});
+  }
+  // string course between floors
+  const floors = Math.max(1, Math.floor((H - 0.5) / 3.1));
+  if (floors > 1 && rng() < 0.8) {
+    for (let f = 1; f < floors; f++) {
+      if (round > 0) em.roundBox(trim, [0, f * 3.1, 0], [W + 0.1, 0.16, D + 0.1], round + 0.05, { top: true });
+      else em.box(trim, [0, f * 3.1, 0], [W + 0.1, 0.16, D + 0.1], {});
+    }
+  }
+  // corner quoins on sharp-cornered buildings
+  if (round <= 0 && (o.quoins ?? rng() < 0.7)) {
+    const qm = mat === 'sandstone' ? 'sandstone_white' : 'sandstone';
+    for (let y = 0.7, k = 0; y < H - 0.3; y += 0.36, k++) {
+      for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const long = (k + (sx * sz > 0 ? 0 : 1)) % 2 === 0;
+        const wx = long ? 0.62 : 0.34, wz = long ? 0.34 : 0.62;
+        em.box(qm, [sx * (W / 2 - wx / 2 + 0.03), y + 0.17, sz * (D / 2 - wz / 2 + 0.03)], [wx, 0.33, wz], { cell: 1 });
+      }
+    }
+  }
   // parapet
   if (o.parapet !== false) {
-    const t = 0.28, ph = 0.55;
-    em.box(trim, [0, H + ph / 2, D / 2 - t / 2 + 0.06], [W + 0.12, ph, t], {});
-    em.box(trim, [0, H + ph / 2, -D / 2 + t / 2 - 0.06], [W + 0.12, ph, t], {});
-    em.box(trim, [W / 2 - t / 2 + 0.06, H + ph / 2, 0], [t, ph, D - 2 * t + 0.12], {});
-    em.box(trim, [-W / 2 + t / 2 - 0.06, H + ph / 2, 0], [t, ph, D - 2 * t + 0.12], {});
-    // roof surface (slightly above main box so it reads as a roof)
+    const t = 0.3, ph = 0.6;
+    if (round > 0) em.roundRing(trim, [0, H + ph / 2, 0], [W + 0.12, ph, D + 0.12], round + 0.06, t, {});
+    else {
+      em.box(trim, [0, H + ph / 2, D / 2 - t / 2 + 0.06], [W + 0.12, ph, t], {});
+      em.box(trim, [0, H + ph / 2, -D / 2 + t / 2 - 0.06], [W + 0.12, ph, t], {});
+      em.box(trim, [W / 2 - t / 2 + 0.06, H + ph / 2, 0], [t, ph, D - 2 * t + 0.12], {});
+      em.box(trim, [-W / 2 + t / 2 - 0.06, H + ph / 2, 0], [t, ph, D - 2 * t + 0.12], {});
+    }
     em.box('concrete', [0, H + 0.03, 0], [W - 0.3, 0.06, D - 0.3], {});
+    // kasbah-style merlons
+    if (o.merlons ?? rng() < 0.55) {
+      const step = 1.1, mh = 0.42;
+      for (const [len, along, fixed] of [[W, 'x', D / 2], [W, 'x', -D / 2], [D, 'z', W / 2], [D, 'z', -W / 2]]) {
+        const n = Math.floor((len - 2 * Math.max(round, 0.4)) / step);
+        for (let i = 0; i < n; i++) {
+          const a = -((n - 1) * step) / 2 + i * step;
+          const pos = along === 'x' ? [a, H + ph + mh / 2, fixed + Math.sign(fixed) * (0.06 - t / 2)] : [fixed + Math.sign(fixed) * (0.06 - t / 2), H + ph + mh / 2, a];
+          const sz = along === 'x' ? [0.5, mh, t] : [t, mh, 0.5];
+          em.box(trim, pos, sz, { cell: 1 });
+        }
+      }
+    }
   }
   // faces: decorate along each side
   const sides = [
     { n: [0, 0, 1], len: W, off: D / 2 }, { n: [0, 0, -1], len: W, off: D / 2 },
     { n: [1, 0, 0], len: D, off: W / 2 }, { n: [-1, 0, 0], len: D, off: W / 2 },
   ];
-  const floors = Math.max(1, Math.floor((H - 0.5) / 3.1));
   let doorPlaced = !o.door;
   sides.forEach((sd, si) => {
     const yawFace = Math.atan2(sd.n[0], sd.n[2]) / DEG; // local yaw so +z faces outward
-    const count = Math.floor(sd.len / 3.2);
+    const usable = sd.len - 2 * Math.max(round, 0.5);
+    const count = Math.floor(usable / 3.2);
     if (count < 1) return;
-    const spacing = sd.len / count;
+    const spacing = usable / count;
     for (let f = 0; f < floors; f++) {
       for (let k = 0; k < count; k++) {
-        const along = -sd.len / 2 + spacing * (k + 0.5);
+        const along = -usable / 2 + spacing * (k + 0.5);
         const y = f * 3.1 + (f === 0 ? 1.5 : 1.7);
         const r = rng();
         const local = sideToLocal(sd, along, sd.off);
@@ -354,13 +511,17 @@ function emitBuilding(o, em, size, mat, rngBase) {
     }
     // wooden roof beams (vigas)
     if (o.beams !== false && (si === 0 || si === 2 || rng() < 0.4)) {
-      const nb = Math.floor(sd.len / 1.1);
+      const nb = Math.floor(usable / 1.1);
       for (let k = 0; k < nb; k++) {
-        const along = -sd.len / 2 + (sd.len / nb) * (k + 0.5);
+        const along = -usable / 2 + (usable / nb) * (k + 0.5);
         const local = sideToLocal(sd, along, sd.off + 0.3);
-        const ry = yawFace;
-        em.geo('wood', BEAM_GEO, Emitter.mat([local[0], H - 0.45, local[2]], [90, ry, 0]), { noCast: false });
+        em.geo('wood', BEAM_GEO, Emitter.mat([local[0], H - 0.45, local[2]], [90, yawFace, 0]), { noCast: false });
       }
+    }
+    // wall clutter: electric boxes, pipes
+    if (rng() < 0.25 && usable > 4) {
+      const local = sideToLocal(sd, (rng() - 0.5) * usable * 0.6, sd.off + 0.22);
+      em.model('utility_box', Emitter.mat([local[0], 0.0, local[2]], [0, yawFace, 0]));
     }
   });
 }

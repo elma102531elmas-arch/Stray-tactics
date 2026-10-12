@@ -32,7 +32,7 @@ export const WEAPONS = {
     delay: 0.15, mag: 15, reserve: 60,
     spread: 0.004, moveSpread: 0.035, jumpSpread: 0.14, crouchMul: 0.75, recoverySpread: 0.02,
     pattern: null, viewKick: 1.25,
-    speed: 5.8, tracerEvery: 1, sound: 'pistol', shell: 'pistol', drawTime: 0.6,
+    speed: 5.8, tracerEvery: 1, sound: 'pistol', shell: 'pistol', drawTime: 0.6, slideLock: 0.045,
     vm: { hip: { p: [0.08, -0.125, -0.34], r: [6, 6, -2] }, shoulderR: [0.2, -0.32, 0.12], shoulderL: [-0.2, -0.34, 0.08], poleR: [0.6, -0.9, 0.2], poleL: [-0.7, -0.9, 0.1], rPose: 'trigger', lPose: 'grip', kickBack: 0.045, kickUp: 7 },
   },
   knife: {

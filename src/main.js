@@ -166,7 +166,7 @@ if (q.has('dbg')) {
   import('./debug.js').then((m) => m.runDebug());
 } else {
   const app = new App();
-  window.__app = app; window.__dbg = { THREE, Character };
+  window.__app = app; window.__dbg = { THREE, Character, input };
   app.boot().catch((e) => { console.error(e); const b = document.getElementById('err'); if (b) { b.style.display = 'block'; b.textContent = 'Startup error: ' + e.message + '\n' + (e.stack || ''); } });
   void saveSettings;
 }

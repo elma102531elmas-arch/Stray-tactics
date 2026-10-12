@@ -97,7 +97,9 @@ export class ViewModel {
   }
 
   async equip(kind, opts = {}) {
-    const m = await this._model(kind);
+    const seq = (this._equipSeq = (this._equipSeq || 0) + 1);
+    const m = await this._model(kind, opts.skin);
+    if (seq !== this._equipSeq) return 0; // superseded by a newer equip
     if (this.active) this.gunPivot.remove(this.active.root);
     this.active = m; this.kind = kind; this.def = WEAPONS[kind];
     this.gunPivot.add(m.root);

@@ -8,6 +8,8 @@ import { ViewModel } from './weapons/viewmodel.js';
 import { settings } from './core/settings.js';
 
 export async function runDebug() {
+const qq = new URLSearchParams(location.search);
+if (qq.get('model')) return modelViewer(qq);
 if (new URLSearchParams(location.search).get('nopost')) settings.bloomOverride = false;
 const renderer = new Renderer(document.getElementById('app'));
 materials.init(renderer.r);
@@ -81,4 +83,30 @@ await (async () => {
   }
   startLoop((dt) => { world.update(dt); if (vm) vm.update(dt, {}); frame(); });
 })();
+}
+
+// ?dbg=1&model=<name>&view=x,y,z : inspect an embedded glTF (axes: X red, Y green, Z blue)
+async function modelViewer(q) {
+  const { loadGLTF } = await import('./assets/loader.js');
+  const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+  document.getElementById('app').appendChild(r.domElement);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x505860);
+  const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
+  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  const l = new THREE.DirectionalLight(0xffffff, 2); l.position.set(2, 3, 2); scene.add(l);
+  const g = await loadGLTF(q.get('model'));
+  const root = g.scene; scene.add(root);
+  const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const info = { size: size.toArray().map((v) => +v.toFixed(3)), center: c.toArray().map((v) => +v.toFixed(3)), nodes: [] };
+  root.traverse((o) => { if (o.isMesh || o.isSkinnedMesh) { const b = new THREE.Box3().setFromObject(o); info.nodes.push([o.name, o.isSkinnedMesh ? 'skinned' : 'mesh', b.min.toArray().map((v) => +v.toFixed(3)), b.max.toArray().map((v) => +v.toFixed(3)), o.material.name]); } });
+  info.anims = g.animations.map((a) => a.name);
+  console.log('MODEL', JSON.stringify(info));
+  const axes = new THREE.AxesHelper(Math.max(size.x, size.y, size.z) * 0.6); axes.position.copy(c); scene.add(axes);
+  const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.001, 100);
+  const v = (q.get('view') || '1,0.6,1.4').split(',').map(Number);
+  const dist = Math.max(size.x, size.y, size.z) * 1.6;
+  cam.position.copy(c).add(new THREE.Vector3(v[0], v[1], v[2]).normalize().multiplyScalar(dist)); cam.lookAt(c);
+  r.render(scene, cam);
+  window.__shot = true;
 }

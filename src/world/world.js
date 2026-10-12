@@ -64,7 +64,7 @@ export class World {
     this.scene.environment = this.sky.environment;
     this.scene.environmentIntensity = a.envIntensity;
     // bounce light used in sky-occluded areas (see patchBakedAO)
-    BOUNCE.value.set(a.sunColor).multiply(new THREE.Color(a.skyGround)).multiplyScalar(a.sunIntensity * 0.3 * (a.bounce ?? 1));
+    BOUNCE.value.set(a.sunColor).multiply(new THREE.Color(a.skyGround).lerp(new THREE.Color('#9a9088'), 0.45)).multiplyScalar(a.sunIntensity * 0.2 * (a.bounce ?? 1));
     // warm bounce fill: sunlit sand reflects into shadows
     this.fill.color.set(a.skyHorizon); this.fill.groundColor.set(a.skyGround).lerp(new THREE.Color(a.sunColor), 0.35);
   }
