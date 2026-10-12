@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { DEG } from '../core/util.js';
 import { Emitter } from './mapbuilder.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { hasModel } from '../assets/loader.js';
 
 function rotXZ(x, z, yawDeg) { const a = yawDeg * DEG, c = Math.cos(a), s = Math.sin(a); return [c * x + s * z, -s * x + c * z]; }
 function L(base, yaw, off) { const [x, z] = rotXZ(off[0], off[2], yaw); return [base[0] + x, base[1] + off[1], base[2] + z]; }
@@ -16,6 +17,12 @@ function at(em, base = [0, 0, 0], yaw = 0) {
     geo: (mat, g, off, rot = [0, 0, 0], scale = [1, 1, 1], flags) => em.geo(mat, g, Emitter.mat(L(base, yaw, off), [rot[0], rot[1] + yaw, rot[2]], scale), flags),
     cyl: (mat, off, r, h, opts = {}) => em.cyl(mat, L(base, yaw, off), r, h, { ...opts, rot: opts.rot ? [opts.rot[0], opts.rot[1] + yaw, opts.rot[2]] : undefined }),
     col: (type, off, size, extraYaw = 0, mat) => em.collider(type, L(base, yaw, off), size, yaw + extraYaw, mat),
+    // glTF prop (instanced at load). center: the model's own pivot offset to cancel
+    model: (name, off, extraYaw = 0, scale = 1, center) => {
+      const m = Emitter.mat(L(base, yaw, off), [0, yaw + extraYaw, 0], [scale, scale, scale]);
+      if (center) m.multiply(Emitter.mat(center.map((v) => -v)));
+      em.model(name, m);
+    },
   };
 }
 
@@ -48,6 +55,12 @@ function crate(em, s, rng) {
 
 function barrel(em, o, rng) {
   const a = at(em);
+  const name = o.variant === 'rust' ? 'barrel_red' : 'barrel_blue';
+  if (hasModel(name)) {
+    a.model(name, [0, 0, 0], rng() * 360);
+    a.col('cyl', [0, 0.46, 0], [0.62, 0.92, 0.62], 0, 'metal');
+    return;
+  }
   const mat = o.variant === 'rust' ? 'rust' : 'metal';
   a.cyl(mat, [0, 0.46, 0], 0.3, 0.92, { seg: 20 });
   for (const y of [0.04, 0.31, 0.62, 0.9]) a.geo(mat, G.cyl, [0, y, 0], [0, 0, 0], [0.315, 0.035, 0.315]);
@@ -88,6 +101,11 @@ const POT_GEO = (() => {
 })();
 function pot(em, o, rng) {
   const a = at(em);
+  if (hasModel('pot_clay')) {
+    a.model('pot_clay', [0, 0, 0], rng() * 360, 2.3);
+    a.col('cyl', [0, 0.25, 0], [0.6, 0.5, 0.6], 0, 'clay');
+    return;
+  }
   a.geo('clay', POT_GEO, [0, 0, 0], [0, rng() * 360, 0], [1, 1, 1]);
   a.col('cyl', [0, 0.42, 0], [0.56, 0.84, 0.56], 0, 'clay');
 }
@@ -170,17 +188,74 @@ function awning(em, o, rng) {
 
 function stall(em, o, rng) {
   const a = at(em);
+  if (hasModel('table_wood')) {
+    a.model('table_wood', [0, 0, 0], 0, 1.35);
+    a.col('box', [0, 0.37, 0], [2.4, 0.74, 0.9], 0, 'wood');
+    awning(em, { variant: rng() < 0.5 ? 'blue' : 'red' }, rng);
+    const goods = ['vase_jug', 'brass_pot', 'pot_clay', 'basket', 'lantern'];
+    for (let i = 0; i < 4; i++) {
+      const g = goods[Math.floor(rng() * goods.length)];
+      a.model(g, [-0.85 + i * 0.56 + (rng() - 0.5) * 0.1, 0.745, (rng() - 0.5) * 0.3], rng() * 360, g === 'vase_jug' ? 1.1 : 0.95);
+    }
+    if (rng() < 0.7) a.model('basket', [1.45, 0, 0.25], rng() * 360, 1.2);
+    return;
+  }
   a.box('wood', [0, 0.85, 0], [2.4, 0.08, 1.1], {});
   for (const x of [-1.1, 1.1]) for (const z of [-0.45, 0.45]) a.box('wood', [x, 0.42, z], [0.08, 0.84, 0.08], {});
   a.box('crate', [0, 0.25, 0], [2.2, 0.5, 0.9], {});
   a.col('box', [0, 0.45, 0], [2.4, 0.9, 1.1], 0, 'wood');
   awning(em, { variant: rng() < 0.5 ? 'blue' : 'red' }, rng);
   // goods
-  for (let i = 0; i < 4; i++) a.geo('clay', POT_GEO, [-0.8 + i * 0.5, 0.89, (rng() - 0.5) * 0.4], [0, rng() * 360, 0], [0.5, 0.5, 0.5]);
+  for (let i = 0; i < 4; i++) {
+    const off = [-0.8 + i * 0.5, 0.89, (rng() - 0.5) * 0.4];
+    if (hasModel('vase_jug')) a.model(rng() < 0.6 ? 'vase_jug' : 'pot_clay', off, rng() * 360, 0.9 + rng() * 0.3);
+    else a.geo('clay', POT_GEO, off, [0, rng() * 360, 0], [0.5, 0.5, 0.5]);
+  }
+}
+
+// ---- photo-scanned glTF props (Poly Haven, CC0) ----
+function modelProp(name, opts) {
+  return (em, o, rng) => {
+    const a = at(em);
+    if (!hasModel(name)) { if (opts.fallback) opts.fallback(em, o, rng); return; }
+    a.model(name, [0, 0, 0], opts.yawJitter ? (rng() - 0.5) * opts.yawJitter : 0, opts.scale || 1, opts.center);
+    if (opts.col) a.col(opts.col[0], opts.col[1], opts.col[2], 0, opts.col[3]);
+  };
+}
+const MIL_CENTER = [-0.505, 0, 0.04];
+function milCrates(em, o, rng) {
+  const a = at(em);
+  if (!hasModel('crate_military')) { crate(em, 0.75, rng); return; }
+  const n = 2 + Math.floor(rng() * 2);
+  for (let i = 0; i < n; i++) a.model('crate_military', [(rng() - 0.5) * 0.06, i * 0.3, (rng() - 0.5) * 0.06], (rng() - 0.5) * 12 + (i === n - 1 && rng() < 0.4 ? 90 : 0), 1, MIL_CENTER);
+  a.col('box', [0, n * 0.15, 0], [0.84, n * 0.3, 0.56], 0, 'wood');
+}
+function cementBags(em, o, rng) {
+  const a = at(em);
+  if (!hasModel('cement_bag')) { sandbags(em, o, rng); return; }
+  const pts = [[-0.25, 0, 0, 0], [0.25, 0, 0.02, 4], [0, 0.18, 0, 88]];
+  for (const [x, y, z, r] of pts) a.model('cement_bag', [x + (rng() - 0.5) * 0.05, y, z], r + (rng() - 0.5) * 10);
+  a.col('box', [0, 0.18, 0], [1.0, 0.36, 0.72], 0, 'sandbag');
+}
+function clutter(em, o, rng) {
+  // small ground clutter: jerrycans + ammo boxes
+  const a = at(em);
+  if (!hasModel('jerrycan')) return;
+  a.model('jerrycan', [0, 0, 0], (rng() - 0.5) * 30);
+  if (rng() < 0.7) a.model('jerrycan', [0.42, 0, 0.05], (rng() - 0.5) * 40);
+  a.model('ammo_box', [-0.35, 0, 0.3], 90 + (rng() - 0.5) * 40);
+  if (rng() < 0.5) a.model('ammo_box', [-0.33, 0.18, 0.32], 80 + (rng() - 0.5) * 40);
+  a.col('box', [0.2, 0.25, 0], [0.8, 0.5, 0.25], 0, 'metal');
 }
 
 function car(em, o, rng) {
   const a = at(em);
+  if (hasModel('covered_car')) {
+    a.model('covered_car', [0, 0, 0], 0, 1, [0.045, 0, 0.02]);
+    a.col('box', [0, 0.47, 0], [1.8, 0.94, 4.3], 0, 'metal');
+    a.col('box', [0, 1.15, -0.1], [1.5, 0.5, 2.4], 0, 'metal');
+    return;
+  }
   const paint = o.variant || 'rust';
   a.box(paint, [0, 0.72, 0], [1.8, 0.62, 4.3], { cell: 0.5 });
   a.box(paint, [0, 1.28, 0.25], [1.62, 0.5, 2.1], { cell: 0.5 });
@@ -209,6 +284,14 @@ const TIRE_GEO = new THREE.TorusGeometry(0.3, 0.12, 8, 16);
 function tires(em, o, rng) {
   const a = at(em);
   const n = 2 + Math.floor(rng() * 3);
+  if (hasModel('tyre')) {
+    for (let i = 0; i < n; i++) {
+      const m = Emitter.mat(L([0, 0, 0], 0, [(rng() - 0.5) * 0.08, 0.08 + i * 0.16, (rng() - 0.5) * 0.08]), [90, rng() * 360, 0]);
+      em.model('tyre', m);
+    }
+    a.col('cyl', [0, n * 0.08, 0], [0.6, n * 0.16, 0.6], 0, 'dark');
+    return;
+  }
   for (let i = 0; i < n; i++) a.geo('dark', TIRE_GEO, [(rng() - 0.5) * 0.06, 0.12 + i * 0.24, (rng() - 0.5) * 0.06], [90, rng() * 360, 0]);
   a.col('cyl', [0, n * 0.12, 0], [0.84, n * 0.24, 0.84], 0, 'dark');
 }
@@ -280,6 +363,12 @@ function window_(em, local, yaw, rng, ground) {
 
 function door_(em, local, yaw, rng) {
   const a = at(em, local, yaw);
+  if (hasModel('castle_door')) {
+    a.box('dark', [0, 1.15, 0.0], [1.5, 2.3, 0.04], {});
+    a.model('castle_door', [0, 0, 0], 0, 0.8);
+    a.box('sandstone', [0, 0.06, 0.32], [2.0, 0.12, 0.55], {});
+    return;
+  }
   const w = 1.4, h = 2.4;
   a.box('dark', [0, h / 2, 0.02], [w, h, 0.06], {});
   a.box('door', [0, h / 2, 0.07], [w - 0.06, h - 0.06, 0.08], {});
@@ -308,6 +397,17 @@ export const PREFABS = {
     },
   },
   barrel: { label: 'Barrel', build: barrel },
+  barrel_wood: { label: 'Wooden Barrel', build: modelProp('barrel_wood', { yawJitter: 360, col: ['cyl', [0, 0.44, 0], [0.74, 0.88, 0.74], 'wood'], fallback: barrel }) },
+  barrier: { label: 'Concrete Barrier', build: modelProp('barrier', { scale: 1.25, col: ['box', [0, 0.52, 0], [1.9, 1.04, 0.62], 'concrete'], fallback: (em) => em.box('concrete', [0, 0.5, 0], [1.9, 1.0, 0.6], { collide: true }) }) },
+  mil_crates: { label: 'Military Crates', build: milCrates },
+  crate_long: { label: 'Long Crate', build: modelProp('crate_lettered', { scale: 1.3, col: ['box', [0, 0.3, 0], [0.68, 0.6, 1.5], 'wood'], fallback: (em, o, rng) => crate(em, 0.75, rng) }) },
+  jug: { label: 'Clay Jug', build: modelProp('vase_jug', { scale: 1.6, yawJitter: 360, col: ['cyl', [0, 0.27, 0], [0.28, 0.54, 0.28], 'clay'] }) },
+  clutter: { label: 'Jerrycans + Ammo', build: clutter },
+  utility_box: { label: 'Electric Box', build: modelProp('utility_box', { col: ['box', [0, 0.56, 0], [0.52, 1.12, 0.43], 'metal'] }) },
+  cement_bags: { label: 'Cement Bags', build: cementBags },
+  crate_wood: { label: 'Wooden Chest', build: modelProp('crate_wood', { scale: 1.2, col: ['box', [0, 0.21, 0], [0.98, 0.42, 0.5], 'wood'], fallback: (em, o, rng) => crate(em, 0.75, rng) }) },
+  basket: { label: 'Basket', build: modelProp('basket', { scale: 1.3, yawJitter: 360 }) },
+  lantern: { label: 'Lantern', build: modelProp('lantern', { yawJitter: 360 }) },
   sandbags: { label: 'Sandbags', build: sandbags },
   pot: { label: 'Clay Pot', build: pot },
   palm: { label: 'Palm Tree', build: palm },
@@ -327,6 +427,8 @@ export const PREFABS = {
 // approximate local bounding boxes for editor picking: [w,h,d]
 export const PREFAB_BOUNDS = {
   crate: [1.2, 1.2, 1.2], crate_small: [0.75, 0.75, 0.75], crate_stack: [2.4, 2.4, 1.3], barrel: [0.64, 0.95, 0.64], sandbags: [2.4, 0.8, 0.6],
-  pot: [0.6, 0.85, 0.6], palm: [1, 7, 1], awning: [3.2, 2.7, 1.9], stall: [3.2, 2.7, 2.2], car: [1.9, 1.6, 4.4], pallet: [1.2, 0.16, 1.2],
+  pot: [0.6, 0.5, 0.6], barrel_wood: [0.76, 0.9, 0.76], barrier: [1.95, 1.05, 0.8], mil_crates: [0.9, 0.9, 0.6], crate_long: [0.7, 0.6, 1.55],
+  jug: [0.3, 0.55, 0.3], clutter: [1.0, 0.55, 0.6], utility_box: [0.55, 1.15, 0.45], cement_bags: [1.0, 0.4, 0.75], crate_wood: [1.0, 0.45, 0.52],
+  basket: [0.45, 0.3, 0.35], lantern: [0.25, 0.55, 0.25], palm: [1, 7, 1], awning: [3.2, 2.7, 1.9], stall: [3.2, 2.7, 2.2], car: [1.9, 1.6, 4.4], pallet: [1.2, 0.16, 1.2],
   tires: [0.9, 0.8, 0.9], well: [2, 2.6, 2], rock: [1.6, 1, 1.6], lamp: [0.4, 3.2, 1], rubble: [1.8, 0.4, 1.8], window: [1.4, 1.6, 0.3], door: [2, 2.6, 0.6],
 };

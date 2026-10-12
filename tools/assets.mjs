@@ -28,7 +28,7 @@ export const TEXTURES = {
   sandstone: { ph: 'sandstone_blocks_04', size: 1024 },
   sandstone_white: { ph: 'white_sandstone_bricks', size: 512 },
   plaster: { ph: 'patterned_clay_plaster', size: 1024 },
-  plaster_ochre: { ph: 'rough_plaster_broken', size: 1024 },
+  plaster_ochre: { ph: 'clay_plaster', size: 1024 },
   plaster_blue: { ph: 'blue_plaster_weathered', size: 512 },
   sand: { ph: 'coast_sand_01', size: 1024 },
   pavers: { ph: 'stone_tiles_02', size: 1024 },
@@ -51,14 +51,23 @@ export const MODELS = {
   crate_military: { ph: 'old_military_crate', tex: 512, ratio: 0.35, keep: /_a$/ },
   barrel_red: { ph: 'Barrel_01', tex: 512 },
   barrel_blue: { ph: 'barrel_03', tex: 512 },
-  barrel_wood: { ph: 'wine_barrel_01', tex: 512, ratio: 0.5 },
+  barrel_wood: { ph: 'wine_barrel_01', tex: 512, ratio: 0.3 },
   jerrycan: { ph: 'metal_jerrycan_green', tex: 512, ratio: 0.15 },
   ammo_box: { ph: 'ammo_box', tex: 512, ratio: 0.5 },
   pot_clay: { ph: 'planter_pot_clay', tex: 512 },
-  vase_jug: { ph: 'ceramic_vase_04', tex: 512 },
+  vase_jug: { ph: 'ceramic_vase_04', tex: 512, ratio: 0.3 },
   barrier: { ph: 'concrete_road_barrier', tex: 512, ratio: 0.04 },
-  castle_door: { ph: 'large_castle_door', tex: 512, ratio: 0.5 },
+  castle_door: { ph: 'large_castle_door', tex: 512, ratio: 0.25 },
   utility_box: { ph: 'utility_box_01', tex: 512 },
+  covered_car: { ph: 'covered_car', tex: 1024, ratio: 0.5 },
+  tyre: { ph: 'old_tyre', tex: 512 },
+  cement_bag: { ph: 'cement_bag', tex: 512 },
+  crate_wood: { ph: 'wooden_crate_01', tex: 512, ratio: 0.5 },
+  shutter_door: { ph: 'rollershutter_door', tex: 512 },
+  basket: { ph: 'wicker_basket_02', tex: 512, ratio: 0.25 },
+  brass_pot: { ph: 'brass_pot_01', tex: 512, ratio: 0.6 },
+  table_wood: { ph: 'WoodenTable_01', tex: 512 },
+  lantern: { ph: 'wooden_lantern_01', tex: 512, ratio: 0.5 },
 };
 
 // ---------------------------------------------------------------- helpers
@@ -79,7 +88,7 @@ const exists = (p) => fs.existsSync(p) && fs.statSync(p).size > 0;
 
 // ---------------------------------------------------------------- fetch
 async function fetchTextures() {
-  for (const [id, t] of Object.entries(TEXTURES)) {
+  for (const [id, t] of pick(TEXTURES)) {
     const files = await getJSON(`https://api.polyhaven.com/files/${t.ph}`);
     for (const [map, key] of [['diff', 'Diffuse'], ['nor', 'nor_gl'], ['arm', 'arm']]) {
       const dest = path.join(CACHE, 'tex', `${t.ph}_${map}.jpg`);
@@ -90,8 +99,10 @@ async function fetchTextures() {
     }
   }
 }
+const ONLY = process.argv.slice(3);
+const pick = (obj) => Object.entries(obj).filter(([k]) => !ONLY.length || ONLY.includes(k));
 async function fetchModels() {
-  for (const [name, m] of Object.entries(MODELS)) {
+  for (const [name, m] of pick(MODELS)) {
     const files = await getJSON(`https://api.polyhaven.com/files/${m.ph}`);
     const g = files.gltf['1k'] ? files.gltf['1k'].gltf : files.gltf[Object.keys(files.gltf)[0]].gltf;
     const dir = path.join(CACHE, 'models', m.ph);
@@ -108,7 +119,7 @@ async function fetchModels() {
 async function buildTextures() {
   const dir = path.join(OUT, 'tex'); fs.mkdirSync(dir, { recursive: true });
   let total = 0;
-  for (const [id, t] of Object.entries(TEXTURES)) {
+  for (const [id, t] of pick(TEXTURES)) {
     for (const [map, q] of [['diff', 78], ['nor', 82], ['arm', 70]]) {
       const src = path.join(CACHE, 'tex', `${t.ph}_${map}.jpg`);
       const size = map === 'arm' ? Math.min(512, t.size) : t.size;
@@ -138,7 +149,7 @@ async function buildModels() {
   const dir = path.join(OUT, 'models'); fs.mkdirSync(dir, { recursive: true });
   await MeshoptEncoder.ready;
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder });
-  for (const [name, m] of Object.entries(MODELS)) {
+  for (const [name, m] of pick(MODELS)) {
     const srcDir = path.join(CACHE, 'models', m.ph);
     const gltf = fs.readdirSync(srcDir).find((f) => f.endsWith('.gltf'));
     const doc = await io.read(path.join(srcDir, gltf));
@@ -151,6 +162,7 @@ async function buildModels() {
     await io.write(dest, doc);
     console.log('model', name, (fs.statSync(dest).size / 1024).toFixed(0) + ' KB');
   }
+  if (ONLY.length && !ONLY.includes('soldier')) return;
   // soldier (keep skinning + animations)
   const doc = await io.read(path.join(CACHE, 'models', 'Soldier.glb'));
   await optimizeModel(io, doc, { tex: 1024 });

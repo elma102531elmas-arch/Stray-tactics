@@ -41,7 +41,7 @@ export const DEFAULT_ATMOS = {
   sunIntensity: 3.4,
   skyTop: '#3f74b8',
   skyHorizon: '#c6d4de',
-  skyGround: '#c4a47a',
+  skyGround: '#b9a68a',
   envIntensity: 0.8,
   fogColor: '#cfcdc4',
   fogDensity: 0.0058,

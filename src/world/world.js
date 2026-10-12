@@ -4,7 +4,18 @@ import * as THREE from 'three';
 import { buildMap } from './mapbuilder.js';
 import { bakeSky, DEFAULT_ATMOS } from '../gfx/sky.js';
 import { preset } from '../core/settings.js';
-import { BOUNCE } from '../gfx/materials.js';
+import { BOUNCE, patchBakedAO } from '../gfx/materials.js';
+import { hasModel, loadGLTF } from '../assets/loader.js';
+
+// clutter skipped on the lowest prop detail
+const SMALL_PROPS = new Set(['ammo_box', 'jerrycan', 'vase_jug', 'pot_clay']);
+// world copies of glTF materials (patched for baked lighting)
+const propMats = new Map();
+function propMaterial(m) {
+  let c = propMats.get(m);
+  if (!c) { c = m.clone(); patchBakedAO(c, { macro: false, dust: 0.7 }); propMats.set(m, c); }
+  return c;
+}
 
 export class World {
   constructor(renderer) {
@@ -41,10 +52,70 @@ export class World {
     this.built = built;
     this.collision = built.collision;
     this.spawns = built.spawns;
+    try {
+      const props = await this._instanceModels(built.models, built.collision, p);
+      built.group.add(props.group);
+      const dispose = built.dispose;
+      built.dispose = () => { dispose(); props.dispose(); };
+      built.stats.props = props.count;
+    } catch (e) { console.warn('props failed', e); }
     this.scene.add(built.group);
     this.fitShadow();
     this.applyQuality();
     return built;
+  }
+
+  // glTF props: one InstancedMesh per glTF mesh, all placements of that model
+  // in one draw call. Per-instance sky visibility feeds the baked-AO shader so
+  // props under roofs/arches darken like the map does.
+  async _instanceModels(list, col, p) {
+    const group = new THREE.Group(); group.name = 'props';
+    const meshes = [];
+    const by = new Map();
+    for (const it of list || []) {
+      if (p.propDetail === 0 && SMALL_PROPS.has(it.name)) continue;
+      if (!by.has(it.name)) by.set(it.name, []);
+      by.get(it.name).push(it.matrix);
+    }
+    const tmp = new THREE.Matrix4(), top = new THREE.Vector3(), dir = new THREE.Vector3(), hit = {};
+    for (const [name, mats] of by) {
+      if (!hasModel(name)) continue;
+      const g = await loadGLTF(name);
+      g.scene.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(g.scene);
+      const ao = new Float32Array(mats.length * 2);
+      mats.forEach((m, i) => {
+        top.set((box.min.x + box.max.x) / 2, box.max.y + 0.06, (box.min.z + box.max.z) / 2).applyMatrix4(m);
+        let free = 0, n = 0;
+        for (let k = 0; k < 10; k++) {
+          const a = k * 2.39996, y = 0.45 + 0.55 * (k / 9);
+          const r = Math.sqrt(1 - y * y); dir.set(Math.cos(a) * r, y, Math.sin(a) * r);
+          n++; if (!col.raycast(top, dir, 9, hit)) free++;
+        }
+        ao[i * 2] = 1; ao[i * 2 + 1] = free / n;
+      });
+      const aoAttr = new THREE.InstancedBufferAttribute(ao, 2);
+      g.scene.traverse((o) => {
+        if (!o.isMesh) return;
+        const geo = new THREE.BufferGeometry();
+        for (const k in o.geometry.attributes) geo.setAttribute(k, o.geometry.attributes[k]);
+        geo.setIndex(o.geometry.index);
+        for (const gr of o.geometry.groups) geo.addGroup(gr.start, gr.count, gr.materialIndex);
+        geo.setAttribute('ao', aoAttr);
+        const mat = Array.isArray(o.material) ? o.material.map(propMaterial) : propMaterial(o.material);
+        const im = new THREE.InstancedMesh(geo, mat, mats.length);
+        for (let i = 0; i < mats.length; i++) im.setMatrixAt(i, tmp.multiplyMatrices(mats[i], o.matrixWorld));
+        im.instanceMatrix.needsUpdate = true;
+        im.castShadow = true; im.receiveShadow = true;
+        im.computeBoundingSphere(); im.computeBoundingBox();
+        im.name = name;
+        group.add(im); meshes.push(im);
+      });
+    }
+    return {
+      group, count: list ? list.length : 0,
+      dispose() { for (const m of meshes) { m.geometry.dispose(); m.dispose(); } },
+    };
   }
 
   applyAtmos(over) {
@@ -64,9 +135,10 @@ export class World {
     this.scene.environment = this.sky.environment;
     this.scene.environmentIntensity = a.envIntensity;
     // bounce light used in sky-occluded areas (see patchBakedAO)
-    BOUNCE.value.set(a.sunColor).multiply(new THREE.Color(a.skyGround).lerp(new THREE.Color('#9a9088'), 0.45)).multiplyScalar(a.sunIntensity * 0.2 * (a.bounce ?? 1));
+    BOUNCE.value.set(a.sunColor).multiply(new THREE.Color(a.skyGround).lerp(new THREE.Color('#9a9088'), 0.6)).multiplyScalar(a.sunIntensity * 0.18 * (a.bounce ?? 1));
+    { const b = BOUNCE.value, l = b.r * 0.2126 + b.g * 0.7152 + b.b * 0.0722; b.lerp(new THREE.Color(l, l, l), 0.5); } // desaturate
     // warm bounce fill: sunlit sand reflects into shadows
-    this.fill.color.set(a.skyHorizon); this.fill.groundColor.set(a.skyGround).lerp(new THREE.Color(a.sunColor), 0.35);
+    this.fill.color.set(a.skyHorizon); this.fill.groundColor.set(a.skyGround).lerp(new THREE.Color(a.sunColor), 0.2);
   }
 
   fitShadow() {

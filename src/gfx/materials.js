@@ -6,14 +6,14 @@ import { preset, store, settings } from '../core/settings.js';
 import { hasTex, loadTexture, textureAverage } from '../assets/loader.js';
 
 export const BUILTIN_RECIPES = {
-  sand: { name: 'Desert Sand', photo: 'sand', tint: '#fff0d6', tile: 3, color1: '#dcc29a', color2: '#c4a476', noiseScale: 3, noiseAmt: 0.5, detail: 0.6, grime: 0.12, grimeColor: '#a88a63', grimeScale: 2, spots: 0.25, spotColor: '#b99a70', spotScale: 9, rough: 0.96, roughVar: 0.04, bump: 1.6, seed: 3 },
+  sand: { name: 'Desert Sand', photo: 'sand', tint: '#fff0d6', bright: 1.12, tile: 3, color1: '#dcc29a', color2: '#c4a476', noiseScale: 3, noiseAmt: 0.5, detail: 0.6, grime: 0.12, grimeColor: '#a88a63', grimeScale: 2, spots: 0.25, spotColor: '#b99a70', spotScale: 9, rough: 0.96, roughVar: 0.04, bump: 1.6, seed: 3 },
   sandstone: { name: 'Sandstone Blocks', photo: 'sandstone', tile: 3, color1: '#d2b78d', color2: '#b8976c', pattern: 'bricks', rows: 7, cols: 3, offset: 0.43, gap: 0.011, gapColor: '#a08a68', bevel: 0.02, cellVar: 0.45, chip: 0.8, noiseScale: 7, noiseAmt: 0.5, detail: 0.55, grime: 0.28, grimeColor: '#8a6e4e', grimeScale: 3, streaks: 0.25, cracks: 0.3, spots: 0.12, spotColor: '#e2d0ae', spotScale: 9, rough: 0.92, roughVar: 0.06, bump: 1.25, seed: 5 },
   plaster: { name: 'Plaster (cream)', photo: 'plaster', tile: 2, color1: '#e6d6b6', color2: '#d4c09a', noiseScale: 3, noiseAmt: 0.55, detail: 0.35, grime: 0.32, grimeColor: '#9c8463', grimeScale: 3, streaks: 0.35, cracks: 0.5, spots: 0.15, spotColor: '#c9b28c', spotScale: 6, rough: 0.92, roughVar: 0.06, bump: 0.9, seed: 7 },
-  plaster_ochre: { name: 'Plaster (ochre)', photo: 'plaster_ochre', tile: 1.8, color1: '#d9a46a', color2: '#c48a4e', noiseScale: 3, noiseAmt: 0.6, detail: 0.35, grime: 0.3, grimeColor: '#7d5a3a', grimeScale: 3, streaks: 0.4, cracks: 0.45, spots: 0.2, spotColor: '#e3c193', spotScale: 5, rough: 0.92, roughVar: 0.06, bump: 0.9, seed: 9 },
+  plaster_ochre: { name: 'Adobe (ochre)', photo: 'plaster_ochre', tint: '#fff1e4', bright: 1.3, tile: 2.5, color1: '#d9a46a', color2: '#c48a4e', noiseScale: 3, noiseAmt: 0.6, detail: 0.35, grime: 0.3, grimeColor: '#7d5a3a', grimeScale: 3, streaks: 0.4, cracks: 0.45, spots: 0.2, spotColor: '#e3c193', spotScale: 5, rough: 0.92, roughVar: 0.06, bump: 0.9, seed: 9 },
   plaster_blue: { name: 'Plaster (faded blue)', photo: 'plaster_blue', tile: 2, color1: '#7fa4b8', color2: '#a3b9c2', noiseScale: 3, noiseAmt: 0.7, detail: 0.35, grime: 0.3, grimeColor: '#6d6656', grimeScale: 3, streaks: 0.4, cracks: 0.4, spots: 0.12, spotColor: '#d8ccb0', spotScale: 3, rough: 0.9, roughVar: 0.08, bump: 0.9, seed: 11 },
   pavers: { name: 'Stone Pavers', photo: 'pavers', tint: '#f6d9b4', tile: 2, color1: '#c9b493', color2: '#ae9a7b', pattern: 'cobble', cols: 7, gap: 0.022, gapColor: '#9a8564', bevel: 0.045, cellVar: 0.3, jitter: 0.9, chip: 0.4, noiseScale: 5, noiseAmt: 0.4, detail: 0.45, grime: 0.22, grimeColor: '#86735a', grimeScale: 4, rough: 0.9, roughVar: 0.06, bump: 1.05, seed: 13 },
   tiles: { name: 'Floor Tiles', photo: 'tiles', tint: '#f7e2c4', tile: 1.2, color1: '#c7b08c', color2: '#b59a74', pattern: 'tiles', rows: 5, cols: 5, gap: 0.012, gapColor: '#8a7a64', bevel: 0.01, cellVar: 0.3, chip: 0.5, noiseScale: 5, noiseAmt: 0.35, detail: 0.3, grime: 0.3, grimeColor: '#7d6a50', grimeScale: 4, cracks: 0.3, rough: 0.7, roughVar: 0.15, bump: 1.0, seed: 15 },
-  concrete: { name: 'Concrete', photo: 'concrete', tint: '#f3e6d3', tile: 2, color1: '#bdb2a0', color2: '#a69a86', noiseScale: 4, noiseAmt: 0.5, detail: 0.5, grime: 0.35, grimeColor: '#6e675c', grimeScale: 3, streaks: 0.3, cracks: 0.35, spots: 0.2, spotColor: '#8d877c', spotScale: 14, rough: 0.9, roughVar: 0.08, bump: 1.1, seed: 17 },
+  concrete: { name: 'Concrete', photo: 'concrete', tint: '#ece6dc', tile: 2, color1: '#bdb2a0', color2: '#a69a86', noiseScale: 4, noiseAmt: 0.5, detail: 0.5, grime: 0.35, grimeColor: '#6e675c', grimeScale: 3, streaks: 0.3, cracks: 0.35, spots: 0.2, spotColor: '#8d877c', spotScale: 14, rough: 0.9, roughVar: 0.08, bump: 1.1, seed: 17 },
   wood: { name: 'Wood Planks', photo: 'wood', tile: 1.8, color1: '#8a6240', color2: '#6e4b2e', pattern: 'planks', rows: 2, cols: 6, gap: 0.012, gapColor: '#2e2116', bevel: 0.01, cellVar: 0.4, chip: 0.3, noiseScale: 4, noiseAmt: 0.4, detail: 0.3, grain: 0.9, grime: 0.25, grimeColor: '#3d2d1f', grimeScale: 3, rough: 0.78, roughVar: 0.12, bump: 1.2, seed: 19 },
   crate: { name: 'Crate Wood', photo: 'crate', tile: 1.4, color1: '#b08a5a', color2: '#93704a', pattern: 'planks', rows: 1, cols: 5, gap: 0.014, gapColor: '#3a2a1a', bevel: 0.012, cellVar: 0.3, chip: 0.3, noiseScale: 4, noiseAmt: 0.35, detail: 0.3, grain: 0.8, grime: 0.2, grimeColor: '#5a4630', grimeScale: 3, rough: 0.8, roughVar: 0.1, bump: 1.2, seed: 21 },
   metal: { name: 'Painted Metal', photo: 'metal', tile: 1, color1: '#56636a', color2: '#4a565c', pattern: 'panels', rows: 2, cols: 2, gap: 0.006, gapColor: '#262b2e', bevel: 0.006, cellVar: 0.15, chip: 0.2, noiseScale: 4, noiseAmt: 0.4, detail: 0.3, edgeWear: 0.55, wearColor: '#9a7a5a', grime: 0.35, grimeColor: '#6a4a2c', grimeScale: 4, streaks: 0.4, rough: 0.6, roughVar: 0.2, metal: 0.35, bump: 0.9, seed: 23 },
@@ -55,19 +55,29 @@ const NOISE_GLSL = `
 float spHash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float spNoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(spHash(i), spHash(i + vec2(1.0, 0.0)), f.x), mix(spHash(i + vec2(0.0, 1.0)), spHash(i + vec2(1.0, 1.0)), f.x), f.y); }`;
+// opts.macro=false: no second texture sample (UV-atlas models, e.g. glTF props)
 export function patchBakedAO(mat, opts = {}) {
   const macroAvg = { value: opts.macroAvg || 0.25 };
   const dust = { value: opts.dust ?? 1 };
+  const macro = opts.macro !== false;
   mat.userData.macroAvg = macroAvg; mat.userData.dustAmt = dust;
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uBounce = BOUNCE; sh.uniforms.uDust = DUST; sh.uniforms.uMacroAvg = macroAvg; sh.uniforms.uDustAmt = dust;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec2 ao;\nvarying vec2 vBakedAO;\nvarying vec3 vWorldP;\nvarying vec3 vWorldN;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBakedAO = ao;\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvWorldN = normalize(mat3(modelMatrix) * objectNormal);');
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vBakedAO = ao;
+        #ifdef USE_INSTANCING
+          vWorldP = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+          vWorldN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
+        #else
+          vWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;
+          vWorldN = normalize(mat3(modelMatrix) * objectNormal);
+        #endif`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying vec2 vBakedAO;\nvarying vec3 vWorldP;\nvarying vec3 vWorldN;\nuniform vec3 uBounce;\nuniform vec3 uDust;\nuniform float uMacroAvg;\nuniform float uDustAmt;' + NOISE_GLSL)
       .replace('#include <map_fragment>', `#include <map_fragment>
-        #ifdef USE_MAP
+        #if defined(USE_MAP) && ${macro ? 1 : 0}
           vec3 macroS = texture2D(map, vMapUv * 0.217 + vec2(0.37, 0.71)).rgb;
           float macroL = dot(macroS, vec3(0.2126, 0.7152, 0.0722));
           diffuseColor.rgb *= clamp(mix(1.0, macroL / max(uMacroAvg, 0.02), 0.32), 0.6, 1.5);
@@ -86,7 +96,7 @@ export function patchBakedAO(mat, opts = {}) {
         reflectedLight.directDiffuse *= mix(1.0, bao, 0.4);
         reflectedLight.directSpecular *= mix(1.0, bao, 0.4);`);
   };
-  mat.customProgramCacheKey = () => 'bakedAO3';
+  mat.customProgramCacheKey = () => 'bakedAO4' + (macro ? 'm' : '');
   return mat;
 }
 
@@ -151,7 +161,7 @@ class MaterialLibrary {
       roughness: r.roughMul ?? 1, metalness: 1, normalScale: new THREE.Vector2(r.normalScale ?? 1, r.normalScale ?? 1),
       side: (id.startsWith('cloth') ? THREE.DoubleSide : THREE.FrontSide),
     });
-    if (t.photo) { m.aoMap = t.orm; m.aoMapIntensity = 0.85; if (r.tint) m.color.set(r.tint); }
+    if (t.photo) { m.aoMap = t.orm; m.aoMapIntensity = 0.85; if (r.tint) m.color.set(r.tint); if (r.bright) m.color.multiplyScalar(r.bright); }
     m.name = id;
     m.userData.tile = r.tile;
     patchBakedAO(m, { macroAvg: t.avg || 0.25, dust: id === 'sand' || id === 'dark' || id.startsWith('cloth') ? 0 : 1 });

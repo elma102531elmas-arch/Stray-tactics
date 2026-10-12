@@ -69,6 +69,9 @@ export function makeKasbah() {
   P('pot', -6.3, 9.5); P('pot', -6.4, 10.4, 0, { scale: 0.8 });
   P('lamp', 6.4, -16, -90);
   P('lamp', -6.4, 16, 90);
+  P('barrier', 1.2, -20.5, 8); P('barrier', -1.0, 21.8, -6);
+  P('barrel_wood', -5.9, 12.2); P('jug', -6.1, 8.6);
+  P('mil_crates', 5.7, -10.5, 75);
 
   // ---------------- west market street ----------------
   BOX(-27, 0, 0, 12, 0.04, 50, 'tiles');
@@ -83,6 +86,9 @@ export function makeKasbah() {
   P('pot', -32.3, 10.6); P('pot', -32.4, 11.4, 0, { scale: 0.75 }); P('pot', -32.2, -9.3);
   P('pallet', -25.5, -20, 20);
   P('tires', -24, 2.2);
+  P('barrel_wood', -22.6, 6.6); P('barrel_wood', -30.4, -18.2);
+  P('jug', -30.6, 9.9); P('jug', -30.3, -11.2);
+  P('clutter', -23.5, -12.5, 80);
   // stairs to the low roof (vantage over west connectors)
   O.push({ type: 'stairs', pos: [-21.2, 0, 0], size: [2.6, 4, 6.2], rot: -90, mat: 'sandstone', steps: 12 });
 
@@ -98,6 +104,9 @@ export function makeKasbah() {
   P('barrel', 23.2, 4.8); P('barrel', 31.6, -3.5, 0, { variant: 'rust' });
   P('sandbags', 27, 10.5, 0);
   P('pallet', 31.5, 6.8, 40);
+  P('mil_crates', 24.6, 1.6, 10); P('mil_crates', 30.8, -6.6, -80);
+  P('clutter', 23.4, -9.2, 90);
+  P('barrier', 27, -12.6, 0);
 
   // ---------------- north plaza (team 1 spawn) ----------------
   BOX(0, 0, -29.5, 20, 0.04, 11, 'pavers');
@@ -110,6 +119,7 @@ export function makeKasbah() {
   P('barrel', 30.5, -33.5); P('barrel', 31.3, -32.8, 0, { variant: 'rust' });
   P('rubble', -31, -33, 0);
   P('lamp', -11.5, -25.5, 180);
+  P('barrier', 5.5, -25.2, 4); P('clutter', 22.6, -32.2, 30); P('barrel_wood', -21.5, -32.5);
 
   // ---------------- south plaza (team 0 spawn) ----------------
   BOX(0, 0, 29.5, 20, 0.04, 11, 'pavers');
@@ -122,6 +132,7 @@ export function makeKasbah() {
   P('barrel', -30.6, 26.5); P('pot', -31.8, 27.3);
   P('rubble', 31, 33, 0);
   P('lamp', 11.5, 25.5, 0);
+  P('barrier', -5.5, 25.2, -4); P('clutter', -26.2, 28.4, 200); P('mil_crates', 21.4, 32.2, 20);
 
   // ---------------- spawns ----------------
   for (let i = 0; i < 6; i++) {

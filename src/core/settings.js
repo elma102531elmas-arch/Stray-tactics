@@ -3,10 +3,10 @@
 const KEY = 'strikepoint.settings.v1';
 
 export const QUALITY_PRESETS = {
-  low: { label: 'Low', renderScale: 0.75, shadows: 'static', shadowSize: 1024, softShadows: false, texSize: 256, aoCell: 1.0, bloom: false, aniso: 2, maxDpr: 1 },
-  medium: { label: 'Medium', renderScale: 1, shadows: 'static', shadowSize: 2048, softShadows: false, texSize: 512, aoCell: 0.7, bloom: false, aniso: 4, maxDpr: 1.5 },
-  high: { label: 'High', renderScale: 1, shadows: 'dynamic', shadowSize: 2048, softShadows: true, texSize: 512, aoCell: 0.5, bloom: true, aniso: 8, maxDpr: 2 },
-  ultra: { label: 'Ultra', renderScale: 1, shadows: 'dynamic', shadowSize: 4096, softShadows: true, texSize: 1024, aoCell: 0.4, bloom: true, aniso: 16, maxDpr: 3 },
+  low: { label: 'Low', renderScale: 0.75, shadows: 'static', shadowSize: 1024, softShadows: false, texSize: 256, aoCell: 1.0, bloom: false, aniso: 2, maxDpr: 1, propDetail: 0 },
+  medium: { label: 'Medium', renderScale: 1, shadows: 'static', shadowSize: 2048, softShadows: false, texSize: 512, aoCell: 0.7, bloom: false, aniso: 4, maxDpr: 1.5, propDetail: 1 },
+  high: { label: 'High', renderScale: 1, shadows: 'dynamic', shadowSize: 2048, softShadows: true, texSize: 512, aoCell: 0.5, bloom: true, aniso: 8, maxDpr: 2, propDetail: 1 },
+  ultra: { label: 'Ultra', renderScale: 1, shadows: 'dynamic', shadowSize: 4096, softShadows: true, texSize: 1024, aoCell: 0.4, bloom: true, aniso: 16, maxDpr: 3, propDetail: 1 },
 };
 
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;

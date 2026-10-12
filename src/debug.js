@@ -86,6 +86,7 @@ await (async () => {
 }
 
 // ?dbg=1&model=<name>&view=x,y,z : inspect an embedded glTF (axes: X red, Y green, Z blue)
+// ?dbg=1&model=a,b,c,... : grid of several models
 async function modelViewer(q) {
   const { loadGLTF } = await import('./assets/loader.js');
   const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -95,7 +96,26 @@ async function modelViewer(q) {
   const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
   const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
   const l = new THREE.DirectionalLight(0xffffff, 2); l.position.set(2, 3, 2); scene.add(l);
-  const g = await loadGLTF(q.get('model'));
+  const names = q.get('model').split(',');
+  if (names.length > 1) {
+    const cols = Math.ceil(Math.sqrt(names.length * innerWidth / innerHeight * 0.75)), rows = Math.ceil(names.length / cols);
+    const tw = Math.floor(innerWidth / cols), th = Math.floor(innerHeight / rows);
+    const v = (q.get('view') || '1,0.6,1.4').split(',').map(Number);
+    r.setScissorTest(true); r.autoClear = false;
+    for (let i = 0; i < names.length; i++) {
+      const g = await loadGLTF(names[i]);
+      const root = g.scene.clone(); scene.add(root);
+      const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+      const cam = new THREE.PerspectiveCamera(35, tw / th, 0.001, 100);
+      cam.position.copy(c).add(new THREE.Vector3(v[0], v[1], v[2]).normalize().multiplyScalar(Math.max(size.x, size.y, size.z) * 1.9)); cam.lookAt(c);
+      const x = (i % cols) * tw, y = innerHeight - (Math.floor(i / cols) + 1) * th;
+      r.setViewport(x, y, tw, th); r.setScissor(x, y, tw, th); r.clear(); r.render(scene, cam);
+      scene.remove(root);
+      console.log('MODEL', names[i], size.toArray().map((s) => s.toFixed(2)).join('x'));
+    }
+    window.__shot = true; return;
+  }
+  const g = await loadGLTF(names[0]);
   const root = g.scene; scene.add(root);
   const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
   const info = { size: size.toArray().map((v) => +v.toFixed(3)), center: c.toArray().map((v) => +v.toFixed(3)), nodes: [] };

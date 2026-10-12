@@ -11,6 +11,7 @@ import { CollisionWorld } from './collision.js';
 import { materials, patchBakedAO } from '../gfx/materials.js';
 import { PREFABS } from './prefabs.js';
 import { DEG } from '../core/util.js';
+import { hasModel } from '../assets/loader.js';
 
 const _m = new THREE.Matrix4(), _v = new THREE.Vector3(), _n = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3();
 const _nm = new THREE.Matrix3();
@@ -518,10 +519,12 @@ function emitBuilding(o, em, size, mat, rngBase) {
         em.geo('wood', BEAM_GEO, Emitter.mat([local[0], H - 0.45, local[2]], [90, yawFace, 0]), { noCast: false });
       }
     }
-    // wall clutter: electric boxes, pipes
-    if (rng() < 0.25 && usable > 4) {
-      const local = sideToLocal(sd, (rng() - 0.5) * usable * 0.6, sd.off + 0.22);
+    // wall clutter: electric box between two window bays
+    if (rng() < 0.3 && count >= 2 && hasModel('utility_box')) {
+      const k = Math.floor(rng() * (count - 1));
+      const local = sideToLocal(sd, -usable / 2 + spacing * (k + 1), sd.off + 0.22);
       em.model('utility_box', Emitter.mat([local[0], 0.0, local[2]], [0, yawFace, 0]));
+      em.collider('box', [local[0], 0.56, local[2]], [0.52, 1.12, 0.43], yawFace, 'metal');
     }
   });
 }
@@ -735,7 +738,7 @@ export async function buildMap(map, opts = {}) {
   let tris = 0; meshes.forEach((m) => { tris += m.geometry.index.count / 3; });
   progress(1, 'Done');
   return {
-    group, collision: col, spawns, meshes, caster,
+    group, collision: col, spawns, meshes, caster, models: sink.models,
     stats: { ms: Math.round(performance.now() - t0), tris, meshes: meshes.length, colliders: col.colliders.length },
     dispose() { meshes.forEach((m) => m.geometry.dispose()); cg.dispose(); caster.material.dispose(); },
   };
