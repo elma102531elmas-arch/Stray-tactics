@@ -262,7 +262,7 @@ export class Player {
       if (!dir) { dir = d; res = r; }
     }
     // feedback
-    audio.play('shot_' + def.sound, { vol: 0.9, pitchVar: 0.06, reverb: 0.35 });
+    { const mx = audio.shotMix(def.sound); audio.play('shot_' + def.sound, { vol: 0.8 * mx.vol, pitchVar: mx.pitchVar, reverb: 0.35 }); }
     vm.fire();
     if (g.mag === 0 && def.slideLock) vm.slideLocked = true;
     // muzzle smoke + light in world

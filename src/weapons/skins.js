@@ -168,9 +168,10 @@ function skinMaterial(base, def, uniforms, space) {
         float skWorn = 0.0;
         if (skCol.r >= 0.0) {
           // scratches and edge wear reveal the base finish
+          // (skWorn = how much of the skin remains: 1 = factory new)
           float wn = skF(vSkinP * 70.0 + uSkSeed) * 0.75 + skN(vSkinP * 420.0) * 0.25;
-          skWorn = smoothstep(uSkWear * 0.9 - 0.02, uSkWear * 0.9 + 0.02, 1.0 - wn) * step(0.001, uSkWear);
-          skWorn = 1.0 - skWorn;
+          float th = 0.5 + 0.28 * pow(1.0 - clamp(uSkWear, 0.0, 1.0), 2.2);
+          skWorn = 1.0 - smoothstep(th - 0.015, th + 0.015, wn);
           float bl = clamp(dot(diffuseColor.rgb, vec3(0.3333)) * 2.4, 0.55, 1.15);
           diffuseColor.rgb = mix(diffuseColor.rgb, skCol * mix(1.0, bl, 0.4), skWorn);
         }`)

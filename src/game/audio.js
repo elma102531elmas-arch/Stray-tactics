@@ -192,6 +192,11 @@ class AudioEngine {
     } catch (e) { console.warn('sfx', e); }
   }
   has(name) { return this.buffers.has(name); }
+  // loudness + pitch spread for gunshots: recordings were calibrated per gun
+  shotMix(kind) {
+    const m = this.recorded && this.recorded.has('shot_' + kind) ? SHOT_MIX[kind] : null;
+    return m ? { vol: m[0], pitchVar: m[1] } : { vol: 1, pitchVar: 0.06 };
+  }
   // first existing name of a list (weapon specific -> generic fallbacks)
   pick(...names) { for (const n of names) if (n && this.buffers.has(n)) return n; return names[names.length - 1]; }
   setListener(camera) {
@@ -232,5 +237,8 @@ class AudioEngine {
     src.start();
   }
 }
+
+// recorded gunshot gain multipliers and pitch spread (±pitchVar/2)
+const SHOT_MIX = { ak: [1.0, 0.08], m4: [1.5, 0.08], smg: [0.75, 0.08], shotgun: [0.9, 0.06], sniper: [0.8, 0.04], pistol: [0.9, 0.06], deagle: [1.0, 0.04], distant: [0.8, 0.12] };
 
 export const audio = new AudioEngine();

@@ -3,12 +3,16 @@
 //   node tools/assets.mjs fetch   -> downloads sources into .cache/assets
 //   node tools/assets.mjs build   -> writes optimized files into assets/
 //   node tools/assets.mjs         -> both
+//   node tools/assets.mjs sounds [name...] -> fetch + build sound effects only
 //
-// Every source is CC0 (Poly Haven, Freesound CC0) except the Vanguard soldier
-// (Mixamo, royalty-free for games). See assets/CREDITS.md.
+// Every source is CC0 (Poly Haven, Freesound CC0, Kenney, OpenGameArt CC0)
+// except the Vanguard soldier (Mixamo, royalty-free for games). See
+// assets/CREDITS.md and tools/sounds-credits.md.
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import zlib from 'zlib';
+import crypto from 'crypto';
 import { execFileSync } from 'child_process';
 import sharp from 'sharp';
 import { NodeIO } from '@gltf-transform/core';
@@ -48,8 +52,6 @@ export const TEXTURES = {
 
 // Poly Haven models -> game asset name
 export const MODELS = {
-  pistol_ph: { ph: 'service_pistol', tex: 1024, keep: /_a$|magazine_loaded|bullet/ },
-  boltrifle_ph: { ph: 'bolt_action_rifle_7_62', tex: 1024 },
   crate_lettered: { ph: 'wooden_crate_02', tex: 512, ratio: 0.5 },
   crate_military: { ph: 'old_military_crate', tex: 512, ratio: 0.35, keep: /_a$/ },
   barrel_red: { ph: 'Barrel_01', tex: 512 },
@@ -212,30 +214,96 @@ async function buildModels() {
 
 // ---------------------------------------------------------------- sounds
 // name: {fs: freesound id, url: preview url, start, dur, gain, hp, lp, fade}
+//   or {src: url of an audio file or a .zip/.7z pack (Kenney, OpenGameArt), file: path inside the pack,
+//       start, dur, gain, hp, lp, fade, fadein, af: extra ffmpeg filters, loop: crossfade seconds that
+//       make the clip loop seamlessly}
+//   or {parts: [{src, file, start, dur, at, gain}, ...], dur, gain, ...}: cuts layered at `at` seconds.
+// title/author/pack/page/license (per part for layered sounds) are provenance for the credits.
 export const SOUNDS = JSON.parse(fs.existsSync(path.join(ROOT, 'tools/sounds.json')) ? fs.readFileSync(path.join(ROOT, 'tools/sounds.json'), 'utf8') : '{}');
 
+// cached source of a sound: {file} for freesound previews, {archive, file} for src downloads
+function soundSource(s) {
+  if (s.fs) return { file: path.join(CACHE, 'sfx', `${s.fs}.mp3`) };
+  const base = decodeURIComponent(path.basename(new URL(s.src).pathname));
+  const dir = path.join(CACHE, 'sfx', `${base.replace(/\.\w+$/, '')}-${crypto.createHash('sha1').update(s.src).digest('hex').slice(0, 6)}`);
+  return { archive: path.join(dir, base), file: path.join(dir, s.file || base) };
+}
+// one member of a .zip (stored/deflated) or .7z pack (needs a 7-Zip executable)
+function extract(archive, member, dest) {
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  if (/\.7z$/i.test(archive)) {
+    for (const bin of ['7z', '7za', '7zz']) {
+      try { fs.writeFileSync(dest, execFileSync(bin, ['e', '-so', archive, member], { maxBuffer: 1 << 30, stdio: ['ignore', 'pipe', 'ignore'] })); return; }
+      catch (e) { if (e.code !== 'ENOENT') throw e; }
+    }
+    throw new Error(`install 7-Zip or extract "${member}" from ${archive} to ${dest}`);
+  }
+  const b = fs.readFileSync(archive);
+  let end = b.length - 22;
+  while (end > 0 && b.readUInt32LE(end) !== 0x06054b50) end--;
+  for (let i = 0, p = b.readUInt32LE(end + 16); i < b.readUInt16LE(end + 10); i++) {
+    const n = b.readUInt16LE(p + 28), method = b.readUInt16LE(p + 10);
+    if (b.toString('utf8', p + 46, p + 46 + n) === member) {
+      if (method !== 0 && method !== 8) throw new Error(`zip method ${method} of ${member}`);
+      const off = b.readUInt32LE(p + 42), at = off + 30 + b.readUInt16LE(off + 26) + b.readUInt16LE(off + 28);
+      const raw = b.subarray(at, at + b.readUInt32LE(p + 20));
+      fs.writeFileSync(dest, method === 8 ? zlib.inflateRawSync(raw) : raw);
+      return;
+    }
+    p += 46 + n + b.readUInt16LE(p + 30) + b.readUInt16LE(p + 32);
+  }
+  throw new Error(`${member} not found in ${archive}`);
+}
+
 async function fetchSounds() {
-  for (const [name, s] of Object.entries(SOUNDS)) {
-    const dest = path.join(CACHE, 'sfx', `${s.fs}.mp3`);
-    if (!exists(dest)) { await get(s.url, dest); console.log('sfx', name); }
+  for (const [name, s] of pick(SOUNDS)) {
+    for (const p of s.parts || [s]) {
+      const { file, archive } = soundSource(p);
+      if (exists(file)) continue;
+      if (p.fs) await get(p.url, file);
+      else {
+        if (!exists(archive)) await get(p.src, archive);
+        if (p.file) extract(archive, p.file, file);
+      }
+      console.log('sfx', name);
+    }
   }
 }
 function buildSounds() {
   const dir = path.join(OUT, 'sfx'); fs.mkdirSync(dir, { recursive: true });
   let total = 0;
-  for (const [name, s] of Object.entries(SOUNDS)) {
-    const src = path.join(CACHE, 'sfx', `${s.fs}.mp3`);
+  const list = pick(SOUNDS);
+  for (const [name, s] of list) {
+    // parts: [{src, file, start, dur, at, gain}] cuts mixed at `at` seconds, then filtered as one sound
+    const parts = s.parts || [s];
+    const len = (p) => (p.dur || s.dur || 1) + (s.loop || 0);
+    // freesound previews are cut by seeking; other sources are decoded from the start and trimmed exactly
+    // (seeking into an mp3 without a seek table mutes its first frame), then downmixed before the limiter
+    const inputs = parts.flatMap((p) => [...(p.fs ? ['-ss', String(p.start || 0), '-t', String(len(p))] : []), '-i', soundSource(p).file]);
+    const cut = (p) => (p.fs ? [] : [`atrim=start=${p.start || 0}:duration=${len(p)}`, 'asetpts=PTS-STARTPTS', 'aformat=channel_layouts=mono']);
     const dest = path.join(dir, `${name}.mp3`);
-    const filters = [];
+    const filters = s.parts ? [] : cut(s);
     if (s.hp) filters.push(`highpass=f=${s.hp}`);
     if (s.lp) filters.push(`lowpass=f=${s.lp}`);
-    filters.push(`afade=t=out:st=${Math.max(0, (s.dur || 1) - (s.fade || 0.08))}:d=${s.fade || 0.08}`);
-    filters.push(`volume=${s.gain || 1}`);
-    filters.push('alimiter=limit=0.95');
-    execFileSync(ffmpegPath, ['-y', '-loglevel', 'error', '-ss', String(s.start || 0), '-t', String(s.dur || 1), '-i', src, '-ac', '1', '-ar', '44100', '-af', filters.join(','), '-b:a', (s.kbps || 96) + 'k', dest]);
+    if (s.af) filters.push(s.af);
+    if (s.fadein) filters.push(`afade=t=in:d=${s.fadein}`);
+    if (!s.loop) filters.push(`afade=t=out:st=${Math.max(0, (s.dur || 1) - (s.fade || 0.08))}:d=${s.fade || 0.08}`);
+    const out = [`volume=${s.gain || 1}`, s.fs ? 'alimiter=limit=0.95' : 'alimiter=limit=0.95:latency=1'];
+    let graph = ['-af', filters.concat(out).join(',')];
+    if (s.parts) {
+      graph = ['-filter_complex', parts.map((p, i) => `[${i}:a]${[...cut(p), 'aformat=channel_layouts=mono:sample_rates=44100', `volume=${p.gain || 1}`, `adelay=${Math.round((p.at || 0) * 1000)}`].join(',')}[p${i}];`).join('') +
+        `${parts.map((p, i) => `[p${i}]`).join('')}amix=inputs=${parts.length}:normalize=0,apad,atrim=end=${s.dur},${filters.concat(out).join(',')}`];
+    } else if (s.loop) {
+      // loop: cut dur+loop seconds; the first `loop` seconds fade in (equal power) over the faded-out end,
+      // so the last sample continues into the first one
+      const x = s.loop, body = s.dur - x;
+      graph = ['-filter_complex', `[0:a]${filters.join(',')},asplit[a][b];[a]atrim=start=${x},asetpts=PTS-STARTPTS,afade=t=out:st=${body}:d=${x}:curve=qsin[body];` +
+        `[b]atrim=end=${x},asetpts=PTS-STARTPTS,afade=t=in:d=${x}:curve=qsin,adelay=${Math.round(body * 1000)}[head];[body][head]amix=inputs=2:normalize=0:duration=first,${out.join(',')}`];
+    }
+    execFileSync(ffmpegPath, ['-y', '-loglevel', 'error', ...inputs, '-ac', '1', '-ar', '44100', ...graph, '-b:a', (s.kbps || 96) + 'k', dest]);
     total += fs.statSync(dest).size;
   }
-  console.log('sounds', Object.keys(SOUNDS).length, (total / 1024).toFixed(0) + ' KB');
+  console.log('sounds', list.length, (total / 1024).toFixed(0) + ' KB');
 }
 
 // Bake skinned meshes into static geometry at their rest pose (rigid gun rigs

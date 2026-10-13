@@ -76,7 +76,7 @@ export const WEAPONS = {
     spread: 0.004, moveSpread: 0.035, jumpSpread: 0.14, crouchMul: 0.75, recoverySpread: 0.02,
     pattern: null, viewKick: 1.25,
     speed: 5.8, tracerEvery: 1, sound: 'pistol', shell: 'pistol', drawTime: 0.6, slideLock: 0.045,
-    vm: { hip: { p: [0.085, -0.115, -0.33], r: [2, 4, -2] }, ...SHORT, kickBack: 0.045, kickUp: 7 },
+    vm: { hip: { p: [0.11, -0.13, -0.3], r: [-2, 15, -6] }, ...SHORT, kickBack: 0.045, kickUp: 7 },
   },
   deagle: {
     id: 'deagle', name: 'D-50 Eagle', slot: 'pistol', cls: 'pistol', kind: 'deagle', auto: false,
@@ -85,7 +85,7 @@ export const WEAPONS = {
     spread: 0.0035, moveSpread: 0.08, jumpSpread: 0.2, crouchMul: 0.75, recoverySpread: 0.03,
     pattern: null, viewKick: 3.4,
     speed: 5.6, tracerEvery: 1, sound: 'deagle', shell: 'pistol', drawTime: 0.7, slideLock: 0.05,
-    vm: { hip: { p: [0.085, -0.115, -0.34], r: [2, 4, -2] }, ...SHORT, kickBack: 0.07, kickUp: 13 },
+    vm: { hip: { p: [0.11, -0.13, -0.31], r: [-2, 15, -6] }, ...SHORT, kickBack: 0.07, kickUp: 13 },
   },
   knife: knife('knife', 'Talon', 0),
   m9: knife('m9', 'M9 Bayonet', 1),

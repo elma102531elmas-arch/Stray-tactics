@@ -225,7 +225,8 @@ export class Bot {
     const ear = g.camera.position;
     const occluded = !g.world.collision.lineOfSight(eye, ear);
     const far = mz.distanceTo(g.camera.position) > 45;
-    audio.play(far && audio.has('shot_distant') && audio.recorded?.has('shot_distant') ? 'shot_distant' : 'shot_' + def.sound, { pos: mz, vol: far ? 1.6 : 1.0, pitchVar: 0.08, reverb: 0.3, occluded });
+    const useFar = far && audio.recorded?.has('shot_distant'), mx = audio.shotMix(useFar ? 'distant' : def.sound);
+    audio.play(useFar ? 'shot_distant' : 'shot_' + def.sound, { pos: mz, vol: (useFar ? 1.6 : 1.0) * mx.vol, pitchVar: mx.pitchVar, reverb: 0.3, occluded });
   }
 
   raycast(o, d, maxT) { return this.char.raycast(o, d, maxT); }

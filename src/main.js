@@ -16,6 +16,8 @@ import { Lobby } from './ui/lobby.js';
 import { openSettings } from './ui/settings.js';
 import { TITLE, VERSION } from './app-info.js';
 import { Character } from './game/character.js';
+import { profile } from './core/profile.js';
+import { WEAPONS } from './weapons/weapons.js';
 
 class App {
   constructor() {
@@ -83,6 +85,8 @@ class App {
   toLobby() { this.setMode(null); input.enabled = false; this.setMode(new Lobby(this)); }
 
   async startGame(opts) {
+    // loadout + equipped skins from the profile unless the caller overrides them
+    opts = { loadout: profile.loadout(), skinFor: (k) => profile.skinFor(k), ...opts };
     this.lastOpts = opts;
     this.setMode(null);
     await this.loadMap(opts.map || this.selectedMap, opts.mapData);
@@ -96,11 +100,14 @@ class App {
     if (opts.afterStart) opts.afterStart(g);
   }
   restartGame() { this.startGame(this.lastOpts || { mode: 'tdm' }); }
-  inspectShowcase(id) {
-    const slot = id === 'pistol' ? 'pistol' : id === 'knife' ? 'knife' : 'primary';
-    const primary = slot === 'primary' ? id : settings.primary;
+  // practice round holding a weapon (with a skin) and playing its inspect
+  inspectShowcase(kind, skin) {
+    const slot = WEAPONS[kind] ? WEAPONS[kind].slot : 'primary';
+    const key = slot === 'pistol' ? 'secondary' : slot;
+    const loadout = { ...profile.loadout(), [key]: kind };
     audio.unlock();
-    this.startGame({ mode: 'practice', primary, map: this.selectedMap, afterStart: async (g) => { if (slot !== 'primary') await g.player.equip(slot); setTimeout(() => this.vm.play('inspect'), 900); } });
+    this.startGame({ mode: 'practice', loadout, skinFor: (k) => (k === kind ? skin || null : profile.skinFor(k)), map: this.selectedMap,
+      afterStart: async (g) => { if (slot !== 'primary') await g.player.equip(slot); setTimeout(() => this.vm.play('inspect'), 900); } });
   }
 
   async openTool(kind) {
@@ -166,7 +173,7 @@ if (q.has('dbg')) {
   import('./debug.js').then((m) => m.runDebug());
 } else {
   const app = new App();
-  window.__app = app; window.__dbg = { THREE, Character, input };
+  window.__app = app; window.__prof = profile; window.__dbg = { THREE, Character, input };
   app.boot().catch((e) => { console.error(e); const b = document.getElementById('err'); if (b) { b.style.display = 'block'; b.textContent = 'Startup error: ' + e.message + '\n' + (e.stack || ''); } });
   void saveSettings;
 }

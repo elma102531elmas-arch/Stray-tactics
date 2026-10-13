@@ -12,6 +12,7 @@ import { settings } from '../core/settings.js';
 import { el, pick } from '../core/util.js';
 import { TEAMS } from './character.js';
 import { clsOf, PRIMARIES } from '../weapons/weapons.js';
+import { profile } from '../core/profile.js';
 
 // bots carry a mix of primaries (weights)
 const BOT_GUNS = [['rifle', 30], ['m4', 25], ['smg', 16], ['shotgun', 9], ['sniper', 20]];
@@ -235,13 +236,26 @@ export class Game {
     this.over = true; input.enabled = false; input.unlock();
     const win = this.score[this.player.team] > this.score[1 - this.player.team], draw = this.score[0] === this.score[1];
     const mvp = [...this.actors].sort((a, b) => b.kills - a.kills)[0];
+    const p = this.player;
+    // match rewards (coins + XP) for Team Deathmatch
+    let rewards = null;
+    if (this.opts.mode === 'tdm') {
+      const r = profile.reward({ result: draw ? 'draw' : win ? 'win' : 'loss', kills: p.kills, hs: p.hs, deaths: p.deaths });
+      const coinEl = el('b', {}, '+0');
+      rewards = el('div', { class: 'me-rewards' }, el('span', { class: 'ctag' }, el('i', { class: 'coin' }), coinEl), el('span', { class: 'me-xp' }, '+' + r.xp + ' XP'), r.levelUp ? el('span', { class: 'me-lvl' }, 'LEVEL ' + r.levelUp + '!') : null);
+      // count the coins up
+      const t0 = performance.now();
+      const tick = () => { const u = Math.min(1, (performance.now() - t0) / 1200); coinEl.textContent = '+' + Math.round(r.coins * (1 - Math.pow(1 - u, 3))); if (u < 1 && coinEl.isConnected) requestAnimationFrame(tick); };
+      setTimeout(() => { requestAnimationFrame(tick); audio.play(audio.pick('coins', 'kill'), { vol: 0.6 }); }, 500);
+    }
     const box = el('div', { class: 'match-end show' },
       el('h1', { class: draw ? '' : win ? 'win' : 'lose' }, draw ? 'DRAW' : win ? 'VICTORY' : 'DEFEAT'),
       el('div', { class: 'me-score' }, el('b', { style: { color: TEAMS[0].color } }, this.score[0]), ' : ', el('b', { style: { color: TEAMS[1].color } }, this.score[1])),
       el('p', {}, 'MVP: ', el('b', {}, mvp.name), ` · ${mvp.kills} kills`),
-      el('p', {}, `You: ${this.player.kills} kills · ${this.player.deaths} deaths · ${this.player.hs} headshots`),
+      el('p', {}, `You: ${p.kills} kills · ${p.deaths} deaths · ${p.hs} headshots`),
+      rewards,
       el('button', { class: 'btn primary', onclick: () => this.app.restartGame() }, 'PLAY AGAIN'),
-      el('button', { class: 'btn ghost', onclick: () => this.quit() }, 'LOBBY'));
+      el('button', { class: 'btn ghost', onclick: () => this.quit() }, 'MAIN MENU'));
     this.ui.appendChild(box);
   }
   quit() { if (this.opts.onQuit) this.opts.onQuit(); else this.app.toLobby(); }
