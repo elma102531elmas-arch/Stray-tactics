@@ -32,6 +32,8 @@ export const HAND_POSES = {
   knife: { index: [70, 85, 50], middle: [76, 90, 52], ring: [78, 90, 52], pinky: [80, 88, 50], thumb: [40, 40, 30], thumbSpread: 26 },
   point: { index: [2, 4, 2], middle: [80, 92, 56], ring: [84, 94, 56], pinky: [86, 92, 54], thumb: [34, 36, 30], thumbSpread: 26 },
   flat: { index: [0, 0, 0], middle: [0, 0, 0], ring: [0, 0, 0], pinky: [0, 0, 0], thumb: [-6, 0, 0], thumbSpread: -8 },
+  // index finger through the karambit ring, the rest around the handle
+  karambit: { index: [72, 92, 58], middle: [70, 86, 50], ring: [74, 88, 50], pinky: [78, 86, 48], thumb: [36, 34, 24], thumbSpread: 22 },
 };
 
 function capsule(r, len, seg = 8) {

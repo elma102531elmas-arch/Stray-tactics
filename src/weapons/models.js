@@ -113,6 +113,7 @@ class ModelBuilder {
         merged.computeBoundingSphere();
         const mesh = new THREE.Mesh(merged, mats[mat] || mats.steel);
         mesh.castShadow = false; mesh.receiveShadow = false;
+        if (mat === 'grip' || mat === 'dark') mesh.userData.noSkin = true;
         node.add(mesh);
       }
       nodes[part] = node;
@@ -319,11 +320,86 @@ function knifeGeometry(mb) {
   mb.profile([[-0.12, 0.014], [-0.134, 0.012, 0.004], [-0.136, -0.024, 0.004], [-0.12, -0.03]], 0.026, 'steel', { r: 0.003, bevel: 0.003 });
 }
 
+// =========================================================== KARAMBIT
+// Held like a pistol grip with the index finger through the ring; the ring
+// centre (K_RING, gun space) is the spin pivot for finger twirls.
+const K_RING = [0, -0.012, -0.03];
+const spline = (ctrl, n) => new THREE.SplineCurve(ctrl.map(([x, y]) => new THREE.Vector2(x, y))).getPoints(n).map((v) => [v.x, v.y]);
+function karambitGeometry(mb) {
+  const T = ([f, y]) => [f - K_RING[2], y + K_RING[1]]; // ring-local (f forward, y up) -> profile coords
+  const Ro = 0.0205, Ri = 0.0128;
+  const pts = [];
+  const a1 = Math.atan2(-0.0166, 0.012), a2 = Math.atan2(-0.0166, -0.012) + Math.PI * 2;
+  for (let i = 0; i <= 30; i++) { const a = a1 + (a2 - a1) * i / 30; pts.push([Math.cos(a) * Ro, Math.sin(a) * Ro]); }
+  // spine down the back of the handle into the claw's outer curve, to the tip
+  pts.push(...spline([[-0.012, -0.0166], [-0.0128, -0.045], [-0.0115, -0.075], [-0.007, -0.1], [0.002, -0.118], [0.016, -0.132], [0.034, -0.14], [0.052, -0.14], [0.068, -0.132], [0.08, -0.119], [0.09, -0.103]], 44).slice(1));
+  // edge (inner curve) back from the tip, then the front of the handle with finger grooves
+  pts.push(...spline([[0.09, -0.103], [0.078, -0.111], [0.063, -0.118], [0.047, -0.12], [0.033, -0.117], [0.022, -0.109], [0.016, -0.098], [0.0145, -0.086]], 26).slice(1));
+  pts.push(...spline([[0.0145, -0.086], [0.0165, -0.074], [0.0128, -0.064], [0.0165, -0.052], [0.0128, -0.041], [0.0152, -0.029], [0.012, -0.0166]], 26).slice(1, -1));
+  const hole = []; for (let i = 0; i < 36; i++) { const a = (i / 36) * Math.PI * 2; hole.push([Math.cos(a) * Ri, Math.sin(a) * Ri]); }
+  mb.profile(pts.map(T), 0.0045, 'blade', { r: 0, bevel: 0.0013, seg: 1, holes: [hole.map(T)], hr: 0 });
+  // G10 handle scales + pins
+  const sc = spline([[0.0, -0.0215], [-0.0105, -0.025], [-0.011, -0.05], [-0.0098, -0.08], [-0.005, -0.097], [0.006, -0.1], [0.0125, -0.09], [0.0145, -0.074], [0.0115, -0.064], [0.0145, -0.052], [0.0115, -0.041], [0.0132, -0.03], [0.008, -0.022]], 40);
+  for (const sx of [-1, 1]) mb.profile(sc.map(T), 0.0032, 'grip', { r: 0, bevel: 0.001, seg: 1, x: sx * 0.0038 });
+  for (const [f, y] of [[0.0005, -0.04], [0.003, -0.08]]) { const q = T([f, y]); mb.cyl([-0.0058, q[1], -q[0]], [0.0058, q[1], -q[0]], 0.0021, 0.0021, 'steel', { seg: 12 }); }
+  // thumb jimping on the spine where the blade starts
+  for (let i = 0; i < 6; i++) { const q = T([-0.0118 + i * 0.0006, -0.088 - i * 0.004]); mb.box([0, q[1], -q[0]], [0.0046, 0.0016, 0.0024], 'blade', { sharp: true, rot: [20, 0, 0] }); }
+}
+
+// =========================================================== BUTTERFLY (balisong)
+// origin between the two pivot pins; blade -Z, edge -Y. Handle A (safe, edge
+// side) pivots on pin A, handle B (bite, spine side) on pin B; open = both
+// handles behind the blade. Tracks hA / hB rotate them (0 open, 180 closed).
+const B_PIN_A = [0, -0.0068, 0.0035], B_PIN_B = [0, 0.0068, 0.0035];
+function butterflyGeometry(mb) {
+  const blade = [
+    ...spline([[-0.004, 0.0105], [0.02, 0.011], [0.06, 0.0108], [0.077, 0.0094], [0.094, 0.0042], [0.104, 0.0]], 30),
+    ...spline([[0.104, 0.0], [0.096, -0.006], [0.084, -0.0098], [0.06, -0.011], [0.02, -0.011], [0.004, -0.0112]], 24).slice(1),
+    [0.0, -0.0136], [-0.007, -0.0128], [-0.0105, -0.006], [-0.0105, 0.006], [-0.007, 0.0105],
+  ];
+  mb.profile(blade, 0.003, 'blade', { r: 0, bevel: 0.0011, seg: 1 });
+  // false edge grind line on the spine near the tip
+  mb.profile([[0.07, 0.0098], [0.094, 0.0042], [0.09, 0.0042], [0.07, 0.0088]], 0.0034, 'steel', { r: 0, bevel: 0.0002, seg: 1 });
+  for (const [part, pin, sgn] of [['handleA', B_PIN_A, -1], ['handleB', B_PIN_B, 1]]) {
+    mb.origins[part] = pin;
+    // each side plate covers its pin's half of the closed grip
+    const yLo = sgn < 0 ? -0.0125 : 0.0, yHi = sgn < 0 ? 0.0 : 0.0125;
+    const plate = [[0.0078, yLo], [0.0078, yHi], [-0.124, yHi], [-0.124, yLo]];
+    const ym = (yLo + yHi) / 2;
+    const holes = [[-0.014, -0.04], [-0.046, -0.076], [-0.082, -0.11]].map(([f0, f1]) => [[f0, ym - 0.0022], [f0, ym + 0.0022], [f1, ym + 0.0022], [f1, ym - 0.0022]]);
+    for (const sx of [-1, 1]) mb.profile(plate, 0.0018, 'steel', { r: 0.0035, bevel: 0.0005, seg: 4, x: sx * 0.0046, holes, hr: 0.0018, part });
+    // outer strip closing the channel + pivot pin
+    mb.box(P(-0.058, sgn * 0.0118, 0), [0.0092, 0.0014, 0.124], 'steel', { part, bevel: 0.0004 });
+    mb.cyl([-0.0062, pin[1], pin[2]], [0.0062, pin[1], pin[2]], 0.0019, 0.0019, 'dark', { seg: 12, part });
+  }
+  // latch on the bite handle's tail
+  mb.box(P(-0.121, 0.0128, 0), [0.004, 0.0028, 0.012], 'dark', { part: 'handleB', bevel: 0.0005 });
+}
+
 // =========================================================== definitions
 // sockets: positions are gun-space [x,y,z].  Rotations are given either as
 // euler degrees `r` or as a basis for hands: y = finger direction (wrist ->
 // knuckles), z = back-of-hand direction. Hand sockets mark the WRIST.
+const KNIFE_FORE = { p: [-0.2, -0.42, -0.25], y: [0.3, 0.6, -0.75], z: [-0.95, 0, -0.3] };
+// hammer grip on a handle along +Z: wrist below-right, back of the hand toward the camera
+export const KNIFE_GRIP = { p: [0.03, -0.05, 0.08], y: [-0.5, 0.8, -0.33], z: [-0.8, -0.5, 0] };
 const DEFS = {
+  karambit: {
+    geometry: karambitGeometry,
+    sockets: {
+      muzzle: [0, -0.14, -0.1], eject: [0, 0, 0], spin: K_RING,
+      grip: { p: [0.028, -0.075, 0.05], y: [0, -0.12, -0.99], z: [1, 0, 0] },
+      fore: KNIFE_FORE,
+    },
+  },
+  butterfly: {
+    geometry: butterflyGeometry,
+    sockets: {
+      muzzle: [0, 0, -0.105], eject: [0, 0, 0], spin: B_PIN_A,
+      grip: { ...KNIFE_GRIP, p: [0.03, -0.04, 0.085] },
+      fore: KNIFE_FORE,
+    },
+  },
   rifle: {
     geometry: rifleGeometry,
     sockets: {
@@ -443,6 +519,14 @@ export const GLTF_DEFS = {
       ...PISTOL_HANDS, magHold: { p: [0, 0.097, -0.101], r: [124.5, 0, -180] },
     },
   },
+  knife: {
+    model: 'knife_combat', origin: [0, 0.01, 0], parts: {}, pivots: {},
+    sockets: { muzzle: [0, -0.01, -0.165], eject: [0, 0, 0], grip: { p: [0.03, -0.05, 0.08], y: [-0.5, 0.8, -0.33], z: [-0.8, -0.5, 0] }, fore: { p: [-0.2, -0.42, -0.25], y: [0.3, 0.6, -0.75], z: [-0.95, 0, -0.3] } },
+  },
+  m9: {
+    model: 'knife_m9', origin: [0, 0.015, 0.02], parts: {}, pivots: {}, noSkin: /handle/i,
+    sockets: { muzzle: [0, -0.01, -0.18], eject: [0, 0, 0], grip: { p: [0.03, -0.05, 0.08], y: [-0.5, 0.8, -0.33], z: [-0.8, -0.5, 0] }, fore: { p: [-0.2, -0.42, -0.25], y: [0.3, 0.6, -0.75], z: [-0.95, 0, -0.3] } },
+  },
   deagle: {
     model: 'gun_deagle', origin: [0, -0.02, 0.118],
     parts: { Magazine: 'mag', Slide: 'slide', Bolt: 'slide', Trigger: 'trigger' },
@@ -498,7 +582,10 @@ async function buildGLTFWeapon(kind) {
     }
     grp.attach(node);
   }
-  root.traverse((o) => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
+  root.traverse((o) => {
+    o.frustumCulled = false;
+    if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; if (def.noSkin && def.noSkin.test(o.material.name || '')) o.userData.noSkin = true; }
+  });
   return { root, nodes, sockets: def.sockets, kind, gltf: true };
 }
 

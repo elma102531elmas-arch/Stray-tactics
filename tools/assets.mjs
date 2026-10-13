@@ -92,8 +92,9 @@ export const GUNS = {
   gun_smg: { src: 'itch_3dmodelscc0_guns/greasegun.glb', tex: 1024 },
   gun_pistol: { src: 'itch_3dmodelscc0_guns/makarov.glb', tex: 1024 },
   gun_deagle: { src: 'oga_deagle_sirdraco/deagle.glb', tex: 512, drop: /^Bullets$/, scale: 0.0628, rotY: 180, ratio: 0.6 },
-  knife_m9: { src: 'oga_m9_knife/m9_knife.glb', tex: 1024, scale: 0.0258 },
-  knife_combat: { src: 'itch_3dmodelscc0_melee/combat_knife.glb', tex: 1024 },
+  knife_m9: { src: 'oga_m9_knife/m9_knife.glb', tex: 1024, scale: 0.0258, rotY: 90 },
+  // basis: where model +X / +Y end up (knife space: blade -Z, edge -Y)
+  knife_combat: { src: 'itch_3dmodelscc0_melee/combat_knife.glb', tex: 1024, basis: { x: [0, -1, 0], y: [0, 0, -1] } },
 };
 const RESEARCH = path.join(ROOT, '.cache/research');
 
@@ -240,6 +241,16 @@ function buildSounds() {
 // Bake skinned meshes into static geometry at their rest pose (rigid gun rigs
 // like the Desert Eagle): v' = sum(w * jointWorld * IBM) * v, node moved to
 // the scene root with an identity transform; skins/animations removed.
+// rotation taking +X to bx and +Y to by (z = bx cross by)
+function quatFromBasis(bx, by) {
+  const bz = [bx[1] * by[2] - bx[2] * by[1], bx[2] * by[0] - bx[0] * by[2], bx[0] * by[1] - bx[1] * by[0]];
+  const m00 = bx[0], m10 = bx[1], m20 = bx[2], m01 = by[0], m11 = by[1], m21 = by[2], m02 = bz[0], m12 = bz[1], m22 = bz[2];
+  const tr = m00 + m11 + m22;
+  if (tr > 0) { const S = Math.sqrt(tr + 1) * 2; return [(m21 - m12) / S, (m02 - m20) / S, (m10 - m01) / S, 0.25 * S]; }
+  if (m00 > m11 && m00 > m22) { const S = Math.sqrt(1 + m00 - m11 - m22) * 2; return [0.25 * S, (m01 + m10) / S, (m02 + m20) / S, (m21 - m12) / S]; }
+  if (m11 > m22) { const S = Math.sqrt(1 + m11 - m00 - m22) * 2; return [(m01 + m10) / S, 0.25 * S, (m12 + m21) / S, (m02 - m20) / S]; }
+  const S = Math.sqrt(1 + m22 - m00 - m11) * 2; return [(m02 + m20) / S, (m12 + m21) / S, 0.25 * S, (m10 - m01) / S];
+}
 function mat4mul(a, b) { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; }
 function unskin(doc) {
   const root = doc.getRoot();
@@ -292,11 +303,12 @@ async function buildGuns() {
     const root = doc.getRoot();
     if (g.drop) for (const n of root.listNodes()) if (g.drop.test(n.getName())) n.dispose();
     if (root.listSkins().length) unskin(doc);
-    if (g.scale || g.rotY || g.rotX) {
+    if (g.scale || g.rotY || g.rotX || g.basis) {
       const scene = root.listScenes()[0];
       const a = ((g.rotY || 0) * Math.PI) / 360, b = ((g.rotX || 0) * Math.PI) / 360;
       // q = qY * qX
-      const q = [Math.cos(a) * Math.sin(b), Math.sin(a) * Math.cos(b), -Math.sin(a) * Math.sin(b), Math.cos(a) * Math.cos(b)];
+      let q = [Math.cos(a) * Math.sin(b), Math.sin(a) * Math.cos(b), -Math.sin(a) * Math.sin(b), Math.cos(a) * Math.cos(b)];
+      if (g.basis) q = quatFromBasis(g.basis.x, g.basis.y);
       const wrap = doc.createNode('gun').setScale([g.scale || 1, g.scale || 1, g.scale || 1]).setRotation(q);
       for (const c of scene.listChildren()) { scene.removeChild(c); wrap.addChild(c); }
       scene.addChild(wrap);

@@ -38,6 +38,15 @@ await (async () => {
       if (q.get('lpose')) vm.lPoseName = q.get('lpose');
     }
     if (q.get('hip')) { const h = q.get('hip').split(',').map(Number); vm.def.vm.hip = { p: h.slice(0, 3), r: h.slice(3, 6) }; }
+    // &grip=x,y,z : override the right-hand socket position (gun space) for tuning
+    // &grip=x,y,z[,yx,yy,yz,zx,zy,zz] : override the right-hand socket (gun space) for tuning
+    if (q.get('grip')) {
+      const g = q.get('grip').split(',').map(Number);
+      const so = { ...vm.active.sockets.grip, p: g.slice(0, 3) };
+      if (g.length >= 9) { so.y = g.slice(3, 6); so.z = g.slice(6, 9); }
+      vm.active.sockets = { ...vm.active.sockets, grip: so };
+      vm.active.gripQ = (await import('./weapons/models.js')).socketQuat(so);
+    }
   }
   window.__ready = true;
   let rigCam = null;

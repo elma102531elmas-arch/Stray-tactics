@@ -16,11 +16,11 @@ const LONG = { shoulderR: [0.2, -0.3, 0.12], shoulderL: [-0.24, -0.44, -0.02], p
 const SHORT = { shoulderR: [0.2, -0.32, 0.12], shoulderL: [-0.2, -0.34, 0.08], poleR: [0.6, -0.9, 0.2], poleL: [-0.7, -0.9, 0.1], rPose: 'trigger', lPose: 'grip' };
 const BLADE = { shoulderR: [0.2, -0.32, 0.12], shoulderL: [-0.24, -0.44, 0.0], poleR: [0.7, -0.8, 0.25], poleL: [-0.8, -0.8, 0.1], rPose: 'knife', lPose: 'open', lhandFree: true, kickBack: 0, kickUp: 0 };
 
-const knife = (id, name, price) => ({
+const knife = (id, name, price, vm = {}) => ({
   id, name, slot: 'knife', cls: 'knife', kind: id, melee: true, price,
   dmg: 40, dmgHeavy: 65, backstab: 180, range: 2.0, delay: 0.42, heavyDelay: 1.0,
   speed: 6.1, sound: 'knife', drawTime: 0.6,
-  vm: { hip: { p: [0.14, -0.17, -0.34], r: [8, -6, -10] }, ...BLADE },
+  vm: { hip: { p: [0.13, -0.14, -0.33], r: [10, 10, -10] }, ...BLADE, ...vm },
 });
 
 export const WEAPONS = {
@@ -89,7 +89,7 @@ export const WEAPONS = {
   },
   knife: knife('knife', 'Talon', 0),
   m9: knife('m9', 'M9 Bayonet', 1),
-  karambit: knife('karambit', 'Karambit', 1),
+  karambit: knife('karambit', 'Karambit', 1, { hip: { p: [0.13, -0.11, -0.3], r: [45, -10, -45] }, rPose: 'karambit' }),
   butterfly: knife('butterfly', 'Butterfly', 1),
 };
 

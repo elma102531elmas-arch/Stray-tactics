@@ -9,23 +9,26 @@
 //     rhand: [{t, p, r, e}]                   offset from the grip socket
 //     mag:   [{t, p, r, e}]                   offset from the mag socket (while in the gun)
 //     cam:   [{t, r, e}]                      camera rotation offset (deg)
+//     model: [{t, p, r, e}]                   weapon model offset around its spin pivot (hands stay):
+//                                             karambit finger spins, balisong flips
 //     bolt:  [{t, v, e}]  boltRot: [{t, v}]   bolt/slide travel (m), bolt rotation (deg)
 //     lgrip: [{t, v}]     rgrip:   [{t, v}]   finger curl 0 (open) .. 1 (pose)
+//     hA:    [{t, v}]     hB:      [{t, v}]   balisong handle angles (0 open, 180 closed)
 //   },
 //   events: [{t, type:'sound'|'magToHand'|'magToGun'|'dropMag'|'newMag'|'ammo'|'kick'|'shell'|'lpose'|'rpose', ...}]
 // }
 // Interpolation per key `e`: 'smooth' (default, cubic Hermite through neighbours),
 // 'linear', 'step', 'in', 'out', 'inout'.
 
-export const VEC_TRACKS = ['gun', 'lhand', 'rhand', 'mag', 'cam'];
-export const SCALAR_TRACKS = ['bolt', 'boltRot', 'lgrip', 'rgrip', 'trigger'];
-export const SCALAR_REST = { bolt: 0, boltRot: 0, lgrip: 1, rgrip: 1, trigger: 0 };
+export const VEC_TRACKS = ['gun', 'lhand', 'rhand', 'mag', 'cam', 'model'];
+export const SCALAR_TRACKS = ['bolt', 'boltRot', 'lgrip', 'rgrip', 'trigger', 'hA', 'hB'];
+export const SCALAR_REST = { bolt: 0, boltRot: 0, lgrip: 1, rgrip: 1, trigger: 0, hA: 0, hB: 0 };
 export const EASES = ['smooth', 'linear', 'step', 'in', 'out', 'inout'];
-export const EVENT_TYPES = ['sound', 'kick', 'magToHand', 'magToGun', 'dropMag', 'newMag', 'ammo', 'shell', 'lpose', 'rpose'];
+export const EVENT_TYPES = ['sound', 'kick', 'magToHand', 'magToGun', 'dropMag', 'newMag', 'ammo', 'ammo1', 'shell', 'lpose', 'rpose', 'shellShow', 'shellHide'];
 
 export function makePose() {
   const v = () => ({ p: [0, 0, 0], r: [0, 0, 0] });
-  return { gun: v(), lhand: v(), rhand: v(), mag: v(), cam: v(), bolt: 0, boltRot: 0, lgrip: 1, rgrip: 1, trigger: 0 };
+  return { gun: v(), lhand: v(), rhand: v(), mag: v(), cam: v(), model: v(), bolt: 0, boltRot: 0, lgrip: 1, rgrip: 1, trigger: 0, hA: 0, hB: 0 };
 }
 export function copyPose(src, dst) {
   for (const k of VEC_TRACKS) { for (let i = 0; i < 3; i++) { dst[k].p[i] = src[k].p[i]; dst[k].r[i] = src[k].r[i]; } }

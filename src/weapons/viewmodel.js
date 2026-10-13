@@ -246,6 +246,18 @@ export class ViewModel {
       m.slideNode.rotation.set(0, 0, pose.boltRot * DEG);
     }
     if (m.triggerNode) m.triggerNode.rotation.x = -pose.trigger * 18 * DEG;
+    // balisong handles (0 = open, 180 = closed): A swings on the edge side, B over the spine
+    if (m.nodes.handleA) m.nodes.handleA.rotation.x = pose.hA * DEG;
+    if (m.nodes.handleB) m.nodes.handleB.rotation.x = -pose.hB * DEG;
+    // model track: rotate the weapon around its spin pivot while the hands stay
+    {
+      const sp = m.sockets.spin || ZERO3, mr = pose.model.r, mp = pose.model.p;
+      if (mr[0] || mr[1] || mr[2] || mp[0] || mp[1] || mp[2]) {
+        _q3.setFromEuler(_e.set(mr[0] * DEG, mr[1] * DEG, mr[2] * DEG));
+        m.root.quaternion.copy(_q3);
+        m.root.position.set(-sp[0], -sp[1], -sp[2]).applyQuaternion(_q3).add(_v3.set(sp[0] + mp[0], sp[1] + mp[1], sp[2] + mp[2]));
+      } else if (m.root.position.lengthSq() || m.root.quaternion.w < 1) { m.root.position.set(0, 0, 0); m.root.quaternion.identity(); }
+    }
 
     // ---- hand targets in gun space
     const s = m.sockets;
@@ -336,5 +348,6 @@ export class ViewModel {
 }
 
 const _rp = new THREE.Vector3(), _lp = new THREE.Vector3(), _rq = new THREE.Quaternion(), _lq = new THREE.Quaternion();
+const _q3 = new THREE.Quaternion(), _v3 = new THREE.Vector3(), ZERO3 = [0, 0, 0];
 const _shR = new THREE.Vector3(), _shL = new THREE.Vector3(), _poleR = new THREE.Vector3(), _poleL = new THREE.Vector3();
 void _m;

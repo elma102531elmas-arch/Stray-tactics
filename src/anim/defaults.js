@@ -323,6 +323,72 @@ const knifeInspect = {
 // knife rest has the left hand away from the weapon
 const knifeIdle = { name: 'idle', weapon: 'knife', duration: 1, tracks: { lhand: [K(0, LH_AWAY, Z)] }, events: [] };
 
+// ====================================================================== KARAMBIT
+// model track spins the knife around the index finger (ring = spin pivot);
+// +X rotation swings the claw forward and up in front of the fist.
+const karambitDraw = {
+  name: 'draw', weapon: 'karambit', duration: 0.8,
+  tracks: {
+    gun: [K(0, [0.02, -0.22, 0.06], [-40, 15, -20]), K(0.3, [0, 0.01, -0.01], [4, -2, 4], 'out'), K(0.45, [0, -0.004, 0.002], [-1, 0.5, -1.5]), K(0.8, Z, Z)],
+    model: [K(0, Z, [-330, 0, 0]), K(0.44, Z, Z, 'out'), K(0.8, Z, Z)],
+    rgrip: [V(0, 0.4), V(0.32, 0.45), V(0.46, 1)],
+    lhand: [K(0, LH_AWAY, Z)],
+  },
+  events: [S(0.04, 'knifeDraw'), S(0.16, 'knifeFlip'), KICK(0.44, [0, -0.03, 0.02], [-5, 0, 3])],
+};
+const karambitInspect = {
+  name: 'inspect', weapon: 'karambit', duration: 3.9,
+  tracks: {
+    gun: [K(0, Z, Z), K(0.35, [-0.055, 0.05, -0.04], [12, 38, -24]), K(0.5, [-0.057, 0.052, -0.042], [13, 40, -25]), K(1.7, [-0.055, 0.055, -0.04], [10, 36, -22]),
+      K(2.1, [-0.035, 0.06, -0.05], [6, -42, 18]), K(2.25, [-0.036, 0.061, -0.051], [6, -44, 19]), K(3.1, [-0.035, 0.058, -0.05], [5, -40, 16]),
+      K(3.5, [0.002, -0.004, 0], [-1, 0.5, -1.5]), K(3.9, Z, Z)],
+    model: [K(0, Z, Z), K(0.5, Z, Z), K(1.08, Z, [360, 0, 0], 'inout'), K(1.5, Z, [720, 0, 0], 'out'), K(2.75, Z, [720, 0, 0]), K(3.25, Z, [1080, 0, 0], 'inout'), K(3.9, Z, [1080, 0, 0])],
+    rgrip: [V(0, 1), V(0.5, 1), V(0.58, 0.45), V(1.45, 0.45), V(1.56, 1), V(2.75, 1), V(2.82, 0.5), V(3.2, 0.5), V(3.3, 1)],
+    lhand: [K(0, LH_AWAY, Z)],
+    cam: [K(0, Z, Z), K(0.5, Z, [-0.5, 0.6, 0.4]), K(1.5, Z, [0.4, -0.2, -0.3]), K(2.2, Z, [0.3, -0.4, -0.5]), K(3.9, Z, Z)],
+  },
+  events: [S(0.15, 'gear'), S(0.6, 'knifeFlip'), S(1.05, 'knifeFlip'), S(2.85, 'knifeFlip'), S(3.4, 'gear')],
+};
+
+// ====================================================================== BUTTERFLY
+// The hand keeps the safe handle (A); the model track counter-rotates around
+// pin A by -hA so the blade and the bite handle (B) swing around it.
+function balisongClip(name, duration, aKeys, bKeys, extra = {}) {
+  return {
+    name, weapon: 'butterfly', duration,
+    tracks: {
+      hA: aKeys.map(([t, v, e]) => V(t, v, e)), hB: bKeys.map(([t, v, e]) => V(t, v, e)),
+      model: aKeys.map(([t, v, e]) => K(t, Z, [-v, 0, 0], e)),
+      lhand: [K(0, LH_AWAY, Z)], ...(extra.tracks || {}),
+    },
+    events: extra.events || [],
+  };
+}
+const butterflyDraw = balisongClip('draw', 1.0,
+  [[0, 180], [0.16, 180], [0.46, 0, 'out'], [1.0, 0]],
+  [[0, 180], [0.4, 180], [0.7, 0, 'inout'], [1.0, 0]],
+  {
+    tracks: {
+      gun: [K(0, [0.02, -0.22, 0.06], [-30, 10, -20]), K(0.3, [0, 0.008, -0.01], [2, -2, 2], 'out'), K(0.5, [0.004, 0.012, -0.012], [6, 0, -4]), K(0.72, [0, -0.006, 0.004], [-3, 0, 2]), K(1.0, Z, Z)],
+      rgrip: [V(0, 0.75), V(0.4, 0.7), V(0.72, 0.85), V(0.8, 1)],
+    },
+    events: [S(0.04, 'knifeDraw'), S(0.18, 'swing'), S(0.46, 'balisong'), S(0.7, 'balisong'), KICK(0.47, [0, 0.02, -0.02], [3, 0, -2]), KICK(0.71, [0, -0.02, 0.01], [-3, 0, 2])],
+  });
+const butterflyInspect = balisongClip('inspect', 4.6,
+  [[0, 0], [0.55, 0], [0.85, 180, 'inout'], [1.75, 180], [2.05, 0, 'out'], [3.2, 0], [3.42, 180, 'inout'], [3.64, 0, 'inout'], [4.6, 0]],
+  [[0, 0], [0.25, 0], [0.55, 180, 'inout'], [2.0, 180], [2.3, 0, 'inout'], [2.6, 0], [2.8, 180, 'inout'], [3.0, 0, 'inout'], [4.6, 0]],
+  {
+    tracks: {
+      gun: [K(0, Z, Z), K(0.25, [-0.05, 0.045, -0.04], [10, 30, -20]), K(0.9, [-0.052, 0.05, -0.04], [10, 32, -18]),
+        K(1.3, [-0.05, 0.06, -0.04], [8, 30, 340], 'inout'), K(1.75, [-0.05, 0.05, -0.04], [10, 32, 342]),
+        K(2.3, [-0.045, 0.05, -0.04], [8, 20, 360 - 10]), K(3.8, [-0.04, 0.05, -0.04], [6, 16, 360 - 6]), K(4.2, [0.002, -0.004, 0], [-1, 0, 361]), K(4.6, Z, [0, 0, 360])],
+      rgrip: [V(0, 1), V(0.2, 0.7), V(2.4, 0.75), V(3.9, 0.85), V(4.2, 1)],
+      cam: [K(0, Z, Z), K(0.6, Z, [-0.5, 0.6, 0.4]), K(2.0, Z, [0.4, -0.3, -0.4]), K(3.5, Z, [-0.3, 0.3, 0.3]), K(4.6, Z, Z)],
+    },
+    events: [S(0.1, 'gear'), S(0.55, 'balisong'), S(0.85, 'balisong'), S(1.2, 'knifeFlip'), S(2.05, 'balisong'), S(2.3, 'balisong'),
+      S(2.8, 'balisong'), S(3.0, 'balisong'), S(3.42, 'balisong'), S(3.64, 'balisong'), S(4.3, 'gear')],
+  });
+
 // ====================================================================== SHOTGUN (pump)
 // left hand rides the pump (fore socket). Port = loading port under the receiver.
 const SG_PORT = [0.032, -0.012, 0.36], SG_PORT_R = [-28, 0, -52];
@@ -417,5 +483,7 @@ export const DEFAULT_CLIPS = {
   pistol: { draw: pistolDraw, fire: pistolFire, reload: pistolReload(false), reloadEmpty: pistolReload(true), inspect: pistolInspect },
   sniper: { draw: sniperDraw, fire: sniperFire, reload: sniperReload(false), reloadEmpty: sniperReload(true), inspect: sniperInspect },
   knife: { draw: knifeDraw, slash1: knifeSlash1, slash2: knifeSlash2, stab: knifeStab, inspect: knifeInspect, idle: knifeIdle },
+  karambit: { draw: karambitDraw, inspect: karambitInspect },
+  butterfly: { draw: butterflyDraw, inspect: butterflyInspect },
   shotgun: { draw: shotgunDraw, fire: shotgunFire, reloadStart: shotgunReloadStart, reloadInsert: shotgunReloadInsert, reloadEnd: shotgunReloadEnd(false), reloadEndPump: shotgunReloadEnd(true), inspect: shotgunInspect },
 };
