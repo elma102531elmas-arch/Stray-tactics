@@ -3,6 +3,7 @@
 // procedural springs (sway, bob, recoil, landing, clip "kick" events).
 import * as THREE from 'three';
 import { buildWeaponModel, socketQuat } from './models.js';
+import { applySkin } from './skins.js';
 import { buildArms } from './arms.js';
 import { WEAPONS } from './weapons.js';
 import { ClipPlayer } from '../anim/clip.js';
@@ -78,6 +79,15 @@ export class ViewModel {
     const arms = await buildArms();
     this.arms = arms;
     this.root.add(arms.right.mesh, arms.left.mesh);
+    // shotgun shell held by the left hand while loading (hand frame: y = fingers, z = back of hand)
+    const shell = new THREE.Group();
+    const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.0105, 0.0105, 0.055, 14), new THREE.MeshStandardMaterial({ color: 0x8a1b16, roughness: 0.45, metalness: 0.0 }));
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.0112, 0.0112, 0.016, 14), new THREE.MeshStandardMaterial({ color: 0xc9a14a, roughness: 0.3, metalness: 1 }));
+    base.position.y = -0.034; shell.add(hull, base);
+    shell.position.set(-0.012, 0.105, -0.028); shell.rotation.set(0, 0, -1.2);
+    shell.visible = false;
+    arms.left.bones.hand.add(shell);
+    this.handShell = shell;
   }
 
   async preload(kinds) { for (const k of kinds) await this._model(k); }
@@ -96,10 +106,23 @@ export class ViewModel {
     return this.models[kind];
   }
 
+  // skin: {id, wear, seed} or null
+  setSkin(m, skin) {
+    const key = skin ? skin.id + ':' + (skin.wear ?? 0) + ':' + (skin.seed ?? 0) : '';
+    if (m.skinKey === key) return;
+    if (m.skinUndo) { m.skinUndo(); m.skinUndo = null; }
+    // the muzzle flash is parented to the active gun while equipped
+    const flashParent = this.flash.parent; if (flashParent) flashParent.remove(this.flash);
+    if (skin) m.skinUndo = applySkin(m.root, skin.id, { wear: skin.wear, seed: skin.seed });
+    if (flashParent) flashParent.add(this.flash);
+    m.skinKey = key;
+  }
+
   async equip(kind, opts = {}) {
     const seq = (this._equipSeq = (this._equipSeq || 0) + 1);
-    const m = await this._model(kind, opts.skin);
+    const m = await this._model(kind);
     if (seq !== this._equipSeq) return 0; // superseded by a newer equip
+    this.setSkin(m, opts.skin || null);
     if (this.active) this.gunPivot.remove(this.active.root);
     this.active = m; this.kind = kind; this.def = WEAPONS[kind];
     this.gunPivot.add(m.root);
@@ -107,6 +130,7 @@ export class ViewModel {
     const mz = m.sockets.muzzle; this.flash.position.set(mz[0], mz[1], mz[2] - 0.03);
     this.flashLight.position.set(0.05, -0.05, -0.6);
     this.magState = 'gun'; this.magBlend = 1; this.magHoldRel = null; this.slideLocked = false;
+    if (this.handShell) this.handShell.visible = false;
     if (m.nodes.mag) m.nodes.mag.visible = true;
     this.lPoseName = this.def.vm.lPose; this.rPoseName = this.def.vm.rPose;
     this.posSpring.reset(); this.rotSpring.reset();
@@ -138,7 +162,8 @@ export class ViewModel {
     this.camKick.impulse(-up * 0.9, (Math.random() - 0.5) * up * 0.5, 0);
     this.flashT = 0.045; this.flash.visible = true;
     this.flash.rotation.z = Math.random() * Math.PI * 2;
-    const s = (this.kind === 'pistol' ? 0.13 : 0.2) * (0.85 + Math.random() * 0.35);
+    const cls = this.def.cls;
+    const s = (cls === 'pistol' ? 0.13 : cls === 'shotgun' ? 0.3 : cls === 'smg' ? 0.16 : 0.2) * (0.85 + Math.random() * 0.35);
     this.flash.scale.set(s, s, s);
     this.flashLight.intensity = 4;
     if (this.player.name === 'inspect') this.player.stop(0.08);
@@ -166,6 +191,8 @@ export class ViewModel {
         if (m && m.nodes.mag) { m.nodes.mag.visible = true; this.magState = 'hand'; this.magBlend = 1; }
         break;
       case 'lpose': this.lPoseName = e.pose || this.def.vm.lPose; break;
+      case 'shellShow': if (this.handShell) this.handShell.visible = true; break;
+      case 'shellHide': if (this.handShell) this.handShell.visible = false; break;
       case 'rpose': this.rPoseName = e.pose || this.def.vm.rPose; break;
       default: break;
     }

@@ -16,7 +16,7 @@ export async function makeWeaponIcons(renderer) {
   const cam = new THREE.OrthographicCamera(-0.5, 0.5, 0.19, -0.19, 0.01, 10);
   cam.position.set(2, 0, 0); cam.lookAt(0, 0, 0);
   const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  for (const id of ['rifle', 'sniper', 'pistol', 'knife']) {
+  for (const id of Object.keys(WEAPONS)) {
     const m = await buildWorldWeapon(id);
     m.material = mat;
     const box = new THREE.Box3().setFromObject(m); const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
@@ -209,7 +209,7 @@ export class HUD {
     const scoped = p.scoped > 0;
     this.scope.classList.toggle('show', scoped);
     this.cross.style.display = scoped || (g && g.def.scope && !scoped && false) ? 'none' : 'block';
-    if (g && g.def.kind === 'sniper' && !scoped) this.cross.style.opacity = '0.0'; else this.cross.style.opacity = '1';
+    if (g && g.def.cls === 'sniper' && !scoped) this.cross.style.opacity = '0.0'; else this.cross.style.opacity = '1';
     if (this.hitT > 0) { this.hitT -= dt; if (this.hitT <= 0) this.hitm.className = 'hitmarker'; }
     if (g && g.reloading) { this.reloadBar.style.display = 'block'; const tot = (g.reloadEnd - (g.reloadStart || g.reloadEnd - 2)); this.reloadBar.firstChild.style.width = Math.min(100, (1 - (g.reloadEnd - game.time) / Math.max(0.1, tot)) * 100) + '%'; }
     else this.reloadBar.style.display = 'none';

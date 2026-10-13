@@ -6,6 +6,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { buildWorldWeapon, WEAPON_MODEL_DEFS, socketQuat } from '../weapons/models.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { clamp, damp, DEG } from '../core/util.js';
+import { clsOf } from '../weapons/weapons.js';
 
 export const TEAMS = [
   { name: 'RAIDERS', color: '#e0a64a', shirt: 0xb59a6e, pants: 0x8a7556, vest: 0x5e4a33, accent: 0xa8382c, skin: 0xc58f6a, head: 'wrap' },
@@ -192,7 +193,7 @@ export class Character {
     const w = await buildWorldWeapon(kind);
     const def = WEAPON_MODEL_DEFS[kind];
     // shouldered weapon in chest space (character faces -Z)
-    const isPistol = kind === 'pistol', isKnife = kind === 'knife';
+    const cls = clsOf(kind), isPistol = cls === 'pistol', isKnife = cls === 'knife';
     w.position.set(isPistol ? 0.05 : 0.09, isPistol ? 0.2 : 0.2, isPistol ? -0.42 : isKnife ? -0.35 : -0.3);
     w.rotation.set(0, 0, 0);
     this.bones.chest.add(w);

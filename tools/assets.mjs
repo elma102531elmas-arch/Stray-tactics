@@ -14,7 +14,7 @@ import sharp from 'sharp';
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, EXTMeshoptCompression } from '@gltf-transform/extensions';
 import { dedup, prune, weld, quantize, simplify, textureCompress, meshopt } from '@gltf-transform/functions';
-import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
+import { MeshoptEncoder, MeshoptSimplifier, MeshoptDecoder } from 'meshoptimizer';
 import ffmpegPath from 'ffmpeg-static';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -41,6 +41,9 @@ export const TEXTURES = {
   rust: { ph: 'rusty_metal_02', size: 512 },
   roof: { ph: 'clay_roof_tiles_02', size: 512 },
   leather: { ph: 'fabric_leather_02', size: 512 },
+  fabric: { ph: 'stretch_poplin', size: 512 },
+  neoprene: { ph: 'scuba_suede', size: 512 },
+  denim: { ph: 'denim_fabric_05', size: 512 },
 };
 
 // Poly Haven models -> game asset name
@@ -69,6 +72,30 @@ export const MODELS = {
   table_wood: { ph: 'WoodenTable_01', tex: 512 },
   lantern: { ph: 'wooden_lantern_01', tex: 512, ratio: 0.5 },
 };
+
+// skinned models from direct URLs (kept rigged; materials are set in code)
+export const URL_MODELS = {
+  // WebXR generic hands (MIT): https://github.com/immersive-web/webxr-input-profiles
+  hand_r: 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0.19/dist/profiles/generic-hand/right.glb',
+  hand_l: 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0.19/dist/profiles/generic-hand/left.glb',
+};
+
+// Weapon models (CC0 unless noted, see assets/CREDITS.md). Sources were
+// converted from FBX/.blend to GLB with tools/b2glb.py (Blender as a Python
+// module) into .cache/research/<pack>/; this step only optimizes them.
+//   scale/rotY: normalize to meters and gun space (-Z = muzzle, +Y = up)
+export const GUNS = {
+  gun_ak: { src: 'itch_3dmodelscc0_guns/ak47.glb', tex: 1024 },
+  gun_m4: { src: 'oga_m4a1_cc0/m4a1.glb', tex: 1024 },
+  gun_sniper: { src: 'itch_3dmodelscc0_guns/sniper.glb', tex: 1024, rotX: -10.2 },
+  gun_shotgun: { src: 'itch_3dmodelscc0_guns/shotgun.glb', tex: 1024 },
+  gun_smg: { src: 'itch_3dmodelscc0_guns/greasegun.glb', tex: 1024 },
+  gun_pistol: { src: 'itch_3dmodelscc0_guns/makarov.glb', tex: 1024 },
+  gun_deagle: { src: 'oga_deagle_sirdraco/deagle.glb', tex: 512, drop: /^Bullets$/, scale: 0.0628, rotY: 180, ratio: 0.6 },
+  knife_m9: { src: 'oga_m9_knife/m9_knife.glb', tex: 1024, scale: 0.0258 },
+  knife_combat: { src: 'itch_3dmodelscc0_melee/combat_knife.glb', tex: 1024 },
+};
+const RESEARCH = path.join(ROOT, '.cache/research');
 
 // ---------------------------------------------------------------- helpers
 function get(url, dest) {
@@ -110,6 +137,10 @@ async function fetchModels() {
     if (!exists(main)) await get(g.url, main);
     for (const [rel, inc] of Object.entries(g.include || {})) { const d = path.join(dir, rel); if (!exists(d)) await get(inc.url, d); }
     console.log('model', name);
+  }
+  for (const [name, url] of pick(URL_MODELS)) {
+    const d = path.join(CACHE, 'models', name + '.glb');
+    if (!exists(d)) { await get(url, d); console.log('model', name); }
   }
   const soldier = path.join(CACHE, 'models', 'Soldier.glb');
   if (!exists(soldier)) await get('https://raw.githubusercontent.com/mrdoob/three.js/r170/examples/models/gltf/Soldier.glb', soldier);
@@ -162,6 +193,13 @@ async function buildModels() {
     await io.write(dest, doc);
     console.log('model', name, (fs.statSync(dest).size / 1024).toFixed(0) + ' KB');
   }
+  for (const [name] of pick(URL_MODELS)) {
+    const doc = await io.read(path.join(CACHE, 'models', name + '.glb'));
+    await optimizeModel(io, doc, { tex: 256 });
+    const dest = path.join(dir, `${name}.glb`);
+    await io.write(dest, doc);
+    console.log('model', name, (fs.statSync(dest).size / 1024).toFixed(0) + ' KB');
+  }
   if (ONLY.length && !ONLY.includes('soldier')) return;
   // soldier (keep skinning + animations)
   const doc = await io.read(path.join(CACHE, 'models', 'Soldier.glb'));
@@ -199,7 +237,88 @@ function buildSounds() {
   console.log('sounds', Object.keys(SOUNDS).length, (total / 1024).toFixed(0) + ' KB');
 }
 
+// Bake skinned meshes into static geometry at their rest pose (rigid gun rigs
+// like the Desert Eagle): v' = sum(w * jointWorld * IBM) * v, node moved to
+// the scene root with an identity transform; skins/animations removed.
+function mat4mul(a, b) { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; }
+function unskin(doc) {
+  const root = doc.getRoot();
+  const scene = root.listScenes()[0];
+  for (const node of root.listNodes()) {
+    const skin = node.getSkin(); if (!skin || !node.getMesh()) continue;
+    const joints = skin.listJoints(), ibm = skin.getInverseBindMatrices();
+    const M = joints.map((j, i) => mat4mul(j.getWorldMatrix(), ibm ? Array.from(ibm.getElement(i, [])) : [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
+    const mesh = node.getMesh().clone(); node.setMesh(mesh);
+    for (const prim of mesh.listPrimitives()) {
+      const pos = prim.getAttribute('POSITION').clone(), nor = prim.getAttribute('NORMAL')?.clone();
+      const J = prim.getAttribute('JOINTS_0'), W = prim.getAttribute('WEIGHTS_0');
+      const v = [0, 0, 0], n = [0, 0, 0], jj = [0, 0, 0, 0], ww = [0, 0, 0, 0];
+      for (let i = 0; i < pos.getCount(); i++) {
+        J.getElement(i, jj); W.getElement(i, ww);
+        const m = new Array(16).fill(0);
+        for (let k = 0; k < 4; k++) if (ww[k]) for (let e = 0; e < 16; e++) m[e] += ww[k] * M[jj[k]][e];
+        pos.getElement(i, v);
+        pos.setElement(i, [m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12], m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13], m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14]]);
+        if (nor) {
+          nor.getElement(i, n);
+          const x = m[0] * n[0] + m[4] * n[1] + m[8] * n[2], y = m[1] * n[0] + m[5] * n[1] + m[9] * n[2], z = m[2] * n[0] + m[6] * n[1] + m[10] * n[2], l = Math.hypot(x, y, z) || 1;
+          nor.setElement(i, [x / l, y / l, z / l]);
+        }
+      }
+      prim.setAttribute('POSITION', pos); if (nor) prim.setAttribute('NORMAL', nor);
+      prim.setAttribute('JOINTS_0', null); prim.setAttribute('WEIGHTS_0', null);
+    }
+    node.setSkin(null);
+    const parent = node.getParentNode(); if (parent) parent.removeChild(node);
+    node.setTranslation([0, 0, 0]).setRotation([0, 0, 0, 1]).setScale([1, 1, 1]);
+    scene.addChild(node);
+  }
+  for (const a of root.listAnimations()) a.dispose();
+  for (const sk of root.listSkins()) sk.dispose();
+  // drop the now empty joint hierarchy (keeps part names unique)
+  const hasMesh = (n) => !!n.getMesh() || n.listChildren().some(hasMesh);
+  for (const n of root.listNodes()) if (!hasMesh(n)) n.dispose();
+}
+
+async function buildGuns() {
+  const dir = path.join(OUT, 'models'); fs.mkdirSync(dir, { recursive: true });
+  await MeshoptEncoder.ready;
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder, 'meshopt.decoder': MeshoptDecoder });
+  await MeshoptDecoder.ready;
+  for (const [name, g] of pick(GUNS)) {
+    const src = path.join(RESEARCH, g.src);
+    if (!exists(src)) { console.log('missing', src); continue; }
+    const doc = await io.read(src);
+    const root = doc.getRoot();
+    if (g.drop) for (const n of root.listNodes()) if (g.drop.test(n.getName())) n.dispose();
+    if (root.listSkins().length) unskin(doc);
+    if (g.scale || g.rotY || g.rotX) {
+      const scene = root.listScenes()[0];
+      const a = ((g.rotY || 0) * Math.PI) / 360, b = ((g.rotX || 0) * Math.PI) / 360;
+      // q = qY * qX
+      const q = [Math.cos(a) * Math.sin(b), Math.sin(a) * Math.cos(b), -Math.sin(a) * Math.sin(b), Math.cos(a) * Math.cos(b)];
+      const wrap = doc.createNode('gun').setScale([g.scale || 1, g.scale || 1, g.scale || 1]).setRotation(q);
+      for (const c of scene.listChildren()) { scene.removeChild(c); wrap.addChild(c); }
+      scene.addChild(wrap);
+    }
+    await doc.transform(dedup(), prune(), weld());
+    if (g.ratio) await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: g.ratio, error: 0.001 }));
+    // normal maps keep more quality than color/metal-rough maps
+    await doc.transform(
+      textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [g.tex, g.tex], quality: 86, slots: /^normalTexture$/ }),
+      textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [g.tex, g.tex], quality: 78, slots: /^(?!normalTexture$).*$/ }),
+      prune({ keepAttributes: false }), quantize(),
+    );
+    doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.FILTER });
+    await doc.transform(meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+    const dest = path.join(dir, `${name}.glb`);
+    await io.write(dest, doc);
+    console.log('gun', name, (fs.statSync(dest).size / 1024).toFixed(0) + ' KB');
+  }
+}
+
 const cmd = process.argv[2] || 'all';
+if (cmd === 'guns') await buildGuns();
 if (cmd === 'fetch' || cmd === 'all') { await fetchTextures(); await fetchModels(); await fetchSounds(); }
 if (cmd === 'build' || cmd === 'all') { await buildTextures(); await buildModels(); buildSounds(); }
 if (cmd === 'sounds') { await fetchSounds(); buildSounds(); }

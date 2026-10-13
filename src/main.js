@@ -50,7 +50,7 @@ class App {
     await new Promise((r) => setTimeout(r, 30));
     this.loading(true, 'Building weapons', 0.1);
     await this.vm.init();
-    await this.vm.preload(['rifle', 'pistol', 'sniper', 'knife']);
+    await this.vm.preload(['rifle', 'pistol', 'knife']);
     await makeWeaponIcons(this.renderer.r);
     await this.loadMap('__builtin');
     this.renderer.onResize(innerWidth, innerHeight);

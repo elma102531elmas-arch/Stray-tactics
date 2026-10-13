@@ -11,6 +11,12 @@ import { damageFor } from './combat.js';
 import { settings } from '../core/settings.js';
 import { el, pick } from '../core/util.js';
 import { TEAMS } from './character.js';
+import { clsOf, PRIMARIES } from '../weapons/weapons.js';
+
+// bots carry a mix of primaries (weights)
+const BOT_GUNS = [['rifle', 30], ['m4', 25], ['smg', 16], ['shotgun', 9], ['sniper', 20]];
+function botGun() { let r = Math.random() * 100; for (const [g, w] of BOT_GUNS) { if ((r -= w) < 0) return g; } return 'rifle'; }
+void PRIMARIES;
 
 export class Game {
   constructor(app, opts = {}) {
@@ -33,7 +39,8 @@ export class Game {
     this.nav = this.world.nav || (this.world.nav = new NavGrid(this.world.collision, this.world.collision.bounds, 1));
     const myTeam = o.team ?? 0;
     this.player = new Player(this, settings.name || 'PLAYER', myTeam);
-    this.player.setLoadout(o.primary || 'rifle');
+    this.player.setLoadout(o.loadout || { primary: o.primary || settings.primary || 'rifle', secondary: settings.secondary || 'pistol', knife: o.knife || 'knife' });
+    this.player.skinFor = o.skinFor || null;
     this.actors.push(this.player);
     if (o.mode === 'tdm') {
       // o.bots = teammates; enemies = o.bots + 1  ->  5v5 by default
@@ -41,7 +48,7 @@ export class Game {
       for (let i = 0; i < total; i++) {
         const team = i <= o.bots ? 1 - myTeam : myTeam;
         const b = new Bot(this, team, botName(), o.difficulty);
-        await b.init(Math.random() < 0.18 ? 'sniper' : 'rifle');
+        await b.init(botGun());
         this.bots.push(b); this.actors.push(b);
         onProgress && onProgress(0.3 + 0.5 * (i + 1) / total, 'Spawning bots');
       }
@@ -78,15 +85,16 @@ export class Game {
   }
 
   // ------------------------------------------------------------- combat
-  onShot(shooter, origin, dir, res, def) {
+  onShot(shooter, origin, dir, res, def, extraPellet) {
     if (res.actor) {
       const dist = res.t;
       const dmg = damageFor(def, res.zone, dist);
       this.applyDamage(shooter, res.actor, dmg, res.zone, dir, def.id);
       this.effects.bloodHit(res.end, dir);
     } else if (res.normal) {
-      this.effects.impact(res.end, res.normal, res.mat, { silent: false });
+      this.effects.impact(res.end, res.normal, res.mat, { silent: !!extraPellet && Math.random() < 0.7 });
     }
+    if (extraPellet) return;
     // hearing + radar spotting
     shooter.spottedT = this.time;
     for (const b of this.bots) if (b.team !== shooter.team && b.alive && b.pos.distanceTo(origin) < 38) b.hear(origin);
@@ -123,8 +131,14 @@ export class Game {
   onVmEvent(e) {
     const p = this.player, cam = this.camera;
     switch (e.type) {
-      case 'sound': audio.play(e.name, { vol: 0.7, reverb: 0.08 }); break;
+      case 'sound': {
+        // weapon specific recordings first (pistol_magIn, sniper_boltBack...), then generic
+        const cls = p.gun ? p.gun.def.cls : '';
+        audio.play(audio.pick(cls + '_' + e.name, e.name), { vol: 0.7, reverb: 0.08 });
+        break;
+      }
       case 'ammo': p.giveAmmo(); break;
+      case 'ammo1': p.giveShell(); break;
       case 'dropMag': {
         // vm-space -> world: the vm scene is camera-centred and world-oriented
         const m = e.matrix.clone(); const pos = new THREE.Vector3().setFromMatrixPosition(m).add(cam.position);
@@ -138,7 +152,8 @@ export class Game {
         const pos = e.pos.clone().add(cam.position);
         const right = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion), up = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion);
         const v = right.multiplyScalar(1.6 + Math.random()).add(up.multiplyScalar(1.4 + Math.random())).add(p.vel);
-        this.effects.shell(pos, v, e.kind === 'sniper' ? 1.5 : e.kind === 'pistol' ? 0.8 : 1);
+        const cls = clsOf(e.kind);
+        this.effects.shell(pos, v, cls === 'sniper' ? 1.5 : cls === 'pistol' ? 0.8 : cls === 'shotgun' ? 1.6 : 1);
         break;
       }
       default: break;

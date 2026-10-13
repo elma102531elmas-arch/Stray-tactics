@@ -1,1 +1,90 @@
-{}
+{
+ "shot_ak": {
+  "fs": 136399,
+  "url": "https://cdn.freesound.org/previews/136/136399_1661766-hq.mp3",
+  "start": 10.1528,
+  "dur": 0.95,
+  "gain": 0.9969,
+  "hp": 35,
+  "fade": 0.4,
+  "title": "Rifle Gun Shot AK47. close recording in a shooting range.",
+  "author": "felix.blume"
+ },
+ "shot_m4": {
+  "fs": 492733,
+  "url": "https://cdn.freesound.org/previews/492/492733_10603899-hq.mp3",
+  "start": 0.9368,
+  "dur": 0.85,
+  "gain": 0.683,
+  "hp": 40,
+  "fade": 0.45,
+  "title": "ZM_117A_S03.wav",
+  "author": "_Linus_Sebastian"
+ },
+ "shot_smg": {
+  "fs": 476433,
+  "url": "https://cdn.freesound.org/previews/476/476433_8223350-hq.mp3",
+  "start": 0.027,
+  "dur": 0.46,
+  "gain": 0.6483,
+  "hp": 150,
+  "fade": 0.2,
+  "title": "Shot Sound Effect",
+  "author": "MEDROV"
+ },
+ "shot_shotgun": {
+  "fs": 773873,
+  "url": "https://cdn.freesound.org/previews/773/773873_15468302-hq.mp3",
+  "start": 0.0009,
+  "dur": 1.05,
+  "gain": 0.9194,
+  "hp": 30,
+  "fade": 0.5,
+  "title": "shotgun shoot",
+  "author": "MrGungus"
+ },
+ "shot_sniper": {
+  "fs": 431832,
+  "url": "https://cdn.freesound.org/previews/431/431832_6138164-hq.mp3",
+  "start": 0.433,
+  "dur": 1.33,
+  "gain": 0.6657,
+  "hp": 30,
+  "fade": 0.55,
+  "title": "Sauer 404 close shot 2.wav",
+  "author": "moosegravy"
+ },
+ "shot_pistol": {
+  "fs": 711549,
+  "url": "https://cdn.freesound.org/previews/711/711549_15072041-hq.mp3",
+  "start": 0.0246,
+  "dur": 0.5,
+  "gain": 0.7284,
+  "hp": 60,
+  "fade": 0.2,
+  "title": "SIG Sauer P226 Legion Exterior Close",
+  "author": "areniporgen"
+ },
+ "shot_deagle": {
+  "fs": 712310,
+  "url": "https://cdn.freesound.org/previews/712/712310_15072041-hq.mp3",
+  "start": 0.0009,
+  "dur": 0.9,
+  "gain": 0.9,
+  "hp": 30,
+  "fade": 0.45,
+  "title": "Magnum Research Desert Eagle",
+  "author": "areniporgen"
+ },
+ "shot_distant": {
+  "fs": 431826,
+  "url": "https://cdn.freesound.org/previews/431/431826_6138164-hq.mp3",
+  "start": 0.1688,
+  "dur": 1.8,
+  "gain": 1.0908,
+  "hp": 60,
+  "fade": 0.8,
+  "title": "Medium distance rifle shot with echo.wav",
+  "author": "moosegravy"
+ }
+}

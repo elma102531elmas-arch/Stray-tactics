@@ -13,64 +13,92 @@ import a10 from '../../assets/models/covered_car.glb';
 import a11 from '../../assets/models/crate_lettered.glb';
 import a12 from '../../assets/models/crate_military.glb';
 import a13 from '../../assets/models/crate_wood.glb';
-import a14 from '../../assets/models/jerrycan.glb';
-import a15 from '../../assets/models/lantern.glb';
-import a16 from '../../assets/models/pistol_ph.glb';
-import a17 from '../../assets/models/pot_clay.glb';
-import a18 from '../../assets/models/shutter_door.glb';
-import a19 from '../../assets/models/soldier.glb';
-import a20 from '../../assets/models/table_wood.glb';
-import a21 from '../../assets/models/tyre.glb';
-import a22 from '../../assets/models/utility_box.glb';
-import a23 from '../../assets/models/vase_jug.glb';
-import a24 from '../../assets/tex/concrete_arm.webp';
-import a25 from '../../assets/tex/concrete_diff.webp';
-import a26 from '../../assets/tex/concrete_nor.webp';
-import a27 from '../../assets/tex/crate_arm.webp';
-import a28 from '../../assets/tex/crate_diff.webp';
-import a29 from '../../assets/tex/crate_nor.webp';
-import a30 from '../../assets/tex/door_arm.webp';
-import a31 from '../../assets/tex/door_diff.webp';
-import a32 from '../../assets/tex/door_nor.webp';
-import a33 from '../../assets/tex/leather_arm.webp';
-import a34 from '../../assets/tex/leather_diff.webp';
-import a35 from '../../assets/tex/leather_nor.webp';
-import a36 from '../../assets/tex/metal_arm.webp';
-import a37 from '../../assets/tex/metal_diff.webp';
-import a38 from '../../assets/tex/metal_nor.webp';
-import a39 from '../../assets/tex/pavers_arm.webp';
-import a40 from '../../assets/tex/pavers_diff.webp';
-import a41 from '../../assets/tex/pavers_nor.webp';
-import a42 from '../../assets/tex/plaster_arm.webp';
-import a43 from '../../assets/tex/plaster_blue_arm.webp';
-import a44 from '../../assets/tex/plaster_blue_diff.webp';
-import a45 from '../../assets/tex/plaster_blue_nor.webp';
-import a46 from '../../assets/tex/plaster_diff.webp';
-import a47 from '../../assets/tex/plaster_nor.webp';
-import a48 from '../../assets/tex/plaster_ochre_arm.webp';
-import a49 from '../../assets/tex/plaster_ochre_diff.webp';
-import a50 from '../../assets/tex/plaster_ochre_nor.webp';
-import a51 from '../../assets/tex/roof_arm.webp';
-import a52 from '../../assets/tex/roof_diff.webp';
-import a53 from '../../assets/tex/roof_nor.webp';
-import a54 from '../../assets/tex/rust_arm.webp';
-import a55 from '../../assets/tex/rust_diff.webp';
-import a56 from '../../assets/tex/rust_nor.webp';
-import a57 from '../../assets/tex/sand_arm.webp';
-import a58 from '../../assets/tex/sand_diff.webp';
-import a59 from '../../assets/tex/sand_nor.webp';
-import a60 from '../../assets/tex/sandstone_arm.webp';
-import a61 from '../../assets/tex/sandstone_diff.webp';
-import a62 from '../../assets/tex/sandstone_nor.webp';
-import a63 from '../../assets/tex/sandstone_white_arm.webp';
-import a64 from '../../assets/tex/sandstone_white_diff.webp';
-import a65 from '../../assets/tex/sandstone_white_nor.webp';
-import a66 from '../../assets/tex/tiles_arm.webp';
-import a67 from '../../assets/tex/tiles_diff.webp';
-import a68 from '../../assets/tex/tiles_nor.webp';
-import a69 from '../../assets/tex/wood_arm.webp';
-import a70 from '../../assets/tex/wood_diff.webp';
-import a71 from '../../assets/tex/wood_nor.webp';
+import a14 from '../../assets/models/gun_ak.glb';
+import a15 from '../../assets/models/gun_deagle.glb';
+import a16 from '../../assets/models/gun_m4.glb';
+import a17 from '../../assets/models/gun_pistol.glb';
+import a18 from '../../assets/models/gun_shotgun.glb';
+import a19 from '../../assets/models/gun_smg.glb';
+import a20 from '../../assets/models/gun_sniper.glb';
+import a21 from '../../assets/models/hand_l.glb';
+import a22 from '../../assets/models/hand_r.glb';
+import a23 from '../../assets/models/jerrycan.glb';
+import a24 from '../../assets/models/knife_combat.glb';
+import a25 from '../../assets/models/knife_m9.glb';
+import a26 from '../../assets/models/lantern.glb';
+import a27 from '../../assets/models/pistol_ph.glb';
+import a28 from '../../assets/models/pot_clay.glb';
+import a29 from '../../assets/models/shutter_door.glb';
+import a30 from '../../assets/models/soldier.glb';
+import a31 from '../../assets/models/table_wood.glb';
+import a32 from '../../assets/models/tyre.glb';
+import a33 from '../../assets/models/utility_box.glb';
+import a34 from '../../assets/models/vase_jug.glb';
+import a35 from '../../assets/sfx/shot_ak.mp3';
+import a36 from '../../assets/sfx/shot_deagle.mp3';
+import a37 from '../../assets/sfx/shot_distant.mp3';
+import a38 from '../../assets/sfx/shot_m4.mp3';
+import a39 from '../../assets/sfx/shot_pistol.mp3';
+import a40 from '../../assets/sfx/shot_shotgun.mp3';
+import a41 from '../../assets/sfx/shot_smg.mp3';
+import a42 from '../../assets/sfx/shot_sniper.mp3';
+import a43 from '../../assets/tex/concrete_arm.webp';
+import a44 from '../../assets/tex/concrete_diff.webp';
+import a45 from '../../assets/tex/concrete_nor.webp';
+import a46 from '../../assets/tex/crate_arm.webp';
+import a47 from '../../assets/tex/crate_diff.webp';
+import a48 from '../../assets/tex/crate_nor.webp';
+import a49 from '../../assets/tex/denim_arm.webp';
+import a50 from '../../assets/tex/denim_diff.webp';
+import a51 from '../../assets/tex/denim_nor.webp';
+import a52 from '../../assets/tex/door_arm.webp';
+import a53 from '../../assets/tex/door_diff.webp';
+import a54 from '../../assets/tex/door_nor.webp';
+import a55 from '../../assets/tex/fabric_arm.webp';
+import a56 from '../../assets/tex/fabric_diff.webp';
+import a57 from '../../assets/tex/fabric_nor.webp';
+import a58 from '../../assets/tex/leather_arm.webp';
+import a59 from '../../assets/tex/leather_diff.webp';
+import a60 from '../../assets/tex/leather_nor.webp';
+import a61 from '../../assets/tex/metal_arm.webp';
+import a62 from '../../assets/tex/metal_diff.webp';
+import a63 from '../../assets/tex/metal_nor.webp';
+import a64 from '../../assets/tex/neoprene_arm.webp';
+import a65 from '../../assets/tex/neoprene_diff.webp';
+import a66 from '../../assets/tex/neoprene_nor.webp';
+import a67 from '../../assets/tex/pavers_arm.webp';
+import a68 from '../../assets/tex/pavers_diff.webp';
+import a69 from '../../assets/tex/pavers_nor.webp';
+import a70 from '../../assets/tex/plaster_arm.webp';
+import a71 from '../../assets/tex/plaster_blue_arm.webp';
+import a72 from '../../assets/tex/plaster_blue_diff.webp';
+import a73 from '../../assets/tex/plaster_blue_nor.webp';
+import a74 from '../../assets/tex/plaster_diff.webp';
+import a75 from '../../assets/tex/plaster_nor.webp';
+import a76 from '../../assets/tex/plaster_ochre_arm.webp';
+import a77 from '../../assets/tex/plaster_ochre_diff.webp';
+import a78 from '../../assets/tex/plaster_ochre_nor.webp';
+import a79 from '../../assets/tex/roof_arm.webp';
+import a80 from '../../assets/tex/roof_diff.webp';
+import a81 from '../../assets/tex/roof_nor.webp';
+import a82 from '../../assets/tex/rust_arm.webp';
+import a83 from '../../assets/tex/rust_diff.webp';
+import a84 from '../../assets/tex/rust_nor.webp';
+import a85 from '../../assets/tex/sand_arm.webp';
+import a86 from '../../assets/tex/sand_diff.webp';
+import a87 from '../../assets/tex/sand_nor.webp';
+import a88 from '../../assets/tex/sandstone_arm.webp';
+import a89 from '../../assets/tex/sandstone_diff.webp';
+import a90 from '../../assets/tex/sandstone_nor.webp';
+import a91 from '../../assets/tex/sandstone_white_arm.webp';
+import a92 from '../../assets/tex/sandstone_white_diff.webp';
+import a93 from '../../assets/tex/sandstone_white_nor.webp';
+import a94 from '../../assets/tex/tiles_arm.webp';
+import a95 from '../../assets/tex/tiles_diff.webp';
+import a96 from '../../assets/tex/tiles_nor.webp';
+import a97 from '../../assets/tex/wood_arm.webp';
+import a98 from '../../assets/tex/wood_diff.webp';
+import a99 from '../../assets/tex/wood_nor.webp';
 export const models = {
   "ammo_box": a0,
   "barrel_blue": a1,
@@ -86,64 +114,94 @@ export const models = {
   "crate_lettered": a11,
   "crate_military": a12,
   "crate_wood": a13,
-  "jerrycan": a14,
-  "lantern": a15,
-  "pistol_ph": a16,
-  "pot_clay": a17,
-  "shutter_door": a18,
-  "soldier": a19,
-  "table_wood": a20,
-  "tyre": a21,
-  "utility_box": a22,
-  "vase_jug": a23,
+  "gun_ak": a14,
+  "gun_deagle": a15,
+  "gun_m4": a16,
+  "gun_pistol": a17,
+  "gun_shotgun": a18,
+  "gun_smg": a19,
+  "gun_sniper": a20,
+  "hand_l": a21,
+  "hand_r": a22,
+  "jerrycan": a23,
+  "knife_combat": a24,
+  "knife_m9": a25,
+  "lantern": a26,
+  "pistol_ph": a27,
+  "pot_clay": a28,
+  "shutter_door": a29,
+  "soldier": a30,
+  "table_wood": a31,
+  "tyre": a32,
+  "utility_box": a33,
+  "vase_jug": a34,
+};
+export const sfx = {
+  "shot_ak": a35,
+  "shot_deagle": a36,
+  "shot_distant": a37,
+  "shot_m4": a38,
+  "shot_pistol": a39,
+  "shot_shotgun": a40,
+  "shot_smg": a41,
+  "shot_sniper": a42,
 };
 export const tex = {
-  "concrete_arm": a24,
-  "concrete_diff": a25,
-  "concrete_nor": a26,
-  "crate_arm": a27,
-  "crate_diff": a28,
-  "crate_nor": a29,
-  "door_arm": a30,
-  "door_diff": a31,
-  "door_nor": a32,
-  "leather_arm": a33,
-  "leather_diff": a34,
-  "leather_nor": a35,
-  "metal_arm": a36,
-  "metal_diff": a37,
-  "metal_nor": a38,
-  "pavers_arm": a39,
-  "pavers_diff": a40,
-  "pavers_nor": a41,
-  "plaster_arm": a42,
-  "plaster_blue_arm": a43,
-  "plaster_blue_diff": a44,
-  "plaster_blue_nor": a45,
-  "plaster_diff": a46,
-  "plaster_nor": a47,
-  "plaster_ochre_arm": a48,
-  "plaster_ochre_diff": a49,
-  "plaster_ochre_nor": a50,
-  "roof_arm": a51,
-  "roof_diff": a52,
-  "roof_nor": a53,
-  "rust_arm": a54,
-  "rust_diff": a55,
-  "rust_nor": a56,
-  "sand_arm": a57,
-  "sand_diff": a58,
-  "sand_nor": a59,
-  "sandstone_arm": a60,
-  "sandstone_diff": a61,
-  "sandstone_nor": a62,
-  "sandstone_white_arm": a63,
-  "sandstone_white_diff": a64,
-  "sandstone_white_nor": a65,
-  "tiles_arm": a66,
-  "tiles_diff": a67,
-  "tiles_nor": a68,
-  "wood_arm": a69,
-  "wood_diff": a70,
-  "wood_nor": a71,
+  "concrete_arm": a43,
+  "concrete_diff": a44,
+  "concrete_nor": a45,
+  "crate_arm": a46,
+  "crate_diff": a47,
+  "crate_nor": a48,
+  "denim_arm": a49,
+  "denim_diff": a50,
+  "denim_nor": a51,
+  "door_arm": a52,
+  "door_diff": a53,
+  "door_nor": a54,
+  "fabric_arm": a55,
+  "fabric_diff": a56,
+  "fabric_nor": a57,
+  "leather_arm": a58,
+  "leather_diff": a59,
+  "leather_nor": a60,
+  "metal_arm": a61,
+  "metal_diff": a62,
+  "metal_nor": a63,
+  "neoprene_arm": a64,
+  "neoprene_diff": a65,
+  "neoprene_nor": a66,
+  "pavers_arm": a67,
+  "pavers_diff": a68,
+  "pavers_nor": a69,
+  "plaster_arm": a70,
+  "plaster_blue_arm": a71,
+  "plaster_blue_diff": a72,
+  "plaster_blue_nor": a73,
+  "plaster_diff": a74,
+  "plaster_nor": a75,
+  "plaster_ochre_arm": a76,
+  "plaster_ochre_diff": a77,
+  "plaster_ochre_nor": a78,
+  "roof_arm": a79,
+  "roof_diff": a80,
+  "roof_nor": a81,
+  "rust_arm": a82,
+  "rust_diff": a83,
+  "rust_nor": a84,
+  "sand_arm": a85,
+  "sand_diff": a86,
+  "sand_nor": a87,
+  "sandstone_arm": a88,
+  "sandstone_diff": a89,
+  "sandstone_nor": a90,
+  "sandstone_white_arm": a91,
+  "sandstone_white_diff": a92,
+  "sandstone_white_nor": a93,
+  "tiles_arm": a94,
+  "tiles_diff": a95,
+  "tiles_nor": a96,
+  "wood_arm": a97,
+  "wood_diff": a98,
+  "wood_nor": a99,
 };

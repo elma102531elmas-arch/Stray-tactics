@@ -10,6 +10,8 @@ import { settings } from './core/settings.js';
 export async function runDebug() {
 const qq = new URLSearchParams(location.search);
 if (qq.get('model')) return modelViewer(qq);
+if (qq.get('hand')) return handViewer(qq);
+if (qq.get('ortho')) return orthoViewer(qq);
 if (new URLSearchParams(location.search).get('nopost')) settings.bloomOverride = false;
 const renderer = new Renderer(document.getElementById('app'));
 materials.init(renderer.r);
@@ -117,7 +119,18 @@ async function modelViewer(q) {
   }
   const g = await loadGLTF(names[0]);
   const root = g.scene; scene.add(root);
+  if (q.get('anim')) {
+    const mixer = new THREE.AnimationMixer(root);
+    const clip = g.animations.find((a) => a.name === q.get('anim'));
+    if (clip) { mixer.clipAction(clip).play(); mixer.update(+(q.get('t') || 0)); }
+  }
+  root.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  if (q.get('focus')) {
+    // frame a bone: &focus=mixamorig:RightHand&dist=0.4
+    const b = root.getObjectByName(q.get('focus'));
+    if (b) { b.getWorldPosition(c); size.setScalar(+(q.get('dist') || 0.4)); }
+  }
   const info = { size: size.toArray().map((v) => +v.toFixed(3)), center: c.toArray().map((v) => +v.toFixed(3)), nodes: [] };
   root.traverse((o) => { if (o.isMesh || o.isSkinnedMesh) { const b = new THREE.Box3().setFromObject(o); info.nodes.push([o.name, o.isSkinnedMesh ? 'skinned' : 'mesh', b.min.toArray().map((v) => +v.toFixed(3)), b.max.toArray().map((v) => +v.toFixed(3)), o.material.name]); } });
   info.anims = g.animations.map((a) => a.name);
@@ -128,5 +141,99 @@ async function modelViewer(q) {
   const dist = Math.max(size.x, size.y, size.z) * 1.6;
   cam.position.copy(c).add(new THREE.Vector3(v[0], v[1], v[2]).normalize().multiplyScalar(dist)); cam.lookAt(c);
   r.render(scene, cam);
+  window.__shot = true;
+}
+
+// ?dbg=1&hand=grip&side=1&views=4 : first-person hand rig close-up (pose test)
+async function handViewer(q) {
+  const { buildArms } = await import('./weapons/arms.js');
+  const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+  document.getElementById('app').appendChild(r.domElement);
+  materials.init(r);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x505860);
+  const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
+  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  const l = new THREE.DirectionalLight(0xffffff, 2.5); l.position.set(1, 3, 2); scene.add(l);
+  const arms = await buildArms({ procedural: !!q.get('proc') });
+  const side = +(q.get('side') || 1);
+  const arm = side > 0 ? arms.right : arms.left;
+  scene.add(arm.mesh);
+  // forearm along +Y ending at the origin, hand frame = identity
+  arm.solve(new THREE.Vector3(0.05 * side, -0.55, 0.12), new THREE.Vector3(0, 0, 0), new THREE.Quaternion(), new THREE.Vector3(0, 0, 1));
+  arm.setHandPose(q.get('hand'), 1);
+  arm.mesh.updateMatrixWorld(true);
+  const views = [[0.0, 0.08, 0.32], [0.3, 0.08, 0.0], [0.0, 0.08, -0.32], [-0.3, 0.12, 0.05]].slice(0, +(q.get('views') || 4));
+  r.setScissorTest(true); r.autoClear = false;
+  const tw = Math.floor(innerWidth / views.length);
+  views.forEach((v, i) => {
+    const cam = new THREE.PerspectiveCamera(40, tw / innerHeight, 0.005, 10);
+    cam.position.set(v[0], v[1], v[2]); cam.lookAt(0, 0.07, 0);
+    r.setViewport(i * tw, 0, tw, innerHeight); r.setScissor(i * tw, 0, tw, innerHeight); r.clear(); r.render(scene, cam);
+  });
+  window.__shot = true;
+}
+
+// ?dbg=1&ortho=gun_ak[&side=1|-1][&top=1] : orthographic side view with a 1 cm grid
+// (labels every 5 cm) and part boxes, to read gun-space coordinates for sockets.
+async function orthoViewer(q) {
+  const { loadGLTF } = await import('./assets/loader.js');
+  const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+  document.getElementById('app').appendChild(r.domElement);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x3a4048);
+  const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
+  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  const g = await loadGLTF(q.get('ortho'));
+  const root = g.scene.clone(); scene.add(root);
+  const off = (q.get('off') || '0,0,0').split(',').map(Number); root.position.set(...off);
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(root);
+  const top = !!q.get('top');
+  // camera looks from +X (right side: muzzle to the right since -Z is forward) or from above
+  const span = Math.max(box.max.z - box.min.z, (box.max.y - box.min.y) * innerWidth / innerHeight) * 0.56;
+  const cam = new THREE.OrthographicCamera(-span, span, span * innerHeight / innerWidth, -span * innerHeight / innerWidth, 0.01, 10);
+  const c = box.getCenter(new THREE.Vector3());
+  if (top) { cam.position.set(c.x, 3, c.z); cam.up.set(-1, 0, 0); cam.lookAt(c.x, 0, c.z); } else { cam.position.set(3, c.y, c.z); cam.lookAt(0, c.y, c.z); }
+  cam.updateMatrixWorld();
+  r.render(scene, cam);
+  // overlay grid + labels with a 2D canvas
+  const cv = document.createElement('canvas'); cv.width = innerWidth; cv.height = innerHeight;
+  cv.style.cssText = 'position:fixed;inset:0;pointer-events:none'; document.body.appendChild(cv);
+  const x = cv.getContext('2d');
+  const toScr = (v) => { const p = v.clone().project(cam); return [(p.x + 1) / 2 * innerWidth, (1 - p.y) / 2 * innerHeight]; };
+  const a = top ? 'x' : 'y';
+  const lo = Math.floor(Math.min(box.min.z, box.min[a]) * 100) - 4, hi = Math.ceil(Math.max(box.max.z, box.max[a]) * 100) + 4;
+  for (let i = lo; i <= hi; i++) {
+    const strong = i % 5 === 0;
+    x.strokeStyle = i === 0 ? 'rgba(255,80,80,0.9)' : strong ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.1)';
+    x.lineWidth = i === 0 ? 2 : 1;
+    const v1 = new THREE.Vector3(), v2 = new THREE.Vector3();
+    // vertical lines: constant z
+    v1.set(0, 0, i / 100); v1[a] = -1; v2.set(0, 0, i / 100); v2[a] = 1;
+    let p1 = toScr(v1), p2 = toScr(v2); x.beginPath(); x.moveTo(p1[0], p1[1]); x.lineTo(p2[0], p2[1]); x.stroke();
+    if (strong) { x.fillStyle = '#fff'; x.font = '11px monospace'; x.fillText('z' + i, p1[0] + 2, 12); }
+    // horizontal lines: constant y (or x when top view)
+    v1.set(0, 0, -2); v1[a] = i / 100; v2.set(0, 0, 2); v2[a] = i / 100;
+    p1 = toScr(v1); p2 = toScr(v2); x.beginPath(); x.moveTo(p1[0], p1[1]); x.lineTo(p2[0], p2[1]); x.stroke();
+    if (strong) { x.fillStyle = '#fff'; x.fillText(a + i, 2, p1[1] - 2); }
+  }
+  // part boxes
+  const cols = ['#ff5a5a', '#5aff7a', '#5ab4ff', '#ffd25a', '#ff5af0', '#5afff0', '#ffa05a'];
+  let k = 0; const info = [];
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    const b = new THREE.Box3().setFromObject(o);
+    const p1 = toScr(top ? new THREE.Vector3(b.min.x, 0, b.min.z) : new THREE.Vector3(0, b.min.y, b.min.z));
+    const p2 = toScr(top ? new THREE.Vector3(b.max.x, 0, b.max.z) : new THREE.Vector3(0, b.max.y, b.max.z));
+    x.strokeStyle = cols[k % cols.length]; x.lineWidth = 1; x.setLineDash([4, 3]);
+    x.strokeRect(Math.min(p1[0], p2[0]), Math.min(p1[1], p2[1]), Math.abs(p2[0] - p1[0]), Math.abs(p2[1] - p1[1]));
+    x.setLineDash([]); x.fillStyle = cols[k % cols.length]; x.font = '12px monospace';
+    x.fillText(o.name, Math.min(p1[0], p2[0]) + 2, Math.max(p1[1], p2[1]) + 13);
+    info.push([o.name, b.min.toArray().map((v) => +v.toFixed(3)), b.max.toArray().map((v) => +v.toFixed(3))]);
+    k++;
+  });
+  console.log('PARTS ' + JSON.stringify(info));
+  // composite the overlay onto the GL canvas for the screenshot
   window.__shot = true;
 }

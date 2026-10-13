@@ -27,8 +27,10 @@ export class Player {
   get gun() { return this.guns[this.slot]; }
   eye(out = new THREE.Vector3()) { return out.set(this.pos.x, this.pos.y + this.eyeH, this.pos.z); }
 
-  setLoadout(primary) {
-    this.guns = { primary: new GunState(primary), pistol: new GunState('pistol'), knife: new GunState('knife') };
+  // loadout: {primary, secondary, knife} weapon ids (or a primary id string)
+  setLoadout(lo) {
+    if (typeof lo === 'string') lo = { primary: lo };
+    this.guns = { primary: new GunState(lo.primary || 'rifle'), pistol: new GunState(lo.secondary || 'pistol'), knife: new GunState(lo.knife || 'knife') };
   }
 
   async spawn(sp) {
@@ -116,7 +118,11 @@ export class Player {
     // footsteps
     if (this.st.onGround && speed > 2.6 && !input.walk && !crouching) {
       this.stepAcc += speed * dt;
-      if (this.stepAcc > 2.1) { this.stepAcc = 0; audio.play('step' + (this.stepIdx++ % 3), { vol: 0.32, pitchVar: 0.15, reverb: 0.05 }); }
+      if (this.stepAcc > 2.1) {
+        this.stepAcc = 0;
+        const i = this.stepIdx++ % 4, surf = game.world.collision.groundMat === 'sand' && this.pos.y < 0.08 ? 'sand' : 'stone';
+        audio.play(audio.pick('step_' + surf + i, 'step' + (i % 3)), { vol: 0.32, pitchVar: 0.12, reverb: 0.05 });
+      }
     }
 
     // ---- weapons
@@ -158,6 +164,8 @@ export class Player {
     if (input.edge('prev')) to = order[(order.indexOf(this.slot) + 2) % 3];
     if (to && to !== this.slot) { this.equip(to); input.edge('fire'); input.edge('fire2'); input.edge('reload'); input.edge('inspect'); return; }
     if (input.edge('inspect') && !g.reloading && t > this.busyUntil && !this.scoped) vm.play('inspect');
+    // shotgun: firing during a shell-by-shell reload finishes the current shell, then stops
+    if (g.reloading && def.shellReload && g.mag > 0 && (input.edge('fire') || input.firing)) g.stopShell = true;
     const busy = t < this.busyUntil || g.reloading;
 
     // reload
@@ -192,6 +200,7 @@ export class Player {
   startReload() {
     const g = this.gun, vm = this.game.vm;
     if (vm.player.name === 'inspect') vm.stopClip(0.1);
+    if (g.def.shellReload && vm.has('reloadInsert')) return this.startShellReload();
     const empty = g.mag === 0;
     const name = empty && vm.has('reloadEmpty') ? 'reloadEmpty' : 'reload';
     g.reloading = true; this.scoped = 0;
@@ -206,7 +215,27 @@ export class Player {
     this.game.vm.slideLocked = false;
     this.game.hud.ammo(this);
   }
-  finishReload() { const g = this.gun; if (!g.ammoGiven) this.giveAmmo(); g.reloading = false; g.spray = 0; }
+  finishReload() { const g = this.gun; if (g.def.shellReload) { g.reloading = false; return; } if (!g.ammoGiven) this.giveAmmo(); g.reloading = false; g.spray = 0; }
+  // shell-by-shell reload (shotgun): start -> insert x N -> end (+pump if it was empty)
+  startShellReload() {
+    const g = this.gun, vm = this.game.vm;
+    g.reloading = true; g.stopShell = false; g.reloadEnd = Infinity; this.scoped = 0;
+    const wasEmpty = g.mag === 0;
+    const next = () => {
+      if (!g.reloading || this.gun !== g) return;
+      if (g.mag >= g.def.mag || g.reserve <= 0 || g.stopShell) {
+        vm.play(wasEmpty && vm.has('reloadEndPump') ? 'reloadEndPump' : 'reloadEnd', { blend: 0.08, onEnd: () => { if (this.gun === g) { g.reloading = false; g.stopShell = false; } } });
+        return;
+      }
+      vm.play('reloadInsert', { blend: 0.06, onEnd: next });
+    };
+    vm.play('reloadStart', { blend: 0.12, onEnd: next });
+  }
+  giveShell() {
+    const g = this.gun; if (!g.reloading || g.reserve <= 0 || g.mag >= g.def.mag) return;
+    g.mag++; g.reserve--;
+    this.game.hud.ammo(this);
+  }
 
   shoot(speed, crouching) {
     const game = this.game, t = game.time, g = this.gun, def = g.def, vm = game.vm;
@@ -223,10 +252,15 @@ export class Player {
     this.sprayAdd += def.recoverySpread || 0;
     _e.set(this.pitch + this.punch.x * 2.0, this.yaw + this.punch.y * 2.0, 0, 'YXZ');
     _dir.set(0, 0, -1).applyQuaternion(_q.setFromEuler(_e));
-    const dir = applySpread(_dir, spread, new THREE.Vector3());
     const origin = this.eye(new THREE.Vector3());
-    const res = traceShot(game, this, origin, dir, def.range);
-    game.onShot(this, origin, dir, res, def);
+    let dir = null, res = null;
+    for (let i = 0; i < (def.pellets || 1); i++) {
+      // pellets fan out around the aim point; a single bullet uses the weapon spread
+      const d = applySpread(_dir, def.pellets ? def.spread * (0.35 + Math.random() * 0.65) + spread * 0.3 : spread, new THREE.Vector3());
+      const r = traceShot(game, this, origin, d, def.range);
+      game.onShot(this, origin, d, r, def, i > 0);
+      if (!dir) { dir = d; res = r; }
+    }
     // feedback
     audio.play('shot_' + def.sound, { vol: 0.9, pitchVar: 0.06, reverb: 0.35 });
     vm.fire();

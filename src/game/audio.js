@@ -4,6 +4,7 @@
 // distance attenuation + stereo pan + distance low-pass (cheap on mobile).
 import * as THREE from 'three';
 import { settings } from '../core/settings.js';
+import { decodeSfx, sfxNames } from '../assets/loader.js';
 
 const SR = 44100;
 
@@ -55,7 +56,12 @@ function gunshot(kind) {
     rifle: { len: 0.55, crack: 1.0, crackHp: 2500, bodyF: 700, bodyQ: 0.8, bodyDecay: 0.07, thump: [140, 42], thumpDecay: 0.09, tail: 0.35, tailLp: 1800 },
     pistol: { len: 0.4, crack: 1.1, crackHp: 3000, bodyF: 1100, bodyQ: 0.9, bodyDecay: 0.045, thump: [190, 70], thumpDecay: 0.06, tail: 0.22, tailLp: 2400 },
     sniper: { len: 1.1, crack: 1.25, crackHp: 1800, bodyF: 520, bodyQ: 0.7, bodyDecay: 0.12, thump: [100, 30], thumpDecay: 0.16, tail: 0.7, tailLp: 1200 },
-  }[kind];
+    m4: { len: 0.5, crack: 1.15, crackHp: 3200, bodyF: 900, bodyQ: 0.9, bodyDecay: 0.055, thump: [160, 50], thumpDecay: 0.07, tail: 0.3, tailLp: 2200 },
+    smg: { len: 0.35, crack: 1.0, crackHp: 2800, bodyF: 1000, bodyQ: 1.0, bodyDecay: 0.04, thump: [170, 60], thumpDecay: 0.05, tail: 0.2, tailLp: 2000 },
+    shotgun: { len: 0.9, crack: 1.3, crackHp: 1500, bodyF: 420, bodyQ: 0.6, bodyDecay: 0.11, thump: [90, 28], thumpDecay: 0.14, tail: 0.6, tailLp: 1100 },
+    deagle: { len: 0.7, crack: 1.25, crackHp: 2200, bodyF: 640, bodyQ: 0.7, bodyDecay: 0.09, thump: [120, 36], thumpDecay: 0.12, tail: 0.45, tailLp: 1500 },
+    distant: { len: 1.2, crack: 0.2, crackHp: 1200, bodyF: 380, bodyQ: 0.6, bodyDecay: 0.18, thump: [80, 30], thumpDecay: 0.25, tail: 0.9, tailLp: 700 },
+  }[kind === 'ak' ? 'rifle' : kind];
   const out = buf(P.len);
   const cr = noise(buf(0.03)); biquad(cr, 'hp', P.crackHp, 0.7); env(cr, 0.0003, 0.006); mix(out, cr, P.crack);
   const body = noise(buf(P.len)); biquad(body, 'bp', P.bodyF, P.bodyQ); biquad(body, 'lp', 4000); env(body, 0.001, P.bodyDecay); mix(out, body, 2.2);
@@ -73,6 +79,12 @@ function mech(name) {
     case 'boltBack': case 'slideBack': { const s = noise(buf(0.12)); biquad(s, 'bp', 3000, 1.4); env(s, 0.03, 0.03); mix(out, s, 0.6); mix(out, click(0.08, 2600, 0.01), 0.9, 0.09); break; }
     case 'boltForward': case 'slideForward': case 'slideRelease': { mix(out, click(0.15, 1900, 0.03), 1.2); mix(out, click(0.08, 3800, 0.012), 0.6, 0.004); break; }
     case 'boltUp': mix(out, click(0.06, 2400, 0.008), 0.8); break;
+    case 'pumpBack': { const s = noise(buf(0.14)); biquad(s, 'bp', 2200, 1.2); env(s, 0.02, 0.04); mix(out, s, 0.6); mix(out, click(0.1, 1500, 0.02), 1, 0.1); break; }
+    case 'pumpForward': { mix(out, click(0.15, 1300, 0.035), 1.2); mix(out, click(0.08, 3000, 0.012), 0.6, 0.006); break; }
+    case 'shellInsert': { mix(out, click(0.08, 2600, 0.012), 0.8); const s = noise(buf(0.06)); biquad(s, 'bp', 1800, 1); env(s, 0.003, 0.02); mix(out, s, 0.4, 0.02); break; }
+    case 'balisong': { for (let i = 0; i < 3; i++) mix(out, click(0.05, 3600 + i * 400, 0.006), 0.7, i * 0.07); break; }
+    case 'knifeHit': { const s = noise(buf(0.15)); biquad(s, 'lp', 1200); env(s, 0.001, 0.04); mix(out, s, 1); mix(out, sine(0.12, 180, 70, 0.05), 0.6); break; }
+    case 'knifeWall': { mix(out, ring(0.25, 2400, 0.06), 0.7); mix(out, click(0.04, 4200, 0.004), 0.8); break; }
     case 'boltDown': mix(out, click(0.08, 1700, 0.014), 0.9); break;
     case 'dry': mix(out, click(0.05, 3200, 0.006), 0.8); break;
     case 'pouch': case 'gear': case 'draw': {
@@ -162,12 +174,26 @@ class AudioEngine {
     const b = this.ctx.createBuffer(1, data.length, SR); b.copyToChannel(data, 0); this.buffers.set(name, b);
   }
   _build() {
-    for (const k of ['rifle', 'pistol', 'sniper']) this._add('shot_' + k, gunshot(k));
-    for (const k of ['magOut', 'magIn', 'magRelease', 'boltBack', 'boltForward', 'slideBack', 'slideForward', 'slideRelease', 'boltUp', 'boltDown', 'dry', 'pouch', 'gear', 'draw', 'knifeDraw', 'swing', 'knifeFlip']) this._add(k, mech(k));
+    for (const k of ['ak', 'm4', 'smg', 'shotgun', 'sniper', 'pistol', 'deagle', 'distant']) this._add('shot_' + k, gunshot(k));
+    for (const k of ['magOut', 'magIn', 'magRelease', 'boltBack', 'boltForward', 'slideBack', 'slideForward', 'slideRelease', 'boltUp', 'boltDown', 'dry', 'pouch', 'gear', 'draw', 'knifeDraw', 'swing', 'knifeFlip',
+      'pumpBack', 'pumpForward', 'shellInsert', 'balisong', 'knifeHit', 'knifeWall']) this._add(k, mech(k));
     for (const k of ['stone', 'metal', 'wood', 'flesh', 'sand']) this._add('impact_' + k, impact(k));
     for (const k of ['hit', 'headshot', 'kill', 'hurt', 'step', 'land', 'shell', 'magDrop', 'uiClick', 'uiHover', 'go', 'death']) this._add(k, ui(k));
     for (let i = 0; i < 3; i++) this._add('step' + i, ui('step'));
+    this._loadRecorded();
   }
+  // recorded CC0 sounds (assets/sfx) replace the synthesized ones as they decode
+  async _loadRecorded() {
+    if (!sfxNames().length) return;
+    try {
+      const bufs = await decodeSfx(this.ctx);
+      for (const [k, b] of Object.entries(bufs)) this.buffers.set(k, b);
+      this.recorded = new Set(Object.keys(bufs));
+    } catch (e) { console.warn('sfx', e); }
+  }
+  has(name) { return this.buffers.has(name); }
+  // first existing name of a list (weapon specific -> generic fallbacks)
+  pick(...names) { for (const n of names) if (n && this.buffers.has(n)) return n; return names[names.length - 1]; }
   setListener(camera) {
     this.listener.pos.copy(camera.position);
     this.listener.right.set(1, 0, 0).applyQuaternion(camera.quaternion);

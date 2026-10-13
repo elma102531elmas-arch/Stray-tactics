@@ -10,6 +10,11 @@ import * as THREE from 'three';
 import { toCreasedNormals, mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { materials } from '../gfx/materials.js';
 import { DEG } from '../core/util.js';
+import { hasModel, loadGLTF } from '../assets/loader.js';
+import { clsOf } from './weapons.js';
+
+// procedural fallback model for kinds without their own (e.g. knife variants)
+const procDef = (kind) => DEFS[kind] || DEFS[clsOf(kind)] || DEFS.knife;
 
 // ------------------------------------------------------------ geometry helpers
 function roundedShape(pts, r = 0) {
@@ -360,6 +365,143 @@ const DEFS = {
   },
 };
 
+// =========================================================== glTF weapons
+// Real weapon models (assets/models/gun_*.glb, CC0 - see assets/CREDITS.md).
+// origin: model-space point that becomes the gun-space origin (top of the
+//   pistol grip where the web of the right hand sits; model axes already
+//   match gun space: -Z muzzle, +Y up, +X right).
+// parts: model node name -> role. Each role gets a pivot group (pivots, in
+//   model space) so animation tracks can move it: mag, bolt (travels +Z,
+//   rolls about Z for bolt actions), trigger (rotates about X).
+// move: rest-pose correction for a part (model-space delta).
+// sockets: gun space, same meaning as the procedural DEFS; extra anchor
+//   points (charge = charging handle / bolt knob, port = shell loading port)
+//   let clips authored for one gun be retargeted to another.
+const PISTOL_HANDS = {
+  grip: { p: [0.028, -0.07, 0.072], y: [0, -0.2, -0.98], z: [1, 0, 0] },
+  fore: { p: [-0.051, -0.07, 0.041], y: [0.45, -0.1, -0.89], z: [-0.89, 0, -0.45] },
+};
+const RIFLE_GRIP = { p: [0.03, -0.075, 0.075], y: [0, -0.2, -0.98], z: [1, 0, 0] };
+const RIFLE_FORE = (p) => ({ p, y: [0.92, 0.38, 0], z: [0.38, -0.92, 0] });
+export const GLTF_DEFS = {
+  rifle: {
+    model: 'gun_ak', origin: [0, -0.04, 0.315],
+    parts: { Magazine: 'mag', Ejection_Port: 'bolt', Trigger: 'trigger' },
+    pivots: { mag: [0, -0.03, 0.125], bolt: [0, 0.008, 0.13], trigger: [0, -0.043, 0.245] },
+    sockets: {
+      muzzle: [0, 0.043, -0.631], eject: [0.022, 0.048, -0.185], charge: [0.025, 0.05, -0.22],
+      grip: RIFLE_GRIP, fore: RIFLE_FORE([-0.054, -0.032, -0.375]),
+      magHold: { p: [0.0, 0.048, -0.03], r: [0, 0, 90] },
+    },
+  },
+  m4: {
+    model: 'gun_m4', origin: [0, -0.02, 0.1],
+    parts: { Magazine: 'mag', Charging_Handle: 'bolt', Trigger: 'trigger' },
+    pivots: { mag: [0, 0.0, -0.06], bolt: [0, 0.042, 0.1], trigger: [0, -0.025, 0.03] },
+    sockets: {
+      muzzle: [0, 0.05, -0.636], eject: [0.025, 0.04, -0.14], charge: [0, 0.062, 0.005],
+      grip: RIFLE_GRIP, fore: RIFLE_FORE([-0.054, -0.022, -0.33]),
+      magHold: { p: [0.0, 0.048, -0.03], r: [0, 0, 90] },
+    },
+  },
+  smg: {
+    model: 'gun_smg', origin: [0, -0.05, 0.195],
+    parts: { Magazine: 'mag', Bolt: 'bolt', Trigger: 'trigger' },
+    pivots: { mag: [0, 0.0, -0.09], bolt: [0, 0.006, 0.0], trigger: [0, -0.056, 0.12] },
+    sockets: {
+      muzzle: [0, 0.05, -0.533], eject: [0.03, 0.06, -0.245], charge: [0.03, 0.07, -0.245],
+      grip: RIFLE_GRIP, fore: { p: [-0.04, -0.12, -0.24], y: [0.35, 0.25, -0.9], z: [-0.9, 0, -0.35] },
+      magHold: { p: [0.0, 0.048, -0.03], r: [0, 0, 90] },
+    },
+  },
+  shotgun: {
+    model: 'gun_shotgun', origin: [0, 0.0, 0.47],
+    parts: { Fore_Stock: 'bolt', Ejection_Port: 'bolt', Trigger: 'trigger' },
+    pivots: { bolt: [0, -0.012, -0.056], trigger: [0, -0.03, 0.385] },
+    sockets: {
+      muzzle: [0, 0.03, -0.875], eject: [0.015, 0.026, -0.21], port: [0, -0.04, -0.17], charge: [0, -0.012, -0.526],
+      grip: RIFLE_GRIP, fore: RIFLE_FORE([-0.05, -0.075, -0.52]),
+    },
+  },
+  sniper: {
+    model: 'gun_sniper', origin: [0, -0.005, 0.33],
+    parts: { Magazine: 'mag', Bolt: 'bolt', Trigger: 'trigger' },
+    pivots: { mag: [0, -0.045, 0.12], bolt: [0, 0.025, 0.2], trigger: [0, -0.016, 0.243] },
+    sockets: {
+      muzzle: [0, 0.035, -0.853], eject: [0.02, 0.035, -0.13], charge: [0.03, -0.01, -0.085],
+      grip: RIFLE_GRIP, fore: RIFLE_FORE([-0.054, -0.085, -0.41]),
+      magHold: { p: [0.0, 0.048, -0.03], r: [0, 0, 90] },
+    },
+  },
+  pistol: {
+    model: 'gun_pistol', origin: [0, 0.018, 0.028],
+    parts: { Magazine: 'mag', Slide: 'slide', Trigger: 'trigger' },
+    move: { Magazine: [0, 0.001, -0.091] },
+    pivots: { mag: [0, 0.034, 0.002], slide: [0, 0.045, 0.0], trigger: [0, 0.025, -0.045] },
+    sockets: {
+      muzzle: [0, 0.029, -0.158], eject: [0.017, 0.032, -0.068], charge: [0, 0.035, 0.0],
+      ...PISTOL_HANDS, magHold: { p: [0, 0.097, -0.101], r: [124.5, 0, -180] },
+    },
+  },
+  deagle: {
+    model: 'gun_deagle', origin: [0, -0.02, 0.118],
+    parts: { Magazine: 'mag', Slide: 'slide', Bolt: 'slide', Trigger: 'trigger' },
+    pivots: { mag: [0, 0.0, 0.06], slide: [0, 0.01, 0.0], trigger: [0, -0.022, 0.04] },
+    sockets: {
+      muzzle: [0, 0.023, -0.252], eject: [0.02, 0.035, -0.078], charge: [0, 0.035, 0.0],
+      ...PISTOL_HANDS, magHold: { p: [0, 0.097, -0.101], r: [124.5, 0, -180] },
+    },
+  },
+};
+// anchor points of the procedural reference guns the built-in clips were authored on
+export const REF_ANCHORS = {
+  rifle: { mag: [0, -0.032, -0.082], charge: [0.043, 0.031, -0.122] },
+  pistol: { mag: [0, 0, 0.02], charge: [0, 0.035, 0.03] },
+  sniper: { mag: [0, -0.03, -0.08], charge: [0.054, 0.022, 0.05] },
+};
+for (const k in GLTF_DEFS) { const d = GLTF_DEFS[k]; if (d.pivots.mag) d.sockets.mag = { p: d.pivots.mag.map((v, i) => +(v - d.origin[i]).toFixed(4)), r: [0, 0, 0] }; }
+
+const useGLTF = (kind) => !!GLTF_DEFS[kind] && hasModel(GLTF_DEFS[kind].model);
+export function weaponSockets(kind) { return useGLTF(kind) ? GLTF_DEFS[kind].sockets : procDef(kind).sockets; }
+// gun-space anchor points used to retarget clips (fore/grip/mag/charge/port)
+export function weaponAnchors(kind, reference = false) {
+  const s = reference || !useGLTF(kind) ? DEFS[kind]?.sockets : GLTF_DEFS[kind].sockets;
+  if (!s) return null;
+  const ref = reference || !useGLTF(kind) ? REF_ANCHORS[kind] || {} : {};
+  return { fore: s.fore?.p, grip: s.grip?.p, foreQ: s.fore && socketQuat(s.fore), gripQ: s.grip && socketQuat(s.grip), mag: s.mag?.p || ref.mag, charge: s.charge || ref.charge, port: s.port || s.mag?.p || ref.mag };
+}
+
+async function buildGLTFWeapon(kind) {
+  const def = GLTF_DEFS[kind];
+  const g = await loadGLTF(def.model);
+  const root = new THREE.Group(); root.name = kind;
+  const model = g.scene.clone(true);
+  model.position.set(-def.origin[0], -def.origin[1], -def.origin[2]);
+  root.add(model);
+  root.updateMatrixWorld(true);
+  const nodes = {};
+  const v = new THREE.Vector3();
+  for (const [name, role] of Object.entries(def.parts)) {
+    const node = model.getObjectByName(name);
+    if (!node) { console.warn('weapon part missing', kind, name); continue; }
+    if (def.move && def.move[name]) {
+      node.getWorldPosition(v).add(new THREE.Vector3(...def.move[name]));
+      node.parent.worldToLocal(v); node.position.copy(v); node.updateMatrixWorld(true);
+    }
+    let grp = nodes[role];
+    if (!grp) {
+      grp = new THREE.Group(); grp.name = role;
+      const pv = def.pivots[role] || [0, 0, 0];
+      grp.position.set(pv[0] - def.origin[0], pv[1] - def.origin[1], pv[2] - def.origin[2]);
+      root.add(grp); grp.updateMatrixWorld(true);
+      nodes[role] = grp;
+    }
+    grp.attach(node);
+  }
+  root.traverse((o) => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
+  return { root, nodes, sockets: def.sockets, kind, gltf: true };
+}
+
 // quaternion for a socket given as euler `r` (deg) or basis {y,z}
 export function socketQuat(s, out = new THREE.Quaternion()) {
   if (s.y && s.z) {
@@ -375,7 +517,8 @@ export function socketQuat(s, out = new THREE.Quaternion()) {
 
 const cache = new Map();
 export async function buildWeaponModel(kind) {
-  const def = DEFS[kind];
+  if (useGLTF(kind)) return buildGLTFWeapon(kind);
+  const def = procDef(kind);
   const mb = new ModelBuilder();
   def.geometry(mb);
   const { root, nodes } = await mb.build(MATS);
@@ -392,7 +535,36 @@ export async function buildWeaponModel(kind) {
 // Low-detail merged copy (single draw call, vertex colors) for third-person.
 export async function buildWorldWeapon(kind) {
   if (cache.has(kind)) return cache.get(kind).clone();
-  const def = DEFS[kind];
+  if (useGLTF(kind)) {
+    // merge every part into one mesh (one draw call per bot weapon)
+    const m = await buildGLTFWeapon(kind);
+    m.root.updateMatrixWorld(true);
+    const byMat = new Map();
+    m.root.traverse((o) => {
+      if (!o.isMesh) return;
+      // de-quantize to float before transforming/merging
+      const src = o.geometry, g = new THREE.BufferGeometry();
+      for (const k of ['position', 'normal', 'uv']) {
+        const a = src.attributes[k]; if (!a) continue;
+        const f = new Float32Array(a.count * a.itemSize);
+        for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) f[i * a.itemSize + c] = a.getComponent(i, c);
+        g.setAttribute(k, new THREE.BufferAttribute(f, a.itemSize));
+      }
+      if (src.index) g.setIndex(src.index.clone());
+      g.applyMatrix4(o.matrixWorld);
+      if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+      if (!byMat.has(o.material)) byMat.set(o.material, []);
+      byMat.get(o.material).push(g);
+    });
+    const mats = [...byMat.keys()];
+    const parts = mats.map((mt) => mergeGeometries(byMat.get(mt).map((g) => (g.index ? g.toNonIndexed() : g)), false));
+    const merged = parts.length > 1 ? mergeGeometries(parts, true) : parts[0];
+    const mesh = new THREE.Mesh(merged, mats.length > 1 ? mats : mats[0]);
+    mesh.castShadow = true;
+    cache.set(kind, mesh);
+    return mesh.clone();
+  }
+  const def = procDef(kind);
   const mb = new ModelBuilder();
   LOD = 0;
   try { def.geometry(mb); } finally { LOD = 1; }
@@ -423,4 +595,5 @@ export async function buildWorldWeapon(kind) {
   return mesh.clone();
 }
 
-export { DEFS as WEAPON_MODEL_DEFS };
+// sockets per kind (glTF when embedded, else procedural)
+export const WEAPON_MODEL_DEFS = new Proxy({}, { get: (t, kind) => ({ sockets: weaponSockets(kind) }) });

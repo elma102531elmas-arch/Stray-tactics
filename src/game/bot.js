@@ -123,7 +123,7 @@ export class Bot {
       aimYaw += this.aimErr.x * Math.PI / 180; aimPitch += this.aimErr.y * Math.PI / 180;
       // combat movement: strafe, occasionally crouch
       this.strafeT -= dt;
-      if (this.strafeT <= 0) { this.strafeT = rand(0.35, 1.1); this.strafeDir = Math.random() < 0.5 ? -1 : 1; if (Math.random() < 0.25) this.strafeDir = 0; this.crouch = this.gun.def.kind !== 'sniper' && this.targetDist > 18 && Math.random() < 0.25; }
+      if (this.strafeT <= 0) { this.strafeT = rand(0.35, 1.1); this.strafeDir = Math.random() < 0.5 ? -1 : 1; if (Math.random() < 0.25) this.strafeDir = 0; this.crouch = this.gun.def.cls !== 'sniper' && this.targetDist > 18 && Math.random() < 0.25; }
       const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
       wishX = rx * this.strafeDir; wishZ = rz * this.strafeDir;
       speedMul = this.burstLeft > 0 ? 0.35 : 0.8;
@@ -194,14 +194,14 @@ export class Bot {
     if (sp > 2.6 && this.st.onGround) { this.stepAcc = (this.stepAcc || 0) + sp * dt; if (this.stepAcc > 2.1) { this.stepAcc = 0; audio.play('step' + ((Math.random() * 3) | 0), { pos: this.pos, vol: 0.5, pitchVar: 0.2 }); } }
   }
 
-  startReload() { const gun = this.gun; gun.reloading = true; gun.reloadEnd = this.game.time + (gun.def.kind === 'sniper' ? 2.6 : gun.def.kind === 'pistol' ? 1.8 : 2.3); audio.play('magOut', { pos: this.pos, vol: 0.5 }); }
+  startReload() { const gun = this.gun; gun.reloading = true; gun.reloadEnd = this.game.time + (gun.def.cls === 'sniper' ? 2.6 : gun.def.cls === 'pistol' ? 1.8 : gun.def.cls === 'shotgun' ? 3.2 : 2.3); audio.play('magOut', { pos: this.pos, vol: 0.5 }); }
 
   tryFire(dt, aimYaw, aimPitch) {
     const g = this.game, t = g.time, gun = this.gun, def = gun.def;
     if (gun.reloading || gun.mag <= 0 || t < gun.nextFire) return;
     // only fire when the aim has roughly converged
     const err = Math.abs(wrapAngle(aimYaw - this.yaw)) + Math.abs(aimPitch - this.pitch);
-    const tol = (def.kind === 'sniper' ? 0.02 : 0.06) + 0.6 / Math.max(5, this.targetDist);
+    const tol = (def.cls === 'sniper' ? 0.02 : 0.06) + 0.6 / Math.max(5, this.targetDist);
     if (err > tol) return;
     if (this.burstPause > 0) { this.burstPause -= dt; return; }
     if (this.burstLeft <= 0) {
@@ -220,11 +220,12 @@ export class Bot {
     // visuals + 3D audio
     const mz = this.char.muzzleWorld(new THREE.Vector3());
     g.effects.muzzleFlash(mz, dir);
-    if (Math.random() < 0.6 || def.kind === 'sniper') g.effects.tracer(mz.clone(), res.end, 380);
+    if (Math.random() < 0.6 || def.cls === 'sniper') g.effects.tracer(mz.clone(), res.end, 380);
     this.char.fired();
     const ear = g.camera.position;
     const occluded = !g.world.collision.lineOfSight(eye, ear);
-    audio.play('shot_' + def.sound, { pos: mz, vol: 1.0, pitchVar: 0.08, reverb: 0.3, occluded });
+    const far = mz.distanceTo(g.camera.position) > 45;
+    audio.play(far && audio.has('shot_distant') && audio.recorded?.has('shot_distant') ? 'shot_distant' : 'shot_' + def.sound, { pos: mz, vol: far ? 1.6 : 1.0, pitchVar: 0.08, reverb: 0.3, occluded });
   }
 
   raycast(o, d, maxT) { return this.char.raycast(o, d, maxT); }

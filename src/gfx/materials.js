@@ -40,6 +40,10 @@ const GEAR_RECIPES = {
   bakelite: { tile: 0.2, color1: '#7c3a1e', color2: '#652d16', noiseScale: 5, noiseAmt: 0.6, detail: 0.4, grime: 0.2, grimeColor: '#2a120a', grimeScale: 5, rough: 0.38, roughVar: 0.12, metal: 0, bump: 0.4, seed: 115 },
   polymer_olive: { tile: 0.2, color1: '#4d5340', color2: '#454a39', noiseScale: 8, noiseAmt: 0.3, detail: 1.0, grime: 0.15, grimeColor: '#2e3126', grimeScale: 5, rough: 0.72, roughVar: 0.1, metal: 0, bump: 0.6, seed: 117 },
   polymer_tan: { tile: 0.2, color1: '#a08a68', color2: '#93805f', noiseScale: 8, noiseAmt: 0.3, detail: 1.0, grime: 0.18, grimeColor: '#5a4c38', grimeScale: 5, rough: 0.7, roughVar: 0.1, metal: 0, bump: 0.6, seed: 119 },
+  // photo-based gear (Poly Haven fabrics), tinted per team/skin
+  sleeve: { photo: 'denim', tile: 0.27, color1: '#4f5560', color2: '#454a54', noiseScale: 6, noiseAmt: 0.5, detail: 1.0, rough: 0.95, bump: 1.2, seed: 121 },
+  neoprene: { photo: 'neoprene', tile: 0.28, color1: '#2b2b2b', color2: '#242424', noiseScale: 8, noiseAmt: 0.4, detail: 1.0, rough: 0.8, bump: 1.0, seed: 123 },
+  leather: { photo: 'leather', tile: 0.5, color1: '#3a2c22', color2: '#30241c', noiseScale: 8, noiseAmt: 0.4, detail: 1.0, rough: 0.6, bump: 1.0, seed: 125 },
   blade: { tile: 0.2, color1: '#b9bec4', color2: '#a6abb2', noiseScale: 12, noiseAmt: 0.3, detail: 0.2, grime: 0.05, grimeColor: '#6a6e74', grimeScale: 6, rough: 0.22, roughVar: 0.08, metal: 1.0, bump: 0.2, seed: 113 },
 };
 
@@ -175,13 +179,30 @@ class MaterialLibrary {
     if (this.matCache.has(key)) return this.matCache.get(key);
     const t = await this.textures(id, Math.min(512, preset().texSize));
     const Ctor = opts.clearcoat ? THREE.MeshPhysicalMaterial : THREE.MeshStandardMaterial;
+    // photo fabrics/leather: the ARM blue channel is not a usable metal mask -> dielectric
+    const dielectric = t.photo && !this.recipe(id).metal;
     const m = new Ctor({
-      map: t.albedo, normalMap: t.normal, roughnessMap: t.orm, metalnessMap: t.orm,
-      roughness: opts.roughness ?? 1, metalness: opts.metalness ?? 1,
+      map: t.albedo, normalMap: t.normal, roughnessMap: t.orm, metalnessMap: dielectric ? null : t.orm,
+      roughness: opts.roughness ?? 1, metalness: dielectric ? (opts.metalness ?? 0) : (opts.metalness ?? 1),
       color: opts.color ? new THREE.Color(opts.color) : new THREE.Color(1, 1, 1),
       envMapIntensity: opts.env ?? 1,
     });
     if (opts.clearcoat) { m.clearcoat = opts.clearcoat; m.clearcoatRoughness = opts.clearcoatRoughness ?? 0.35; }
+    if (opts.gray !== undefined) {
+      // desaturate the photo albedo (opts.gray = how much), then tint with color
+      const g = { value: opts.gray };
+      m.onBeforeCompile = (sh) => {
+        sh.uniforms.uGray = g;
+        sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uGray;')
+          .replace('#include <map_fragment>', `#ifdef USE_MAP
+            vec4 sampledDiffuseColor = texture2D( map, vMapUv );
+            float gl = dot(sampledDiffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+            sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(gl), uGray);
+            diffuseColor *= sampledDiffuseColor;
+          #endif`);
+      };
+      m.customProgramCacheKey = () => 'gearGray';
+    }
     if (opts.normalScale) m.normalScale.set(opts.normalScale, opts.normalScale);
     m.name = id;
     const tile = normalizeRecipe(this.recipe(id)).tile;
