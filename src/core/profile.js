@@ -107,7 +107,8 @@ class Profile {
     const v = this.itemValue(it);
     this.d.inv = this.d.inv.filter((x) => x !== it);
     for (const k in this.d.equip) if (this.d.equip[k] === id) delete this.d.equip[k];
-    if (KNIVES.includes(it.skin && SKINS[it.skin].weapon) && !this.ownsKnife(this.d.loadout.knife)) this.d.loadout.knife = 'knife';
+    // sold the last copy of the selected knife: back to the default one
+    if (!this.ownsKnife(this.d.loadout.knife)) this.d.loadout.knife = 'knife';
     this.d.coins += v;
     this.save();
     return v;

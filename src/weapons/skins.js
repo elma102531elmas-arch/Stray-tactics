@@ -2,6 +2,7 @@
 // shader patch, so one skin works on any model (procedural or glTF) without
 // UVs. Wear (item float) reveals the base finish through scratches.
 import * as THREE from 'three';
+import { settings } from '../core/settings.js';
 
 export const RARITIES = {
   common: { name: 'Common', color: '#b0c3d9', sell: 15 },
@@ -76,7 +77,8 @@ float skH(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x *
 float skN(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(skH(i), skH(i + vec3(1,0,0)), f.x), mix(skH(i + vec3(0,1,0)), skH(i + vec3(1,1,0)), f.x), f.y),
              mix(mix(skH(i + vec3(0,0,1)), skH(i + vec3(1,0,1)), f.x), mix(skH(i + vec3(0,1,1)), skH(i + vec3(1,1,1)), f.x), f.y), f.z); }
-float skF(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++) { s += a * skN(p); p = p * 2.03 + 11.7; a *= 0.5; } return s; }
+// fbm; SK_OCT octaves (fewer on phones), normalized to the 5-octave range
+float skF(vec3 p){ float a = 0.5, s = 0.0; for (int i = 0; i < SK_OCT; i++) { s += a * skN(p); p = p * 2.03 + 11.7; a *= 0.5; } return s * (0.96875 / (1.0 - pow(0.5, float(SK_OCT)))); }
 vec2 skV(vec3 p){ vec3 i = floor(p), f = fract(p); float d1 = 8.0, d2 = 8.0;
   for (int z = -1; z <= 1; z++) for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
     vec3 g = vec3(float(x), float(y), float(z)); vec3 o = vec3(skH(i + g), skH(i + g + 17.1), skH(i + g + 33.7));
@@ -152,7 +154,11 @@ const PATTERNS = {
 // materials that never take a skin (glass, sights, brass rounds)
 const SKIP = /glass|sight|brass|bullet|lens/i;
 
+// noise octaves per quality preset (the skin shader is the most expensive one on the weapon)
+const OCTAVES = { low: 2, medium: 3, high: 4, ultra: 5 };
+
 function skinMaterial(base, def, uniforms, space) {
+  const oct = OCTAVES[settings.quality] || 4;
   const m = base.clone();
   const sp = { value: space.clone() };
   m.onBeforeCompile = (sh) => {
@@ -161,7 +167,7 @@ function skinMaterial(base, def, uniforms, space) {
       .replace('#include <common>', '#include <common>\nuniform mat4 uSkinSpace;\nvarying vec3 vSkinP;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvSkinP = (uSkinSpace * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + GLSL_COMMON)
+      .replace('#include <common>', '#include <common>\n#define SK_OCT ' + oct + '\n' + GLSL_COMMON)
       .replace('#include <map_fragment>', `#include <map_fragment>
         vec3 skCol = vec3(0.0); vec3 skEm = vec3(0.0); float skMet = uSkMetal, skRou = uSkRough;
         { vec3 p = vSkinP + uSkSeed; ${PATTERNS[def.p] || PATTERNS.solid} }
@@ -179,7 +185,7 @@ function skinMaterial(base, def, uniforms, space) {
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nif (skCol.r >= 0.0) metalnessFactor = mix(metalnessFactor, skMet, skWorn);')
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += skEm * skWorn;');
   };
-  m.customProgramCacheKey = () => 'skin_' + def.p;
+  m.customProgramCacheKey = () => 'skin_' + def.p + oct;
   m.userData.skinned = true;
   return m;
 }

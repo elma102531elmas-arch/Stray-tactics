@@ -62,6 +62,7 @@ export class Game {
     if (settings.isTouch) { input.buildTouch(this.ui); input.showTouch(true, false); }
     this.hud.message(o.mode === 'tdm' ? 'TEAM DEATHMATCH' : 'PRACTICE', o.mode === 'tdm' ? `First to ${o.scoreLimit} kills` : 'Free roam · test weapons, animations and maps', 2600);
     audio.play('go', { vol: 0.6 });
+    this.stopAmb = audio.loop('amb_wind', { vol: 0.14 });
     this.pauseEl = this.buildPause();
     input.lock();
   }
@@ -260,6 +261,7 @@ export class Game {
   }
   quit() { if (this.opts.onQuit) this.opts.onQuit(); else this.app.toLobby(); }
   destroy() {
+    if (this.stopAmb) this.stopAmb();
     input.enabled = false; input.unlock(); input.showTouch(false);
     for (const b of this.bots) { this.world.dynamic.remove(b.char.group); }
     this.effects.clear();

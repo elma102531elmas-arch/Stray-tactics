@@ -192,6 +192,16 @@ class AudioEngine {
     } catch (e) { console.warn('sfx', e); }
   }
   has(name) { return this.buffers.has(name); }
+  // seamless ambience loop with a fade-in; returns a stop() that fades out
+  loop(name, opts = {}) {
+    const c = this.ctx, b = this.buffers.get(name);
+    if (!c || !b) return () => {};
+    const src = c.createBufferSource(); src.buffer = b; src.loop = true;
+    const g = c.createGain(), t0 = c.currentTime;
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(opts.vol ?? 0.15, t0 + (opts.fade ?? 2.5));
+    src.connect(g); g.connect(this.master); src.start();
+    return () => { const t = c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + 0.6); src.stop(t + 0.7); };
+  }
   // loudness + pitch spread for gunshots: recordings were calibrated per gun
   shotMix(kind) {
     const m = this.recorded && this.recorded.has('shot_' + kind) ? SHOT_MIX[kind] : null;

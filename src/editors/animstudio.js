@@ -239,7 +239,7 @@ export class AnimStudio {
     this.autoBtn = t('AUTO-KEY', () => { this.autoKey = !this.autoKey; this.autoBtn.classList.toggle('on', this.autoKey); });
     this.autoBtn.classList.add('on');
     const top = el('div', { class: 'ed-top' },
-      t('◀ LOBBY', () => { if (this.confirmLose()) this.app.toLobby(); }), el('h1', {}, 'ANIMATION STUDIO'), this.weaponSel, this.clipSel,
+      t('◀ MENU', () => { if (this.confirmLose()) this.app.toLobby(); }), el('h1', {}, 'ANIMATION STUDIO'), this.weaponSel, this.clipSel,
       t('SAVE', () => this.save()), t('↶ UNDO', () => this.undo()), t('↷ REDO', () => this.redo()), t('RESET', () => this.reset()), t('BLANK', () => this.blank()), t('JSON ⇅', () => this.jsonIO()),
       el('div', { class: 'sp' }), this.camBtns.fp, this.camBtns.orbit, this.autoBtn, t('▶ TEST IN GAME', () => this.testInGame(), 'go'));
     this.side = el('div', { class: 'ed-side' });

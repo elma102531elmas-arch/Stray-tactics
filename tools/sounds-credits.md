@@ -77,3 +77,66 @@ The cuts (start, duration, filters, gain) are defined in `tools/sounds.json` and
 | 773873 | shotgun shoot | MrGungus | `shot_shotgun` |
 | 842728 | Glock17_Magazine.1 | Stoniac | `pistol_magOut`, `pistol_magIn` |
 | 842730 | Glock17_Slide.1 | Stoniac | `slideBack`, `slideForward` |
+
+## Additional sounds (second pass)
+
+These come from CC0 packs on OpenGameArt and Kenney, plus one public-domain field recording from the Internet Archive. The cuts are defined in `tools/sounds.json` (zip + file entries) and built with `node tools/assets.mjs sounds`.
+
+
+### Footsteps and landing
+
+| Game sound | Title | Author | Pack | Source | License |
+|---|---|---|---|---|---|
+| `step_stone0` | boots-leather-step-01.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+| `step_stone1` | boots-leather-step-02.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+| `step_stone2` | boots-leather-step-03.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+| `step_stone3` | boots-leather-step-04.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+| `step_sand0` | Fantozzi-SandL1.flac | Fantozzi (cut by qubodup) | Fantozzi's Footsteps (Grass/Sand & Stone) | <https://opengameart.org/content/fantozzis-footsteps-grasssand-stone> | CC0 1.0 |
+| `step_sand1` | Fantozzi-SandR3.flac | Fantozzi (cut by qubodup) | Fantozzi's Footsteps (Grass/Sand & Stone) | <https://opengameart.org/content/fantozzis-footsteps-grasssand-stone> | CC0 1.0 |
+| `step_sand2` | Fantozzi-SandL2.flac | Fantozzi (cut by qubodup) | Fantozzi's Footsteps (Grass/Sand & Stone) | <https://opengameart.org/content/fantozzis-footsteps-grasssand-stone> | CC0 1.0 |
+| `step_sand3` | Fantozzi-SandL3.flac | Fantozzi (cut by qubodup) | Fantozzi's Footsteps (Grass/Sand & Stone) | <https://opengameart.org/content/fantozzis-footsteps-grasssand-stone> | CC0 1.0 |
+| `step0` | footstep00.ogg | Kenney (kenney.nl) | RPG Audio | <https://kenney.nl/assets/rpg-audio> | CC0 1.0 |
+| `step1` | footstep01.ogg | Kenney (kenney.nl) | RPG Audio | <https://kenney.nl/assets/rpg-audio> | CC0 1.0 |
+| `step2` | footstep08.ogg | Kenney (kenney.nl) | RPG Audio | <https://kenney.nl/assets/rpg-audio> | CC0 1.0 |
+| `land` | boots-leather-jump-01.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+
+### Bullet impacts and shells
+
+| Game sound | Title | Author | Pack | Source | License |
+|---|---|---|---|---|---|
+| `impact_stone` | qubodupImpactStone.flac | qubodup (Iwan Gabovitch) | Impact | <https://opengameart.org/content/impact> | CC0 1.0 |
+| `impact_metal` | qubodupImpactMetal.flac | qubodup (Iwan Gabovitch) | Impact | <https://opengameart.org/content/impact> | CC0 1.0 |
+| `impact_wood` | qubodupImpactWood.flac | qubodup (Iwan Gabovitch) | Impact | <https://opengameart.org/content/impact> | CC0 1.0 |
+| `impact_sand` | soil-steps-01.wav | Vehicle (Jan Schupke) | Fantasy Sound Effects (Tinysized SFX) | <https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx> | CC0 1.0 |
+| `impact_flesh` | qubodupImpactMeat02.flac | qubodup (Iwan Gabovitch) | Impact | <https://opengameart.org/content/impact> | CC0 1.0 |
+| `shell` | bfh1_metal_falling_05.ogg | rubberduck | 75 CC0 breaking / falling / hit sfx | <https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx> | CC0 1.0 |
+
+### Knife and handling
+
+| Game sound | Title | Author | Pack | Source | License |
+|---|---|---|---|---|---|
+| `knifeDraw` | knife-unsheathe-02.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+| `swing` | tube-plastic-whoosh-02.wav | Vehicle (Jan Schupke) | Fantasy Sound Effects (Tinysized SFX) | <https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx> | CC0 1.0 |
+| `knifeHit` | apple-cut-02.wav | Vehicle (Jan Schupke) | Fantasy Sound Effects (Tinysized SFX) | <https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx> | CC0 1.0 |
+| `knifeWall` | sword-knife-clash-15.wav | Vehicle (Jan Schupke) | Fantasy Weapons and Apparel SFX Library | <https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library> | CC0 1.0 |
+| `knifeFlip` | scissors-close-01.wav | Vehicle (Jan Schupke) | Fantasy Sound Effects (Tinysized SFX) | <https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx> | CC0 1.0 |
+| `balisong` | metalLatch.ogg | Kenney (kenney.nl) | RPG Audio | <https://kenney.nl/assets/rpg-audio> | CC0 1.0 |
+| `shellInsert` | Subsequent Shells.mp3 | zer0_sol | Shotgun Reload Sound effects | <https://opengameart.org/content/shotgun-reload-sound-effects> | CC0 1.0 |
+| `gear` | clothBelt2.ogg | Kenney (kenney.nl) | RPG Audio | <https://kenney.nl/assets/rpg-audio> | CC0 1.0 |
+| `pouch` | cloth-pouch-shake-02.wav | Vehicle (Jan Schupke) | Fantasy Sound Effects (Tinysized SFX) | <https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx> | CC0 1.0 |
+
+### Menu and cases
+
+| Game sound | Title | Author | Pack | Source | License |
+|---|---|---|---|---|---|
+| `caseOpen` (part 1) | click61.wav | OwlishMedia | 87 Clickety Clips | <https://opengameart.org/content/87-clickety-clips> | CC0 1.0 |
+| `caseOpen` (part 2) | wooded_box_open.ogg | rubberduck | 100 CC0 SFX | <https://opengameart.org/content/100-cc0-sfx> | CC0 1.0 |
+| `caseReveal` | bell_03.ogg | rubberduck | 100 CC0 SFX | <https://opengameart.org/content/100-cc0-sfx> | CC0 1.0 |
+| `coins` | handleCoins.ogg | Kenney (kenney.nl) | RPG Audio | <https://kenney.nl/assets/rpg-audio> | CC0 1.0 |
+| `uiHover` | click28.wav | OwlishMedia | 87 Clickety Clips | <https://opengameart.org/content/87-clickety-clips> | CC0 1.0 |
+
+### Ambience
+
+| Game sound | Title | Author | Pack | Source | License |
+|---|---|---|---|---|---|
+| `amb_wind` | Wonder Valley, Mojave Desert, California - Windstorm in Wonder Valley at dawn | Steven Rowell | radio aporee ::: maps (Internet Archive) | <https://archive.org/details/aporee_13595_15862> | Public domain (PDM 1.0, chosen by the recordist) |

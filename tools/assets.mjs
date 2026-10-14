@@ -217,7 +217,7 @@ async function buildModels() {
 //   or {src: url of an audio file or a .zip/.7z pack (Kenney, OpenGameArt), file: path inside the pack,
 //       start, dur, gain, hp, lp, fade, fadein, af: extra ffmpeg filters, loop: crossfade seconds that
 //       make the clip loop seamlessly}
-//   or {parts: [{src, file, start, dur, at, gain}, ...], dur, gain, ...}: cuts layered at `at` seconds.
+//   or {parts: [{src, file, start, dur, at, gain, fade}, ...], dur, gain, ...}: cuts layered at `at` seconds.
 // title/author/pack/page/license (per part for layered sounds) are provenance for the credits.
 export const SOUNDS = JSON.parse(fs.existsSync(path.join(ROOT, 'tools/sounds.json')) ? fs.readFileSync(path.join(ROOT, 'tools/sounds.json'), 'utf8') : '{}');
 
@@ -274,7 +274,7 @@ function buildSounds() {
   let total = 0;
   const list = pick(SOUNDS);
   for (const [name, s] of list) {
-    // parts: [{src, file, start, dur, at, gain}] cuts mixed at `at` seconds, then filtered as one sound
+    // parts: [{src, file, start, dur, at, gain, fade}] cuts mixed at `at` seconds, then filtered as one sound
     const parts = s.parts || [s];
     const len = (p) => (p.dur || s.dur || 1) + (s.loop || 0);
     // freesound previews are cut by seeking; other sources are decoded from the start and trimmed exactly
@@ -291,7 +291,8 @@ function buildSounds() {
     const out = [`volume=${s.gain || 1}`, s.fs ? 'alimiter=limit=0.95' : 'alimiter=limit=0.95:latency=1'];
     let graph = ['-af', filters.concat(out).join(',')];
     if (s.parts) {
-      graph = ['-filter_complex', parts.map((p, i) => `[${i}:a]${[...cut(p), 'aformat=channel_layouts=mono:sample_rates=44100', `volume=${p.gain || 1}`, `adelay=${Math.round((p.at || 0) * 1000)}`].join(',')}[p${i}];`).join('') +
+      graph = ['-filter_complex', parts.map((p, i) => `[${i}:a]${[...cut(p), 'aformat=channel_layouts=mono:sample_rates=44100',
+        ...(p.fade ? [`afade=t=out:st=${len(p) - p.fade}:d=${p.fade}`] : []), `volume=${p.gain || 1}`, `adelay=${Math.round((p.at || 0) * 1000)}`].join(',')}[p${i}];`).join('') +
         `${parts.map((p, i) => `[p${i}]`).join('')}amix=inputs=${parts.length}:normalize=0,apad,atrim=end=${s.dur},${filters.concat(out).join(',')}`];
     } else if (s.loop) {
       // loop: cut dur+loop seconds; the first `loop` seconds fade in (equal power) over the faded-out end,
