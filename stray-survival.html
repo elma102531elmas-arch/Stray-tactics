@@ -199,6 +199,7 @@
     <button id="btnJoin" class="bigBtn ghost">JOIN SQUAD</button>
     <button id="btnCustom" class="bigBtn ghost">CUSTOMIZE</button>
     <button id="btnSettings" class="bigBtn ghost">SETTINGS</button>
+    <div class="status" id="menuStatus"></div>
   </div>
   <div class="best" id="bestTxt"></div>
   <div class="hint">Hold the camp with up to 3 friends. Waves never end and every 3rd wave brings a boss, which gets stronger every time it comes back. If a squadmate goes down, stand next to them to revive them.</div>
@@ -2031,8 +2032,10 @@ $('nameOk').onclick=()=>{ const v=$('nameInput').value.trim().toUpperCase().repl
   CFG.name=v; saveCfg(); const r=PL.get(NET.myId); if(r) r.name=v; showMenu(); };
 $('nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('nameOk').click(); });
 $('btnSolo').onclick=()=>{ audio(); startHosting(true); hostStartGame(); };
-$('btnCreate').onclick=()=>{ audio(); startHosting(false); showLobby(); };
-$('btnJoin').onclick=()=>{ $('joinStatus').textContent=''; showScreen('joinScreen'); };
+const SQUAD_OFF=!!document.querySelector('meta[name="stray-build"][content="preview"]');
+const squadOff=()=>{ $('menuStatus').textContent='Squad play needs the full version of the game (it uses WebRTC). Solo works here.'; };
+$('btnCreate').onclick=()=>{ if(SQUAD_OFF) return squadOff(); audio(); startHosting(false); showLobby(); };
+$('btnJoin').onclick=()=>{ if(SQUAD_OFF) return squadOff(); $('joinStatus').textContent=''; showScreen('joinScreen'); };
 $('btnCustom').onclick=()=>{ buildCustom(); app.menuYaw=0; showScreen('customScreen'); };
 $('customDone').onclick=()=>showMenu();
 $('btnSettings').onclick=()=>{ $('setName').value=CFG.name; showScreen('settingsScreen'); };
