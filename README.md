@@ -1,37 +1,33 @@
 # Stray
 
-Browser shooters built with three.js. Each game is a single HTML file with no build step, and both run on desktop and mobile.
+Browser games built with three.js. Each game is a single HTML file with no build step, and both run on desktop and mobile.
 
 - `index.html`: launcher page
-- `stray-survival.html`: **Stray Survival**, co-op wave survival with endless bosses
-- `stray-tactical.html`: **Stray Tactical**, 1v1 duel
+- `straycraft.html`: **Straycraft**, an infinite voxel survival and creative sandbox
+- `stray-tactical.html`: **Stray Tactical**, a 1v1 duel shooter
 
-## Stray Survival
+## Straycraft
 
-Hold the camp with up to 3 friends against endless waves of infected.
+An endless block world that generates as you explore.
 
-- **Endless waves.** Each wave is bigger and tougher than the last. New enemy types join as waves go on: walkers, runners, acid spitters and brutes.
-- **Bosses every 3rd wave.** The Butcher (cleaver and ground slam), The Matriarch (acid volleys, summons runners) and The Colossus (armored, thrown rocks, stomp, glowing weak-point core). They rotate, level up each time they return, become enraged at half health, and later waves send several at once.
-- **Squad play.** A downed player can still shoot a pistol, and a teammate revives them by standing next to them. Dead players respawn when the wave is cleared, and the run ends only when everyone is down.
-- **Operators.** Detailed procedural soldier models with skin, jacket, pants, vest, headgear, hair, beard, squad color and backpack options. Your squad sees your look in the lobby and in game.
-- **World.** A camp with a campfire, tents, a watchtower and sandbag walls, ruined houses, a barn, a gas station, a crashed helicopter, wrecked cars and explosive barrels. It has a forest, wind-blown grass and a full day/night cycle, and you get a flashlight at night.
-- **Weapons.** Pistol, rifle and pump shotgun, with aim-down-sights, reloads, recoil, headshots, ammo/medkit/armor drops and a supply drop after every wave.
-- **Views.** Third-person or first-person (press `V` or the CAM button).
+- **Infinite world.** Chunks generate around you in a background worker, so the game stays smooth. There are 9 biomes: plains, forest, birch forest, desert, snowy taiga, mountains, beaches, and warm and frozen oceans. Underground you'll find spaghetti caves and caverns with coal, iron, gold and diamond ores and lava pools. Trees, cacti, flowers, tall grass and pumpkins grow on the surface.
+- **More realistic look.** It uses detailed 32px procedural textures with per-block random rotation so they don't repeat, smooth lighting with ambient occlusion, and real sunlight and block light where caves are dark and torches glow. Sun shadows, swaying leaves and grass, see-through water with waves, drifting clouds, a full day/night cycle with stars and moon, underwater fog and block-break particles complete the look.
+- **First-person hand.** A modelled arm and gripping hand holds blocks as small cubes and tools and items as 3D pixel models, with swing, place, eat, equip, bob and sway animations. You can also switch to third person or a front view and see your full character.
+- **Survival.** Mine with the right tool (the harder ores need better pickaxes). Craft planks, sticks, a crafting table, a furnace, torches, and wood, stone, iron and diamond tools, and smelt ores, glass and food. Manage health, hunger and air, take fall damage, and watch out for lava and cactus. Pigs, cows and sheep give food and wool. Zombies come out at night and in dark caves, and burn in the sun.
+- **Creative.** Fly (double-tap jump), take any block or item for free, and break blocks instantly.
+- **Saves.** Multiple worlds with names and seeds are saved in your browser and auto-saved every 30 seconds.
+- **Co-op.** Open your world to friends from the pause menu. They join with the 5-letter code and everyone builds in the same world. It's peer-to-peer through the public PeerJS broker, so there's no server to run.
 
 ### Controls
 
 | Desktop | Mobile |
 | --- | --- |
-| `WASD` move, `Shift` sprint, `Space` jump, `C` crouch | Left side: virtual stick (push far forward to sprint) |
-| Mouse look, `LMB` fire, `RMB` aim | Right side: drag to look; FIRE buttons also aim while held |
-| `R` reload, `1`/`2`/`3` or wheel to switch weapons | R, ⇄, AIM, JUMP, CROUCH buttons |
-| `V` camera, `Esc` pause, `N` start the next wave (host) | CAM and pause buttons |
+| `WASD` move, `Space` jump (double-tap to fly in creative), `Shift` sneak, `Ctrl` sprint | Left side: virtual stick (push far forward to sprint) |
+| Mouse look, left click mine/attack, right click place/use/eat | Right side: drag to look, tap to place/use/attack, hold to mine or eat |
+| `E` inventory and crafting, `1`–`9` or wheel for the hotbar, middle click picks a block (creative) | BAG, JUMP, SNEAK, FLY, DOWN, CAM buttons, tap the hotbar |
+| `F5`/`V` camera, `F3` debug info, `Esc` pause | Pause button |
 
-### Multiplayer
-
-Choose **CREATE SQUAD**, share the 5-letter code, and friends use **JOIN SQUAD**. It is peer-to-peer over WebRTC through the public PeerJS broker, so no server is needed. The host runs the enemies and everyone else syncs to the host. **PLAY SOLO** works offline once the page has loaded.
-
-For local testing, open two tabs with `?net=bc` to connect over `BroadcastChannel` instead of PeerJS.
+For local multiplayer testing, open two tabs with `?net=bc` to connect over `BroadcastChannel` instead of PeerJS.
 
 ### Hosting
 
