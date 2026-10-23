@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a09">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Saint Marrow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=IM+Fell+English+SC&family=Special+Elite&family=Reenie+Beanie&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="fxOverlay"></div>
+
+<!-- ============ HUD ============ -->
+<div id="hud" hidden>
+  <div id="objective"><small></small><b></b></div>
+  <div id="team"></div>
+  <div id="fps" hidden></div>
+  <div id="toasts"></div>
+  <div id="cross"><i></i><i></i><i></i><i></i></div>
+  <div id="prompt" hidden><kbd>E</kbd><b></b></div>
+  <div id="hold" hidden></div>
+  <div id="dmgDir"></div>
+  <div id="subtitle"></div>
+  <div id="scope" hidden><div class="ret"></div></div>
+  <div id="vitals">
+    <div class="status"><span id="stBleed" class="st bleed" hidden></span><span id="stFract" class="st fract" hidden></span><span id="stPill" class="st pill" hidden></span></div>
+    <div class="hpRow"><span id="hpNum">100</span><div class="bar"><div id="hpFill"></div></div></div>
+    <div id="stam"><div id="stamFill"></div></div>
+    <div class="batRow"><span class="bi"></span><div class="bar sm"><div id="batFill"></div></div><span id="batCount"></span></div>
+  </div>
+  <div id="weapon"><div id="ammo" hidden><span id="ammoMag">0</span><span class="sep">/</span><span id="ammoRes">0</span></div><div id="wpnName"></div></div>
+  <div id="downed" hidden><b data-t="downed"></b><span id="bleedout">45</span></div>
+  <div id="chapterCard"><div class="n"></div><div class="t"></div><div class="s"></div></div>
+  <button id="pauseBtn" class="hudBtn" aria-label="Pause"></button>
+  <button id="journalBtn" class="hudBtn" aria-label="Journal"></button>
+</div>
+
+<!-- ============ TOUCH ============ -->
+<div id="touch" hidden>
+  <div id="joyBase"><div id="joyKnob"></div><div class="sprintHint">⇡</div></div>
+  <button class="tb" id="tFire" data-act="fire" data-look="1"><span data-t="fire">Fire</span></button>
+  <button class="tb sm" id="tFireL" data-act="fire"><span>✶</span></button>
+  <button class="tb sm" id="tAim" data-act="aim"><span data-t="aim">Aim</span></button>
+  <button class="tb sm" id="tReload" data-act="reload"><span data-t="reload">Reload</span></button>
+  <button class="tb sm" id="tUse" data-act="use"><span data-t="use">Use</span></button>
+  <button class="tb sm" id="tCrouch" data-act="crouch"><span data-t="crouch">Crouch</span></button>
+  <button class="tb sm" id="tRun" data-act="sprint"><span data-t="run">Run</span></button>
+  <button class="tb sm" id="tLight" data-act="flash"><span data-t="light">Light</span></button>
+  <button class="tb sm" id="tWeapon" data-act="weapon"><span data-t="weapon">Weapon</span></button>
+  <button class="tb sm" id="tHeal" data-act="heal"><span data-t="heal">Heal</span><em id="healCount">0</em></button>
+</div>
+
+<!-- ============ SCREENS ============ -->
+<section id="boot" class="screen">
+  <div class="brand"><h1>Saint Marrow</h1><p data-t="tagline">Saint Marrow Sanatorium · closed 1994</p></div>
+  <div class="loadBar"><div id="loadFill"></div></div>
+  <p id="loadLabel" class="muted" data-t="loading">Loading</p>
+  <button id="btnTapStart" class="primary" hidden data-t="tapToStart">Tap to start</button>
+  <p class="warn" data-t="ageWarning">13+ · Contains blood, injuries and frightening scenes.</p>
+  <p class="muted small" data-t="headphones">Play with headphones in a dark room.</p>
+</section>
+
+<section id="menu" class="screen" hidden>
+  <div class="brand"><h1>Saint Marrow</h1><p data-t="tagline">Saint Marrow Sanatorium · closed 1994</p></div>
+  <nav class="menuList">
+    <button id="btnContinue" class="primary" hidden><span data-t="continue">Continue</span><small></small></button>
+    <button id="btnSolo"><span data-t="play">Play alone</span></button>
+    <button id="btnCoop"><span data-t="coop">Play with friends</span><small>2–4 · online</small></button>
+    <button id="btnChapters"><span data-t="chapters">Chapters</span></button>
+    <button id="btnSettings"><span data-t="settings">Settings</span></button>
+  </nav>
+  <div class="controlsHelp"><b data-t="controlsTitle">Controls</b><p id="ctrlText"></p></div>
+</section>
+
+<section id="chapters" class="screen" hidden>
+  <h2 data-t="chapters">Chapters</h2>
+  <div id="chapterList"></div>
+  <button class="ghost" data-back="menu" data-t="back">Back</button>
+</section>
+
+<section id="coop" class="screen" hidden>
+  <h2 data-t="coop">Play with friends</h2>
+  <div class="panel">
+    <label class="fld"><span data-t="yourName">Your name</span><input id="nameIn" maxlength="16" autocomplete="off"></label>
+    <button id="btnHost" class="primary" data-t="hostGame">Host a game</button>
+    <div class="or"><span>—</span></div>
+    <label class="fld"><span data-t="roomCode">Room code</span><input id="codeIn" maxlength="5" autocomplete="off" placeholder="ABCDE" class="code"></label>
+    <button id="btnJoin" data-t="joinGame">Join a game</button>
+    <p id="coopStatus" class="status"></p>
+  </div>
+  <button class="ghost" data-back="menu" data-t="back">Back</button>
+</section>
+
+<section id="lobby" class="screen" hidden>
+  <h2 data-t="players">Players</h2>
+  <div class="panel">
+    <div class="codeBox"><small data-t="shareCode">Share this code with your friends</small><b id="lobbyCode">-----</b></div>
+    <ul id="lobbyPlayers"></ul>
+    <div class="lobRow"><span data-t="chapter">Chapter</span><div id="lobbyChapter" class="seg"></div></div>
+    <p id="lobbyChapterName" class="muted center"></p>
+    <div class="lobRow"><span data-t="difficulty">Difficulty</span><div id="lobbyDiff" class="seg"><button data-v="easy" data-t="easy">Easy</button><button data-v="normal" data-t="normal">Normal</button><button data-v="hard" data-t="hard">Hard</button></div></div>
+    <button id="btnLobbyStart" class="primary" data-t="start">Start</button>
+    <p id="lobbyWait" class="status" data-t="waitingHost">Waiting for the host to start…</p>
+  </div>
+  <button class="ghost" data-back="lobby" data-t="back">Back</button>
+</section>
+
+<section id="settings" class="screen" hidden>
+  <h2 data-t="settings">Settings</h2>
+  <div class="panel wide" id="settingsBody"></div>
+  <button class="ghost" data-back="settings" data-t="back">Back</button>
+</section>
+
+<section id="pause" class="screen dimBg" hidden>
+  <h2 data-t="paused">Paused</h2>
+  <nav class="menuList">
+    <button id="btnResume" class="primary" data-t="resume">Resume</button>
+    <button id="btnJournal" data-t="journal">Journal</button>
+    <button id="btnPauseSettings" data-t="settings">Settings</button>
+    <button id="btnRestart" data-t="restartChapter">Restart chapter</button>
+    <button id="btnQuit" data-t="quitMenu">Quit to menu</button>
+  </nav>
+</section>
+
+<section id="dead" class="screen bloodBg" hidden>
+  <h2 class="big" data-t="youDied">You died</h2>
+  <p id="deadSub" class="muted"></p>
+  <nav class="menuList">
+    <button id="btnRetry" class="primary" data-t="retry">Try again</button>
+    <button id="btnDeadQuit" data-t="quitMenu">Quit to menu</button>
+  </nav>
+</section>
+
+<section id="done" class="screen dimBg" hidden>
+  <h2 data-t="chapterDone">Chapter complete</h2>
+  <dl class="stats"><dt data-t="time">Time</dt><dd id="statTime"></dd><dt data-t="kills">Killed</dt><dd id="statKills"></dd><dt data-t="deaths">Deaths</dt><dd id="statDeaths"></dd></dl>
+  <nav class="menuList">
+    <button id="btnNext" class="primary" data-t="nextChapter">Continue</button>
+    <button id="btnEndMenu" data-t="quitMenu">Quit to menu</button>
+  </nav>
+</section>
+
+<section id="end" class="screen" hidden>
+  <h2 class="big" data-t="theEnd">The End</h2>
+  <p id="endText" class="endText"></p>
+  <p id="endStats" class="muted"></p>
+  <p class="muted" data-t="credits">Thank you for playing Saint Marrow.</p>
+  <button class="primary" data-back="menu" data-t="back">Back</button>
+</section>
+
+<!-- ============ OVERLAYS ============ -->
+<div id="note" class="overlay" hidden>
+  <article class="paper"><h3></h3><div class="body"></div><div class="reel"><i></i><i></i></div></article>
+  <button id="btnNoteClose" class="primary" data-t="close">Close</button>
+</div>
+<div id="journal" class="overlay" hidden>
+  <div class="panel">
+    <h3 data-t="objectives">Objective</h3><p id="jObjective"></p>
+    <h3 data-t="journal">Journal</h3><div id="jNotes"></div>
+  </div>
+  <button id="btnJournalClose" class="primary" data-t="close">Close</button>
+</div>
+<div id="keypad" class="overlay" hidden>
+  <div class="keypadBox"><small data-t="enterCode">Enter code</small><div id="keypadDisp">____</div><div id="keypadKeys"></div></div>
+  <button id="btnKeypadClose" class="ghost" data-t="close">Close</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js" onerror="window.__peerFailed=true"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
