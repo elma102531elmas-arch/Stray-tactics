@@ -59,7 +59,7 @@ export class Assets {
 
   loadTex(url, srgb) {
     return new Promise((res) => {
-      this.texLoader.load(url, (t) => {
+      this.texLoader.load((window.__ASSETS__ && window.__ASSETS__[url]) || url, (t) => {
         t.wrapS = t.wrapT = THREE.RepeatWrapping;
         t.anisotropy = this.aniso;
         if (srgb) t.colorSpace = THREE.SRGBColorSpace;
@@ -79,7 +79,14 @@ export class Assets {
 
   async loadModel(name) {
     let g;
-    if (window.__GLB_JSON__) {
+    const emb = window.__ASSETS__ && window.__ASSETS__[MODEL_DIR + name + '.glb'];
+    if (emb) {
+      // single-file build: the model is embedded as base64
+      const bin = atob(emb);
+      const buf = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+      g = await this.gltf.parseAsync(buf.buffer, MODEL_DIR);
+    } else if (window.__GLB_JSON__) {
       // hosts that cannot serve .glb get each model as base64 inside a .json file
       const r = await fetch(MODEL_DIR + name + '.glb.json');
       const { b64 } = await r.json();
