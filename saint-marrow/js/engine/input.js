@@ -61,19 +61,24 @@ export class Input {
     c.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('pointerlockchange', () => {
       this.pointerLocked = document.pointerLockElement === c;
+      this.lockedAt = performance.now();
       if (!this.pointerLocked && this.enabled && !this.touchMode) this.onUnlock && this.onUnlock();
     });
     window.addEventListener('mousemove', (e) => {
       if (!this.pointerLocked || !this.enabled) return;
-      this.lookDX += e.movementX * 0.0022;
-      this.lookDY += e.movementY * 0.0022;
+      // Chrome sometimes reports one huge bogus delta (the sudden 180° snap); drop it
+      let dx = e.movementX, dy = e.movementY;
+      if (performance.now() - (this.lockedAt || 0) < 250) return;
+      if (Math.abs(dx) > 220 || Math.abs(dy) > 220) return;
+      this.lookDX += dx * 0.0022 * CFG.sens;
+      this.lookDY += dy * 0.0022 * CFG.sens;
     });
     c.addEventListener('wheel', (e) => { if (this.enabled) this.press(e.deltaY > 0 ? 'wnext' : 'wprev'); }, { passive: true });
   }
 
   lockPointer() {
     if (this.touchMode) return;
-    try { const r = this.canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) { /* not available */ }
+    try { let r; try { r = this.canvas.requestPointerLock({ unadjustedMovement: true }); } catch (e2) { r = this.canvas.requestPointerLock(); } if (r && r.catch) r.catch(() => { try { this.canvas.requestPointerLock(); } catch (e3) { /* ignore */ } }); } catch (e) { /* not available */ }
   }
   unlockPointer() { if (document.pointerLockElement) document.exitPointerLock(); }
 

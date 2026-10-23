@@ -86,8 +86,8 @@ export class Player {
     // ---- look
     const aimK = this.aim ? (this.weapon === 'rifle' && g.vm.state.ads > 0.8 ? 0.35 : CFG.aimSens) : 1;
     const sens = (I.lookScale ?? 1) * aimK;
-    this.yaw -= I.lookDX * sens;
-    this.pitch -= I.lookDY * sens;
+    this.yaw -= clamp(I.lookDX * sens, -0.6, 0.6);
+    this.pitch -= clamp(I.lookDY * sens, -0.6, 0.6);
     this.pitch = clamp(this.pitch, -1.45, 1.45);
     if (this.hidden) { this.updateHidden(dt, I); return; }
 
