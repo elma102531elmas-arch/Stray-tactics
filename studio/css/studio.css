@@ -244,3 +244,7 @@ table.t td{padding:4px 8px;border-bottom:1px solid #ffffff0c}
 .pl-console .l-warn{color:#ffb347}.pl-console .l-error{color:#ff8a8a}.pl-console .l-info{color:#b8c2cf}.pl-console .t{color:#5d6673;margin-right:8px}
 .pl-finding{display:flex;gap:8px;padding:2px 10px;cursor:pointer;font-size:12px}.pl-finding:hover{background:var(--hover, #ffffff10)}
 .pl-finding .sev{width:52px;flex:none;font-weight:600}.pl-finding .sev.danger,.pl-finding .sev.error{color:#ff8a8a}.pl-finding .sev.warn{color:#ffc866}.pl-finding .sev.info{color:#8fc4ff}
+
+/* ---------- story graph ---------- */
+.gnode.is-start{box-shadow:0 0 0 2px #5bd18b}
+.gnode.is-start .gnode-head::after{content:'START';margin-left:8px;font-size:10px;font-weight:700;background:#5bd18b;color:#08210f;border-radius:8px;padding:0 6px}

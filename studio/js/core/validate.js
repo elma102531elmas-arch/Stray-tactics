@@ -13,6 +13,7 @@ import { buildNavMesh } from './navmesh.js';
 import { analyzeGraphs } from './events.js';
 import { sceneBounds } from './geometry.js';
 import { analyzeAudio } from './audio.js';
+import { analyzeStory } from './story.js';
 
 const DOWN = new THREE.Vector3(0, -1, 0);
 const r3 = (v) => Math.round(v * 1000) / 1000;
@@ -367,11 +368,12 @@ checks.reachability = (ctx) => {
 };
 
 /** Static problems inside event graphs (dangling references, unreachable nodes, event loops). */
+checks.story = (ctx) => (ctx.project ? analyzeStory(ctx.project).issues.filter((i) => i.code !== 'story-empty').map((i) => issue(i.code, i.severity, i.message, [], { storyNodes: i.nodes })) : []);
 checks.audio = (ctx) => (ctx.project ? analyzeAudio(ctx.project).map((i) => issue(i.code, i.severity, i.message, i.nodes)) : []);
 checks.eventGraphs = (ctx) => (ctx.project ? analyzeGraphs(ctx.project).issues.map((i) => issue(i.code, i.severity, i.message, [], { graph: i.graph, graphNode: i.node })) : []);
 
 // ---------------------------------------------------------------- driver
-export const CHECK_ORDER = ['wallGaps', 'overlappingOpenings', 'openingPlacement', 'floating', 'colliderMatch', 'decals', 'interactions', 'spawns', 'intersections', 'logicVolumes', 'references', 'eventGraphs', 'audio', 'reachability'];
+export const CHECK_ORDER = ['wallGaps', 'overlappingOpenings', 'openingPlacement', 'floating', 'colliderMatch', 'decals', 'interactions', 'spawns', 'intersections', 'logicVolumes', 'references', 'eventGraphs', 'audio', 'story', 'reachability'];
 
 export function makeValidationContext(project) {
   const geo = project.geoCtx;

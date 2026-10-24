@@ -7,6 +7,7 @@ import { SceneModel } from './scene.js';
 import { uid, deepClone, isObj } from './util.js';
 import { makeAssetLookup } from './builtin.js';
 import { audioSettingsAssets, defaultAudioData } from './audio.js';
+import { defaultStory } from './story.js';
 
 export const FORMAT = 'saint-marrow-studio-project';
 export const FORMAT_VERSION = 1;
@@ -48,7 +49,7 @@ export function newProjectData() {
     events: { graphs: {}, flags: {}, variables: {} },
     sequences: {},
     enemies: {},
-    story: { chapters: {}, items: {}, notes: {}, endings: {}, start: '' },
+    story: defaultStory(),
     plugins: {},
     scripts: {},
     weapons: {},
