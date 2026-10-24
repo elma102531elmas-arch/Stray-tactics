@@ -183,7 +183,7 @@ class Arena {
   syncArchetype() {
     const a = this.ws.arch(); if (!a || !this.startSel) return;
     this.startSel.replaceChildren(...a.graph.nodes.map((n) => h('option', { value: n.id, selected: n.id === (this.startState || a.start) }, n.data.name)));
-    if (this.sim && this.sim.archId === a.id && JSON.stringify(this.sim.def) !== JSON.stringify(a)) this.reset(this.startState);
+    if (this.sim && (this.sim.archId !== a.id || JSON.stringify(this.sim.def) !== JSON.stringify(a))) this.reset(this.sim.archId === a.id ? this.startState : undefined);       // another enemy was chosen, or this one was edited
   }
 
   ensureWorld() {

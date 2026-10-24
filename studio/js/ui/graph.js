@@ -256,10 +256,11 @@ export class GraphEditor {
   fit() {
     const g = this.graph; if (!g?.nodes.length) { this.view = { x: 40, y: 40, k: 1 }; this.applyView(); return; }
     const xs = g.nodes.map((n) => n.x), ys = g.nodes.map((n) => n.y);
-    const minX = Math.min(...xs) - 30, minY = Math.min(...ys) - 30, maxX = Math.max(...xs) + W + 30, maxY = Math.max(...ys) + 200;
+    const size = (n) => { const el = this.nodeEls?.get(n.id); return { w: el?.offsetWidth || W, h: el?.offsetHeight || 200 }; };      // measured when rendered, else a guess
+    const minX = Math.min(...xs) - 30, minY = Math.min(...ys) - 30, maxX = Math.max(...g.nodes.map((n) => n.x + size(n).w)) + 30, maxY = Math.max(...g.nodes.map((n) => n.y + size(n).h)) + 30;
     const r = this.viewEl.getBoundingClientRect();
     const k = Math.max(0.3, Math.min(1.2, Math.min(r.width / (maxX - minX), r.height / (maxY - minY))));
-    this.view = { k, x: -minX * k + 20, y: -minY * k + 20 };
+    this.view = { k, x: (r.width - (maxX - minX) * k) / 2 - minX * k, y: (r.height - (maxY - minY) * k) / 2 - minY * k };       // centred, with the 30-unit margin on every side
     this.applyView(); requestAnimationFrame(() => this.drawEdges());
   }
 

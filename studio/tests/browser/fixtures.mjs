@@ -49,3 +49,24 @@ export function makeGltf(dir, { texture = 'tri.png', withTexture = true } = {}) 
   if (withTexture) makePng(path.join(dir, texture));
   return f;
 }
+
+/** A glTF 2.0 file with one triangle and one animation clip per entry of `clips` ({name: seconds}). Everything is embedded. */
+export function makeAnimatedGltf(dir, clips = { Idle: 1, Fire: 0.1, Reload: 2 }, name = 'animated.gltf') {
+  const parts = [Buffer.from(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer)];
+  const bufferViews = [{ buffer: 0, byteOffset: 0, byteLength: 36 }];
+  const accessors = [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] }];
+  const animations = []; let off = 36;
+  for (const [clip, dur] of Object.entries(clips)) {
+    parts.push(Buffer.from(new Float32Array([0, dur]).buffer), Buffer.from(new Float32Array([0, 0, 0, 0, 0.1, 0]).buffer));
+    bufferViews.push({ buffer: 0, byteOffset: off, byteLength: 8 }, { buffer: 0, byteOffset: off + 8, byteLength: 24 });
+    const a = accessors.length;
+    accessors.push({ bufferView: bufferViews.length - 2, componentType: 5126, count: 2, type: 'SCALAR', min: [0], max: [dur] }, { bufferView: bufferViews.length - 1, componentType: 5126, count: 2, type: 'VEC3' });
+    animations.push({ name: clip, samplers: [{ input: a, output: a + 1, interpolation: 'LINEAR' }], channels: [{ sampler: 0, target: { node: 0, path: 'translation' } }] });
+    off += 32;
+  }
+  const buf = Buffer.concat(parts);
+  const gltf = { asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0, name: 'Gun' }], meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }], buffers: [{ byteLength: buf.length, uri: 'data:application/octet-stream;base64,' + buf.toString('base64') }], bufferViews, accessors, animations };
+  const f = path.join(dir, name);
+  fs.writeFileSync(f, JSON.stringify(gltf));
+  return f;
+}

@@ -48,7 +48,7 @@ class WeaponsWorkspace {
     const w = this.w();
     document.getElementById('wp-title').textContent = w ? `${w.name}${w.readOnly ? ' — read-only reference' : ''}` : 'Preview';
     if (reloadModel || this._modelFor !== w?.model) await this.loadModel();
-    else this.applyView();
+    else { this.applyView(); if (w?.model && this.clipList) this.buildTransport(this.clipList, w); }       // clip mapping, reload time and fire interval all affect the buttons and warnings
   }
 
   renderList() {
@@ -90,6 +90,7 @@ class WeaponsWorkspace {
     try {
       const res = await this.viewer.load(w.model, {});
       if (!res) return;                                   // a newer load superseded this one
+      this.clipList = res.animations;
       this.applyView();
       this.buildTransport(res.animations, w);
       this.renderProps();                                  // clip drop-downs can now list this model's clips
@@ -200,9 +201,9 @@ class WeaponsWorkspace {
     const vm = w.viewmodel || { pos: [0, 0, -0.5], rot: [0, 0, 0], scale: 1 };
     blocks.push(section('Viewmodel (how it is held)', [lock(vec3Field('Position', { value: vm.pos, step: 0.01, unit: 'm', onChange: (v) => this.setPath(['viewmodel', 'pos'], v) })), lock(vec3Field('Rotation', { value: vm.rot, step: 1, unit: '°', onChange: (v) => this.setPath(['viewmodel', 'rot'], v) })), num2('Scale', vm.scale, (v) => this.setPath(['viewmodel', 'scale'], v), ro)], { key: 'wp.vm', prefs: app, open: !!w.model }));
     const audio = ['', ...app.assets.allMeta('audio').map((a) => a.id)];
-    blocks.push(section('Sounds', SOUND_SLOTS.map(([slot, label]) => { const f = selectField(label, { value: w.sounds?.[slot] || '', options: audio, optionLabel: (id) => (id ? app.assets.meta(id)?.name || id : '(none)'), onChange: (v) => this.setPath(['sounds', slot], v) }); const ctl = f.el.querySelector('.ctl'); ctl.appendChild(button('▶', () => w.sounds?.[slot] && playOneShot(app, w.sounds[slot]).catch((e) => app.toast(e.message, 'error')), { title: 'Preview' })); return lock(f); }), { key: 'wp.snd', prefs: app, open: false }));
+    blocks.push(section('Sounds', SOUND_SLOTS.map(([slot, label]) => { const f = selectField(`${label} sound`, { value: w.sounds?.[slot] || '', options: audio, optionLabel: (id) => (id ? app.assets.meta(id)?.name || id : '(none)'), onChange: (v) => this.setPath(['sounds', slot], v) }); const ctl = f.el.querySelector('.ctl'); ctl.appendChild(button('▶', () => w.sounds?.[slot] && playOneShot(app, w.sounds[slot]).catch((e) => app.toast(e.message, 'error')), { title: 'Preview' })); return lock(f); }), { key: 'wp.snd', prefs: app, open: false }));
     const clipNames = ['', ...(this.viewer?.clipNames() || [])];
-    blocks.push(section('Animation clips', CLIP_SLOTS.map(([slot, label]) => lock(selectField(label, { value: w.clips?.[slot] || '', options: [...new Set([...clipNames, w.clips?.[slot] || ''])], optionLabel: (c) => c || '(none)', hint: slot === 'fire' ? 'Clip events (set in the Assets editor) can drive muzzle flash / shell eject.' : undefined, onChange: (v) => this.setPath(['clips', slot], v) }))), { key: 'wp.clips', prefs: app, open: !!w.model }));
+    blocks.push(section('Animation clips', CLIP_SLOTS.map(([slot, label]) => lock(selectField(`${label} clip`, { value: w.clips?.[slot] || '', options: [...new Set([...clipNames, w.clips?.[slot] || ''])], optionLabel: (c) => c || '(none)', hint: slot === 'fire' ? 'Clip events (set in the Assets editor) can drive muzzle flash / shell eject.' : undefined, onChange: (v) => this.setPath(['clips', slot], v) }))), { key: 'wp.clips', prefs: app, open: !!w.model }));
     this.props.replaceChildren(...blocks);
   }
 }
