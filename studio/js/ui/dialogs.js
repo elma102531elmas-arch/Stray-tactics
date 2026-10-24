@@ -2,6 +2,8 @@
 import { h, clear } from './dom.js';
 
 let openCount = 0;
+/** Return this from a button's value() to keep the dialog open (e.g. validation failed). */
+export const KEEP_OPEN = Symbol('keep-open');
 export const isModalOpen = () => openCount > 0;
 const root = () => document.getElementById('overlay-root');
 
@@ -12,12 +14,12 @@ export function modal({ title, body, buttons = [{ label: 'OK', value: true, prim
     const close = (v) => { back.remove(); openCount--; window.removeEventListener('keydown', onKey, true); prevFocus?.focus?.(); resolve(v); };
     const onKey = (e) => {
       if (e.key === 'Escape' && dismissable) { e.stopPropagation(); close(undefined); }
-      else if (e.key === 'Enter' && !(e.target.tagName === 'TEXTAREA') && !(e.target.tagName === 'BUTTON')) { const p = buttons.find((b) => b.primary); if (p) { e.preventDefault(); close(typeof p.value === 'function' ? p.value() : p.value); } }
+      else if (e.key === 'Enter' && !(e.target.tagName === 'TEXTAREA') && !(e.target.tagName === 'BUTTON')) { const p = buttons.find((b) => b.primary); if (p) { e.preventDefault(); const v = typeof p.value === 'function' ? p.value() : p.value; if (v !== KEEP_OPEN) close(v); } }
     };
     const content = h('div', { class: 'modal-b' }, typeof body === 'string' ? h('div', { html: undefined }, body) : body);
     const modalEl = h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': title, style: { '--w': width + 'px' } },
       h('div', { class: 'modal-h' }, title), content,
-      h('div', { class: 'modal-f' }, buttons.map((b) => h('button', { class: 'btn' + (b.primary ? ' primary' : '') + (b.danger ? ' danger' : ''), 'data-value': String(b.label), onclick: () => close(typeof b.value === 'function' ? b.value() : b.value) }, b.label))));
+      h('div', { class: 'modal-f' }, buttons.map((b) => h('button', { class: 'btn' + (b.primary ? ' primary' : '') + (b.danger ? ' danger' : ''), 'data-value': String(b.label), onclick: () => { const v = typeof b.value === 'function' ? b.value() : b.value; if (v !== KEEP_OPEN) close(v); } }, b.label))));
     const back = h('div', { class: 'modal-back', onmousedown: (e) => { if (e.target === back && dismissable) close(undefined); } }, modalEl);
     openCount++;
     root().appendChild(back);

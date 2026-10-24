@@ -1,6 +1,6 @@
 // Asset import flow: confirm licence/source -> import with progress -> readable report.
 import { h } from './dom.js';
-import { modal } from './dialogs.js';
+import { modal, KEEP_OPEN } from './dialogs.js';
 import { classifyForDisplay } from '../assets/classify.js';
 import { formatBytes } from '../core/util.js';
 
@@ -11,14 +11,16 @@ export async function runAssetImport(app, files, { skipConfirm = false, license 
     const lic = h('input', { type: 'text', 'aria-label': 'Licence', placeholder: 'e.g. CC0 1.0, CC-BY 4.0 (author, URL), own work, commercial licence…', value: license, style: { width: '100%', padding: '5px 8px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '4px' } });
     const src = h('input', { type: 'text', 'aria-label': 'Source', placeholder: 'Where did these files come from? (URL, author, shop)', value: source === 'user import' ? '' : source, style: { width: '100%', padding: '5px 8px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '4px', marginTop: '6px' } });
     const ok = h('input', { type: 'checkbox', 'aria-label': 'I have the right to use these files', id: 'imp-ok' });
+    const okLabel = h('label', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' } }, ok, 'I have the right to use these files in this project.');
+    const warn = h('div', { class: 'err', role: 'alert', style: { color: 'var(--danger)', marginTop: '4px', minHeight: '16px' } });
     const total = files.reduce((n, f) => n + f.file.size, 0);
     const body = h('div', {},
       h('div', { style: { marginBottom: '8px' } }, `${files.length} file(s), ${formatBytes(total)}`),
       h('div', { class: 'kv', style: { marginBottom: '10px' } }, Object.entries(groups).flatMap(([k, v]) => [h('span', {}, k), h('span', {}, v.slice(0, 4).join(', ') + (v.length > 4 ? ` … +${v.length - 4}` : ''))])),
       h('div', { style: { color: 'var(--dim)', marginBottom: '4px' } }, 'Licence (stored with each asset)'), lic, src,
-      h('label', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' } }, ok, 'I have the right to use these files in this project.'),
+      okLabel, warn,
       h('div', { class: 'note', style: { margin: '10px 0 0' } }, 'Files are read and validated in your browser. Nothing is executed or uploaded; model files are only parsed as data.'));
-    const go = await modal({ title: 'Import assets', body, width: 600, buttons: [{ label: 'Cancel', value: false }, { label: 'Import', value: () => (ok.checked ? { license: lic.value.trim(), source: src.value.trim() || 'user import' } : (ok.focus(), null)), primary: true }] });
+    const go = await modal({ title: 'Import assets', body, width: 600, buttons: [{ label: 'Cancel', value: false }, { label: 'Import', value: () => { if (ok.checked) return { license: lic.value.trim(), source: src.value.trim() || 'user import' }; ok.focus(); warn.textContent = 'Please confirm that you have the right to use these files in this project.'; return KEEP_OPEN; }, primary: true }] });
     if (!go) return null;
     license = go.license; source = go.source;
   }
