@@ -71,9 +71,13 @@ test('locked door: E shows the game\'s message; picking up the key (E) then usin
   assert.equal((await world()).inv.key, 1);
   await page.evaluate(() => { const p = window.__playtest.world.player; p.yaw = 0; p.pitch = 0; p.x = 0; p.z = -2.0; });
   await page.waitForFunction(() => /open|locked|close/.test(document.querySelector('.pt-prompt').textContent), null, { timeout: 8000 });
-  await page.keyboard.press('KeyE'); await sleep(400);
+  await page.keyboard.press('KeyE');
+  await page.waitForFunction(() => window.__playtest.world.doors.values().next().value.open === true, null, { timeout: 15000 }).catch(() => {});
   assert.equal((await world()).doors[0][1], true, 'door is open');
-  await page.keyboard.down('KeyW'); await sleep(3000); await page.keyboard.up('KeyW');
+  // software GL can run at < 1 fps (the simulation then slows down on purpose), so wait for the position, not for a fixed time
+  await page.keyboard.down('KeyW');
+  await page.waitForFunction(() => window.__playtest.world.player.z < -4 && window.__playtest.world.lights.back === 'off', null, { timeout: 60000 }).catch(() => {});
+  await page.keyboard.up('KeyW');
   const w = await world();
   assert.ok(w.p.z < -4, `walked into the back room (z=${w.p.z})`);
   assert.equal(w.lights.back, 'off', 'trigger → event graph switched the light group off');
@@ -82,7 +86,8 @@ test('locked door: E shows the game\'s message; picking up the key (E) then usin
 });
 
 test('F3 shows live debug information', async () => {
-  await page.keyboard.press('F3'); await sleep(900);
+  await page.keyboard.press('F3');
+  await page.waitForFunction(() => /entered-back/.test(document.querySelector('.pt-debug')?.innerText || ''), null, { timeout: 30000 }).catch(() => {});
   const t = await page.locator('.pt-debug').innerText();
   assert.match(t, /pos/); assert.match(t, /inventory/); assert.match(t, /entered-back/);
   await page.keyboard.press('F3');
