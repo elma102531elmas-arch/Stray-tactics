@@ -11,12 +11,13 @@ export async function launch({ width = 1500, height = 900 } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, acceptDownloads: true });
   const page = await context.newPage();
   page.setDefaultTimeout(8000);
-  const errors = [], logs = [];
+  const errors = [], logs = [], navs = [];
+  page.on('framenavigated', (f) => { if (f === page.mainFrame()) navs.push(f.url()); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message + '\n' + (e.stack || '').split('\n').slice(1, 5).join('\n')));
   page.on('console', (m) => { const t = m.text(); logs.push(`[${m.type()}] ${t}`); if (m.type() === 'error') errors.push('console.error: ' + t); });
   page.on('requestfailed', (r) => errors.push('requestfailed: ' + r.url() + ' ' + (r.failure()?.errorText || '')));
   page.on('response', (r) => { if (r.status() >= 400) errors.push(`http ${r.status()}: ${r.url()}`); });
-  return { srv, browser, context, page, errors, logs, url: srv.url, async close() { await browser.close(); srv.server.close(); } };
+  return { srv, browser, context, page, errors, logs, navs, url: srv.url, async close() { if (navs.length > 2) console.error('[helpers] main frame navigated', navs.length, 'times:', navs.join(' | ')); await browser.close(); srv.server.close(); } };
 }
 
 export async function openStudio(h, { fresh = true, full = false } = {}) {

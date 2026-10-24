@@ -116,6 +116,32 @@ export class NavMesh {
     this.stats = { nodes: this.nodes.length, components: sizes.length, componentSizes: sizes, reachable: this.nodes.filter((n) => n.reachable).length, seeded: seedComps.size };
     return this.stats;
   }
+  /**
+   * Can a player who walks to some reachable spot interact with `target` (a THREE.Vector3)? Mirrors how the game picks things up: the player does not
+   * step onto an item, they look at it from within `reach` metres with a clear line from the eye. Returns the standing node used, or null.
+   * `world` = CollisionWorld; `ignore` = Set of node ids whose colliders do not block the line (the target itself).
+   */
+  interactableFrom(world, target, { reach = 2.4, eye = 1.62, ignore = null, yBelow = 4, yAbove = 0.6 } = {}) {
+    const [cx, cz] = this.cellOf(target), R = Math.ceil(reach / this.cell);
+    const cand = [];
+    for (let dx = -R; dx <= R; dx++) for (let dz = -R; dz <= R; dz++) {
+      const list = this.byCell.get(this.key(cx + dx, cz + dz)); if (!list) continue;
+      for (const n of list) {
+        if (!n.reachable || n.y > target.y + yAbove || n.y < target.y - yBelow) continue;
+        const d = Math.hypot(n.x - target.x, n.z - target.z);
+        if (d <= reach) cand.push([d, n]);
+      }
+    }
+    cand.sort((a, b) => a[0] - b[0]);
+    const from = new target.constructor(), opts = { ignore: ignore || undefined };
+    for (const [, n] of cand) {
+      from.set(n.x, n.y + eye, n.z);
+      if (from.distanceTo(target) > reach + 0.25) continue;
+      if (world.hasLineOfSight(from, target, opts)) return n;
+    }
+    return null;
+  }
+
   isReachable(p, maxDist = 2.5) { const n = this.nearest(p, maxDist, 3); return !!n && n.reachable; }
 }
 

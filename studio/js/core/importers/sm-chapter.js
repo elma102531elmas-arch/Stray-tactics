@@ -389,7 +389,11 @@ export function importChapterDef(def, mods, opts = {}) {
   // gate & ladder built by chapter extra() code
   const gate = nodes.find((e) => e.node.type === 'marker' && e.node.props.kind === 'gate')?.node;
   if (gate && (chapterNo === 1 || chapterNo === 5)) {
-    put(makeNode('model', { name: 'Iron gate', p: [gate.t.p[0], 0, gate.t.p[2]], s: [1.02, 0.85, 1], props: { asset: modelAsset('large_iron_gate'), collision: 'custom', colliderCenter: [0, 1.25, 0], colliderSize: [3, 2.5, 0.3] }, tags: ['structural'], meta: { source: { game: 'saint-marrow', chapter: chapterNo, from: 'chapters.js buildGate()' }, note: chapterNo === 5 ? 'Open in the game (rotated); imported closed.' : 'Chained shut until the bolt cutters are used.' } }), group('Props'));
+    // chapters.js buildGate(level, open): the gate is a 3 m leaf hinged at (m.x - 1.5, m.z). Chapter 1 builds it shut (chain + collider); chapter 5 builds it OPEN:
+    // swung by -1.6 rad about the hinge with its collider disabled. Reproduce both poses exactly (hinge maths from the game's own pivot/offset).
+    const open = chapterNo === 5, hingeX = gate.t.p[0] - 1.5, hingeZ = gate.t.p[2];
+    const ang = open ? -1.6 : 0, cx = hingeX + 1.5 * Math.cos(ang), cz = hingeZ - 1.5 * Math.sin(ang);
+    put(makeNode('model', { name: open ? 'Iron gate (open)' : 'Iron gate', p: [cx, 0, cz], r: [0, ang * 180 / Math.PI, 0], s: [1.02, 0.85, 1], props: open ? { asset: modelAsset('large_iron_gate'), collision: 'none' } : { asset: modelAsset('large_iron_gate'), collision: 'custom', colliderCenter: [0, 1.25, 0], colliderSize: [3, 2.5, 0.3] }, tags: ['structural'], meta: { source: { game: 'saint-marrow', chapter: chapterNo, from: 'chapters.js buildGate()' }, note: open ? 'Open in the game: swung -1.6 rad about its hinge, collider disabled (reproduced as such).' : 'Chained shut until the bolt cutters are used.' } }), group('Props'));
   }
 
   // ---------------------------------------------------------------- unimportable features

@@ -13,6 +13,7 @@ import { buildNavMesh } from './navmesh.js';
 import { analyzeGraphs } from './events.js';
 import { sceneBounds } from './geometry.js';
 import { analyzeAudio } from './audio.js';
+import { PLAYER_REFERENCE } from './game-constants.js';
 import { analyzeStory } from './story.js';
 
 const DOWN = new THREE.Vector3(0, -1, 0);
@@ -239,7 +240,9 @@ checks.spawns = (ctx) => {
     const hit = world.sphereHit(new THREE.Vector3(pos.x, pos.y + h / 2 + 0.2, pos.z), 0.25, { doors: false });
     if (hit && n.type === 'enemySpawn' && n.props.dormant) out.push(issue('spawn-dormant-overlap', 'info', `Dormant enemy "${n.name}" overlaps "${hit.collider.nodeId}" (fine if it is meant to lie on it).`, [n.id]));
     else if (hit) out.push(issue('spawn-embedded', 'error', `${TYPES[n.type].label} "${n.name}" is inside solid geometry ("${hit.collider.nodeId}").`, [n.id]));
-    const g = world.groundAt(pos.x, pos.z, pos.y + 0.5, pos.y - 3);
+    // pickups may rest on any solid top (a table, a nightstand); people and enemies need walkable ground
+    let g = world.groundAt(pos.x, pos.z, pos.y + 0.5, pos.y - 3);
+    if (n.type === 'itemSpawn') { const sup = world.raycast(new THREE.Vector3(pos.x, pos.y + 0.05, pos.z), DOWN, 3.05, { kinds: new Set(['solid', 'ground', 'terrain']) }); if (sup && (g === null || sup.point.y > g)) g = sup.point.y; }
     if (g === null) out.push(issue('spawn-no-ground', 'warn', `${TYPES[n.type].label} "${n.name}" has no ground within 3 m below it.`, [n.id]));
     else if (pos.y - g > 0.3) out.push(issue('spawn-floating', 'warn', `${TYPES[n.type].label} "${n.name}" is ${r3(pos.y - g)} m above the ground.`, [n.id], { fix: { type: 'dropToSurface', nodeId: n.id, dy: -r3(pos.y - g) } }));
   });
@@ -353,10 +356,12 @@ checks.reachability = (ctx) => {
   scene.walk((n) => {
     if (!scene.isVisible(n.id)) return;
     if (n.type === 'interaction' || n.type === 'itemSpawn' || (n.type === 'model' && n.props.interaction?.enabled)) {
+      // The game never makes the player step onto a pickup or switch: they look at it from within reach (2.4 m). So "reachable" means a spot the player
+      // can walk to from the spawn is within reach AND has a clear line to it (the object's own collider does not block the line).
       const c = nodeWorldAABB(scene, n.id, geo);
-      const p = c.getCenter(new THREE.Vector3()); p.y = c.min.y;
-      const near = nav.nearest(new THREE.Vector3(p.x, c.min.y, p.z), 2.6, 4);
-      if (!near || !near.reachable) out.push(issue('unreachable', 'error', `${TYPES[n.type].label} "${n.name}" cannot be reached on foot from the player spawn.`, [n.id]));
+      const target = c.getCenter(new THREE.Vector3());
+      const ignore = new Set([n.id]); scene.walk((d) => { ignore.add(d.id); }, n.id);
+      if (!nav.interactableFrom(world, target, { reach: PLAYER_REFERENCE.interactReach, eye: PLAYER_REFERENCE.eyeHeight, ignore })) out.push(issue('unreachable', 'error', `${TYPES[n.type].label} "${n.name}" cannot be used from anywhere the player can walk to from the spawn (no reachable spot within ${PLAYER_REFERENCE.interactReach} m with a clear line to it).`, [n.id]));
     }
     if (n.type === 'enemySpawn' || n.type === 'waypoint') {
       const p = scene.worldPosition(n.id);
