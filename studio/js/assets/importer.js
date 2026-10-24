@@ -130,6 +130,7 @@ export class AssetImporter {
       bounds: { min: box.min.toArray().map((v) => +v.toFixed(4)), max: box.max.toArray().map((v) => +v.toFixed(4)) },
       triangles: Math.round(tris), meshes, materials: [...mats],
       animations: animations.map((a) => ({ name: a.name || 'clip', duration: +a.duration.toFixed(3), events: [] })),
+      rawBounds: { min: box.min.toArray().map((v) => +v.toFixed(4)), max: box.max.toArray().map((v) => +v.toFixed(4)) },
       scale: 1, pivot: [0, 0, 0], collision: 'auto-box', colliderCenter: null, colliderSize: null,
       attachedSounds: [], interaction: null, materialOverrides: {}, units: Math.max(size.x, size.y, size.z) > 60 ? 'cm?' : 'm',
     });

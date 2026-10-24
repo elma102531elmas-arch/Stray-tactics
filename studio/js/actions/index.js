@@ -79,6 +79,12 @@ export function registerActions(app) {
     a.exec(C.setTransforms(items, { label: 'Snap to grid' }));
   } });
   A({ id: 'edit.dropFloor', label: 'Drop selection to floor', menu: 'Edit', group: 'e', order: 2, shortcut: 'End', enabled: hasSel, run: (a) => dropToFloor(a) });
+  A({ id: 'edit.savePrefab', label: 'Save selection as prefab…', menu: 'Edit', group: 'e', order: 4, enabled: hasSel, run: async (a) => {
+    const { promptBox } = await import('../ui/dialogs.js');
+    const name = await promptBox('Save as prefab', 'Prefab name', a.primary?.name || 'Prefab');
+    if (name?.trim()) a.savePrefab(name.trim());
+  } });
+  A({ id: 'prefab.place', label: 'Place prefab', run: (a, id) => { const p = viewCenterPoint(a); a.placePrefab(id, [p.x, p.y, p.z]); } });
   A({ id: 'edit.resetTransform', label: 'Reset rotation & scale', menu: 'Edit', group: 'e', order: 3, enabled: hasSel, run: (a) => a.exec(C.setTransforms(a.topSelection().map((id) => ({ id, t: { r: [0, 0, 0], s: [1, 1, 1] } })), { label: 'Reset rotation/scale' })) });
 
   // ------------------------------------------------------------------ Create (one action per node type)

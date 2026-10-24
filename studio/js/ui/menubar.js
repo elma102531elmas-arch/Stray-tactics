@@ -80,11 +80,11 @@ export class MenuBar {
       const enabled = !a.enabled || a.enabled(app);
       const checked = a.checked ? a.checked(app) : false;
       const sc = a.shortcut ? [].concat(a.shortcut)[0] : '';
-      rows.push(h('div', { class: 'menu-item' + (enabled ? '' : ' disabled'), role: 'menuitem', 'data-action': a.id, title: a.hint || '', onmouseenter: closeSub, onclick: () => { if (!enabled) return; this.close(); app.run(a.id); } },
+      rows.push(h('div', { class: 'menu-item' + (enabled ? '' : ' disabled'), role: 'menuitem', 'data-action': a.id, 'data-label': a.label, title: a.hint || '', onmouseenter: closeSub, onclick: () => { if (!enabled) return; this.close(); app.run(a.id); } },
         checked ? h('span', { class: 'chk' }, '✓') : null, a.label, sc ? h('span', { class: 'kbd' }, sc.replace('Ctrl', navigator.platform.includes('Mac') ? '⌘' : 'Ctrl')) : null));
     }
     for (const [name, sub] of Object.entries(node.subs)) {
-      const row = h('div', { class: 'menu-item', role: 'menuitem', 'aria-haspopup': 'true' }, name, h('span', { class: 'sub' }, '▸'));
+      const row = h('div', { class: 'menu-item', role: 'menuitem', 'data-label': name, 'aria-haspopup': 'true' }, name, h('span', { class: 'sub' }, '▸'));
       row.addEventListener('mouseenter', () => {
         closeSub();
         const rr = row.getBoundingClientRect();

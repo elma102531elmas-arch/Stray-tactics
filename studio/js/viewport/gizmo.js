@@ -67,6 +67,7 @@ export class GizmoController {
     const show = ids.length > 0 && this.vp.tool?.id === 'select' && this.mode !== 'none';
     this.tc.enabled = show;
     this.helper.visible = show;
+    if (!show) this.tc.axis = null;
     if (!ids.length) { this.vp.requestRender(); return; }
     const scene = this.app.scene;
     const c = new THREE.Vector3();

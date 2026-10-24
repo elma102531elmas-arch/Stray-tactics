@@ -12,6 +12,7 @@ import { TYPES } from '../core/schema.js';
 import { localBox } from '../core/schema.js';
 import { wireBox } from '../viewport/geocache.js';
 import { HELPER_LAYER } from '../viewport/builders.js';
+import { placementProps } from '../assets/meta.js';
 
 const D2R = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
@@ -136,7 +137,7 @@ export class PlaceTool extends BaseTool {
       opts.r = [e.x * RAD2DEG, e.y * RAD2DEG, e.z * RAD2DEG];
       opts.p = [p.x + normal.x * 0.004, p.y + normal.y * 0.004, p.z + normal.z * 0.004];
     }
-    if (spec.assetId) { opts.props.asset = spec.assetId; opts.name = opts.name || this.app.assets.meta(spec.assetId)?.name; }
+    if (spec.assetId) { const meta = this.app.assets.meta(spec.assetId); opts.props = { ...(meta ? placementProps(meta) : { asset: spec.assetId }), ...opts.props }; opts.name = opts.name || meta?.name; }
     if (spec.lift) opts.p[1] += spec.lift;
     const node = this.app.createNode(spec.type || 'model', opts);
     this.app.log('info', `Placed ${node.name}`);
@@ -217,8 +218,7 @@ export class RoomTool extends BaseTool {
   pointerDown(info) { const p = this.point(info); if (p) this.a = p; }
   pointerMove(info) { if (!this.a) return; this._preview(this.point(info)); }
   hover() {}
-  _rect(b) {
-    const a = this.a;
+  _rect(b, a = this.a) {
     return { x0: Math.min(a.x, b.x), x1: Math.max(a.x, b.x), z0: Math.min(a.z, b.z), z1: Math.max(a.z, b.z) };
   }
   _preview(b) {
@@ -233,7 +233,7 @@ export class RoomTool extends BaseTool {
     const a = this.a; this.a = null; this.clear();
     const b = this.point(info);
     if (!a || !b) return;
-    const r = this._rect(b);
+    const r = this._rect(b, a);
     const w = r.x1 - r.x0, d = r.z1 - r.z0;
     if (w < 0.5 || d < 0.5) { this.vp.hud('Room too small — drag a bigger rectangle'); return; }
     createRoom(this.app, { cx: (r.x0 + r.x1) / 2, cz: (r.z0 + r.z1) / 2, y: this.vp.workY, w, d }, {

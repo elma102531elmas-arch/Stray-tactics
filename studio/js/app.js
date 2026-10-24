@@ -11,6 +11,7 @@ import { AssetLibrary } from './assets/library.js';
 import { AssetImporter } from './assets/importer.js';
 import { MaterialFactory } from './viewport/matfactory.js';
 import { createStorage } from './store/storage.js';
+import { placementProps } from './assets/meta.js';
 
 export class App extends Emitter {
   constructor({ storage = createStorage(), baseUrl = document.baseURI } = {}) {
@@ -141,6 +142,47 @@ export class App extends Emitter {
     });
     this.select(created);
   }
+  // ------------------------------------------------------------ prefabs
+  /** Save the current selection as a prefab: one group at the origin whose children keep their positions relative to the selection centre. */
+  savePrefab(name, ids = this.topSelection()) {
+    ids = ids.filter((i) => this.scene.has(i));
+    if (!ids.length) throw new Error('Select the objects you want to save as a prefab first.');
+    const c = [0, 0, 0];
+    for (const id of ids) { const p = this.scene.worldPosition(id); c[0] += p.x; c[1] += p.y; c[2] += p.z; }
+    c[0] /= ids.length; c[2] /= ids.length; c[1] = Math.min(...ids.map((id) => this.scene.worldPosition(id).y));
+    const kids = ids.map((id) => {
+      const snap = this.scene.snapshot(id);
+      const w = this.scene.worldMatrix(id).clone(); w.elements[12] -= c[0]; w.elements[13] -= c[1]; w.elements[14] -= c[2];
+      snap.t = this.scene.localTransformFromWorld(ROOT_ID, w);
+      return snap;
+    });
+    return this._storePrefab(name, kids);
+  }
+  makePrefabFromAsset(name, meta) {
+    const node = makeNode('model', { name: meta.name, props: placementProps(meta) });
+    return this._storePrefab(name, [{ ...node, children: [] }]);
+  }
+  _storePrefab(name, kids) {
+    const id = `prefab_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 24)}_${uid('p').slice(-4)}`;
+    const group = makeNode('group', { name, props: { prefab: id } });
+    const snap = { ...group, children: kids };
+    this.exec(C.setData(['prefabs', id], { id, name, created: new Date().toISOString(), snapshot: snap }, { label: `Save prefab “${name}”` }));
+    this.emit('assets');
+    this.log('ok', `Saved prefab “${name}” (${kids.length} object(s))`);
+    return id;
+  }
+  placePrefab(prefabId, at = [0, 0, 0]) {
+    const pf = this.project.data.prefabs[prefabId];
+    if (!pf) { this.toast('That prefab no longer exists.', 'error'); return null; }
+    const snap = C.cloneSnapshotWithNewIds(JSON.parse(JSON.stringify(pf.snapshot)));
+    snap.name = this.scene.uniqueNameIn(ROOT_ID, pf.name);
+    snap.t.p = [...at];
+    this.exec(C.addSnapshot(snap, ROOT_ID, -1, `Place prefab “${pf.name}”`));
+    this.select([snap.id]);
+    return snap.id;
+  }
+  deletePrefab(id) { const next = { ...this.project.data.prefabs }; delete next[id]; this.exec(C.setData(['prefabs'], next, { label: 'Delete prefab' })); this.emit('assets'); }
+
   setProps(id, changes, mergeKey) { return this.exec(C.setProps(id, changes, { mergeKey })); }
   rename(id, name) { name = String(name).trim(); if (name) this.exec(C.setFields(id, { name })); }
 

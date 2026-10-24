@@ -66,6 +66,7 @@ export class HierarchyPanel {
   }
 
   paint() {
+    if (this.dragging) return;
     const top = this.body.scrollTop, hgt = this.body.clientHeight || 400;
     const first = Math.max(0, Math.floor(top / ROW) - 3), last = Math.min(this.rows.length, Math.ceil((top + hgt) / ROW) + 3);
     const scene = this.app.scene, sel = new Set(this.app.selection), prim = this.app.selection.at(-1);
@@ -82,7 +83,7 @@ export class HierarchyPanel {
         onclick: (e) => this.click(e, n, i),
         ondblclick: (e) => { if (e.target.closest('button,input')) return; this.vp?.frameSelection(); },
         oncontextmenu: (e) => { e.preventDefault(); if (!sel.has(n.id)) this.app.select([n.id]); contextMenu(e.clientX, e.clientY, this.menuItems(n)); },
-        ondragstart: (e) => this.dragStart(e, n),
+        ondragstart: (e) => this.dragStart(e, n), ondragend: () => this.dragEnd(),
         ondragover: (e) => this.dragOver(e, n), ondragleave: (e) => e.currentTarget.classList.remove('drop-in', 'drop-before', 'drop-after'),
         ondrop: (e) => this.drop(e, n),
       },
@@ -150,10 +151,13 @@ export class HierarchyPanel {
 
   // ---------------------------------------------------------------- drag & drop
   dragStart(e, n) {
-    if (!this.app.selection.includes(n.id)) this.app.select([n.id]);
-    e.dataTransfer.setData('application/x-sm-nodes', JSON.stringify(this.app.topSelection()));
+    // Never repaint rows while a drag is starting: removing the drag source from the DOM cancels the drag.
+    const ids = this.app.selection.includes(n.id) ? this.app.topSelection() : [n.id];
+    e.dataTransfer.setData('application/x-sm-nodes', JSON.stringify(ids));
     e.dataTransfer.effectAllowed = 'move';
+    this.dragging = true;
   }
+  dragEnd() { this.dragging = false; this.paint(); }
   zone(e, n) {
     const r = e.currentTarget.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
     if (this.filter) return 'in-none';
@@ -171,6 +175,7 @@ export class HierarchyPanel {
   drop(e, n) {
     const raw = e.dataTransfer.getData('application/x-sm-nodes');
     e.currentTarget.classList.remove('drop-in', 'drop-before', 'drop-after');
+    this.dragging = false;
     if (!raw) return;
     e.preventDefault();
     const scene = this.app.scene;

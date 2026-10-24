@@ -191,6 +191,12 @@ export class SceneView {
     this.requestRender();
   }
 
+  /** Rebuild every node that displays an asset (after asset metadata such as scale/pivot/overrides changed). */
+  rebuildModels() {
+    for (const [id] of this.items) { const n = this.app.scene.get(id); if (n && (n.type === 'model' || n.type === 'itemSpawn')) this.rebuildEntry(id); }
+    this.requestRender();
+  }
+
   // ------------------------------------------------------------ editor state
   setHelpersVisible(v) {
     this.helpersVisible = v;

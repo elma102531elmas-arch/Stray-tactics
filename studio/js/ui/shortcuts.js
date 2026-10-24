@@ -30,7 +30,7 @@ export function installShortcuts(app, { isBlocked } = {}) {
       if (!combos.some((c) => matches(c, e))) continue;
       // while typing only global save/undo-style chords with Ctrl pass through (and never plain keys)
       if (typing && !(a.global)) return;
-      if (a.enabled && !a.enabled(app)) return;
+      if (a.enabled && !a.enabled(app)) continue;     // another action may own the same key in the current context
       e.preventDefault();
       app.run(a.id);
       return;

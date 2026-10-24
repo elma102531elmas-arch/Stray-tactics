@@ -107,6 +107,8 @@ export class Viewport extends Emitter {
     this.overlays.onSelection();
   }
   onHistory() {
+    const sig = JSON.stringify(this.app.project.data.assets);
+    if (sig !== this._assetSig) { const first = this._assetSig === undefined; this._assetSig = sig; if (!first) { clearTimeout(this._assetT); this._assetT = setTimeout(() => { this.sceneView.rebuildModels(); this.sceneView.refreshOutlines(); }, 120); } }
     const changed = this.app.materials.refreshChanged();
     this.applyEnvironment();
     this.rebuildGrid();
@@ -388,7 +390,7 @@ export class Viewport extends Emitter {
       return;
     }
     if (e.button !== 0) return;
-    if (this.gizmo.tc.axis !== null || this.gizmo.dragging) return;
+    if (this.gizmo.dragging || (this.gizmo.tc.enabled && this.gizmo.helper.visible && this.gizmo.tc.axis !== null)) return;
     this.drag = { kind: 'tool' };
     this.canvas.setPointerCapture(e.pointerId);
     this.tool?.pointerDown?.(this.info(e));

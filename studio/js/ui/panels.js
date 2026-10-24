@@ -69,7 +69,7 @@ export class AssetsPanel {
     this.kind = 'model';
     this.q = '';
     this.selected = null;
-    const kinds = [['model', 'Models'], ['image', 'Textures'], ['audio', 'Audio'], ['project', 'This project'], ['all', 'All']];
+    const kinds = [['model', 'Models'], ['image', 'Textures'], ['audio', 'Audio'], ['prefab', 'Prefabs'], ['project', 'This project'], ['all', 'All']];
     this.tabs = h('div', { class: 'panel-tabs' }, kinds.map(([k, l]) => h('button', { 'data-kind': k, class: k === this.kind ? 'on' : '', onclick: (e) => { this.kind = k; this.tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === e.currentTarget)); this.render(); } }, l)));
     this.grid = h('div', { class: 'grid-cards panel-body' });
     this.search = h('input', { class: 'search', placeholder: 'Search assets…', 'aria-label': 'Search assets', oninput: () => { this.q = this.search.value.toLowerCase(); this.render(); } });
@@ -79,8 +79,10 @@ export class AssetsPanel {
     app.on('ready', () => this.render());
     this.render();
   }
+  prefabItems() { return Object.values(this.app.project.data.prefabs || {}).map((p) => ({ id: p.id, name: p.name, kind: 'prefab', prefab: true, license: 'this project' })); }
   list() {
-    const all = this.app.assets.allMeta(null);
+    if (this.kind === 'prefab') return this.prefabItems().filter((m) => !this.q || m.name.toLowerCase().includes(this.q));
+    const all = [...this.app.assets.allMeta(null), ...(this.kind === 'all' ? this.prefabItems() : [])];
     return all.filter((m) => {
       if (this.kind === 'project' && m.builtin) return false;
       if (['model', 'image', 'audio'].includes(this.kind) && m.kind !== this.kind) return false;
@@ -92,13 +94,14 @@ export class AssetsPanel {
     this.io?.disconnect();
     this.io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) { this.io.unobserve(en.target); en.target._load?.(); } }), { root: this.grid });
     const cards = items.slice(0, 400).map((m) => {
-      const thumb = h('div', { class: 'thumb' }, m.kind === 'audio' ? '♪ ' + (m.duration ? m.duration.toFixed(1) + ' s' : 'audio') : '…');
+      const thumb = h('div', { class: 'thumb' }, m.prefab ? '❒ prefab' : m.kind === 'audio' ? '♪ ' + (m.duration ? m.duration.toFixed(1) + ' s' : 'audio') : '…');
       const card = h('div', { class: 'card' + (this.selected === m.id ? ' sel' : ''), draggable: 'true', tabindex: '0', 'data-asset': m.id, title: `${m.name}\n${m.id}\n${m.license || ''}`,
         onclick: () => { this.selected = m.id; this.app.emit('asset-selected', m.id); this.grid.querySelectorAll('.card').forEach((c) => c.classList.toggle('sel', c.dataset.asset === m.id)); },
-        ondblclick: () => this.app.run('asset.place', m.id),
+        ondblclick: () => (m.prefab ? this.app.run('prefab.place', m.id) : this.app.run('asset.place', m.id)),
         ondragstart: (e) => { e.dataTransfer.setData('application/x-sm-asset', m.id); e.dataTransfer.effectAllowed = 'copy'; },
-        onkeydown: (e) => { if (e.key === 'Enter') this.app.run('asset.place', m.id); } },
-      thumb, h('div', { class: 'nm' }, m.name), h('div', { class: 'sm' }, `${m.kind}${m.triangles ? ' · ' + m.triangles.toLocaleString() + ' tris' : ''}${m.size ? ' · ' + formatBytes(m.size) : ''}`));
+        onkeydown: (e) => { if (e.key === 'Enter') (m.prefab ? this.app.run('prefab.place', m.id) : this.app.run('asset.place', m.id)); },
+        oncontextmenu: (e) => { e.preventDefault(); const items = m.prefab ? [{ label: 'Place in scene', run: () => this.app.run('prefab.place', m.id) }, { label: 'Delete prefab', run: () => this.app.deletePrefab(m.id) }] : [{ label: 'Place in scene', run: () => this.app.run('asset.place', m.id), disabled: m.kind !== 'model' }, { label: 'Open in Assets editor', run: () => { this.app.shell.show('assets'); this.app.emit('goto', { workspace: 'assets', asset: m.id }); } }]; import('./dialogs.js').then((d) => d.contextMenu(e.clientX, e.clientY, items)); } },
+      thumb, h('div', { class: 'nm' }, m.name), h('div', { class: 'sm' }, m.prefab ? `prefab · ${(this.app.project.data.prefabs[m.id]?.snapshot.children || []).length} object(s)` : `${m.kind}${m.triangles ? ' · ' + m.triangles.toLocaleString() + ' tris' : ''}${m.size ? ' · ' + formatBytes(m.size) : ''}`));
       card._load = async () => {
         if (m.kind === 'model') { const url = await this.thumbs.model(m.id); if (url) thumb.replaceChildren(h('img', { src: url, alt: m.name })); else thumb.textContent = 'no preview'; }
         else if (m.kind === 'image') { try { thumb.replaceChildren(h('img', { src: await this.app.assets.url(m), alt: m.name })); } catch { thumb.textContent = 'missing'; } }
