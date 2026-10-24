@@ -470,19 +470,22 @@ export class Viewport extends Emitter {
     if (this.shading === 'wire' || this.shading === 'normals') {
       cam.layers.set(0);
       this.scene.overrideMaterial = this.shading === 'wire' ? WIRE : NORMALS;
+      r.info.autoReset = false; r.info.reset();
       r.render(this.scene, cam);
       this.scene.overrideMaterial = null;
       r.autoClear = false;
       cam.layers.set(HELPER_LAYER);
       r.render(this.scene, cam);
-      r.autoClear = true;
+      r.autoClear = true; r.info.autoReset = true;
       cam.layers.enable(0);
     } else {
       cam.layers.enable(0); cam.layers.enable(HELPER_LAYER);
       r.render(this.scene, cam);
     }
+    // renderer.info resets on every render call, so read it BEFORE drawing the axis gizmo
+    const main = { calls: r.info.render.calls, tris: r.info.render.triangles };
     this._renderAxes();
-    this.lastInfo = { calls: r.info.render.calls, tris: r.info.render.triangles };
+    this.lastInfo = { ...main, geometries: r.info.memory.geometries, textures: r.info.memory.textures };
   }
 
   _makeAxisScene() {
