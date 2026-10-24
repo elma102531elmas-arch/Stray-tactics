@@ -2,7 +2,7 @@
 // menu: "File" | "Create/Architecture" (nested). Items sort by `order` then registration order.
 import { h } from './dom.js';
 
-const ORDER = ['File', 'Edit', 'Create', 'View', 'Tools', 'Project', 'Help'];
+const ORDER = ['File', 'Edit', 'Create', 'View', 'Tools', 'Project', 'Plugins', 'Help'];
 
 export function buildMenuTree(app) {
   const tree = {};

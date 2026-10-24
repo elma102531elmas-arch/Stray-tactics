@@ -10,7 +10,7 @@ const noErrors = () => assert.deepEqual(h.errors, [], 'no console errors / faile
 
 test('boots into a clean, empty editor with all menus', async () => {
   const menus = await page.$$eval('.menu-top', (els) => els.map((e) => e.textContent));
-  assert.deepEqual(menus, ['File', 'Edit', 'Create', 'View', 'Tools', 'Project', 'Help']);
+  assert.deepEqual(menus, ['File', 'Edit', 'Create', 'View', 'Tools', 'Project', 'Plugins', 'Help']);
   assert.equal((await state(page)).count, 0);
   assert.ok(await page.evaluate(() => window.__vp.renderer.getContext() !== null), 'WebGL context exists');
   noErrors();

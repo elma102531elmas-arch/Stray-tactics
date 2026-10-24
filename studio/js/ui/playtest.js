@@ -7,6 +7,7 @@ import { SceneSequenceHost } from '../core/seqhost.js';
 import { modal, KEEP_OPEN } from './dialogs.js';
 import { playOneShot } from './audioctx.js';
 import { AudioEngine } from './audioengine.js';
+import { gameMethods } from '../core/scriptapi.js';
 import { PLAYER_REFERENCE } from '../core/game-constants.js';
 
 const D2R = Math.PI / 180;
@@ -50,6 +51,7 @@ export class PlaytestSession {
     this.buildHud();
     this.buildEnemies();
     this.startAudio();
+    this.checkScripts();
     this.bind();
     this.syncVisuals(true);
     vp.tickers.add(this.tick = (dt) => this.update(dt));
@@ -89,6 +91,32 @@ export class PlaytestSession {
     if (after !== this.sceneBefore) app.log('error', 'The playtest left the scene different from how it found it. Please report this as a bug.'); else app.log('ok', 'Playtest ended; the map was not modified.');
     app.emit('playtest', false);
     vp.requestRender();
+  }
+
+  // ------------------------------------------------------------------ scripts ("Run plugin script" nodes): sandboxed, approved ones only
+  checkScripts() {
+    const used = new Set();
+    for (const g of Object.values(this.app.project.data.events?.graphs || {})) for (const n of g.nodes) if (n.type === 'act.script' && n.data?.script) used.add(n.data.script);
+    this.scriptRuns = {};
+    (async () => {
+      const bad = [];
+      for (const id of used) { const rec = this.app.plugins?.find('script', id); if (!rec) { bad.push(`“${id}” (missing)`); continue; } const st = await this.app.plugins.status(rec); if (st.state !== 'approved') bad.push(`“${rec.name}”`); }
+      if (bad.length && this.app.playtest === this) { this.world.message(`Scripts not approved, so they will not run: ${bad.join(', ')}. Review them in the Plugins tab.`, 6); this.app.log('warn', `Playtest: these scripts will not run until you approve them (Plugins tab): ${bad.join(', ')}`); }
+    })();
+  }
+  async pumpScripts() {
+    const w = this.world;
+    if (this.scriptBusy || !w.scriptRequests.length || !this.app.plugins) return;
+    const req = w.scriptRequests.shift(); this.scriptBusy = true;
+    try {
+      const rec = this.app.plugins.find('script', req.id);
+      if (!rec) { w.message(`(script “${req.id}” does not exist)`, 3); return; }
+      const now = performance.now(), runs = (this.scriptRuns[rec.id] = (this.scriptRuns[rec.id] || []).filter((t) => now - t < 10000));
+      if (runs.length >= 30) { if (!this.scriptSpam?.[rec.id]) { (this.scriptSpam ||= {})[rec.id] = true; w.message(`(script “${rec.name}” runs too often and was throttled)`, 4); } return; }
+      runs.push(now);
+      const r = await this.app.plugins.runScript(rec, { ctx: { script: rec.name, event: req.event }, methods: gameMethods(w) });
+      if (!r.ok && this.app.playtest === this) w.message(`(script “${rec.name}” ${r.skipped ? 'was not run: not approved' : 'failed'} — see the Plugins console)`, 4);
+    } finally { this.scriptBusy = false; }
   }
 
   // ------------------------------------------------------------------ audio (rules: core/audio.js, nodes: audioengine.js)
@@ -213,6 +241,7 @@ export class PlaytestSession {
       if (fired && w.shotLog.length && w.shotLog.at(-1).t >= w.time - 0.3) this.flashT = 0.06;
       while (w.sequenceRequests.length) this.playSequence(w.sequenceRequests.shift());
       this.tickAudio(dt);
+      this.pumpScripts();
     }
     this.syncVisuals();
     this.renderHud();

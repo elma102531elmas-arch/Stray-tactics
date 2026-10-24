@@ -5,5 +5,6 @@ import events from './events.js';
 import enemies from './enemies.js';
 import weapons from './weapons.js';
 import audio from './audio.js';
+import plugins from './plugins.js';
 
-export const workspaceFactories = [events, enemies, weapons, audio, assets, materials];
+export const workspaceFactories = [events, enemies, weapons, audio, plugins, assets, materials];

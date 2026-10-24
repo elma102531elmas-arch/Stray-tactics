@@ -29,6 +29,7 @@ export class PlaytestWorld {
     this.world = new CollisionWorld(this.colliders);
     this.messages = [];           // {text, t}
     this.sequenceRequests = [];   // sequence ids to play
+    this.scriptRequests = [];     // { id, event } — "Run plugin script" nodes; the UI runs approved scripts in the sandbox (never here)
     this.noises = [];             // {pos, radius, kind, t}
     this.systems = [];            // extension points: {update(dt, world)}
     this.fired = [];              // every event that fired (for the debug view / tests)
@@ -104,6 +105,7 @@ export class PlaytestWorld {
       say: (text, seconds) => w.message(text, seconds),
       objective: (t) => { w.objective = t; },
       sequence: (id) => w.sequenceRequests.push(id),
+      script: (id, ctx) => { w.scriptRequests.push({ id, event: ctx?.event ?? null, t: w.time }); if (w.scriptRequests.length > 200) w.scriptRequests.shift(); },
       checkpoint: (id) => w.saveCheckpoint(id),
       enable: (target, on) => { const n = w.scene.get(target) || w.scene.byName(target); w.enabled.set(n ? n.id : target, on); },
       teleport: (spawn) => { const n = w.scene.get(spawn) || w.scene.byName(spawn); if (n) w._spawnPlayer(n.id); },

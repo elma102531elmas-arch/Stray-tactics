@@ -163,6 +163,8 @@ export function registerActions(app) {
   A({ id: 'playtest.stop', label: 'Stop playtest', menu: 'Project', group: 'p', order: 3, enabled: (a) => !!a.playtest, run: (a) => a.playtest?.stop() });
 
   // ------------------------------------------------------------------ Help
+  A({ id: 'plugins.open', label: 'Open the Plugins tab…', menu: 'Plugins', group: '0', order: 0, run: (a) => a.emit('goto', { workspace: 'plugins' }) });
+  A({ id: 'help.plugins', label: 'Plugin & script security', menu: 'Help', group: 'a', order: 5, run: (a) => docDialog(a, 'Plugin & script security', 'docs/PLUGINS.md') });
   A({ id: 'help.shortcuts', label: 'Keyboard shortcuts', menu: 'Help', group: 'a', order: 1, shortcut: 'F1', run: (a) => shortcutsDialog(a) });
   A({ id: 'help.limits', label: 'Known limitations', menu: 'Help', group: 'a', order: 2, run: (a) => docDialog(a, 'Known limitations', 'docs/KNOWN_LIMITATIONS.md') });
   A({ id: 'help.compat', label: 'Compatibility report', menu: 'Help', group: 'a', order: 3, run: (a) => docDialog(a, 'Compatibility report', 'docs/COMPATIBILITY.md') });
@@ -185,6 +187,8 @@ export function runValidation(app, { quiet = false } = {}) {
   app.emit('issues');
   app.viewport?.overlays.setIssues(res.issues);
   const ms = Math.round(performance.now() - t0);
+  // running plugins may add their own checks (asynchronously, in their sandbox); they are merged in when they answer
+  if (app.plugins?.running.size) app.plugins.validate().then((extra) => { if (!extra.length) return; app.issues = [...app.issues.filter((i) => i.source !== 'plugin'), ...extra]; app.emit('issues'); app.viewport?.overlays.setIssues(app.issues); });
   if (!quiet) app.log(res.counts.error ? 'warn' : 'ok', `Validation: ${res.counts.error} errors, ${res.counts.warn} warnings, ${res.counts.info} notes (${ms} ms)`);
   return res;
 }

@@ -7,6 +7,7 @@ import { installShortcuts } from './ui/shortcuts.js';
 import { registerActions } from './actions/index.js';
 import { ProjectIO } from './store/projectio.js';
 import { toast } from './ui/dialogs.js';
+import { PluginManager } from './ui/pluginhost.js';
 
 const bootMsg = (m) => { const e = document.getElementById('boot-msg'); if (e) e.textContent = m; };
 
@@ -19,6 +20,7 @@ async function boot() {
   await app.init();
   if (new URLSearchParams(location.search).has('lowfx')) { app.prefs.renderScale = 0.5; app.prefs.antialias = false; }   // for automated tests and slow machines; not saved
   app.projectIO = new ProjectIO(app);
+  new PluginManager(app);          // starts nothing: plugin and script code only runs after you approve it (see docs/PLUGINS.md)
   app.on('toast', (m, k) => toast(m, k));
   bootMsg('Starting editor…');
   document.getElementById('app').hidden = false;

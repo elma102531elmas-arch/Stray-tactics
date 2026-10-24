@@ -17,6 +17,10 @@ const UNSUPPORTED_HELP = {
   mp4: 'Video files are not supported.', flac: 'FLAC is not supported — convert to WAV, OGG or MP3.', m4a: 'M4A/AAC is not supported — convert to MP3 or OGG.',
   zip: 'Archives are not opened here — extract the pack and drop the folder (or use File ▸ Open project bundle for .smproj files).',
   smproj: 'This is a Studio project bundle — use File ▸ Open project.',
+  js: 'Code is never imported as an asset. To bring in a plugin use the Plugins tab ▸ Import; it is added switched off and nothing is run until you review and approve it.',
+  mjs: 'Code is never imported as an asset. To bring in a plugin use the Plugins tab ▸ Import; it is added switched off and nothing is run until you review and approve it.',
+  html: 'Web pages are not imported (they could contain scripts). Nothing was run.', htm: 'Web pages are not imported (they could contain scripts). Nothing was run.',
+  exe: 'Programs are never imported.', bat: 'Scripts for the operating system are never imported.', sh: 'Scripts for the operating system are never imported.', smplugin: 'Plugin files are imported from the Plugins tab, where you can review them first.',
 };
 
 export const extOf = (name) => { const m = /\.([^.\\/]+)$/.exec(name || ''); return m ? m[1].toLowerCase() : ''; };
