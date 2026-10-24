@@ -20,6 +20,7 @@ export class LightRig {
     this.lastVersion = -1;
     this.activeIds = [];
     this.totalLights = 0;
+    this.groupState = null;   // playtest: power group -> 'on' | 'off' | 'flicker'
   }
 
   collect(scene, version) {
@@ -42,14 +43,17 @@ export class LightRig {
   update(scene, camera, { force = false, animate = false, time = 0, enabled = true } = {}) {
     const lights = this.collect(scene, scene.version);
     this.totalLights = lights.length;
-    const moved = this.lastCam.distanceToSquared(camera.position) > 0.25 || this.lastVersion !== scene.version;
+    const moved = this.lastCam.distanceToSquared(camera.position) > 0.25 || this.lastVersion !== scene.version || this.forceUpdate;
     if (!enabled) { for (const l of [...this.points, ...this.spots, ...this.dirs]) l.intensity = 0; return false; }
     if (!moved && !force && !animate) return false;
     this.lastCam.copy(camera.position);
-    this.lastVersion = scene.version;
+    this.lastVersion = scene.version; this.forceUpdate = false;
     const pts = [], spots = [], dirs = [];
     for (const L of lights) {
-      if (!L.p.enabled) continue;
+      const gs = this.groupState?.[L.p.powerGroup];
+      if (!L.p.enabled && gs !== 'on') continue;
+      if (gs === 'off') continue;
+      L.flickerOverride = gs === 'flicker' ? 'flicker' : null;
       (L.p.kind === 'spot' ? spots : L.p.kind === 'directional' ? dirs : pts).push(L);
     }
     const nearest = (arr, n) => arr.map((L) => ({ L, d: L.pos.distanceToSquared(camera.position) })).sort((a, b) => a.d - b.d).slice(0, n).map((x) => x.L);
@@ -62,7 +66,7 @@ export class LightRig {
         this.activeIds.push(L.id);
         l.color.set(L.p.color);
         l.position.copy(L.pos);
-        l.intensity = L.p.intensity * flicker(L.p.flicker, time, animate);
+        l.intensity = L.p.intensity * flicker(L.flickerOverride || L.p.flicker, time, animate || !!L.flickerOverride);
         l.castShadow = !!L.p.castShadow;
         setup(l, L);
       });

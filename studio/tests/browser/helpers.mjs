@@ -19,8 +19,8 @@ export async function launch({ width = 1500, height = 900 } = {}) {
   return { srv, browser, context, page, errors, logs, url: srv.url, async close() { await browser.close(); srv.server.close(); } };
 }
 
-export async function openStudio(h, { fresh = true } = {}) {
-  await h.page.goto(h.url, { waitUntil: 'load' });
+export async function openStudio(h, { fresh = true, full = false } = {}) {
+  await h.page.goto(h.url + (full ? '' : '?lowfx=1'), { waitUntil: 'load' });
   if (fresh) await h.page.evaluate(() => { try { localStorage.clear(); } catch {} });
   await h.page.waitForFunction(() => window.__studioReady === true, null, { timeout: 60000 });
   return h.page;

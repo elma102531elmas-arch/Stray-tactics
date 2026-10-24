@@ -17,6 +17,7 @@ async function boot() {
   window.addEventListener('unhandledrejection', (e) => app.log('error', `Unhandled: ${e.reason?.message || e.reason}`));
   bootMsg('Loading asset library…');
   await app.init();
+  if (new URLSearchParams(location.search).has('lowfx')) { app.prefs.renderScale = 0.5; app.prefs.antialias = false; }   // for automated tests and slow machines; not saved
   app.projectIO = new ProjectIO(app);
   app.on('toast', (m, k) => toast(m, k));
   bootMsg('Starting editor…');
@@ -26,7 +27,7 @@ async function boot() {
   registerActions(app);
   new MenuBar(app, document.getElementById('menubar'));
   new Toolbar(app, document.getElementById('toolbar'));
-  installShortcuts(app, { isBlocked: () => app.viewport?.flying });
+  installShortcuts(app, { isBlocked: (e) => app.viewport?.flying || (app.playtest && !(e.ctrlKey && e.code === 'KeyP')) });
   // restore persisted panel visibility
   for (const w of ['left', 'right']) if (app.pref('panel.' + w, true) === false) shell.togglePanel(w);
   document.getElementById('boot').remove();

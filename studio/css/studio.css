@@ -211,3 +211,16 @@ table.t td{padding:4px 8px;border-bottom:1px solid #ffffff0c}
 .vp-fx .fx-bar.top{top:0}.vp-fx .fx-bar.bottom{bottom:0}
 .vp-fx.letterbox .fx-bar{height:9%}
 .vp-fx .fx-subs{position:absolute;left:10%;right:10%;bottom:11%;text-align:center;color:#fff;font-size:20px;text-shadow:0 2px 6px #000,0 0 2px #000;white-space:pre-line;display:none}
+
+/* playtest HUD */
+.pt-hud{position:absolute;inset:0;pointer-events:none;color:#fff;font-size:15px;text-shadow:0 1px 3px #000}
+.pt-cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fffc;box-shadow:0 0 0 1px #000a}
+.pt-prompt{position:absolute;left:50%;top:56%;transform:translateX(-50%);background:#000a;padding:3px 12px;border-radius:14px;font-weight:600}
+.pt-prompt:empty{display:none}
+.pt-msgs{position:absolute;left:50%;bottom:14%;transform:translateX(-50%);text-align:center;display:flex;flex-direction:column;gap:3px}
+.pt-msgs>div{background:#000a;padding:3px 12px;border-radius:5px}
+.pt-objective{position:absolute;left:112px;top:12px;max-width:40%;color:#ffd98a}
+.pt-debug{position:absolute;right:10px;top:10px;background:#000b;padding:8px 10px;border-radius:6px;font:var(--mono);max-width:46%;text-align:left}
+.pt-pause{position:absolute;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+.pt-menu{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 22px;display:flex;flex-direction:column;gap:8px;min-width:280px;text-shadow:none}
+.pt-menu h3{margin:0 0 6px}.pt-help{color:var(--dim);font-size:11px;margin-top:6px;max-width:280px}

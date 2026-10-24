@@ -23,8 +23,8 @@ export class Viewport extends Emitter {
     this.canvas.tabIndex = 0;
     container.appendChild(this.canvas);
 
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, app.pref('pixelRatio', 2)));
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: app.pref('antialias', true), powerPreference: 'high-performance', preserveDrawingBuffer: false });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, app.pref('pixelRatio', 2)) * app.pref('renderScale', 1));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -49,6 +49,7 @@ export class Viewport extends Emitter {
     this.hoverEnabled = true;
     this.tools = {};
     this.tool = null;
+    this.tickers = new Set();      // per-frame callbacks (playtest, sequence preview): fn(dt) -> true keeps rendering
 
     // lighting
     this.hemi = new THREE.HemisphereLight(0xdde6f5, 0x3a3a44, 1.2);
@@ -144,6 +145,9 @@ export class Viewport extends Emitter {
     this.updateCamera();
     this.emit('projection', kind);
   }
+
+  /** Render resolution multiplier (0.5 = half resolution): the main performance dial on slow GPUs. */
+  setRenderScale(k) { this.app.setPref('renderScale', k); this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.app.pref('pixelRatio', 2)) * k); this.resize(); this.emit('scale', k); }
 
   setShading(mode) { this.shading = mode; this.applyEnvironment(); this.emit('shading', mode); this.requestRender(); }
 
@@ -380,6 +384,7 @@ export class Viewport extends Emitter {
   }
 
   _down(e) {
+    if (this.app.playtest) return;                      // the playtest session owns the mouse
     this.canvas.focus({ preventScroll: true });
     const nav = e.button === 1 || (e.button === 0 && e.altKey);
     if (nav) {
@@ -402,6 +407,7 @@ export class Viewport extends Emitter {
     this.tool?.pointerDown?.(this.info(e));
   }
   _move(e) {
+    if (this.app.playtest) return;
     const d = this.drag;
     if (d && d.kind !== 'tool') {
       const dx = e.clientX - d.x, dy = e.clientY - d.y;
@@ -445,11 +451,11 @@ export class Viewport extends Emitter {
   registerTool(tool) { this.tools[tool.id] = tool; tool.vp = this; tool.app = this.app; }
 
   /** Take over the camera (sequence preview). cam = {p:[x,y,z], r:[yaw,pitch,roll], fov} or null to release. state carries shake / fov delta. */
-  setCameraOverride(cam, state) {
+  setCameraOverride(cam, state, { letterbox = true } = {}) {
     this.override = cam || (state && (state.fovDelta || state.shake) ? { relative: true } : null);
     this.overrideState = cam ? state : state;
     this.gizmo.helper.visible = !cam && this.gizmo.targets.length > 0 && this.tool?.id === 'select';
-    this.fxEl.classList.toggle('letterbox', !!cam);
+    this.fxEl.classList.toggle('letterbox', !!cam && letterbox);
     this.requestRender();
   }
   /** Fade / flash / subtitle overlay from an evaluated sequence state (null clears everything). */
@@ -489,6 +495,7 @@ export class Viewport extends Emitter {
     if (this.animate) { this.sceneView.animate = true; this.sceneView.tick(dt); this.needsRender = true; }
     else this.sceneView.animate = false;
     if (this.tool?.frame) this.tool.frame(dt);
+    for (const fn of this.tickers) if (fn(dt)) this.needsRender = true;
     if (!this.needsRender) return;
     this.needsRender = false;
     this.render();

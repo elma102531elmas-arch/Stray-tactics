@@ -107,6 +107,7 @@ BUILD.door = (node, e, bx) => {
     { min: [-w / 2, h, -t / 2], max: [w / 2, h + f, t / 2] },
   ]), mat, node));
   const leaves = p.doubleDoor ? [[-1, w / 2], [1, w / 2]] : [[p.hinge === 'right' ? 1 : -1, w]];
+  e.leafGroups = [];
   for (const [side, lw] of leaves) {
     const g = new THREE.Group();
     const hingeX = side * (w / 2) * (p.doubleDoor ? 1 : 1);
@@ -114,9 +115,13 @@ BUILD.door = (node, e, bx) => {
     const extent = -side;                       // leaf extends away from the hinge
     const leaf = e.mesh(boxMinMax([extent > 0 ? 0 : -lw, 0, -0.022], [extent > 0 ? lw : 0, h - 0.01, 0.022]), mat, node);
     g.add(leaf);
-    if (p.state === 'open') g.rotation.y = -extent * (p.openAngle || 100) * D2R * -1;
+    const angle = extent * (p.openAngle || 100) * D2R;
+    if (p.state === 'open') g.rotation.y = angle;
+    e.leafGroups.push({ g, angle });
     e.root.add(g);
   }
+  /** Playtest animates doors without touching the scene model: amount 0 (closed) .. 1 (fully open). */
+  e.setOpen = (amount) => { for (const l of e.leafGroups) l.g.rotation.y = l.angle * amount; };
 };
 BUILD.window = (node, e, bx) => {
   const p = propsOf(node);

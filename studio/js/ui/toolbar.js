@@ -15,7 +15,7 @@ export class Toolbar {
   constructor(app, el) {
     this.app = app; this.el = el; this.btns = new Map();
     this.render();
-    for (const ev of ['history', 'selection', 'view', 'project', 'actions']) app.on(ev, () => this.update());
+    for (const ev of ['history', 'selection', 'view', 'project', 'actions', 'playtest']) app.on(ev, () => this.update());
     app.viewport?.on('tool', () => this.update());
     app.viewport?.on('overlay', () => this.update());
     app.viewport?.on('shading', () => this.update());
@@ -39,7 +39,7 @@ export class Toolbar {
     const view = h('div', { class: 'tb-group' }, VIEW.map(([id, label]) => this.button(id, label, label)));
     const cam = h('div', { class: 'tb-group' }, h('span', { class: 'tb-label' }, 'Grid'), this.gridSize, h('span', { class: 'tb-label', style: { marginLeft: '8px' } }, 'View'), this.shading,
       this.button('view.ortho', 'Ortho', 'Orthographic camera'), this.button('view.top', 'Top', 'Top view'), this.button('view.frame', 'Frame', 'Frame selection (F)'));
-    const proj = h('div', { class: 'tb-group' }, this.button('project.validate', 'Validate', 'Validate map (F7)'));
+    const proj = h('div', { class: 'tb-group' }, this.button('project.validate', 'Validate', 'Validate map (F7)'), this.button('playtest.start', '▶ Playtest', 'Walk through the map (Ctrl+P)'), this.button('playtest.stop', '■ Stop', 'Stop the playtest'));
     this.el.replaceChildren(...groups, cam, view, proj);
   }
   update() {

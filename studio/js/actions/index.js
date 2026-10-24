@@ -14,6 +14,7 @@ import { createRoom } from '../tools/build.js';
 import { runAssetImport } from '../ui/importdialog.js';
 import { shortcutsDialog, aboutDialog, docDialog } from '../ui/helpdialogs.js';
 import { startDialog } from '../ui/startdialog.js';
+import { PlaytestSession } from '../ui/playtest.js';
 
 const hasSel = (a) => a.selection.length > 0;
 const vp = (a) => a.viewport;
@@ -110,6 +111,7 @@ export function registerActions(app) {
   A({ id: 'view.shadows', label: 'Shadows', menu: 'View', group: 'b', order: 3, checked: (a) => a.pref('shadows', false), run: (a) => { a.setPref('shadows', !a.pref('shadows', false)); vp(a).applyEnvironment(); } });
   A({ id: 'view.sceneLights', label: 'Scene lights', menu: 'View', group: 'b', order: 4, checked: (a) => a.pref('sceneLights', true), run: (a) => { a.setPref('sceneLights', !a.pref('sceneLights', true)); vp(a).requestRender(); } });
   A({ id: 'view.animate', label: 'Animate (light flicker, model clips)', menu: 'View', group: 'b', order: 5, checked: (a) => vp(a).animate, run: (a) => { vp(a).animate = !vp(a).animate; vp(a).requestRender(); } });
+  for (const k of [0.5, 0.75, 1, 1.5]) A({ id: 'view.scale.' + k, label: `Render scale ${Math.round(k * 100)}%`, menu: 'View/Render scale', order: k, checked: (a) => a.pref('renderScale', 1) === k, run: (a) => vp(a).setRenderScale(k) });
   A({ id: 'view.panelLeft', label: 'Hierarchy panel', menu: 'View', group: 'c', order: 1, checked: (a) => a.shell.panelVisible('left'), run: (a) => a.shell.togglePanel('left') });
   A({ id: 'view.panelRight', label: 'Inspector panel', menu: 'View', group: 'c', order: 2, checked: (a) => a.shell.panelVisible('right'), run: (a) => a.shell.togglePanel('right') });
   A({ id: 'view.panelBottom', label: 'Bottom panel', menu: 'View', group: 'c', order: 3, checked: (a) => a.shell.panelVisible('bottom'), run: (a) => a.shell.togglePanel('bottom') });
@@ -147,6 +149,18 @@ export function registerActions(app) {
     try { const cmd = fixCommand(a.project, issue.fix); a.exec(cmd); a.log('ok', `Applied fix: ${issue.message}`); runValidation(a, { quiet: true }); } catch (e) { a.toast(e.message, 'error'); a.log('error', 'Fix failed: ' + e.message); }
   } });
   A({ id: 'project.nav', label: 'Build navigation mesh', menu: 'Project', group: 'a', order: 3, run: (a) => { const info = vp(a).overlays.buildNav(); a.log('ok', `Navmesh: ${info.nodes} cells, ${info.components} island(s), ${info.reachable} reachable from player spawns (${info.ms} ms)`); vp(a).overlays.set('navmesh', true); } });
+
+  // ------------------------------------------------------------------ Playtest
+  A({ id: 'playtest.start', label: 'Playtest from the player spawn', menu: 'Project', group: 'p', order: 1, shortcut: 'Ctrl+P', global: true, enabled: (a) => !a.playtest, run: (a) => {
+    const sel = a.primary?.type === 'playerSpawn' ? a.primary.id : null;
+    new PlaytestSession(a, { spawn: sel }).start();
+  } });
+  A({ id: 'playtest.fromHere', label: 'Playtest from the editor camera', menu: 'Project', group: 'p', order: 2, shortcut: 'Ctrl+Shift+P', global: true, enabled: (a) => !a.playtest, run: (a) => {
+    const v = a.viewport, t = v.nav.target, ground = v.groundPoint(v.canvas.getBoundingClientRect().left + v.width / 2, v.canvas.getBoundingClientRect().top + v.height / 2, 0) || t;
+    const yaw = (v.nav.yaw * 180) / Math.PI + 180;
+    new PlaytestSession(a, { from: { x: ground.x, y: 0, z: ground.z, yaw } }).start();
+  } });
+  A({ id: 'playtest.stop', label: 'Stop playtest', menu: 'Project', group: 'p', order: 3, enabled: (a) => !!a.playtest, run: (a) => a.playtest?.stop() });
 
   // ------------------------------------------------------------------ Help
   A({ id: 'help.shortcuts', label: 'Keyboard shortcuts', menu: 'Help', group: 'a', order: 1, shortcut: 'F1', run: (a) => shortcutsDialog(a) });

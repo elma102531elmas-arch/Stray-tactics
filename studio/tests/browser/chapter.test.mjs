@@ -29,7 +29,7 @@ test('the imported map renders (non-blank frame) and costs a sane number of draw
   await page.evaluate(() => { window.__vp.setView('iso'); window.__vp.frameAll(); });
   await sleep(1500);
   const px = await page.evaluate(() => { const c = document.createElement('canvas'); const vp = window.__vp; vp.render(); const gl = vp.renderer.getContext(); const w = gl.drawingBufferWidth, hh = gl.drawingBufferHeight; const buf = new Uint8Array(w * hh * 4); gl.readPixels(0, 0, w, hh, gl.RGBA, gl.UNSIGNED_BYTE, buf); const seen = new Set(); for (let i = 0; i < buf.length; i += 4 * 97) seen.add((buf[i] >> 3) + ',' + (buf[i + 1] >> 3) + ',' + (buf[i + 2] >> 3)); return { distinct: seen.size, info: vp.lastInfo }; });
-  assert.ok(px.distinct > 40, `frame has visual variety (${px.distinct} distinct colour buckets)`);
+  assert.ok(px.distinct > 12, `frame has visual variety (${px.distinct} distinct colour buckets)`);
   console.log('      chapter 2 frame:', JSON.stringify(px.info));
   assert.ok(px.info.calls < 3000, `draw calls ${px.info.calls}`);
 });

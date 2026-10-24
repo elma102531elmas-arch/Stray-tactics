@@ -35,6 +35,7 @@ export class Shell {
     const app = this.app;
     const $ = (id) => document.getElementById(id);
     this.el = { app: $('app'), menubar: $('menubar'), toolbar: $('toolbar'), left: $('left'), right: $('right'), center: document.querySelector('.center'), tabs: $('wstabs'), ws: $('workspaces'), bottom: $('bottom'), status: $('statusbar') };
+    this.el.app.dataset.ws = 'scene';
     this.applySizes();
     this.bindResizers();
 
@@ -112,6 +113,7 @@ export class Shell {
       for (const [k, p] of Object.entries(panes)) p.el.style.display = k === id ? 'flex' : 'none';
       this.bottomTabs.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.id === id));
       this.bottomId = id;
+      if (id === 'timeline') { const cur = parseInt(getComputedStyle(this.el.app).getPropertyValue('--bottom-h'), 10) || 190; if (cur < 320) this.el.app.style.setProperty('--bottom-h', '320px'); this.app.viewport?.resize(); }
       if (this.el.bottom.classList.contains('collapsed')) this.togglePanel('bottom');
     };
     this.showBottom = show;
