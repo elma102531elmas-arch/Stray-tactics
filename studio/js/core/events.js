@@ -65,10 +65,10 @@ export class EventRuntime {
    * @param graphs  { [id]: graph }
    * @param adapter optional world adapter: { door(id, action), light(group, action), sound(o), spawn(id), say(text, s), objective(text), sequence(id), checkpoint(id), enable(target, bool), teleport(spawn), item(item, action, n), script(id) }
    */
-  constructor(graphs, adapter = {}, { maxSteps = 4000, maxDepth = 40, rng = Math.random, onVisit = null } = {}) {
+  constructor(graphs, adapter = {}, { maxSteps = 4000, maxDepth = 40, rng = Math.random, onVisit = null, onEmit = null } = {}) {
     this.graphs = graphs || {};
     this.adapter = adapter;
-    this.opts = { maxSteps, maxDepth, rng, onVisit };
+    this.opts = { maxSteps, maxDepth, rng, onVisit, onEmit };
     this.state = { flags: {}, vars: {}, inventory: {}, doors: {}, lights: {}, enabled: {}, objective: '' };
     this.once = new Set();
     this.timers = [];        // {at, thread}
@@ -107,6 +107,7 @@ export class EventRuntime {
     if (this.depth >= this.opts.maxDepth) { this._err(`Event loop: “${name}” was emitted ${this.depth} levels deep. Check for graphs that emit the event they listen to.`); return 0; }
     this.record('event', { name });
     this.say(`event “${name}”`);
+    this.opts.onEmit?.(name, payload);
     const handlers = this.byEvent.get(name) || [];
     if (!handlers.length) this.say(`  (nothing listens to “${name}”)`);
     this.depth++;

@@ -10,6 +10,7 @@ import { CollisionWorld } from './collision.js';
 import { EventRuntime } from './events.js';
 import { PLAYER_REFERENCE } from './game-constants.js';
 import { deepClone } from './util.js';
+import { AISystem } from './aisystem.js';
 
 const D2R = Math.PI / 180;
 const REACH = PLAYER_REFERENCE.interactReach;
@@ -41,6 +42,8 @@ export class PlaytestWorld {
     const graphs = deepClone(project.data.events?.graphs || {});
     this.runtime = new EventRuntime(graphs, this._adapter(), { rng });
     this._spawnPlayer(spawn, from);
+    this.dead = false;
+    if (project.scene.find((n) => n.type === 'enemySpawn').length) { this.ai = new AISystem(this); this.systems.push(this.ai); }
     this.runtime.start();
   }
 
@@ -95,6 +98,15 @@ export class PlaytestWorld {
       spawn: (id) => w.systems.forEach((s) => s.spawn?.(id, w)),
       sound: (o) => w.fired.push({ t: w.time, sound: o.asset }),
     };
+  }
+
+  /** An enemy (or hazard) hurt the player. */
+  damagePlayer({ amount, from }) {
+    if (this.dead) return;
+    this.player.hp = Math.max(0, this.player.hp - amount);
+    this.message(`You were hit (−${amount}).`, 1.5);
+    this.runtime.emit('player:hit', { amount });
+    if (this.player.hp <= 0) { this.dead = true; this.message('You died.', 8); this.runtime.emit('player:died'); }
   }
 
   message(text, seconds = 3) { this.messages.push({ text, t: this.time, until: this.time + seconds }); }
@@ -177,6 +189,7 @@ export class PlaytestWorld {
   // ------------------------------------------------------------------ update
   step(dt, input = {}) {
     const P = this.player;
+    if (this.dead) { this.time += dt; this.messages = this.messages.filter((m) => m.until > this.time); return null; }
     this.time += dt;
     // look
     P.yaw = (P.yaw - (input.lookDX || 0) * (180 / Math.PI)) % 360;
@@ -238,6 +251,7 @@ export class PlaytestWorld {
     this.runtime.state.flags = { ...s.flags }; this.runtime.state.vars = { ...s.vars }; this.enabled = new Map(s.enabled); this.lights = { ...s.lights }; this.objective = s.objective;
     for (const [k, v] of s.doors) { const d = this.doors.get(k); if (d) { d.open = v.open; d.locked = v.locked; d.amount = v.open ? 1 : 0; this.world.doorOpen.set(k, v.open); } }
     this.message('Checkpoint restored.', 2);
+    this.dead = false; this.player.hp = Math.max(this.player.hp, 100);
     return true;
   }
 }

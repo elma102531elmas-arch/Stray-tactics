@@ -125,9 +125,9 @@ export class GraphEditor {
   }
 
   showEdgePanel() {
-    const fields = this.opts.edgeFields;
     const g = this.graph;
     const e = this.selEdge && g?.edges.find((x) => x.id === this.selEdge);
+    const fields = typeof this.opts.edgeFields === 'function' ? (e ? this.opts.edgeFields(e) : null) : this.opts.edgeFields;
     if (!fields || !e) { this.edgePanel.style.display = 'none'; return; }
     this.edgePanel.style.display = 'block';
     this.edgePanel.replaceChildren(h('b', {}, 'Connection'), ...fields.map((f) => {
