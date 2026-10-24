@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saint Marrow Studio</title>
+<meta name="description" content="Developer environment for Saint Marrow: map editor, asset pipeline, timeline, audio, AI and diagnostics. Separate from the playable game.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314171c'/%3E%3Cpath d='M8 22V10l8 6 8-6v12' fill='none' stroke='%23ff9a2a' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/studio.css">
+</head>
+<body>
+<div id="boot" class="boot"><div class="boot-card"><div class="boot-title">SAINT MARROW <b>STUDIO</b></div><div id="boot-msg">Starting…</div></div></div>
+<div id="app" class="app" hidden>
+  <header class="menubar" id="menubar"></header>
+  <div class="toolbar" id="toolbar"></div>
+  <main class="main">
+    <aside class="panel left" id="left"></aside>
+    <div class="resizer" data-resize="left"></div>
+    <section class="center">
+      <nav class="tabs" id="wstabs"></nav>
+      <div class="workspaces" id="workspaces"></div>
+      <div class="resizer h" data-resize="bottom"></div>
+      <div class="bottom" id="bottom"></div>
+    </section>
+    <div class="resizer" data-resize="right"></div>
+    <aside class="panel right" id="right"></aside>
+  </main>
+  <footer class="statusbar" id="statusbar"></footer>
+</div>
+<div id="overlay-root"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

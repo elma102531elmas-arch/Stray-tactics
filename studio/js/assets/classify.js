@@ -152,3 +152,15 @@ export async function planImport(files, readText) {
   }
   return { items, errors, warnings };
 }
+
+/** Group dropped files by kind for the confirmation dialog: { Models: [names], Textures: [...], ... } */
+export function classifyForDisplay(files) {
+  const out = {};
+  const names = { model: 'Models', image: 'Textures', audio: 'Audio', data: 'Data', other: 'Other (will be ignored unless referenced)' };
+  for (const f of files) {
+    const k = kindOfExt(extOf(f.path));
+    const key = names[k] || names.other;
+    (out[key] = out[key] || []).push(baseName(f.path));
+  }
+  return out;
+}
