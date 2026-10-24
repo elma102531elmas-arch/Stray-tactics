@@ -68,6 +68,12 @@ export class Viewport extends Emitter {
 
     this.raycaster = new THREE.Raycaster();
     this.raycaster.params.Line = { threshold: 0.08 };
+    // cinematic overlay (fade / flash / subtitles / letterbox) used by sequence preview and playtest
+    this.fxEl = document.createElement('div');
+    this.fxEl.className = 'vp-fx';
+    this.fxEl.innerHTML = '<div class="fx-bar top"></div><div class="fx-bar bottom"></div><div class="fx-fade"></div><div class="fx-flash"></div><div class="fx-subs" aria-live="polite"></div>';
+    container.appendChild(this.fxEl);
+    this.override = null;
     this.hudEl = document.createElement('div');
     this.hudEl.className = 'chip vp-tool-hud';
     Object.assign(this.hudEl.style, { position: 'absolute', left: '50%', top: '10px', transform: 'translateX(-50%)', display: 'none', pointerEvents: 'none', color: '#ffd9a8', zIndex: 3 });
@@ -438,6 +444,38 @@ export class Viewport extends Emitter {
   }
   registerTool(tool) { this.tools[tool.id] = tool; tool.vp = this; tool.app = this.app; }
 
+  /** Take over the camera (sequence preview). cam = {p:[x,y,z], r:[yaw,pitch,roll], fov} or null to release. state carries shake / fov delta. */
+  setCameraOverride(cam, state) {
+    this.override = cam || (state && (state.fovDelta || state.shake) ? { relative: true } : null);
+    this.overrideState = cam ? state : state;
+    this.gizmo.helper.visible = !cam && this.gizmo.targets.length > 0 && this.tool?.id === 'select';
+    this.fxEl.classList.toggle('letterbox', !!cam);
+    this.requestRender();
+  }
+  /** Fade / flash / subtitle overlay from an evaluated sequence state (null clears everything). */
+  setFx(state) {
+    const q = (c) => this.fxEl.querySelector(c);
+    const fade = q('.fx-fade'), flash = q('.fx-flash'), subs = q('.fx-subs');
+    fade.style.background = state?.fade?.color || '#000'; fade.style.opacity = state?.fade ? String(state.fade.alpha) : '0';
+    flash.style.background = state?.flash?.color || '#fff'; flash.style.opacity = state?.flash ? String(state.flash.alpha) : '0';
+    subs.textContent = state?.subtitles?.join('\n') || '';
+    subs.style.display = state?.subtitles?.length ? 'block' : 'none';
+  }
+  _applyOverride() {
+    const o = this.override, st = this.overrideState || {}, c = this.persp;
+    if (this._fov0 === undefined) this._fov0 = c.fov;
+    this.camera = c;
+    if (!o.relative) {
+      const D = Math.PI / 180;
+      c.position.set(...o.p);
+      c.rotation.set(o.r[1] * D, o.r[0] * D, o.r[2] * D, 'YXZ');
+      if (st.shake) { c.position.x += st.shake.p[0]; c.position.y += st.shake.p[1]; c.rotation.z += st.shake.r[2] * D; }
+    } else if (st.shake) { c.rotation.z = st.shake.r[2] * Math.PI / 180; }
+    c.fov = (o.relative ? this._fov0 : (o.fov ?? this._fov0)) + (st.fovDelta || 0);
+    c.updateProjectionMatrix(); c.updateMatrixWorld(true);
+  }
+  _releaseOverride() { this.persp.fov = this._fov0 ?? this.persp.fov; this._fov0 = undefined; this.camera = this.projection === 'ortho' ? this.ortho : this.persp; this.updateCamera(); }
+
   /** One-line message shown at the top of the viewport (tool hints, live measurements). */
   hud(text) { this.hudEl.textContent = text || ''; this.hudEl.style.display = text ? 'block' : 'none'; }
 
@@ -461,6 +499,8 @@ export class Viewport extends Emitter {
   render() {
     const r = this.renderer;
     const game = this.shading === 'game';
+    if (this.override) { this._applyOverride(); this._wasOverride = true; }
+    else if (this._wasOverride) { this._wasOverride = false; this._releaseOverride(); }
     this.headlight.position.copy(this.camera.position).add(new THREE.Vector3(2, 6, 1));
     this.headlight.target.position.copy(this.nav.target);
     this.rig.update(this.app.scene, this.camera, { animate: this.animate, time: this.time, enabled: this.app.pref('sceneLights', true) });

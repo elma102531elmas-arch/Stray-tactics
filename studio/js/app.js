@@ -66,6 +66,7 @@ export class App extends Emitter {
 
   /** Execute a command through the history, reporting readable errors instead of throwing into UI code. */
   exec(cmd, opts) {
+    if (this.previewing && !cmd.keepPreview) this.previewing.end();      // never let a command run on top of a half-played preview
     try { return this.history.exec(cmd, opts); } catch (e) { this.log('error', `${cmd.label}: ${e.message}`); this.toast(e.message, 'error'); return null; }
   }
   tx(label, fn) { return this.history.transaction(label, fn); }

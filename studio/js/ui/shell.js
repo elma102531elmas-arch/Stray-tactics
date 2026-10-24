@@ -14,6 +14,7 @@ import { SelectTool } from '../tools/select.js';
 import { PlaceTool, WallTool, RoomTool, CorridorTool, MeasureTool } from '../tools/build.js';
 import { runAssetImport } from './importdialog.js';
 import { workspaceFactories } from '../workspaces/registry.js';
+import { TimelinePanel } from './timeline.js';
 
 const TOOL_OPTIONS = {
   wall: ['wallHeight', 'wallThick', 'wallMaterial', 'overlapJoints'],
@@ -105,7 +106,7 @@ export class Shell {
     const app = this.app, b = this.el.bottom;
     const panes = {};
     const mk = (id, label) => { const el = h('div', { id: 'bp-' + id, style: { display: 'none', flex: 1, minHeight: 0, flexDirection: 'column' } }); panes[id] = { el, label }; return el; };
-    const consoleEl = mk('console', 'Console'), issuesEl = mk('issues', 'Issues'), assetsEl = mk('assets', 'Assets');
+    const consoleEl = mk('console', 'Console'), issuesEl = mk('issues', 'Issues'), assetsEl = mk('assets', 'Assets'), timelineEl = mk('timeline', 'Timeline');
     this.bottomTabs = h('div', { class: 'panel-tabs' });
     const show = (id) => {
       for (const [k, p] of Object.entries(panes)) p.el.style.display = k === id ? 'flex' : 'none';
@@ -117,10 +118,12 @@ export class Shell {
     for (const [id, p] of Object.entries(panes)) this.bottomTabs.appendChild(h('button', { 'data-id': id, onclick: () => show(id) }, p.label));
     this.bottomTabs.appendChild(h('span', { style: { flex: 1 } }));
     this.bottomTabs.appendChild(h('button', { title: 'Collapse / expand', 'aria-label': 'Toggle bottom panel', onclick: () => this.togglePanel('bottom') }, '▾'));
-    b.append(this.bottomTabs, consoleEl, issuesEl, assetsEl);
+    b.append(this.bottomTabs, consoleEl, issuesEl, assetsEl, timelineEl);
     this.console = new ConsolePanel(app, consoleEl);
     this.issues = new IssuesPanel(app, issuesEl, { viewport: vp });
     this.assetsPanel = new AssetsPanel(app, assetsEl, { viewport: vp });
+    this.timeline = new TimelinePanel(app, timelineEl);
+    app.timeline = this.timeline;
     show('console');
     app.on('issues', () => { const n = (app.issues || []).filter((i) => i.severity !== 'info').length; this.bottomTabs.querySelector('[data-id=issues]').textContent = `Issues${n ? ` (${n})` : ''}`; });
   }

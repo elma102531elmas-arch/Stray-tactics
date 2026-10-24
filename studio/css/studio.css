@@ -203,3 +203,11 @@ table.t td{padding:4px 8px;border-bottom:1px solid #ffffff0c}
 .graph-bar{display:flex;gap:6px;align-items:center;padding:6px 8px;background:var(--panel);border-bottom:1px solid var(--line);flex:none}
 
 .app:not([data-ws="scene"]):not([data-ws=""]) .panel.left,.app:not([data-ws="scene"]):not([data-ws=""]) .panel.right,.app:not([data-ws="scene"]):not([data-ws=""]) .resizer[data-resize="left"],.app:not([data-ws="scene"]):not([data-ws=""]) .resizer[data-resize="right"]{display:none}
+
+/* cinematic overlay */
+.vp-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.vp-fx .fx-fade,.vp-fx .fx-flash{position:absolute;inset:0;opacity:0}
+.vp-fx .fx-bar{position:absolute;left:0;right:0;height:0;background:#000;transition:height .15s}
+.vp-fx .fx-bar.top{top:0}.vp-fx .fx-bar.bottom{bottom:0}
+.vp-fx.letterbox .fx-bar{height:9%}
+.vp-fx .fx-subs{position:absolute;left:10%;right:10%;bottom:11%;text-align:center;color:#fff;font-size:20px;text-shadow:0 2px 6px #000,0 0 2px #000;white-space:pre-line;display:none}
