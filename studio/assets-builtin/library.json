@@ -1,0 +1,2031 @@
+{
+ "generated": "2026-10-24T15:28:10.160Z",
+ "source": "saint-marrow/assets (read-only scan)",
+ "license": "CC0 1.0 (Poly Haven, https://polyhaven.com)",
+ "models": {
+  "builtin:model/Barrel_01": {
+   "id": "builtin:model/Barrel_01",
+   "name": "Barrel_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/Barrel_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2815,
+     -0.0066,
+     -0.2815
+    ],
+    "max": [
+     0.2815,
+     0.8734,
+     0.2815
+    ]
+   },
+   "triangles": 2214,
+   "meshes": 1,
+   "size": 124012,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/barrel_01"
+  },
+  "builtin:model/Television_01": {
+   "id": "builtin:model/Television_01",
+   "name": "Television_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/Television_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.3,
+     0,
+     -0.2584
+    ],
+    "max": [
+     0.3,
+     0.4568,
+     0.2124
+    ]
+   },
+   "triangles": 1856,
+   "meshes": 1,
+   "size": 87984,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/television_01"
+  },
+  "builtin:model/WetFloorSign_01": {
+   "id": "builtin:model/WetFloorSign_01",
+   "name": "WetFloorSign_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/WetFloorSign_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.15,
+     0.0022,
+     -0.1933
+    ],
+    "max": [
+     0.15,
+     0.6317,
+     0.1653
+    ]
+   },
+   "triangles": 206,
+   "meshes": 1,
+   "size": 46532,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/wetfloorsign_01"
+  },
+  "builtin:model/ammo_box": {
+   "id": "builtin:model/ammo_box",
+   "name": "ammo_box",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/ammo_box.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.0432,
+     0,
+     -0.1288
+    ],
+    "max": [
+     0.0432,
+     0.1775,
+     0.1291
+    ]
+   },
+   "triangles": 2586,
+   "meshes": 1,
+   "size": 71060,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/ammo_box"
+  },
+  "builtin:model/bolt_action_rifle_7_62": {
+   "id": "builtin:model/bolt_action_rifle_7_62",
+   "name": "bolt_action_rifle_7_62",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/bolt_action_rifle_7_62.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.6351,
+     -0.1088,
+     -0.0264
+    ],
+    "max": [
+     0.5959,
+     0.0957,
+     0.0402
+    ]
+   },
+   "triangles": 15996,
+   "meshes": 7,
+   "size": 1230532,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/bolt_action_rifle_7_62"
+  },
+  "builtin:model/bolt_cutters_01": {
+   "id": "builtin:model/bolt_cutters_01",
+   "name": "bolt_cutters_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/bolt_cutters_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.0797,
+     -0.4868,
+     -0.0143
+    ],
+    "max": [
+     0.0714,
+     0.3158,
+     0.0217
+    ]
+   },
+   "triangles": 2386,
+   "meshes": 1,
+   "size": 128892,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/bolt_cutters_01"
+  },
+  "builtin:model/caged_hanging_light": {
+   "id": "builtin:model/caged_hanging_light",
+   "name": "caged_hanging_light",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/caged_hanging_light.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.5803,
+     -0.7501,
+     -0.1575
+    ],
+    "max": [
+     0.5815,
+     0,
+     0.1574
+    ]
+   },
+   "triangles": 2746,
+   "meshes": 1,
+   "size": 161768,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/caged_hanging_light"
+  },
+  "builtin:model/cardboard_box_01": {
+   "id": "builtin:model/cardboard_box_01",
+   "name": "cardboard_box_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/cardboard_box_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1924,
+     -0.0068,
+     -0.2251
+    ],
+    "max": [
+     0.1944,
+     0.335,
+     0.2908
+    ]
+   },
+   "triangles": 4238,
+   "meshes": 1,
+   "size": 104300,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/cardboard_box_01"
+  },
+  "builtin:model/clipboard": {
+   "id": "builtin:model/clipboard",
+   "name": "clipboard",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/clipboard.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1142,
+     -0.0025,
+     -0.1778
+    ],
+    "max": [
+     0.1143,
+     0.0394,
+     0.1587
+    ]
+   },
+   "triangles": 3330,
+   "meshes": 1,
+   "size": 79268,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/clipboard"
+  },
+  "builtin:model/covered_car": {
+   "id": "builtin:model/covered_car",
+   "name": "covered_car",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/covered_car.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.8466,
+     -0.0001,
+     -2.1663
+    ],
+    "max": [
+     0.9422,
+     1.4112,
+     2.2139
+    ]
+   },
+   "triangles": 8814,
+   "meshes": 1,
+   "size": 160796,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/covered_car"
+  },
+  "builtin:model/crowbar_01": {
+   "id": "builtin:model/crowbar_01",
+   "name": "crowbar_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/crowbar_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.0155,
+     -0.2959,
+     -0.0329
+    ],
+    "max": [
+     0.0249,
+     0.2593,
+     0.0945
+    ]
+   },
+   "triangles": 476,
+   "meshes": 1,
+   "size": 221500,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/crowbar_01"
+  },
+  "builtin:model/dead_tree_trunk": {
+   "id": "builtin:model/dead_tree_trunk",
+   "name": "dead_tree_trunk",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/dead_tree_trunk.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -1.5391,
+     -0.0271,
+     -0.1707
+    ],
+    "max": [
+     1.5119,
+     0.2626,
+     0.1067
+    ]
+   },
+   "triangles": 7124,
+   "meshes": 1,
+   "size": 183352,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/dead_tree_trunk"
+  },
+  "builtin:model/drawer_cabinet": {
+   "id": "builtin:model/drawer_cabinet",
+   "name": "drawer_cabinet",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/drawer_cabinet.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.5654,
+     0,
+     -0.2476
+    ],
+    "max": [
+     0.5636,
+     1.8454,
+     0.2404
+    ]
+   },
+   "triangles": 5962,
+   "meshes": 1,
+   "size": 104984,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/drawer_cabinet"
+  },
+  "builtin:model/hand_truck": {
+   "id": "builtin:model/hand_truck",
+   "name": "hand_truck",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/hand_truck.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2967,
+     0.0003,
+     -0.0952
+    ],
+    "max": [
+     0.2967,
+     1.4025,
+     0.5955
+    ]
+   },
+   "triangles": 5318,
+   "meshes": 1,
+   "size": 208200,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/hand_truck"
+  },
+  "builtin:model/industrial_wall_lamp": {
+   "id": "builtin:model/industrial_wall_lamp",
+   "name": "industrial_wall_lamp",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/industrial_wall_lamp.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1367,
+     -0.215,
+     0
+    ],
+    "max": [
+     0.1367,
+     0.215,
+     0.1393
+    ]
+   },
+   "triangles": 1554,
+   "meshes": 1,
+   "size": 151672,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/industrial_wall_lamp"
+  },
+  "builtin:model/korean_fire_extinguisher_01": {
+   "id": "builtin:model/korean_fire_extinguisher_01",
+   "name": "korean_fire_extinguisher_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/korean_fire_extinguisher_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1395,
+     0,
+     -0.1233
+    ],
+    "max": [
+     0.1395,
+     0.6581,
+     0.2442
+    ]
+   },
+   "triangles": 2998,
+   "meshes": 1,
+   "size": 202116,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/korean_fire_extinguisher_01"
+  },
+  "builtin:model/large_iron_gate": {
+   "id": "builtin:model/large_iron_gate",
+   "name": "large_iron_gate",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/large_iron_gate.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -1.475,
+     -0.0078,
+     -0.0358
+    ],
+    "max": [
+     1.475,
+     2.92,
+     0.0603
+    ]
+   },
+   "triangles": 6864,
+   "meshes": 1,
+   "size": 156300,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/large_iron_gate"
+  },
+  "builtin:model/medical_box": {
+   "id": "builtin:model/medical_box",
+   "name": "medical_box",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/medical_box.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2627,
+     0,
+     -0.1722
+    ],
+    "max": [
+     0.2627,
+     0.0975,
+     0.1779
+    ]
+   },
+   "triangles": 1896,
+   "meshes": 1,
+   "size": 107404,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/medical_box"
+  },
+  "builtin:model/medical_tape": {
+   "id": "builtin:model/medical_tape",
+   "name": "medical_tape",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/medical_tape.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.0226,
+     -0.0126,
+     -0.0226
+    ],
+    "max": [
+     0.0227,
+     0.0124,
+     0.0226
+    ]
+   },
+   "triangles": 1150,
+   "meshes": 1,
+   "size": 40092,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/medical_tape"
+  },
+  "builtin:model/metal_jerrycan": {
+   "id": "builtin:model/metal_jerrycan",
+   "name": "metal_jerrycan",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/metal_jerrycan.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.17,
+     0.0001,
+     -0.0886
+    ],
+    "max": [
+     0.18,
+     0.4549,
+     0.0831
+    ]
+   },
+   "triangles": 4004,
+   "meshes": 1,
+   "size": 148328,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/metal_jerrycan"
+  },
+  "builtin:model/metal_office_desk": {
+   "id": "builtin:model/metal_office_desk",
+   "name": "metal_office_desk",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/metal_office_desk.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -1,
+     0,
+     -0.4692
+    ],
+    "max": [
+     1,
+     0.7875,
+     0.478
+    ]
+   },
+   "triangles": 4828,
+   "meshes": 1,
+   "size": 93992,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/metal_office_desk"
+  },
+  "builtin:model/metal_stool_01": {
+   "id": "builtin:model/metal_stool_01",
+   "name": "metal_stool_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/metal_stool_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1755,
+     0.0004,
+     -0.1769
+    ],
+    "max": [
+     0.1755,
+     0.8828,
+     0.1768
+    ]
+   },
+   "triangles": 2916,
+   "meshes": 1,
+   "size": 110664,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/metal_stool_01"
+  },
+  "builtin:model/metal_stool_02": {
+   "id": "builtin:model/metal_stool_02",
+   "name": "metal_stool_02",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/metal_stool_02.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.224,
+     0,
+     -0.2346
+    ],
+    "max": [
+     0.2241,
+     0.4578,
+     0.2379
+    ]
+   },
+   "triangles": 2285,
+   "meshes": 1,
+   "size": 121732,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/metal_stool_02"
+  },
+  "builtin:model/metal_tool_chest": {
+   "id": "builtin:model/metal_tool_chest",
+   "name": "metal_tool_chest",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/metal_tool_chest.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.3694,
+     0.0008,
+     -0.1974
+    ],
+    "max": [
+     0.316,
+     0.6526,
+     0.2097
+    ]
+   },
+   "triangles": 4007,
+   "meshes": 1,
+   "size": 127152,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/metal_tool_chest"
+  },
+  "builtin:model/metal_trash_can": {
+   "id": "builtin:model/metal_trash_can",
+   "name": "metal_trash_can",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/metal_trash_can.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.9527,
+     0.0001,
+     -0.2771
+    ],
+    "max": [
+     0.8246,
+     0.9062,
+     0.2771
+    ]
+   },
+   "triangles": 4182,
+   "meshes": 8,
+   "size": 292404,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/metal_trash_can"
+  },
+  "builtin:model/mounted_fluorescent_lights": {
+   "id": "builtin:model/mounted_fluorescent_lights",
+   "name": "mounted_fluorescent_lights",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/mounted_fluorescent_lights.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.4561,
+     -0.0352,
+     -0.3253
+    ],
+    "max": [
+     0.4561,
+     0.0001,
+     0.3201
+    ]
+   },
+   "triangles": 2670,
+   "meshes": 1,
+   "size": 87680,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/mounted_fluorescent_lights"
+  },
+  "builtin:model/old_bed_frame": {
+   "id": "builtin:model/old_bed_frame",
+   "name": "old_bed_frame",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/old_bed_frame.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.4435,
+     0,
+     -0.9985
+    ],
+    "max": [
+     0.4531,
+     1.1928,
+     1.0033
+    ]
+   },
+   "triangles": 4718,
+   "meshes": 1,
+   "size": 148796,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/old_bed_frame"
+  },
+  "builtin:model/old_gas_mask": {
+   "id": "builtin:model/old_gas_mask",
+   "name": "old_gas_mask",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/old_gas_mask.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1052,
+     -1.0047,
+     -0.1223
+    ],
+    "max": [
+     0.1052,
+     0.1192,
+     0.1864
+    ]
+   },
+   "triangles": 4156,
+   "meshes": 1,
+   "size": 113248,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/old_gas_mask"
+  },
+  "builtin:model/old_military_crate": {
+   "id": "builtin:model/old_military_crate",
+   "name": "old_military_crate",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/old_military_crate.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.913,
+     0,
+     -0.6666
+    ],
+    "max": [
+     0.9024,
+     0.3009,
+     0.3086
+    ]
+   },
+   "triangles": 6284,
+   "meshes": 1,
+   "size": 141820,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/old_military_crate"
+  },
+  "builtin:model/old_tyre": {
+   "id": "builtin:model/old_tyre",
+   "name": "old_tyre",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/old_tyre.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.3,
+     -0.3,
+     -0.0828
+    ],
+    "max": [
+     0.3,
+     0.3,
+     0.0823
+    ]
+   },
+   "triangles": 2638,
+   "meshes": 1,
+   "size": 118824,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/old_tyre"
+  },
+  "builtin:model/painted_wooden_bench": {
+   "id": "builtin:model/painted_wooden_bench",
+   "name": "painted_wooden_bench",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/painted_wooden_bench.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.5761,
+     -0.0005,
+     -0.2537
+    ],
+    "max": [
+     0.5889,
+     0.8888,
+     0.2428
+    ]
+   },
+   "triangles": 576,
+   "meshes": 1,
+   "size": 65340,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/painted_wooden_bench"
+  },
+  "builtin:model/painted_wooden_cabinet": {
+   "id": "builtin:model/painted_wooden_cabinet",
+   "name": "painted_wooden_cabinet",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/painted_wooden_cabinet.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.5947,
+     -0.0004,
+     -0.2824
+    ],
+    "max": [
+     0.5994,
+     1.1815,
+     0.3343
+    ]
+   },
+   "triangles": 1582,
+   "meshes": 1,
+   "size": 94720,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/painted_wooden_cabinet"
+  },
+  "builtin:model/painted_wooden_chair_01": {
+   "id": "builtin:model/painted_wooden_chair_01",
+   "name": "painted_wooden_chair_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/painted_wooden_chair_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2174,
+     -0.0007,
+     -0.3005
+    ],
+    "max": [
+     0.2143,
+     0.9551,
+     0.2392
+    ]
+   },
+   "triangles": 550,
+   "meshes": 1,
+   "size": 78568,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/painted_wooden_chair_01"
+  },
+  "builtin:model/painted_wooden_nightstand": {
+   "id": "builtin:model/painted_wooden_nightstand",
+   "name": "painted_wooden_nightstand",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/painted_wooden_nightstand.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2534,
+     0,
+     -0.2493
+    ],
+    "max": [
+     0.2511,
+     0.6155,
+     0.2595
+    ]
+   },
+   "triangles": 447,
+   "meshes": 1,
+   "size": 82024,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/painted_wooden_nightstand"
+  },
+  "builtin:model/painted_wooden_table": {
+   "id": "builtin:model/painted_wooden_table",
+   "name": "painted_wooden_table",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/painted_wooden_table.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -1.203,
+     -0.0005,
+     -0.5712
+    ],
+    "max": [
+     1.2018,
+     0.9581,
+     0.5656
+    ]
+   },
+   "triangles": 500,
+   "meshes": 1,
+   "size": 50696,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/painted_wooden_table"
+  },
+  "builtin:model/plastic_monobloc_chair_01": {
+   "id": "builtin:model/plastic_monobloc_chair_01",
+   "name": "plastic_monobloc_chair_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/plastic_monobloc_chair_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.3209,
+     0,
+     -0.336
+    ],
+    "max": [
+     0.3209,
+     0.8798,
+     0.2917
+    ]
+   },
+   "triangles": 2348,
+   "meshes": 1,
+   "size": 123468,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/plastic_monobloc_chair_01"
+  },
+  "builtin:model/portable_cassette_player": {
+   "id": "builtin:model/portable_cassette_player",
+   "name": "portable_cassette_player",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/portable_cassette_player.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.064,
+     -0.0562,
+     -0.0166
+    ],
+    "max": [
+     0.1082,
+     0.0741,
+     0.0231
+    ]
+   },
+   "triangles": 5337,
+   "meshes": 1,
+   "size": 171092,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/portable_cassette_player"
+  },
+  "builtin:model/portable_generator": {
+   "id": "builtin:model/portable_generator",
+   "name": "portable_generator",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/portable_generator.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.4145,
+     0.0017,
+     -0.282
+    ],
+    "max": [
+     0.4001,
+     0.577,
+     0.282
+    ]
+   },
+   "triangles": 5282,
+   "meshes": 1,
+   "size": 230536,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/portable_generator"
+  },
+  "builtin:model/power_box_01": {
+   "id": "builtin:model/power_box_01",
+   "name": "power_box_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/power_box_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2863,
+     -0.2516,
+     -0.0475
+    ],
+    "max": [
+     0.1747,
+     0.2516,
+     0.3515
+    ]
+   },
+   "triangles": 5317,
+   "meshes": 1,
+   "size": 152244,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/power_box_01"
+  },
+  "builtin:model/propane_tank": {
+   "id": "builtin:model/propane_tank",
+   "name": "propane_tank",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/propane_tank.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1687,
+     0,
+     -0.1687
+    ],
+    "max": [
+     0.1687,
+     0.5538,
+     0.1687
+    ]
+   },
+   "triangles": 3666,
+   "meshes": 1,
+   "size": 109224,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/propane_tank"
+  },
+  "builtin:model/security_camera_01": {
+   "id": "builtin:model/security_camera_01",
+   "name": "security_camera_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/security_camera_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.0847,
+     -0.0248,
+     -0.3035
+    ],
+    "max": [
+     0.0848,
+     0.2612,
+     0.2502
+    ]
+   },
+   "triangles": 4071,
+   "meshes": 1,
+   "size": 99276,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/security_camera_01"
+  },
+  "builtin:model/security_light": {
+   "id": "builtin:model/security_light",
+   "name": "security_light",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/security_light.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.162,
+     -0.3593,
+     -0.0292
+    ],
+    "max": [
+     0.1612,
+     0.1716,
+     0.386
+    ]
+   },
+   "triangles": 1867,
+   "meshes": 2,
+   "size": 134536,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/security_light"
+  },
+  "builtin:model/service_pistol": {
+   "id": "builtin:model/service_pistol",
+   "name": "service_pistol",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/service_pistol.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1278,
+     -0.0521,
+     -0.0161
+    ],
+    "max": [
+     0.1738,
+     0.2285,
+     0.0157
+    ]
+   },
+   "triangles": 20048,
+   "meshes": 9,
+   "size": 590324,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/service_pistol"
+  },
+  "builtin:model/small_plastic_torch": {
+   "id": "builtin:model/small_plastic_torch",
+   "name": "small_plastic_torch",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/small_plastic_torch.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.0275,
+     -0.0275,
+     -0.1124
+    ],
+    "max": [
+     0.0723,
+     0.0275,
+     0.1151
+    ]
+   },
+   "triangles": 4815,
+   "meshes": 1,
+   "size": 313980,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/small_plastic_torch"
+  },
+  "builtin:model/steel_frame_shelves_02": {
+   "id": "builtin:model/steel_frame_shelves_02",
+   "name": "steel_frame_shelves_02",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/steel_frame_shelves_02.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2966,
+     -0.0011,
+     -0.2511
+    ],
+    "max": [
+     0.2966,
+     2.1405,
+     0.2511
+    ]
+   },
+   "triangles": 1258,
+   "meshes": 1,
+   "size": 67976,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/steel_frame_shelves_02"
+  },
+  "builtin:model/street_lamp_01": {
+   "id": "builtin:model/street_lamp_01",
+   "name": "street_lamp_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/street_lamp_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.3515,
+     0,
+     -0.193
+    ],
+    "max": [
+     0.3515,
+     3.8699,
+     0.193
+    ]
+   },
+   "triangles": 3672,
+   "meshes": 1,
+   "size": 81584,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/street_lamp_01"
+  },
+  "builtin:model/street_rat": {
+   "id": "builtin:model/street_rat",
+   "name": "street_rat",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/street_rat.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.016,
+     0,
+     -0.1074
+    ],
+    "max": [
+     0.016,
+     0.0339,
+     0.0409
+    ]
+   },
+   "triangles": 5720,
+   "meshes": 1,
+   "size": 79036,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/street_rat"
+  },
+  "builtin:model/trashbag": {
+   "id": "builtin:model/trashbag",
+   "name": "trashbag",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/trashbag.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.2605,
+     -0.0015,
+     -0.2398
+    ],
+    "max": [
+     0.2676,
+     0.5735,
+     0.2231
+    ]
+   },
+   "triangles": 4328,
+   "meshes": 1,
+   "size": 122348,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/trashbag"
+  },
+  "builtin:model/utility_box_01": {
+   "id": "builtin:model/utility_box_01",
+   "name": "utility_box_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/utility_box_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.26,
+     0,
+     -0.21
+    ],
+    "max": [
+     0.26,
+     1.1203,
+     0.222
+    ]
+   },
+   "triangles": 2698,
+   "meshes": 1,
+   "size": 89644,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/utility_box_01"
+  },
+  "builtin:model/vintage_crutches_01": {
+   "id": "builtin:model/vintage_crutches_01",
+   "name": "vintage_crutches_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/vintage_crutches_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1294,
+     -0.0021,
+     -0.1595
+    ],
+    "max": [
+     0.2543,
+     1.6028,
+     0.0441
+    ]
+   },
+   "triangles": 4250,
+   "meshes": 1,
+   "size": 109204,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/vintage_crutches_01"
+  },
+  "builtin:model/vintage_day_bed": {
+   "id": "builtin:model/vintage_day_bed",
+   "name": "vintage_day_bed",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/vintage_day_bed.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.9863,
+     0,
+     -0.4694
+    ],
+    "max": [
+     0.9863,
+     1.1273,
+     0.3853
+    ]
+   },
+   "triangles": 2380,
+   "meshes": 1,
+   "size": 146836,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/vintage_day_bed"
+  },
+  "builtin:model/vintage_radio_transceiver": {
+   "id": "builtin:model/vintage_radio_transceiver",
+   "name": "vintage_radio_transceiver",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/vintage_radio_transceiver.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.3287,
+     -0.0015,
+     -0.1382
+    ],
+    "max": [
+     0.2453,
+     0.4329,
+     0.272
+    ]
+   },
+   "triangles": 10872,
+   "meshes": 2,
+   "size": 405052,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/vintage_radio_transceiver"
+  },
+  "builtin:model/vintage_suitcase": {
+   "id": "builtin:model/vintage_suitcase",
+   "name": "vintage_suitcase",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/vintage_suitcase.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.8029,
+     -0.0001,
+     -0.1288
+    ],
+    "max": [
+     0.8043,
+     0.5677,
+     0.11
+    ]
+   },
+   "triangles": 5760,
+   "meshes": 2,
+   "size": 164232,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/vintage_suitcase"
+  },
+  "builtin:model/wall_clock": {
+   "id": "builtin:model/wall_clock",
+   "name": "wall_clock",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/wall_clock.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.1602,
+     -0.1602,
+     0
+    ],
+    "max": [
+     0.1602,
+     0.1602,
+     0.0471
+    ]
+   },
+   "triangles": 2559,
+   "meshes": 2,
+   "size": 87524,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/wall_clock"
+  },
+  "builtin:model/wheelchair_01": {
+   "id": "builtin:model/wheelchair_01",
+   "name": "wheelchair_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/wheelchair_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.4137,
+     0.0058,
+     -0.4821
+    ],
+    "max": [
+     0.4104,
+     1.1062,
+     0.604
+    ]
+   },
+   "triangles": 4830,
+   "meshes": 1,
+   "size": 153600,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/wheelchair_01"
+  },
+  "builtin:model/wooden_crate_01": {
+   "id": "builtin:model/wooden_crate_01",
+   "name": "wooden_crate_01",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/wooden_crate_01.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.4122,
+     -0.0079,
+     -0.1955
+    ],
+    "max": [
+     0.4122,
+     0.3415,
+     0.2116
+    ]
+   },
+   "triangles": 2300,
+   "meshes": 1,
+   "size": 108880,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/wooden_crate_01"
+  },
+  "builtin:model/worn_metal_rack": {
+   "id": "builtin:model/worn_metal_rack",
+   "name": "worn_metal_rack",
+   "kind": "model",
+   "builtin": true,
+   "path": "../saint-marrow/assets/models/worn_metal_rack.glb",
+   "format": "glb",
+   "bounds": {
+    "min": [
+     -0.4599,
+     0,
+     -0.3
+    ],
+    "max": [
+     0.4554,
+     1.9,
+     0.3
+    ]
+   },
+   "triangles": 3064,
+   "meshes": 1,
+   "size": 104216,
+   "animations": [],
+   "license": "CC0 (Poly Haven)",
+   "source": "https://polyhaven.com/a/worn_metal_rack"
+  }
+ },
+ "textures": {
+  "builtin:tex/concrete_floor_worn_001_arm": {
+   "id": "builtin:tex/concrete_floor_worn_001_arm",
+   "name": "concrete_floor_worn_001_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/concrete_floor_worn_001_arm.webp",
+   "format": "webp",
+   "size": 55086,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/concrete_floor_worn_001_diff": {
+   "id": "builtin:tex/concrete_floor_worn_001_diff",
+   "name": "concrete_floor_worn_001_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/concrete_floor_worn_001_diff.webp",
+   "format": "webp",
+   "size": 37006,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/concrete_floor_worn_001_nor": {
+   "id": "builtin:tex/concrete_floor_worn_001_nor",
+   "name": "concrete_floor_worn_001_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/concrete_floor_worn_001_nor.webp",
+   "format": "webp",
+   "size": 69452,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/concrete_wall_006_arm": {
+   "id": "builtin:tex/concrete_wall_006_arm",
+   "name": "concrete_wall_006_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/concrete_wall_006_arm.webp",
+   "format": "webp",
+   "size": 154418,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/concrete_wall_006_diff": {
+   "id": "builtin:tex/concrete_wall_006_diff",
+   "name": "concrete_wall_006_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/concrete_wall_006_diff.webp",
+   "format": "webp",
+   "size": 111930,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/concrete_wall_006_nor": {
+   "id": "builtin:tex/concrete_wall_006_nor",
+   "name": "concrete_wall_006_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/concrete_wall_006_nor.webp",
+   "format": "webp",
+   "size": 440526,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/decrepit_wallpaper_arm": {
+   "id": "builtin:tex/decrepit_wallpaper_arm",
+   "name": "decrepit_wallpaper_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/decrepit_wallpaper_arm.webp",
+   "format": "webp",
+   "size": 15226,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/decrepit_wallpaper_diff": {
+   "id": "builtin:tex/decrepit_wallpaper_diff",
+   "name": "decrepit_wallpaper_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/decrepit_wallpaper_diff.webp",
+   "format": "webp",
+   "size": 148378,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/decrepit_wallpaper_nor": {
+   "id": "builtin:tex/decrepit_wallpaper_nor",
+   "name": "decrepit_wallpaper_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/decrepit_wallpaper_nor.webp",
+   "format": "webp",
+   "size": 112908,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/dirty_tiles_arm": {
+   "id": "builtin:tex/dirty_tiles_arm",
+   "name": "dirty_tiles_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/dirty_tiles_arm.webp",
+   "format": "webp",
+   "size": 36314,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/dirty_tiles_diff": {
+   "id": "builtin:tex/dirty_tiles_diff",
+   "name": "dirty_tiles_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/dirty_tiles_diff.webp",
+   "format": "webp",
+   "size": 31874,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/dirty_tiles_nor": {
+   "id": "builtin:tex/dirty_tiles_nor",
+   "name": "dirty_tiles_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/dirty_tiles_nor.webp",
+   "format": "webp",
+   "size": 41216,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/forest_ground_06_arm": {
+   "id": "builtin:tex/forest_ground_06_arm",
+   "name": "forest_ground_06_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/forest_ground_06_arm.webp",
+   "format": "webp",
+   "size": 221988,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/forest_ground_06_diff": {
+   "id": "builtin:tex/forest_ground_06_diff",
+   "name": "forest_ground_06_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/forest_ground_06_diff.webp",
+   "format": "webp",
+   "size": 155640,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/forest_ground_06_nor": {
+   "id": "builtin:tex/forest_ground_06_nor",
+   "name": "forest_ground_06_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/forest_ground_06_nor.webp",
+   "format": "webp",
+   "size": 532552,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/green_metal_rust_arm": {
+   "id": "builtin:tex/green_metal_rust_arm",
+   "name": "green_metal_rust_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/green_metal_rust_arm.webp",
+   "format": "webp",
+   "size": 23778,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/green_metal_rust_diff": {
+   "id": "builtin:tex/green_metal_rust_diff",
+   "name": "green_metal_rust_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/green_metal_rust_diff.webp",
+   "format": "webp",
+   "size": 21722,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/green_metal_rust_nor": {
+   "id": "builtin:tex/green_metal_rust_nor",
+   "name": "green_metal_rust_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/green_metal_rust_nor.webp",
+   "format": "webp",
+   "size": 12570,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/long_white_tiles_arm": {
+   "id": "builtin:tex/long_white_tiles_arm",
+   "name": "long_white_tiles_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/long_white_tiles_arm.webp",
+   "format": "webp",
+   "size": 48484,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/long_white_tiles_diff": {
+   "id": "builtin:tex/long_white_tiles_diff",
+   "name": "long_white_tiles_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/long_white_tiles_diff.webp",
+   "format": "webp",
+   "size": 61366,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/long_white_tiles_nor": {
+   "id": "builtin:tex/long_white_tiles_nor",
+   "name": "long_white_tiles_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/long_white_tiles_nor.webp",
+   "format": "webp",
+   "size": 110286,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/mud_forest_arm": {
+   "id": "builtin:tex/mud_forest_arm",
+   "name": "mud_forest_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/mud_forest_arm.webp",
+   "format": "webp",
+   "size": 95712,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/mud_forest_diff": {
+   "id": "builtin:tex/mud_forest_diff",
+   "name": "mud_forest_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/mud_forest_diff.webp",
+   "format": "webp",
+   "size": 188626,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/mud_forest_nor": {
+   "id": "builtin:tex/mud_forest_nor",
+   "name": "mud_forest_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/mud_forest_nor.webp",
+   "format": "webp",
+   "size": 570514,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/old_linoleum_flooring_01_arm": {
+   "id": "builtin:tex/old_linoleum_flooring_01_arm",
+   "name": "old_linoleum_flooring_01_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/old_linoleum_flooring_01_arm.webp",
+   "format": "webp",
+   "size": 21400,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/old_linoleum_flooring_01_diff": {
+   "id": "builtin:tex/old_linoleum_flooring_01_diff",
+   "name": "old_linoleum_flooring_01_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/old_linoleum_flooring_01_diff.webp",
+   "format": "webp",
+   "size": 68564,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/old_linoleum_flooring_01_nor": {
+   "id": "builtin:tex/old_linoleum_flooring_01_nor",
+   "name": "old_linoleum_flooring_01_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/old_linoleum_flooring_01_nor.webp",
+   "format": "webp",
+   "size": 16340,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/peeling_painted_wall_arm": {
+   "id": "builtin:tex/peeling_painted_wall_arm",
+   "name": "peeling_painted_wall_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/peeling_painted_wall_arm.webp",
+   "format": "webp",
+   "size": 61116,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/peeling_painted_wall_diff": {
+   "id": "builtin:tex/peeling_painted_wall_diff",
+   "name": "peeling_painted_wall_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/peeling_painted_wall_diff.webp",
+   "format": "webp",
+   "size": 26254,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/peeling_painted_wall_nor": {
+   "id": "builtin:tex/peeling_painted_wall_nor",
+   "name": "peeling_painted_wall_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/peeling_painted_wall_nor.webp",
+   "format": "webp",
+   "size": 261418,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/pine_bark_arm": {
+   "id": "builtin:tex/pine_bark_arm",
+   "name": "pine_bark_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/pine_bark_arm.webp",
+   "format": "webp",
+   "size": 104886,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/pine_bark_diff": {
+   "id": "builtin:tex/pine_bark_diff",
+   "name": "pine_bark_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/pine_bark_diff.webp",
+   "format": "webp",
+   "size": 140432,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/pine_bark_nor": {
+   "id": "builtin:tex/pine_bark_nor",
+   "name": "pine_bark_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/pine_bark_nor.webp",
+   "format": "webp",
+   "size": 399410,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/polystyrene_arm": {
+   "id": "builtin:tex/polystyrene_arm",
+   "name": "polystyrene_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/polystyrene_arm.webp",
+   "format": "webp",
+   "size": 165346,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/polystyrene_diff": {
+   "id": "builtin:tex/polystyrene_diff",
+   "name": "polystyrene_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/polystyrene_diff.webp",
+   "format": "webp",
+   "size": 88708,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/polystyrene_nor": {
+   "id": "builtin:tex/polystyrene_nor",
+   "name": "polystyrene_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/polystyrene_nor.webp",
+   "format": "webp",
+   "size": 316604,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/red_bricks_04_arm": {
+   "id": "builtin:tex/red_bricks_04_arm",
+   "name": "red_bricks_04_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/red_bricks_04_arm.webp",
+   "format": "webp",
+   "size": 165348,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/red_bricks_04_diff": {
+   "id": "builtin:tex/red_bricks_04_diff",
+   "name": "red_bricks_04_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/red_bricks_04_diff.webp",
+   "format": "webp",
+   "size": 190978,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/red_bricks_04_nor": {
+   "id": "builtin:tex/red_bricks_04_nor",
+   "name": "red_bricks_04_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/red_bricks_04_nor.webp",
+   "format": "webp",
+   "size": 339454,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/road_damaged_arm": {
+   "id": "builtin:tex/road_damaged_arm",
+   "name": "road_damaged_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/road_damaged_arm.webp",
+   "format": "webp",
+   "size": 78958,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/road_damaged_diff": {
+   "id": "builtin:tex/road_damaged_diff",
+   "name": "road_damaged_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/road_damaged_diff.webp",
+   "format": "webp",
+   "size": 131204,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/road_damaged_nor": {
+   "id": "builtin:tex/road_damaged_nor",
+   "name": "road_damaged_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/road_damaged_nor.webp",
+   "format": "webp",
+   "size": 287120,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/rusty_metal_02_arm": {
+   "id": "builtin:tex/rusty_metal_02_arm",
+   "name": "rusty_metal_02_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/rusty_metal_02_arm.webp",
+   "format": "webp",
+   "size": 60792,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/rusty_metal_02_diff": {
+   "id": "builtin:tex/rusty_metal_02_diff",
+   "name": "rusty_metal_02_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/rusty_metal_02_diff.webp",
+   "format": "webp",
+   "size": 139544,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/rusty_metal_02_nor": {
+   "id": "builtin:tex/rusty_metal_02_nor",
+   "name": "rusty_metal_02_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/rusty_metal_02_nor.webp",
+   "format": "webp",
+   "size": 93698,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/waffle_pique_cotton_arm": {
+   "id": "builtin:tex/waffle_pique_cotton_arm",
+   "name": "waffle_pique_cotton_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/waffle_pique_cotton_arm.webp",
+   "format": "webp",
+   "size": 55916,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/waffle_pique_cotton_diff": {
+   "id": "builtin:tex/waffle_pique_cotton_diff",
+   "name": "waffle_pique_cotton_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/waffle_pique_cotton_diff.webp",
+   "format": "webp",
+   "size": 8068,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/waffle_pique_cotton_nor": {
+   "id": "builtin:tex/waffle_pique_cotton_nor",
+   "name": "waffle_pique_cotton_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/waffle_pique_cotton_nor.webp",
+   "format": "webp",
+   "size": 80706,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/wood_floor_worn_arm": {
+   "id": "builtin:tex/wood_floor_worn_arm",
+   "name": "wood_floor_worn_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/wood_floor_worn_arm.webp",
+   "format": "webp",
+   "size": 40514,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/wood_floor_worn_diff": {
+   "id": "builtin:tex/wood_floor_worn_diff",
+   "name": "wood_floor_worn_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/wood_floor_worn_diff.webp",
+   "format": "webp",
+   "size": 52116,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/wood_floor_worn_nor": {
+   "id": "builtin:tex/wood_floor_worn_nor",
+   "name": "wood_floor_worn_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/wood_floor_worn_nor.webp",
+   "format": "webp",
+   "size": 93892,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/wood_peeling_paint_weathered_arm": {
+   "id": "builtin:tex/wood_peeling_paint_weathered_arm",
+   "name": "wood_peeling_paint_weathered_arm",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/wood_peeling_paint_weathered_arm.webp",
+   "format": "webp",
+   "size": 38298,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/wood_peeling_paint_weathered_diff": {
+   "id": "builtin:tex/wood_peeling_paint_weathered_diff",
+   "name": "wood_peeling_paint_weathered_diff",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/wood_peeling_paint_weathered_diff.webp",
+   "format": "webp",
+   "size": 164964,
+   "license": "CC0 (Poly Haven)"
+  },
+  "builtin:tex/wood_peeling_paint_weathered_nor": {
+   "id": "builtin:tex/wood_peeling_paint_weathered_nor",
+   "name": "wood_peeling_paint_weathered_nor",
+   "kind": "image",
+   "builtin": true,
+   "path": "../saint-marrow/assets/tex/wood_peeling_paint_weathered_nor.webp",
+   "format": "webp",
+   "size": 254510,
+   "license": "CC0 (Poly Haven)"
+  }
+ }
+}
