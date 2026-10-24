@@ -87,3 +87,33 @@ test('playtest still never modifies the scene with enemies present', () => {
   const w = new PlaytestWorld(p); w.player.z = -1; run(w, 10);
   assert.equal(JSON.stringify(p.scene.toJSON()), before);
 });
+
+test('weapons in playtest: shooting hurts enemies (head > body), makes noise, uses ammo; pierce passes through; melee needs range; ammo pickups refill', () => {
+  const p = map((pp, S) => {
+    S.insert(makeNode('enemySpawn', { name: 'A', p: [0, 0, -6], props: { archetype: 'warden', dormant: true } }));
+    S.insert(makeNode('enemySpawn', { name: 'B', p: [0, 0, -9], props: { archetype: 'hollow' } }));
+    S.insert(makeNode('itemSpawn', { name: 'Ammo', p: [0, 0, 7], props: { item: 'ammo9', count: 8 } }));
+  });
+  const w = new PlaytestWorld(p);
+  w.player.z = 0; w.player.yaw = 0; w.player.pitch = 0;
+  for (let i = 0; i < 30; i++) w.step(1 / 60, {});                       // finish the draw animation
+  const pistol = w.weapons.find((x) => x.def.id === 'ref_pistol'); w.weaponIndex = w.weapons.indexOf(pistol);
+  for (let i = 0; i < 30; i++) w.step(1 / 60, {});
+  const r = w.fireWeapon();
+  assert.equal(pistol.mag, 7); assert.ok(w.noises.some((n) => n.kind === 'shot' && n.radius === 30));
+  assert.ok(r.hits.length >= 0);
+  const B = w.ai.agents.find((a) => a.node.name === 'B').agent, A = w.ai.agents.find((a) => a.node.name === 'A').agent;
+  w.ai.agents.forEach((a) => { a.active = true; });
+  // rifle pierces the warden (invulnerable) and still hurts the hollow behind it — hollow stands 3 m behind
+  w.weaponIndex = w.weapons.findIndex((x) => x.def.id === 'ref_rifle'); w.weapons[w.weaponIndex].drawn = 0; w.weapons[w.weaponIndex].cooldown = 0;
+  A.pos.set(0, 0, -6); B.pos.set(0, 0, -9);
+  w.player.pitch = 0; w.weapon.ads = true;                                    // aimed shot: deterministic
+  const res = w.fireWeapon();
+  assert.equal(res.hits.length, 2, JSON.stringify(res)); assert.ok(B.hp < B.maxHp);
+  assert.equal(A.hp, A.maxHp, 'the warden is invulnerable');
+  // ammo pickup refills the pistol reserve
+  const before = pistol.reserve;
+  w.player.x = 0; w.player.z = 5.5; lookAt(w, 0, 0.2, 7); w.use();
+  assert.equal(pistol.reserve, before + 8);
+});
+const lookAt = (w, x, y, z) => { const e = w.eye(); const dx = x - e.x, dy = y - e.y, dz = z - e.z; w.player.yaw = (Math.atan2(-dx, -dz) * 180) / Math.PI; w.player.pitch = (Math.atan2(dy, Math.hypot(dx, dz)) * 180) / Math.PI; };

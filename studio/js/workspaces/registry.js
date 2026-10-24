@@ -3,5 +3,6 @@ import assets from './assets.js';
 import materials from './materials.js';
 import events from './events.js';
 import enemies from './enemies.js';
+import weapons from './weapons.js';
 
-export const workspaceFactories = [events, enemies, assets, materials];
+export const workspaceFactories = [events, enemies, weapons, assets, materials];

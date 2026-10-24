@@ -66,10 +66,10 @@ export class AISystem {
   }
 
   /** Hit-scan helper: damage the nearest agent whose body the ray crosses. Returns the agent hit (or null). */
-  shoot(origin, dir, damage, { maxDist = 60, heavy = false } = {}) {
+  shoot(origin, dir, damage, { maxDist = 60, heavy = false, exclude = null } = {}) {
     let best = null;
     for (const r of this.agents) {
-      if (!r.active || !r.agent.alive) continue;
+      if (!r.active || !r.agent.alive || exclude?.has(r.agent)) continue;
       const a = r.agent, rad = Math.max(a.def.radius, 0.3);
       const t = rayCylinder(origin, dir, a.pos, rad, a.def.height);
       if (t === null || t > maxDist) continue;

@@ -118,6 +118,17 @@ export class ModelViewer {
   get time() { return this.action ? this.action.time : 0; }
   setSpeed(s) { this.speed = s; if (this.action) this.action.timeScale = s; }
 
+  /** Show the model the way the player sees a held weapon. vm = {pos:[x,y,z], rot:[x,y,z] deg, scale}; only applied while first-person is on. */
+  setFirstPerson(on, fov = 60) { this.fp = on; this.fpFov = fov; this._applyRoot(); }
+  applyViewmodel(vm) { this.vm = vm; this._applyRoot(); }
+  _applyRoot() {
+    const vm = this.fp ? this.vm : null, D = Math.PI / 180;
+    if (vm) { this.root.position.set(...vm.pos); this.root.rotation.set(vm.rot[0] * D, vm.rot[1] * D, vm.rot[2] * D); this.root.scale.setScalar(vm.scale || 1); }
+    else { this.root.position.set(0, 0, 0); this.root.rotation.set(0, 0, 0); this.root.scale.setScalar(1); }
+    this.grid.visible = !this.fp && this.show.grid;
+    this.needs = true;
+  }
+
   // ------------------------------------------------------------ camera
   frame() {
     if (!this.bounds || this.bounds.isEmpty()) return;
@@ -162,9 +173,14 @@ export class ModelViewer {
     this.listeners.forEach((fn) => fn(this));
     if (!this.needs) return;
     this.needs = false;
-    this.cam.position.set(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch)).multiplyScalar(this.dist).add(this.target);
-    this.cam.lookAt(this.target);
-    this.cam.near = Math.max(0.005, this.dist / 500);
+    if (this.fp) {            // first-person framing: camera at the origin looking down -Z, like the player's eye
+      this.cam.position.set(0, 0, 0); this.cam.rotation.set(0, 0, 0); this.cam.fov = this.fpFov || 60; this.cam.near = 0.01;
+    } else {
+      this.cam.position.set(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch)).multiplyScalar(this.dist).add(this.target);
+      this.cam.lookAt(this.target);
+      this.cam.fov = 40;
+      this.cam.near = Math.max(0.005, this.dist / 500);
+    }
     this.cam.updateProjectionMatrix();
     this.renderer.render(this.scene, this.cam);
   }

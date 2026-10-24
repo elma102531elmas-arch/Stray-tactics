@@ -11,21 +11,24 @@ function row(label, ctl, { hint, unit, className = '' } = {}) {
   return { el, lab, wrap };
 }
 
-/** Drag the label sideways to scrub a numeric input (Shift = coarse, Alt = fine). */
+/** Drag the label sideways to scrub a numeric input (Shift = coarse, Alt = fine).
+ *  Listeners live on window so the drag keeps working when the panel re-renders (and removes this label) after each live edit. */
 function scrub(lab, input, step, apply) {
-  let sx = null, start = 0;
   lab.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 || input.disabled) return;
-    sx = e.clientX; start = parseFloat(input.value) || 0; lab.setPointerCapture(e.pointerId); e.preventDefault();
+    const sx = e.clientX, start = parseFloat(input.value) || 0; let moved = false;
+    e.preventDefault();
+    const move = (ev) => {
+      const mult = ev.shiftKey ? 10 : ev.altKey ? 0.1 : 1;
+      const v = r4(start + Math.round((ev.clientX - sx) / 3) * step * mult);
+      moved = true; input.value = v; apply(v, true);
+    };
+    const end = () => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end);
+      if (moved) apply(parseFloat(input.value), false);
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
   });
-  lab.addEventListener('pointermove', (e) => {
-    if (sx === null) return;
-    const mult = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
-    const v = r4(start + Math.round((e.clientX - sx) / 3) * step * mult);
-    input.value = v; apply(v, true);
-  });
-  const end = (e) => { if (sx !== null) { sx = null; apply(parseFloat(input.value), false); } };
-  lab.addEventListener('pointerup', end); lab.addEventListener('pointercancel', end);
 }
 
 export function numberField(label, { value = 0, step = 0.05, min, max, unit, int = false, hint, onChange }) {

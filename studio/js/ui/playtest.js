@@ -20,7 +20,7 @@ export class PlaytestSession {
     this.useQueued = false;
     this.paused = false; this.frozen = false; this.debug = false; this.flashlightOn = true;
     this.lockedAt = 0;
-    this.seq = null; this.seqPlayer = null; this.restoreStack = [];
+    this.seq = null; this.seqPlayer = null; this.restoreStack = []; this.fireHeld = false; this.fireQueued = false; this.adsHeld = false; this.reloadQueued = false; this.weaponWanted = undefined; this.enemyViews = new Map(); this.flashT = 0;
     this.fps = 0; this._ft = 0; this._fc = 0;
   }
 
@@ -45,7 +45,9 @@ export class PlaytestSession {
     vp.sceneView.setHover(null);
     this.flash = new THREE.SpotLight(0xfff2d8, 55, 22, 0.42, 0.45, 1.6);
     vp.scene.add(this.flash, this.flash.target);
+    this.muzzle = new THREE.PointLight(0xffd9a0, 0, 9, 2); vp.scene.add(this.muzzle);
     this.buildHud();
+    this.buildEnemies();
     this.bind();
     this.syncVisuals(true);
     vp.tickers.add(this.tick = (dt) => this.update(dt));
@@ -66,7 +68,9 @@ export class PlaytestSession {
     vp.tickers.delete(this.tick);
     this.unbind();
     this.hud.remove();
-    vp.scene.remove(this.flash, this.flash.target); this.flash.dispose?.();
+    vp.scene.remove(this.flash, this.flash.target, this.muzzle); this.flash.dispose?.();
+    for (const v of this.enemyViews.values()) { vp.scene.remove(v.group); v.group.traverse((o) => { o.geometry?.dispose?.(); }); }
+    this.enemyViews.clear(); if (this.dbgLines) { vp.scene.remove(this.dbgLines); this.dbgLines = null; }
     vp.setCameraOverride(null, null); vp.setFx(null);
     vp.rig.groupState = null; vp.rig.forceUpdate = true;
     // doors and pickups back to their authored look
@@ -96,7 +100,8 @@ export class PlaytestSession {
       if (e.code === 'KeyE' && !e.repeat) this.useQueued = true;
       if (e.code === 'KeyF' && !e.repeat) { this.flashlightOn = !this.flashlightOn; this.flash.visible = this.flashlightOn; }
       if (e.code === 'F3') { e.preventDefault(); this.debug = !this.debug; this.hud.querySelector('.pt-debug').style.display = this.debug ? 'block' : 'none'; }
-      if (e.code === 'KeyR' && !e.repeat && e.shiftKey) { this.world.restoreCheckpoint(); }
+      if (e.code === 'KeyR' && !e.repeat) { if (e.shiftKey) { if (!this.world.restoreCheckpoint()) this.world.message('No checkpoint saved yet.', 2); } else this.reloadQueued = true; }
+      if (/^Digit[1-9]$/.test(e.code) && !e.repeat) this.weaponWanted = parseInt(e.code.slice(5), 10) - 1;
     };
     this.onKeyUp = (e) => this.keys.delete(e.code);
     this.onBlur = () => this.keys.clear();
@@ -108,21 +113,33 @@ export class PlaytestSession {
       if (Math.abs(dx) > 220 || Math.abs(dy) > 220) return;
       this.look.dx += dx * 0.0022; this.look.dy += dy * 0.0022;
     };
-    this.onLockChange = () => { this.lockedAt = performance.now(); if (document.pointerLockElement !== c && this.app.playtest && !this.paused && !this.modalOpen) this.pause(); };
-    this.onDown = (e) => { if (e.button === 0 && !this.paused) { if (document.pointerLockElement !== c) { this.requestLock(); this.dragLook = true; } } };
-    this.onUp = () => { this.dragLook = false; };
+    this.onLockChange = () => { this.lockedAt = performance.now(); if (document.pointerLockElement !== c && this.app.playtest && !this.paused && !this.modalOpen && !this.world.dead) this.pause(); };
+    this.onDown = (e) => {
+      if (this.paused) return;
+      if (e.button === 0) {
+        const locked = document.pointerLockElement === c;
+        if (!locked) { if (!this.noLock) this.requestLock(); this.dragLook = true; }      // first click captures the mouse; drag to look if the browser refuses
+        if (locked || this.noLock) { this.fireHeld = true; this.fireQueued = true; }       // without pointer lock (denied / unsupported) a click fires straight away
+      }
+      if (e.button === 2) this.adsHeld = true;
+    };
+    this.onLockError = () => { this.noLock = true; };
+    this.onUp = (e) => { this.dragLook = false; if (e?.button === 0) this.fireHeld = false; if (e?.button === 2) this.adsHeld = false; };
+    this.onCtx = (e) => e.preventDefault();
+    this.onWheel = (e) => { if (this.paused || !this.world.weapons.length) return; const n = this.world.weapons.length; this.weaponWanted = (this.world.weaponIndex + (e.deltaY > 0 ? 1 : n - 1)) % n; };
     window.addEventListener('keydown', this.onKeyDown, true); window.addEventListener('keyup', this.onKeyUp, true); window.addEventListener('blur', this.onBlur);
-    window.addEventListener('mousemove', this.onMouseMove); document.addEventListener('pointerlockchange', this.onLockChange);
-    c.addEventListener('pointerdown', this.onDown); window.addEventListener('pointerup', this.onUp);
+    window.addEventListener('mousemove', this.onMouseMove); document.addEventListener('pointerlockchange', this.onLockChange); document.addEventListener('pointerlockerror', this.onLockError);
+    c.addEventListener('pointerdown', this.onDown); window.addEventListener('pointerup', this.onUp); c.addEventListener('contextmenu', this.onCtx); c.addEventListener('wheel', this.onWheel, { passive: true });
   }
   unbind() {
     window.removeEventListener('keydown', this.onKeyDown, true); window.removeEventListener('keyup', this.onKeyUp, true); window.removeEventListener('blur', this.onBlur);
-    window.removeEventListener('mousemove', this.onMouseMove); document.removeEventListener('pointerlockchange', this.onLockChange);
-    this.vp.canvas.removeEventListener('pointerdown', this.onDown); window.removeEventListener('pointerup', this.onUp);
+    window.removeEventListener('mousemove', this.onMouseMove); document.removeEventListener('pointerlockchange', this.onLockChange); document.removeEventListener('pointerlockerror', this.onLockError);
+    this.vp.canvas.removeEventListener('pointerdown', this.onDown); window.removeEventListener('pointerup', this.onUp); this.vp.canvas.removeEventListener('contextmenu', this.onCtx); this.vp.canvas.removeEventListener('wheel', this.onWheel);
   }
   requestLock() { try { const r = this.vp.canvas.requestPointerLock?.(); r?.catch?.(() => {}); } catch { /* not available: drag to look instead */ } }
 
   onEscape() {
+    if (this.world.dead) return;                                      // the death screen has its own buttons
     if (this.frozen && this.seqPlayer?.skip()) return;                 // Esc skips a skippable cutscene instead of pausing
     if (this.paused) this.resume(); else this.pause();
   }
@@ -132,14 +149,15 @@ export class PlaytestSession {
   // ------------------------------------------------------------------ HUD
   buildHud() {
     const mk = (cls, txt = '') => h('div', { class: cls }, txt);
-    this.promptEl = mk('pt-prompt'); this.msgEl = mk('pt-msgs'); this.objEl = mk('pt-objective'); this.dbgEl = mk('pt-debug');
+    this.promptEl = mk('pt-prompt'); this.msgEl = mk('pt-msgs'); this.objEl = mk('pt-objective'); this.dbgEl = mk('pt-debug'); this.wpnEl = mk('pt-weapon'); this.hpEl = mk('pt-hp');
+    this.deadEl = h('div', { class: 'pt-pause pt-dead', style: { display: 'none' } }, h('div', { class: 'pt-menu' }, h('h3', {}, 'You died'), (this.deadBtn = h('button', { class: 'btn primary', onclick: () => { if (this.world.restoreCheckpoint()) this.deadEl.style.display = 'none'; else this.restart(); } }, 'Restart')), h('button', { class: 'btn', onclick: () => this.restart() }, 'Restart from the beginning'), h('button', { class: 'btn danger', onclick: () => this.stop() }, 'Stop playtest')));
     this.pauseEl = h('div', { class: 'pt-pause', style: { display: 'none' } }, h('div', { class: 'pt-menu', role: 'dialog', 'aria-label': 'Playtest paused' }, h('h3', {}, 'Playtest paused'),
       h('button', { class: 'btn primary', onclick: () => this.resume() }, 'Resume'),
-      h('button', { class: 'btn', onclick: () => { this.world.restoreCheckpoint(); this.resume(); } }, 'Restart from last checkpoint'),
+      h('button', { class: 'btn', onclick: () => { if (this.world.restoreCheckpoint()) this.resume(); else this.world.message('No checkpoint saved yet.', 2); } }, 'Restart from last checkpoint'),
       h('button', { class: 'btn', onclick: () => this.restart() }, 'Restart from the beginning'),
       h('button', { class: 'btn danger', onclick: () => this.stop() }, 'Stop playtest'),
-      h('div', { class: 'pt-help' }, 'WASD move · Shift sprint · C crouch · E use · F flashlight · Arrow keys also look · F3 debug · Esc pause')));
-    this.hud = h('div', { class: 'pt-hud' }, h('div', { class: 'pt-cross' }), this.promptEl, this.msgEl, this.objEl, this.dbgEl, this.pauseEl);
+      h('div', { class: 'pt-help' }, 'WASD move · Shift sprint · C crouch · E use · F flashlight · LMB fire · RMB aim · R reload · 1–9 / wheel weapon · Arrow keys also look · F3 debug · Esc pause')));
+    this.hud = h('div', { class: 'pt-hud' }, h('div', { class: 'pt-cross' }), this.promptEl, this.msgEl, this.objEl, this.dbgEl, this.wpnEl, this.hpEl, this.deadEl, this.pauseEl);
     this.dbgEl.style.display = 'none';
     this.vp.container.appendChild(this.hud);
   }
@@ -159,21 +177,62 @@ export class PlaytestSession {
         lookDX: frozen ? 0 : this.look.dx + ((k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0)) * 1.8 * dt,
         lookDY: frozen ? 0 : this.look.dy + ((k.has('ArrowDown') ? 1 : 0) - (k.has('ArrowUp') ? 1 : 0)) * 1.4 * dt,
         use: this.useQueued && !frozen,
+        fire: !frozen && (this.fireQueued || (this.fireHeld && !!w.weapon?.def.automatic)), fireHeld: this.fireHeld && !this.fireQueued, ads: !frozen && this.adsHeld, reload: this.reloadQueued && !frozen, weapon: this.weaponWanted,
       };
-      this.look.dx = this.look.dy = 0; this.useQueued = false;
+      const fired = input.fire; this.look.dx = this.look.dy = 0; this.useQueued = false; this.fireQueued = false; this.reloadQueued = false; this.weaponWanted = undefined;
       // fixed sub-steps keep movement and collision stable (and game time close to real time) when the frame rate is low
       const n = Math.max(1, Math.ceil(dt / 0.05));
       let res = null;
       for (let i = 0; i < n; i++) {
-        const sub = { ...input, lookDX: i === 0 ? input.lookDX : 0, lookDY: i === 0 ? input.lookDY : 0, use: i === 0 && input.use };
+        const sub = { ...input, lookDX: i === 0 ? input.lookDX : 0, lookDY: i === 0 ? input.lookDY : 0, use: i === 0 && input.use, fire: i === 0 && input.fire, reload: i === 0 && input.reload, weapon: i === 0 ? input.weapon : undefined };
         const r = w.step(dt / n, sub); if (r) res = r;
       }
       if (res?.needsCode) this.askCode(res.door);
+      if (fired && w.shotLog.length && w.shotLog.at(-1).t >= w.time - 0.3) this.flashT = 0.06;
       while (w.sequenceRequests.length) this.playSequence(w.sequenceRequests.shift());
     }
     this.syncVisuals();
     this.renderHud();
     return true;
+  }
+
+  buildEnemies() {
+    const vp = this.vp, ai = this.world.ai;
+    if (!ai) return;
+    for (const r of ai.agents) {
+      const a = r.agent, g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CapsuleGeometry(a.def.radius, Math.max(0.1, a.def.height - 2 * a.def.radius), 6, 12), new THREE.MeshStandardMaterial({ color: a.def.invulnerable ? 0x2a2a3a : 0x7a1f1f, roughness: 0.8 }));
+      body.position.y = a.def.height / 2; body.castShadow = true;
+      const eyes = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9b0 }));
+      const e2 = eyes.clone(); eyes.position.set(-0.08, a.def.height * 0.9, -a.def.radius * 0.9); e2.position.set(0.08, a.def.height * 0.9, -a.def.radius * 0.9);
+      g.add(body, eyes, e2); g.userData.proxy = true;
+      vp.scene.add(g);
+      this.enemyViews.set(a, { group: g, body, rec: r });
+      if (a.def.model) this.app.assets.instantiate(a.def.model).then(({ object }) => { if (!this.enemyViews.has(a)) return; g.remove(body, eyes, e2); g.add(object); }).catch(() => { /* keep the proxy capsule */ });
+    }
+  }
+
+  syncEnemies() {
+    const D = Math.PI / 180;
+    for (const [a, v] of this.enemyViews) {
+      const rec = v.rec;
+      v.group.visible = rec.active || a.behavior === 'dormant' && !rec.spawnOn;
+      v.group.position.copy(a.pos); v.group.rotation.y = a.yaw * D;
+      if (!a.alive) { v.group.rotation.x = -Math.PI / 2 * 0.98; v.group.position.y += a.def.radius; if (v.body.material) v.body.material.color?.set(0x303030); }
+      else if (v.body.material?.color) v.body.material.color.set(a.def.invulnerable ? 0x2a2a3a : (a.behavior === 'chase' || a.behavior === 'attack') ? 0xb02020 : 0x7a1f1f);
+    }
+    // debug overlay: sight cones and paths
+    if (this.debug) {
+      if (!this.dbgLines) { this.dbgLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffd84a })); this.dbgLines.frustumCulled = false; this.vp.scene.add(this.dbgLines); }
+      const pts = [];
+      for (const [a] of this.enemyViews) {
+        if (!a.alive) continue;
+        const v = a.params.vision, half = ((a.behavior === 'chase' || a.behavior === 'attack') ? v.chaseHalfAngleDeg : v.halfAngleDeg) * D, base = a.pos.clone().add(new THREE.Vector3(0, 0.1, 0));
+        for (const sgn of [-1, 1]) { const ang = a.yaw * D + sgn * Math.min(half, Math.PI); pts.push(base.x, base.y, base.z, base.x - Math.sin(ang) * v.range, base.y, base.z - Math.cos(ang) * v.range); }
+        if (a.path) { let prev = base; for (let i = a.pathIndex; i < a.path.length; i++) { pts.push(prev.x, prev.y, prev.z, a.path[i].x, a.path[i].y + 0.1, a.path[i].z); prev = a.path[i]; } }
+      }
+      this.dbgLines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); this.dbgLines.visible = true;
+    } else if (this.dbgLines) this.dbgLines.visible = false;
   }
 
   syncVisuals(first = false) {
@@ -186,6 +245,8 @@ export class PlaytestSession {
     this.flash.position.copy(eye); this.flash.target.position.copy(eye).add(dir); this.flash.visible = this.flashlightOn;
     vp.rig.groupState = w.lights; vp.rig.forceUpdate = true;
     for (const d of w.doors.values()) { const e = vp.sceneView.entryOf(d.node.id); if (e?.setOpen && (first || e._amount !== d.amount)) { e.setOpen(d.amount); e._amount = d.amount; } }
+    this.syncEnemies();
+    this.flashT = Math.max(0, this.flashT - 0.016); this.muzzle.intensity = this.flashT > 0 ? 40 : 0; this.muzzle.position.copy(eye).addScaledVector(dir, 0.8);
     for (const it of w.interactions) if (it.node.type === 'itemSpawn') { const e = vp.sceneView.entryOf(it.node.id); if (e) e.helpers.visible = !w.used.has(it.node.id); }
   }
 
@@ -195,6 +256,12 @@ export class PlaytestSession {
     this.promptEl.textContent = f ? `E — ${f.label}` : '';
     this.msgEl.replaceChildren(...w.messages.slice(-4).map((m) => h('div', {}, m.text)));
     this.objEl.textContent = w.objective ? `Objective: ${w.objective}` : '';
+    const W = w.weapon;
+    this.wpnEl.textContent = W ? `${W.def.name.replace(' (game reference)', '')}${W.def.kind === 'gun' ? `   ${W.mag} / ${W.reserve}${W.state === 'reloading' ? '   reloading…' : ''}` : ''}` : '';
+    this.hpEl.textContent = `HP ${Math.ceil(w.player.hp)}`;
+    this.deadEl.style.display = w.dead ? 'flex' : 'none';
+    if (w.dead) this.deadBtn.textContent = w.checkpointSnap ? 'Restart from last checkpoint' : 'Restart from the beginning';
+    if (w.dead && document.pointerLockElement === this.vp.canvas) document.exitPointerLock();
   }
   refreshDebug() {
     if (!this.debug) return;
@@ -205,7 +272,7 @@ export class PlaytestSession {
     row('time', w.time.toFixed(1) + ' s'); row('flags', JSON.stringify(r.state.flags)); row('inventory', JSON.stringify(w.inventory));
     row('doors', [...w.doors.values()].map((d) => `${d.id}:${d.open ? 'open' : d.locked ? 'locked(' + d.locked + ')' : 'closed'}`).join(' ')); row('lights', JSON.stringify(w.lights));
     row('inside', w.volumes.filter((v) => v.inside).map((v) => v.node.name).join(', ') || '—'); row('last events', r.effects.filter((e) => e.type === 'event').slice(-4).map((e) => e.name).join(', ') || '—');
-    row('checkpoint', w.checkpointSnap?.id || '—');
+    row('checkpoint', w.checkpointSnap?.id || '—'); if (w.ai) for (const r of w.ai.agents) { const d = r.agent.debug(); row('enemy ' + d.name, `${d.state}${r.active ? '' : ' (waiting)'} hp ${d.hp} sees:${d.sees ? 'Y' : 'n'} heard:${d.heard ? 'Y' : 'n'}`); }
   }
 
   askCode(door) {

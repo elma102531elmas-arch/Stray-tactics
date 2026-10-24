@@ -224,3 +224,4 @@ table.t td{padding:4px 8px;border-bottom:1px solid #ffffff0c}
 .pt-pause{position:absolute;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;pointer-events:auto}
 .pt-menu{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 22px;display:flex;flex-direction:column;gap:8px;min-width:280px;text-shadow:none}
 .pt-menu h3{margin:0 0 6px}.pt-help{color:var(--dim);font-size:11px;margin-top:6px;max-width:280px}
+.pt-weapon{position:absolute;right:16px;bottom:14px;font-size:18px;font-weight:600}.pt-hp{position:absolute;left:16px;bottom:14px;font-size:18px;font-weight:600;color:#ff8a8a}.pt-dead{background:#300b}

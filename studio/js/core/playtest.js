@@ -11,6 +11,7 @@ import { EventRuntime } from './events.js';
 import { PLAYER_REFERENCE } from './game-constants.js';
 import { deepClone } from './util.js';
 import { AISystem } from './aisystem.js';
+import { WeaponRuntime, allWeapons } from './weapons.js';
 
 const D2R = Math.PI / 180;
 const REACH = PLAYER_REFERENCE.interactReach;
@@ -43,6 +44,12 @@ export class PlaytestWorld {
     this.runtime = new EventRuntime(graphs, this._adapter(), { rng });
     this._spawnPlayer(spawn, from);
     this.dead = false;
+    const wanted = project.data.settings?.loadout || ['ref_crowbar', 'ref_pistol', 'ref_rifle'];
+    const defs = allWeapons(project);
+    this.weapons = wanted.map((id) => defs[id]).filter(Boolean).map((d) => new WeaponRuntime(d, { rng }));
+    this.weaponIndex = Math.max(0, this.weapons.findIndex((w) => w.def.kind === 'gun'));
+    this.shotLog = [];
+    this.recoilKick = 0;
     if (project.scene.find((n) => n.type === 'enemySpawn').length) { this.ai = new AISystem(this); this.systems.push(this.ai); }
     this.runtime.start();
   }
@@ -175,6 +182,7 @@ export class PlaytestWorld {
     if (f.kind === 'item') {
       this.used.add(n.id);
       this.inventory[p.item] = (this.inventory[p.item] || 0) + (p.count || 1);
+      for (const w of this.weapons) if (w.def.ammoType && w.def.ammoType === p.item) { w.reserve += p.count || 1; }
       this.message(`Picked up ${p.item}${p.count > 1 ? ' ×' + p.count : ''}.`);
       this.runtime.emit(p.event || `pickup:${p.item}`);
       return { kind: 'item', item: p.item };
@@ -209,6 +217,15 @@ export class PlaytestWorld {
     if (moved > 0.001) { this.stepNoise = (this.stepNoise || 0) + moved; if (this.stepNoise > 0.9) { this.stepNoise = 0; this.noises.push({ pos: new THREE.Vector3(P.x, P.y, P.z), radius: input.crouch ? 1.5 : input.sprint ? 11 : 4.5, kind: 'footstep', t: this.time }); } }
     // doors animate
     for (const d of this.doors.values()) d.amount += Math.sign((d.open ? 1 : 0) - d.amount) * Math.min(Math.abs((d.open ? 1 : 0) - d.amount), dt / 0.45);
+    // weapons
+    const W = this.weapon;
+    for (const w of this.weapons) w.update(dt);
+    if (W) {
+      if (input.weapon !== undefined && input.weapon !== this.weaponIndex && this.weapons[input.weapon]) { this.weaponIndex = input.weapon; this.weapons[input.weapon].drawn = 0.3; this.message(`${this.weapon.def.name}`, 1); }
+      W.ads = !!input.ads && W.state !== 'reloading' && W.def.kind === 'gun';
+      if (input.reload) { if (W.startReload()) this.runtime.emit('weapon:reload'); }
+      if (input.fire && (input.fireHeld ? W.def.automatic : true)) { if (W.def.perRoundReload) W.interruptReload(); this.fireWeapon(); }
+    }
     // volumes
     this._updateVolumes();
     // time-based systems
@@ -218,6 +235,48 @@ export class PlaytestWorld {
     this.messages = this.messages.filter((m) => m.until > this.time);
     if (input.use) return this.use({ code: input.code ?? null });
     return null;
+  }
+
+  get weapon() { return this.weapons[this.weaponIndex] || null; }
+
+  /** Pull the trigger. Returns what happened (for HUD / tests). */
+  fireWeapon() {
+    const W = this.weapon; if (!W) return null;
+    const P = this.player, d = this.lookDir();
+    const right = new THREE.Vector3(Math.cos(P.yaw * D2R), 0, -Math.sin(P.yaw * D2R));
+    const up = new THREE.Vector3().crossVectors(right, d).normalize();
+    const shot = W.fire({ right: right.clone(), up, forward: d.clone() });
+    if (!shot) return null;
+    const eye = this.eye();
+    this.noises.push({ pos: eye.clone(), radius: shot.noise, kind: 'shot', t: this.time });
+    const result = { weapon: W.def.id, hits: [] };
+    if (shot.melee) {
+      this.runtime.emit('weapon:melee');
+      for (const r of this.ai?.agents || []) {
+        if (!r.active || !r.agent.alive) continue;
+        const to = r.agent.pos.clone().add(new THREE.Vector3(0, 0.9, 0)).sub(eye);
+        if (to.length() <= shot.range + r.agent.def.radius && to.normalize().dot(d) > 0.6) { r.agent.takeDamage(shot.damage, 'body', { heavy: true }); result.hits.push({ enemy: r.node.name, damage: shot.damage }); }
+      }
+    } else {
+      this.recoilKick += shot.recoilDeg;
+      P.pitch = Math.min(89, P.pitch + shot.recoilDeg * 0.5);
+      this.runtime.emit('weapon:fire');
+      for (const dd of shot.dirs) {
+        const dir = new THREE.Vector3(dd.x, dd.y, dd.z);
+        let origin = eye.clone(), remaining = W.def.range || 80, pierced = shot.pierce ? 1 : 0;
+        const already = new Set();
+        for (let k = 0; k <= pierced; k++) {
+          const hit = this.ai?.shoot(origin, dir, shot.damage * 1, { maxDist: remaining, exclude: already }) || null;
+          if (!hit) break;
+          already.add(hit.agent);
+          // head shots use the weapon's head multiplier through the archetype's weak spots; record what was hit
+          result.hits.push({ enemy: hit.agent.name, part: hit.part, damage: shot.damage });
+          origin = origin.clone().addScaledVector(dir, hit.t + 0.2); remaining -= hit.t + 0.2;
+        }
+      }
+    }
+    this.shotLog.push({ t: this.time, ...result });
+    return result;
   }
 
   _updateVolumes() {
