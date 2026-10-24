@@ -6,6 +6,7 @@
 import { SceneModel } from './scene.js';
 import { uid, deepClone, isObj } from './util.js';
 import { makeAssetLookup } from './builtin.js';
+import { audioSettingsAssets, defaultAudioData } from './audio.js';
 
 export const FORMAT = 'saint-marrow-studio-project';
 export const FORMAT_VERSION = 1;
@@ -51,7 +52,7 @@ export function newProjectData() {
     plugins: {},
     scripts: {},
     weapons: {},
-    audio: { buses: { sfx: 1, ambience: 1, music: 1, voice: 1 } },
+    audio: defaultAudioData(),
     issues: [],
     importReport: null,
   };
@@ -125,6 +126,7 @@ export function referencedAssets(project) {
   for (const [id, m] of Object.entries(project.data.materials)) {
     for (const k of ['map', 'normalMap', 'ormMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'alphaMap', 'aoMap']) add(m[k], `material ${m.name || id}.${k}`);
   }
+  for (const [id, where] of audioSettingsAssets(project.data)) add(id, `audio ${where}`);
   for (const [id, seq] of Object.entries(project.data.sequences)) {
     for (const t of seq.tracks || []) for (const c of t.clips || []) if (c.asset) add(c.asset, `sequence ${seq.name || id}`);
   }

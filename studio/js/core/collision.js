@@ -197,3 +197,10 @@ export class CollisionWorld {
     return { x, y: ny, z, vy, grounded };
   }
 }
+
+/** Is a world point inside a collider (box or sphere)? Used for trigger / audio / footstep volumes. */
+export function pointInCollider(c, p) {
+  const l = p.clone().applyMatrix4(c.invRT);
+  if (c.shape === 'sphere') { const r = (c.max[0] - c.min[0]) / 2, cx = (c.min[0] + c.max[0]) / 2, cy = (c.min[1] + c.max[1]) / 2, cz = (c.min[2] + c.max[2]) / 2; return Math.hypot(l.x - cx, l.y - cy, l.z - cz) <= r; }
+  return l.x >= c.min[0] && l.x <= c.max[0] && l.y >= c.min[1] && l.y <= c.max[1] && l.z >= c.min[2] && l.z <= c.max[2];
+}

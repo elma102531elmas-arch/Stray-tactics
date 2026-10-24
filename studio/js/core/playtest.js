@@ -6,12 +6,13 @@
 
 import * as THREE from '../../lib/three.module.js';
 import { propsOf, worldColliders, nodeWorldAABB } from './geometry.js';
-import { CollisionWorld } from './collision.js';
+import { CollisionWorld, pointInCollider } from './collision.js';
 import { EventRuntime } from './events.js';
 import { PLAYER_REFERENCE } from './game-constants.js';
 import { deepClone } from './util.js';
 import { AISystem } from './aisystem.js';
 import { WeaponRuntime, allWeapons } from './weapons.js';
+import { collectAudio, audioSettings, zonesAt, reverbAt, surfaceAt, pickFootstep, STEP_DISTANCE } from './audio.js';
 
 const D2R = Math.PI / 180;
 const REACH = PLAYER_REFERENCE.interactReach;
@@ -41,7 +42,12 @@ export class PlaytestWorld {
     this._buildDoors();
     this._buildTriggers();
     const graphs = deepClone(project.data.events?.graphs || {});
-    this.runtime = new EventRuntime(graphs, this._adapter(), { rng });
+    // audio: the engine (ui/audioengine.js) drains `audioEvents` and reads `audioZones` every frame; the rules live in core/audio.js
+    this.audio = collectAudio(project, { colliders: this.colliders });
+    this.audioCfg = audioSettings(project.data);
+    this.audioEvents = []; this.footstepLog = []; this.audioZones = zonesAt([], new THREE.Vector3()); this.reverbPreset = project.data.environment?.reverb || 'none';
+    this.stepDist = 0; this.lastFootstep = null;
+    this.runtime = new EventRuntime(graphs, this._adapter(), { rng, onEmit: (name) => this.audioEvents.push({ type: 'event', name, t: this.time }) });
     this._spawnPlayer(spawn, from);
     this.dead = false;
     const wanted = project.data.settings?.loadout || ['ref_crowbar', 'ref_pistol', 'ref_rifle'];
@@ -103,7 +109,7 @@ export class PlaytestWorld {
       teleport: (spawn) => { const n = w.scene.get(spawn) || w.scene.byName(spawn); if (n) w._spawnPlayer(n.id); },
       item: (item, action, count) => { w.inventory[item] = Math.max(0, (w.inventory[item] || 0) + (action === 'take' ? -count : count)); },
       spawn: (id) => w.systems.forEach((s) => s.spawn?.(id, w)),
-      sound: (o) => w.fired.push({ t: w.time, sound: o.asset }),
+      sound: (o) => { w.fired.push({ t: w.time, sound: o.asset }); w.audioEvents.push({ type: 'sound', asset: o.asset, at: o.at || null, volume: o.volume ?? 1, t: w.time }); },
     };
   }
 
@@ -215,6 +221,21 @@ export class PlaytestWorld {
     Object.assign(P, next);
     const moved = Math.hypot(P.x - before.x, P.z - before.z);
     if (moved > 0.001) { this.stepNoise = (this.stepNoise || 0) + moved; if (this.stepNoise > 0.9) { this.stepNoise = 0; this.noises.push({ pos: new THREE.Vector3(P.x, P.y, P.z), radius: input.crouch ? 1.5 : input.sprint ? 11 : 4.5, kind: 'footstep', t: this.time }); } }
+    // footsteps: one step every N metres walked on the ground, using the surface under the player (zone > floor > material)
+    if (moved > 0.001 && P.grounded) {
+      this.stepDist += moved;
+      const kind = input.crouch ? 'crouch' : input.sprint ? 'sprint' : 'walk';
+      if (this.stepDist >= STEP_DISTANCE[kind]) {
+        this.stepDist = 0;
+        const sf = surfaceAt(this.project, this.audio, this.world, P), sound = pickFootstep(this.audioCfg, sf.surface, this.rng, this.lastFootstep);
+        this.lastFootstep = sound;
+        const ev = { type: 'footstep', surface: sf.surface, from: sf.from, sound, kind, t: this.time };
+        this.audioEvents.push(ev); this.footstepLog.push(ev); if (this.footstepLog.length > 60) this.footstepLog.shift();
+      }
+    }
+    this.audioZones = zonesAt(this.audio.zones.filter((z) => this.isEnabled(z.node, true)), new THREE.Vector3(P.x, P.y + 0.9, P.z));
+    this.reverbPreset = reverbAt(this.project, this.audioZones);
+    if (this.audioEvents.length > 400) this.audioEvents.splice(0, this.audioEvents.length - 400);          // nobody is draining (unit tests, headless): keep memory bounded
     // doors animate
     for (const d of this.doors.values()) d.amount += Math.sign((d.open ? 1 : 0) - d.amount) * Math.min(Math.abs((d.open ? 1 : 0) - d.amount), dt / 0.45);
     // weapons
@@ -315,11 +336,6 @@ export class PlaytestWorld {
   }
 }
 
-function pointInCollider(c, p) {
-  const l = p.clone().applyMatrix4(c.invRT);
-  if (c.shape === 'sphere') { const r = (c.max[0] - c.min[0]) / 2, cx = (c.min[0] + c.max[0]) / 2, cy = (c.min[1] + c.max[1]) / 2, cz = (c.min[2] + c.max[2]) / 2; return Math.hypot(l.x - cx, l.y - cy, l.z - cz) <= r; }
-  return l.x >= c.min[0] && l.x <= c.max[0] && l.y >= c.min[1] && l.y <= c.max[1] && l.z >= c.min[2] && l.z <= c.max[2];
-}
 function raySphere(o, d, c, r) {
   const oc = o.clone().sub(c), b = oc.dot(d), cc = oc.dot(oc) - r * r;
   const disc = b * b - cc; if (disc < 0) return null;

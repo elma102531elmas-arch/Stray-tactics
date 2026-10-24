@@ -12,6 +12,7 @@ import { referencedAssets } from './project.js';
 import { buildNavMesh } from './navmesh.js';
 import { analyzeGraphs } from './events.js';
 import { sceneBounds } from './geometry.js';
+import { analyzeAudio } from './audio.js';
 
 const DOWN = new THREE.Vector3(0, -1, 0);
 const r3 = (v) => Math.round(v * 1000) / 1000;
@@ -318,7 +319,6 @@ checks.references = (ctx) => {
     const m = n.props.material;
     if (m && !mats[m] && !m.startsWith('mat_') && !isBuiltin(m)) out.push(issue('missing-material', 'warn', `"${n.name}" uses material "${m}" which does not exist.`, [n.id]));
     if (n.type === 'model' && !n.props.asset) out.push(issue('model-no-asset', 'warn', `Model "${n.name}" has no asset assigned.`, [n.id]));
-    if (n.type === 'audioSource' && !n.props.asset) out.push(issue('audio-no-asset', 'warn', `Audio source "${n.name}" has no sound assigned.`, [n.id]));
   });
   // events: fired by scene objects must be handled; names listened to must be fired by something
   const { handled: graphHandled, emitted: graphEmitted } = analyzeGraphs(project);
@@ -367,10 +367,11 @@ checks.reachability = (ctx) => {
 };
 
 /** Static problems inside event graphs (dangling references, unreachable nodes, event loops). */
+checks.audio = (ctx) => (ctx.project ? analyzeAudio(ctx.project).map((i) => issue(i.code, i.severity, i.message, i.nodes)) : []);
 checks.eventGraphs = (ctx) => (ctx.project ? analyzeGraphs(ctx.project).issues.map((i) => issue(i.code, i.severity, i.message, [], { graph: i.graph, graphNode: i.node })) : []);
 
 // ---------------------------------------------------------------- driver
-export const CHECK_ORDER = ['wallGaps', 'overlappingOpenings', 'openingPlacement', 'floating', 'colliderMatch', 'decals', 'interactions', 'spawns', 'intersections', 'logicVolumes', 'references', 'eventGraphs', 'reachability'];
+export const CHECK_ORDER = ['wallGaps', 'overlappingOpenings', 'openingPlacement', 'floating', 'colliderMatch', 'decals', 'interactions', 'spawns', 'intersections', 'logicVolumes', 'references', 'eventGraphs', 'audio', 'reachability'];
 
 export function makeValidationContext(project) {
   const geo = project.geoCtx;

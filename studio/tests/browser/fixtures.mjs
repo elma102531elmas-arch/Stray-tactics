@@ -11,9 +11,10 @@ export const GAME_TEX = (n) => path.join(ROOT, 'saint-marrow/assets/tex', n + '.
 
 export function tmpDir(prefix = 'smstudio-') { return fs.mkdtempSync(path.join(os.tmpdir(), prefix)); }
 
-export function makeWav(file, { seconds = 0.5, freq = 440, rate = 22050, channels = 1 } = {}) {
-  const n = Math.floor(seconds * rate), data = Buffer.alloc(n * 2 * channels);
-  for (let i = 0; i < n; i++) for (let c = 0; c < channels; c++) data.writeInt16LE(Math.round(Math.sin((2 * Math.PI * freq * i) / rate) * 12000), (i * channels + c) * 2);
+/** amp = peak in 16-bit units (12000 ≈ −8.7 dBFS; values past 32767 clip); lead = seconds of silence before the tone. */
+export function makeWav(file, { seconds = 0.5, freq = 440, rate = 22050, channels = 1, amp = 12000, lead = 0 } = {}) {
+  const n = Math.floor(seconds * rate), data = Buffer.alloc(n * 2 * channels), skip = Math.floor(lead * rate);
+  for (let i = 0; i < n; i++) for (let c = 0; c < channels; c++) data.writeInt16LE(i < skip ? 0 : Math.max(-32768, Math.min(32767, Math.round(Math.sin((2 * Math.PI * freq * i) / rate) * amp))), (i * channels + c) * 2);
   const h = Buffer.alloc(44);
   h.write('RIFF', 0); h.writeUInt32LE(36 + data.length, 4); h.write('WAVEfmt ', 8); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(channels, 22);
   h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2 * channels, 28); h.writeUInt16LE(2 * channels, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(data.length, 40);

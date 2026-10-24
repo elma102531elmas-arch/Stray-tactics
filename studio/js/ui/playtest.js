@@ -6,6 +6,7 @@ import { PlaytestWorld } from '../core/playtest.js';
 import { SceneSequenceHost } from '../core/seqhost.js';
 import { modal, KEEP_OPEN } from './dialogs.js';
 import { playOneShot } from './audioctx.js';
+import { AudioEngine } from './audioengine.js';
 import { PLAYER_REFERENCE } from '../core/game-constants.js';
 
 const D2R = Math.PI / 180;
@@ -48,6 +49,7 @@ export class PlaytestSession {
     this.muzzle = new THREE.PointLight(0xffd9a0, 0, 9, 2); vp.scene.add(this.muzzle);
     this.buildHud();
     this.buildEnemies();
+    this.startAudio();
     this.bind();
     this.syncVisuals(true);
     vp.tickers.add(this.tick = (dt) => this.update(dt));
@@ -66,6 +68,7 @@ export class PlaytestSession {
     for (const { host, snap } of this.restoreStack.reverse()) host.restore(snap);
     this.restoreStack = [];
     vp.tickers.delete(this.tick);
+    this.audio?.dispose(); this.audio = null;
     this.unbind();
     this.hud.remove();
     vp.scene.remove(this.flash, this.flash.target, this.muzzle); this.flash.dispose?.();
@@ -86,6 +89,25 @@ export class PlaytestSession {
     if (after !== this.sceneBefore) app.log('error', 'The playtest left the scene different from how it found it. Please report this as a bug.'); else app.log('ok', 'Playtest ended; the map was not modified.');
     app.emit('playtest', false);
     vp.requestRender();
+  }
+
+  // ------------------------------------------------------------------ audio (rules: core/audio.js, nodes: audioengine.js)
+  startAudio() {
+    try {
+      this.audio = new AudioEngine(this.app);
+      this.audio.ac.resume?.().catch(() => {});
+      this.audio.loadScene(this.world.audio);
+      this.audio.setReverb(this.world.reverbPreset);
+    } catch (e) { this.audio = null; this.app.log('warn', 'Playtest audio is unavailable: ' + e.message); }
+  }
+  tickAudio(dt) {
+    const a = this.audio, w = this.world; if (!a) return;
+    for (const ev of w.audioEvents.splice(0)) {
+      if (ev.type === 'footstep') { if (ev.sound) a.playFootstep(ev.sound, ev.surface).catch(() => {}); }
+      else if (ev.type === 'sound') { const n = ev.at && (w.scene.get(ev.at) || w.scene.byName(ev.at)); a.playOneShot(ev.asset, { volume: ev.volume, at: n ? w.scene.worldPosition(n.id) : null }).catch(() => {}); }
+      else if (ev.type === 'event') a.fireEvent(ev.name);
+    }
+    a.update(dt, { pos: w.eye(), yaw: w.player.yaw, world: w.world, zones: w.audioZones, reverb: w.reverbPreset, isEnabled: (n) => w.isEnabled(n, true) });
   }
 
   // ------------------------------------------------------------------ input
@@ -143,21 +165,21 @@ export class PlaytestSession {
     if (this.frozen && this.seqPlayer?.skip()) return;                 // Esc skips a skippable cutscene instead of pausing
     if (this.paused) this.resume(); else this.pause();
   }
-  pause() { if (this.paused) return; this.paused = true; if (document.pointerLockElement === this.vp.canvas) document.exitPointerLock(); this.pauseEl.style.display = 'flex'; this.keys.clear(); }
-  resume() { this.paused = false; this.pauseEl.style.display = 'none'; this.requestLock(); }
+  pause() { if (this.paused) return; this.paused = true; this.audio?.ac.suspend().catch(() => {}); if (document.pointerLockElement === this.vp.canvas) document.exitPointerLock(); this.pauseEl.style.display = 'flex'; this.keys.clear(); }
+  resume() { this.paused = false; this.audio?.ac.resume().catch(() => {}); this.pauseEl.style.display = 'none'; this.requestLock(); }
 
   // ------------------------------------------------------------------ HUD
   buildHud() {
     const mk = (cls, txt = '') => h('div', { class: cls }, txt);
     this.promptEl = mk('pt-prompt'); this.msgEl = mk('pt-msgs'); this.objEl = mk('pt-objective'); this.dbgEl = mk('pt-debug'); this.wpnEl = mk('pt-weapon'); this.hpEl = mk('pt-hp');
-    this.deadEl = h('div', { class: 'pt-pause pt-dead', style: { display: 'none' } }, h('div', { class: 'pt-menu' }, h('h3', {}, 'You died'), (this.deadBtn = h('button', { class: 'btn primary', onclick: () => { if (this.world.restoreCheckpoint()) this.deadEl.style.display = 'none'; else this.restart(); } }, 'Restart')), h('button', { class: 'btn', onclick: () => this.restart() }, 'Restart from the beginning'), h('button', { class: 'btn danger', onclick: () => this.stop() }, 'Stop playtest')));
+    this.deadEl = h('div', { class: 'pt-pause pt-dead', style: { display: 'none' } }, h('div', { class: 'pt-menu' }, h('h3', {}, 'You died'), (this.deadBtn = h('button', { class: 'btn primary', onclick: () => { if (this.world.restoreCheckpoint()) this.deadEl.remove(); else this.restart(); } }, 'Restart')), h('button', { class: 'btn', onclick: () => this.restart() }, 'Restart from the beginning'), h('button', { class: 'btn danger', onclick: () => this.stop() }, 'Stop playtest')));
     this.pauseEl = h('div', { class: 'pt-pause', style: { display: 'none' } }, h('div', { class: 'pt-menu', role: 'dialog', 'aria-label': 'Playtest paused' }, h('h3', {}, 'Playtest paused'),
       h('button', { class: 'btn primary', onclick: () => this.resume() }, 'Resume'),
       h('button', { class: 'btn', onclick: () => { if (this.world.restoreCheckpoint()) this.resume(); else this.world.message('No checkpoint saved yet.', 2); } }, 'Restart from last checkpoint'),
       h('button', { class: 'btn', onclick: () => this.restart() }, 'Restart from the beginning'),
       h('button', { class: 'btn danger', onclick: () => this.stop() }, 'Stop playtest'),
       h('div', { class: 'pt-help' }, 'WASD move · Shift sprint · C crouch · E use · F flashlight · LMB fire · RMB aim · R reload · 1–9 / wheel weapon · Arrow keys also look · F3 debug · Esc pause')));
-    this.hud = h('div', { class: 'pt-hud' }, h('div', { class: 'pt-cross' }), this.promptEl, this.msgEl, this.objEl, this.dbgEl, this.wpnEl, this.hpEl, this.deadEl, this.pauseEl);
+    this.hud = h('div', { class: 'pt-hud' }, h('div', { class: 'pt-cross' }), this.promptEl, this.msgEl, this.objEl, this.dbgEl, this.wpnEl, this.hpEl, this.pauseEl);
     this.dbgEl.style.display = 'none';
     this.vp.container.appendChild(this.hud);
   }
@@ -190,6 +212,7 @@ export class PlaytestSession {
       if (res?.needsCode) this.askCode(res.door);
       if (fired && w.shotLog.length && w.shotLog.at(-1).t >= w.time - 0.3) this.flashT = 0.06;
       while (w.sequenceRequests.length) this.playSequence(w.sequenceRequests.shift());
+      this.tickAudio(dt);
     }
     this.syncVisuals();
     this.renderHud();
@@ -259,7 +282,8 @@ export class PlaytestSession {
     const W = w.weapon;
     this.wpnEl.textContent = W ? `${W.def.name.replace(' (game reference)', '')}${W.def.kind === 'gun' ? `   ${W.mag} / ${W.reserve}${W.state === 'reloading' ? '   reloading…' : ''}` : ''}` : '';
     this.hpEl.textContent = `HP ${Math.ceil(w.player.hp)}`;
-    this.deadEl.style.display = w.dead ? 'flex' : 'none';
+    if (w.dead && !this.deadEl.isConnected) { this.deadEl.style.display = 'flex'; this.hud.insertBefore(this.deadEl, this.pauseEl); }      // only in the DOM while dead
+    else if (!w.dead && this.deadEl.isConnected) this.deadEl.remove();
     if (w.dead) this.deadBtn.textContent = w.checkpointSnap ? 'Restart from last checkpoint' : 'Restart from the beginning';
     if (w.dead && document.pointerLockElement === this.vp.canvas) document.exitPointerLock();
   }
@@ -292,7 +316,7 @@ export class PlaytestSession {
     const host = new SceneSequenceHost({ scene: this.app.scene, seq, hooks: {
       camera: (cam, s) => { this.seqState = cam || s?.fovDelta || s?.shake ? s : null; },
       overlay: (s) => this.vp.setFx(s),
-      audio: (c) => { if (c.asset) playOneShot(this.app, c.asset, { volume: c.volume }).catch(() => {}); },
+      audio: (c) => { if (!c.asset) return; if (this.audio) this.audio.playOneShot(c.asset, { volume: c.volume ?? 1 }).catch(() => {}); else playOneShot(this.app, c.asset, { volume: c.volume }).catch(() => {}); },
       event: (name) => this.world.runtime.emit(name),
       begin: () => { this.frozen = true; }, end: () => { this.frozen = false; this.seqState = null; this.seqPlayer = null; },
     } });
