@@ -1,5 +1,6 @@
 // Workspaces (centre tabs) other than the always-present Scene view. Each: { id, label, fill?, create(app, el, shell) -> {show?, hide?} }
-import materials from './materials.js';
 import assets from './assets.js';
+import materials from './materials.js';
+import events from './events.js';
 
-export const workspaceFactories = [assets, materials];
+export const workspaceFactories = [events, assets, materials];

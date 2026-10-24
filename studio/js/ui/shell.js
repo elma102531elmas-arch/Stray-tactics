@@ -182,6 +182,7 @@ export class Shell {
     }
     for (const o of this.workspaces.values()) { o.el.classList.toggle('on', o.id === id); if (o.id !== id && o.id === this.current) o.instance?.hide?.(); }
     this.current = id;
+    this.el.app.dataset.ws = id;      // the hierarchy / inspector only make sense next to the 3D scene
     w.instance?.show?.();
     this.renderTabs();
     if (id === 'scene') requestAnimationFrame(() => this.app.viewport?.resize());

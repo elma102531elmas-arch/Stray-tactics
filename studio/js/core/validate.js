@@ -10,6 +10,7 @@ import { CollisionWorld } from './collision.js';
 import { TYPES } from './schema.js';
 import { referencedAssets } from './project.js';
 import { buildNavMesh } from './navmesh.js';
+import { analyzeGraphs } from './events.js';
 import { sceneBounds } from './geometry.js';
 
 const DOWN = new THREE.Vector3(0, -1, 0);
@@ -319,16 +320,23 @@ checks.references = (ctx) => {
     if (n.type === 'model' && !n.props.asset) out.push(issue('model-no-asset', 'warn', `Model "${n.name}" has no asset assigned.`, [n.id]));
     if (n.type === 'audioSource' && !n.props.asset) out.push(issue('audio-no-asset', 'warn', `Audio source "${n.name}" has no sound assigned.`, [n.id]));
   });
-  // event names used by volumes should be handled by some graph or sequence
-  const handled = new Set();
-  for (const g of Object.values(project.data.events?.graphs || {})) for (const nd of g.nodes || []) if (nd.type === 'trigger' && nd.data?.event) handled.add(nd.data.event);
+  // events: fired by scene objects must be handled; names listened to must be fired by something
+  const { handled: graphHandled, emitted: graphEmitted } = analyzeGraphs(project);
+  const handled = new Set(graphHandled);
   for (const s of Object.values(project.data.sequences || {})) handled.add('seq:' + s.name);
-  const used = new Map();
+  const fired = new Map(), consumed = new Map();
+  const put = (m, k, id) => { if (!m.has(k)) m.set(k, []); m.get(k).push(id); };
   scene.walk((n) => {
     const p = propsOf(n);
-    for (const k of ['onEnter', 'onExit', 'event', 'playOnEvent', 'spawnOn']) if (typeof p[k] === 'string' && p[k]) { if (!used.has(p[k])) used.set(p[k], []); used.set(p[k], [...used.get(p[k]), n.id]); }
+    for (const k of ['onEnter', 'onExit']) if (typeof p[k] === 'string' && p[k]) put(fired, p[k], n.id);
+    if ((n.type === 'interaction' || n.type === 'itemSpawn') && p.event) put(fired, p.event, n.id);
+    if (n.type === 'model' && p.interaction?.enabled && p.interaction.event) put(fired, p.interaction.event, n.id);
+    for (const k of ['playOnEvent', 'spawnOn']) if (typeof p[k] === 'string' && p[k]) { put(consumed, p[k], n.id); handled.add(p[k]); }
   });
-  for (const [ev, ids] of used) if (!handled.has(ev)) out.push(issue('unhandled-event', 'warn', `Event "${ev}" is fired by ${ids.length} object(s) but no event graph listens to it.`, ids.slice(0, 5)));
+  for (const [ev, ids] of fired) if (!handled.has(ev)) out.push(issue('unhandled-event', 'warn', `Event "${ev}" is fired by ${ids.length} object(s) but no event graph (or sound/spawn setting) listens to it.`, ids.slice(0, 5)));
+  const known = new Set([...fired.keys(), ...graphEmitted, 'start']);
+  for (const [ev, ids] of consumed) if (!known.has(ev)) out.push(issue('event-never-fired', 'warn', `"${ev}" is waited for by ${ids.length} object(s) but nothing ever fires it.`, ids.slice(0, 5)));
+  for (const ev of graphHandled) if (!known.has(ev) && !ev.startsWith('seq:')) out.push(issue('event-never-fired', 'info', `An event graph listens for "${ev}" but no object or graph fires it (it may be emitted by a plugin or the game code).`, []));
   return out;
 };
 
@@ -358,8 +366,11 @@ checks.reachability = (ctx) => {
   return out;
 };
 
+/** Static problems inside event graphs (dangling references, unreachable nodes, event loops). */
+checks.eventGraphs = (ctx) => (ctx.project ? analyzeGraphs(ctx.project).issues.map((i) => issue(i.code, i.severity, i.message, [], { graph: i.graph, graphNode: i.node })) : []);
+
 // ---------------------------------------------------------------- driver
-export const CHECK_ORDER = ['wallGaps', 'overlappingOpenings', 'openingPlacement', 'floating', 'colliderMatch', 'decals', 'interactions', 'spawns', 'intersections', 'logicVolumes', 'references', 'reachability'];
+export const CHECK_ORDER = ['wallGaps', 'overlappingOpenings', 'openingPlacement', 'floating', 'colliderMatch', 'decals', 'interactions', 'spawns', 'intersections', 'logicVolumes', 'references', 'eventGraphs', 'reachability'];
 
 export function makeValidationContext(project) {
   const geo = project.geoCtx;
