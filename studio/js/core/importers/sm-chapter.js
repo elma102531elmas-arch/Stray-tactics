@@ -119,7 +119,7 @@ export function importChapterDef(def, mods, opts = {}) {
 
   // ---------------------------------------------------------------- ceilings (indoor only)
   for (const r of mergeRects(W, H, (x, z) => (indoorFloor(typeAt(x, z)) ? themeAt(x, z) : null))) {
-    const n = makeNode('ceiling', { name: `Ceiling ${r.key}`, p: [r.x + r.w / 2, heightOf(r.key), r.z + r.d / 2], props: { w: r.w, d: r.d, material: matFromTheme(r.key, 'ceil') } });
+    const n = makeNode('ceiling', { name: `Ceiling ${r.key}`, p: [r.x + r.w / 2, heightOf(r.key), r.z + r.d / 2], props: { w: r.w, d: r.d, material: matFromTheme(r.key, 'ceil') }, meta: { source: { game: 'saint-marrow', chapter: chapterNo, cells: [r.x, r.z, r.w, r.d] }, note: 'derived: the game draws a ceiling over every indoor cell' } });
     put(n, group('Ceilings'));
   }
 

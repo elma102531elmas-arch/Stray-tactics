@@ -328,6 +328,12 @@ export class Viewport extends Emitter {
     return best;
   }
 
+  /** Project a world position to page (client) coordinates. */
+  toClient(v) {
+    const p = v.clone().project(this.camera), r = this.canvas.getBoundingClientRect();
+    return { x: r.left + ((p.x + 1) / 2) * r.width, y: r.top + ((1 - p.y) / 2) * r.height, visible: p.z > -1 && p.z < 1 };
+  }
+
   groundPoint(clientX, clientY, y = this.workY) {
     const ray = this.rayFromClient(clientX, clientY);
     const p = ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -y), new THREE.Vector3());

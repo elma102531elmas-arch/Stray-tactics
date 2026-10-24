@@ -16,47 +16,67 @@ const DOWN = new THREE.Vector3(0, -1, 0);
 const r3 = (v) => Math.round(v * 1000) / 1000;
 const issue = (code, severity, message, nodes = [], extra = {}) => ({ code, severity, message, nodes, ...extra });
 
-function wallEnds(scene, w) {
-  const p = propsOf(w);
-  const M = scene.worldMatrix(w.id);
-  const a = new THREE.Vector3(-p.length / 2, 0, 0).applyMatrix4(M);
-  const b = new THREE.Vector3(p.length / 2, 0, 0).applyMatrix4(M);
-  return { a, b, p };
+/** Wall footprint in world XZ: 4 corners of the oriented rectangle (length × thickness), optionally only a slice along its length. */
+function wallRect(scene, w, x0 = null, x1 = null) {
+  const p = propsOf(w), M = scene.worldMatrix(w.id), T = p.thick / 2;
+  const a = x0 ?? -p.length / 2, b = x1 ?? p.length / 2;
+  return [[a, -T], [b, -T], [b, T], [a, T]].map(([x, z]) => { const v = new THREE.Vector3(x, 0, z).applyMatrix4(M); return [v.x, v.z]; });
 }
-function distPointSegment2D(p, a, b) {
-  const abx = b.x - a.x, abz = b.z - a.z;
-  const l2 = abx * abx + abz * abz;
-  let t = l2 < 1e-9 ? 0 : ((p.x - a.x) * abx + (p.z - a.z) * abz) / l2;
-  t = Math.max(0, Math.min(1, t));
-  return { d: Math.hypot(p.x - (a.x + abx * t), p.z - (a.z + abz * t)), t };
+function segDist(px, pz, ax, az, bx, bz) {
+  const abx = bx - ax, abz = bz - az, l2 = abx * abx + abz * abz;
+  const t = l2 < 1e-12 ? 0 : Math.max(0, Math.min(1, ((px - ax) * abx + (pz - az) * abz) / l2));
+  return Math.hypot(px - (ax + abx * t), pz - (az + abz * t));
 }
+/** Distance between two convex quads (0 when they overlap or touch). */
+function quadDistance(A, B) {
+  const axes = [];
+  for (const Q of [A, B]) for (let i = 0; i < 4; i++) { const [x0, z0] = Q[i], [x1, z1] = Q[(i + 1) % 4]; axes.push([-(z1 - z0), x1 - x0]); }
+  let separated = false;
+  for (const [nx, nz] of axes) {
+    const len = Math.hypot(nx, nz) || 1;
+    const pr = (Q) => { let lo = Infinity, hi = -Infinity; for (const [x, z] of Q) { const d = (x * nx + z * nz) / len; if (d < lo) lo = d; if (d > hi) hi = d; } return [lo, hi]; };
+    const [a0, a1] = pr(A), [b0, b1] = pr(B);
+    if (a1 < b0 - 1e-9 || b1 < a0 - 1e-9) { separated = true; break; }
+  }
+  if (!separated) return 0;
+  let best = Infinity;
+  for (const [P, Q] of [[A, B], [B, A]]) for (const [px, pz] of P) for (let i = 0; i < 4; i++) { const [x0, z0] = Q[i], [x1, z1] = Q[(i + 1) % 4]; best = Math.min(best, segDist(px, pz, x0, z0, x1, z1)); }
+  return best;
+}
+const quadBox = (Q) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const [x, z] of Q) { a = Math.min(a, x); b = Math.min(b, z); c = Math.max(c, x); d = Math.max(d, z); } return [a, b, c, d]; };
 
 // ---------------------------------------------------------------- individual checks
 export const checks = {};
 
-/** Wall ends that almost, but do not, meet another wall. */
+/** Wall ends that almost, but do not, meet another wall (a visible crack). Compares the END CAP of a wall with the footprint of every other wall. */
 checks.wallGaps = (ctx) => {
   const { scene } = ctx;
   const out = [];
-  const walls = scene.find((n) => n.type === 'wall' && scene.isVisible(n.id));
-  const MAXGAP = 0.15;
+  const MAXGAP = 0.15, CAP = 0.02;
+  const seen = new Set();   // the same crack is seen from both walls; report it once
+  const walls = scene.find((n) => n.type === 'wall' && scene.isVisible(n.id)).map((n) => {
+    const p = propsOf(n), rect = wallRect(scene, n);
+    return { n, p, rect, box: quadBox(rect), y: new THREE.Vector3().setFromMatrixPosition(scene.worldMatrix(n.id)).y };
+  });
   for (const A of walls) {
-    const ea = wallEnds(scene, A);
-    for (const [endName, e] of [['start', ea.a], ['end', ea.b]]) {
+    for (const endName of ['start', 'end']) {
+      const L = A.p.length;
+      const cap = endName === 'start' ? wallRect(scene, A.n, -L / 2, -L / 2 + CAP) : wallRect(scene, A.n, L / 2 - CAP, L / 2);
+      const cb = quadBox(cap);
       let touching = false, near = null;
       for (const B of walls) {
         if (A === B) continue;
-        const eb = wallEnds(scene, B);
-        if (Math.abs(ea.a.y - eb.a.y) > 0.05 || Math.abs(ea.p.height - eb.p.height) > 0.5) continue;
-        const { d, t } = distPointSegment2D(e, eb.a, eb.b);
-        const gap = d - eb.p.thick / 2;
+        if (Math.abs(A.y - B.y) > 0.05 || Math.abs(A.p.height - B.p.height) > 0.5) continue;
+        if (B.box[0] > cb[2] + MAXGAP || B.box[2] < cb[0] - MAXGAP || B.box[1] > cb[3] + MAXGAP || B.box[3] < cb[1] - MAXGAP) continue;
+        const gap = quadDistance(cap, B.rect);
         if (gap <= 0.002) { touching = true; break; }
-        if (gap <= MAXGAP && (!near || gap < near.gap)) near = { gap, B, t, d, eb };
+        if (gap <= MAXGAP && (!near || gap < near.gap)) near = { gap, B };
       }
-      if (!touching && near) {
-        // propose lengthening A along its axis so the end reaches B's face
-        out.push(issue('wall-gap', 'warn', `Wall "${A.name}" ${endName} ends ${r3(near.gap)} m short of "${near.B.name}" (visible crack).`, [A.id, near.B.id],
-          { fix: { type: 'extendWall', wallId: A.id, end: endName, by: r3(near.gap) } }));
+      const pair = near && [A.n.id, near.B.n.id].sort().join('|') + '|' + near.gap.toFixed(2);
+      if (!touching && near && !seen.has(pair)) {
+        seen.add(pair);
+        out.push(issue('wall-gap', 'warn', `Wall "${A.n.name}" ${endName} ends ${r3(near.gap)} m short of "${near.B.n.name}" (visible crack).`, [A.n.id, near.B.n.id],
+          { fix: { type: 'extendWall', wallId: A.n.id, end: endName, by: r3(near.gap) } }));
       }
     }
   }

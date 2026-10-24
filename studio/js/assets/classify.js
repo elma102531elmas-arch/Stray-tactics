@@ -112,7 +112,7 @@ export async function planImport(files, readText) {
     const ext = extOf(path);
     if (ext === 'gltf') {
       let json;
-      try { json = JSON.parse(await readText(path)); } catch (e) { errors.push({ path, message: `"${baseName(path)}" is not valid glTF JSON: ${e.message}` }); continue; }
+      try { json = JSON.parse(await readText(path)); } catch (e) { errors.push({ path, message: `"${baseName(path)}" is not valid glTF JSON: ${e.message}` }); claimed.add(path); continue; }
       const deps = gltfDependencies(json, path);
       const present = [path];
       for (const d of deps) {
