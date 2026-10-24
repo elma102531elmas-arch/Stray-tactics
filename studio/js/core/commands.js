@@ -103,7 +103,7 @@ export function setTransforms(items, { mergeKey, label } = {}) {
     label: label || (items.length > 1 ? `Transform ${items.length} objects` : 'Transform'),
     mergeKey,
     do: ({ scene }) => {
-      if (!old) old = items.map((it) => { const n = scene.get(it.id); return { id: it.id, t: deepClone(n.t) }; });
+      if (!old) old = items.map((it) => { const n = scene.get(it.id); return { id: it.id, t: it.from ? deepClone(it.from) : deepClone(n.t) }; });
       for (const it of items) scene.setTransform(it.id, it.t);
     },
     undo: ({ scene }) => { for (const o of old) scene.setTransform(o.id, o.t); },
