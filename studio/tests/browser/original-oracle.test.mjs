@@ -10,7 +10,8 @@ import { Project } from '../../js/core/project.js';
 import { History } from '../../js/core/history.js';
 import { setBuiltinLibrary } from '../../js/core/builtin.js';
 import { validateProject } from '../../js/core/validate.js';
-import { worldColliders } from '../../js/core/geometry.js';
+import { worldColliders, nodeWorldAABB } from '../../js/core/geometry.js';
+import * as THREE from '../../lib/three.module.js';
 
 let h, page, mods;
 const studio = {};          // chapter -> { project, unreachable:[names], colliders }
@@ -100,13 +101,16 @@ for (let n = 1; n <= 5; n++) {
     assert.deepEqual(stat.bad, [], 'fixed-orientation props are placed exactly as in the game');
     assert.ok(stat.missing.length <= Math.ceil(studioCols.length * 0.1), `imported props with no game counterpart: ${stat.missing.join('; ')}`);
 
-    // 2. interaction points: every "use" interactable the game registers exists in the import at the same coordinates
+    // 2. interaction points: every "use" interactable the game registers exists in the import, centred on the same x, y AND z
+    let compared = 0;
     for (const i of o.interactables.filter((x) => x.use && x.use !== 'gate')) {
       const nd = p.scene.find((x) => x.type === 'interaction' && x.name === 'use:' + i.use)[0];
       if (!nd) continue;                                                         // not every use becomes a volume (reported by the importer)
-      const w = p.scene.worldPosition(nd.id), c = nd.props.size ? w : w;
-      assert.ok(Math.hypot(w.x - i.x, w.z - i.z) < 0.6, `${i.use}: import at (${w.x.toFixed(2)},${w.z.toFixed(2)}) vs game (${i.x.toFixed(2)},${i.z.toFixed(2)})`);
+      const c = nodeWorldAABB(p.scene, nd.id, p.geoCtx).getCenter(new THREE.Vector3());
+      assert.ok(Math.hypot(c.x - i.x, c.z - i.z) < 0.3 && Math.abs(c.y - i.y) < 0.15, `${i.use}: import centred at (${c.x.toFixed(2)}, ${c.y.toFixed(2)}, ${c.z.toFixed(2)}) vs game (${i.x.toFixed(2)}, ${i.y.toFixed(2)}, ${i.z.toFixed(2)})`);
+      compared++;
     }
+    process.stderr.write(`[oracle] chapter ${n}: ${compared} interaction points identical to the game\n`);
 
     // 3. reachability: the Studio never flags an item as unreachable when the game's own collision can walk next to it (no false positives)
     const falsePositives = flagged.filter((f) => o.reach.find((r) => r.name === f.name)?.canInteract);

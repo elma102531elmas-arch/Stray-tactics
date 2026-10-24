@@ -7,6 +7,9 @@ import { CollisionWorld } from '../core/collision.js';
 import { buildNavMesh } from '../core/navmesh.js';
 import { sceneBounds } from '../core/geometry.js';
 import { HELPER_LAYER } from './builders.js';
+import { resolveArchetype, HIT_ZONES, hitRadius } from '../core/aisystem.js';
+import { PLAYER_REFERENCE } from '../core/game-constants.js';
+import { propsOf } from '../core/geometry.js';
 
 const KIND_COLOR = { solid: 0xff5050, ground: 0x50ff90, door: 0xffa040, volume: 0x40a0ff, terrain: 0x60c060, navBlock: 0xff40ff, navAllow: 0x40ffd0 };
 const SEV_COLOR = { error: 0xff4444, warn: 0xffc34a, info: 0x6fc3ff };
@@ -14,11 +17,11 @@ const SEV_COLOR = { error: 0xff4444, warn: 0xffc34a, info: 0x6fc3ff };
 export class Overlays {
   constructor(vp) {
     this.vp = vp; this.app = vp.app;
-    this.on = { collision: false, navmesh: false, issues: true, bounds: false, lights: false };
+    this.on = { collision: false, navmesh: false, issues: true, bounds: false, lights: false, hitboxes: false };
     this.group = new THREE.Group(); this.group.name = 'overlays';
     vp.scene.add(this.group);
     this.parts = {};
-    this.stale = { collision: true, navmesh: true, issues: true, bounds: true, lights: true };
+    this.stale = { collision: true, navmesh: true, issues: true, bounds: true, lights: true, hitboxes: true };
     this.issues = [];
     this.nav = null;
     this.navInfo = null;
@@ -33,11 +36,11 @@ export class Overlays {
   }
   toggle(name) { this.set(name, !this.on[name]); }
   invalidate() {
-    for (const k of ['collision', 'issues', 'bounds', 'lights']) this.stale[k] = true;
+    for (const k of ['collision', 'issues', 'bounds', 'lights', 'hitboxes']) this.stale[k] = true;
     this.navStale = true;
     for (const k of Object.keys(this.on)) if (this.on[k] && k !== 'navmesh') this._schedule(k);
   }
-  onSelection() { this.stale.bounds = true; if (this.on.bounds) this.refresh('bounds'); }
+  onSelection() { this.stale.bounds = true; if (this.on.bounds) this.refresh('bounds'); this.stale.hitboxes = true; if (this.on.hitboxes) this.refresh('hitboxes'); }
   _schedule(k) {
     this._t = this._t || {};
     if (this._t[k]) return;
@@ -57,6 +60,7 @@ export class Overlays {
     else if (name === 'issues') this._issues();
     else if (name === 'bounds') this._bounds();
     else if (name === 'lights') this._lights();
+    else if (name === 'hitboxes') this._hitboxes();
     this.stale[name] = false;
   }
 
@@ -157,6 +161,39 @@ export class Overlays {
       geo.dispose(); l.position.copy(pos); g.add(l);
     });
     this._set('lights', g);
+  }
+
+  /**
+   * Hit boxes and reach: every enemy as the cylinder the hit-scan really tests (legs / body / head bands from core/aisystem.js, so the picture cannot drift from
+   * the rules), the player capsule + eye height at each player spawn, and the 2.4 m interaction reach around the selected pickups / interaction volumes.
+   */
+  _hitboxes() {
+    const g = new THREE.Group(), scene = this.app.scene, project = this.app.project;
+    const band = (r, y0, y1, color, pos) => {
+      const geo = new THREE.CylinderGeometry(r, r, y1 - y0, 20, 1, true);
+      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide }));
+      m.position.set(pos.x, pos.y + (y0 + y1) / 2, pos.z); g.add(m);
+      const w = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.8 })); w.position.copy(m.position); g.add(w);
+    };
+    scene.walk((n) => {
+      if (!scene.isVisible(n.id)) return;
+      const pos = scene.worldPosition(n.id);
+      if (n.type === 'enemySpawn') {
+        const arch = resolveArchetype(project, propsOf(n).archetype); if (!arch) return;
+        const r = hitRadius(arch), h = arch.height;
+        band(r, 0, h * HIT_ZONES.body, 0x4aa3ff, pos); band(r, h * HIT_ZONES.body, h * HIT_ZONES.head, 0xffb347, pos); band(r, h * HIT_ZONES.head, h, 0xff4a4a, pos);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9b0 })); eye.position.set(pos.x, pos.y + h * 0.9, pos.z); g.add(eye);
+      } else if (n.type === 'playerSpawn') {
+        const r = PLAYER_REFERENCE.radius, h = 1.8;
+        band(r, 0, h, 0x40ff90, pos);
+        const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(pos.x - 0.5, pos.y + PLAYER_REFERENCE.eyeHeight, pos.z), new THREE.Vector3(pos.x + 0.5, pos.y + PLAYER_REFERENCE.eyeHeight, pos.z)]), new THREE.LineBasicMaterial({ color: 0xffffff })); g.add(l);
+      } else if (this.app.selection.includes(n.id) && (n.type === 'itemSpawn' || n.type === 'interaction' || (n.type === 'model' && n.props.interaction?.enabled))) {
+        const c = nodeWorldAABB(scene, n.id, project.geoCtx).getCenter(new THREE.Vector3());
+        const geo = new THREE.SphereGeometry(PLAYER_REFERENCE.interactReach, 18, 10);
+        const w = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x7bd88f, transparent: true, opacity: 0.35 })); w.position.copy(c); g.add(w);
+      }
+    });
+    this._set('hitboxes', g);
   }
 
   summary() {

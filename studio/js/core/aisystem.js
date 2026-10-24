@@ -70,17 +70,22 @@ export class AISystem {
     let best = null;
     for (const r of this.agents) {
       if (!r.active || !r.agent.alive || exclude?.has(r.agent)) continue;
-      const a = r.agent, rad = Math.max(a.def.radius, 0.3);
+      const a = r.agent, rad = hitRadius(a.def);
       const t = rayCylinder(origin, dir, a.pos, rad, a.def.height);
       if (t === null || t > maxDist) continue;
       const hit = origin.clone().addScaledVector(dir, t), rel = (hit.y - a.pos.y) / a.def.height;
       if (this.world.world.raycast(origin, dir, Math.max(0, t - 0.05), { doors: true })) continue;      // wall in the way
-      if (!best || t < best.t) best = { agent: a, t, part: rel > 0.82 ? 'head' : rel > 0.35 ? 'body' : 'leg' };
+      if (!best || t < best.t) best = { agent: a, t, part: hitPart(rel) };
     }
     if (best) best.agent.takeDamage(damage, best.part, { heavy });
     return best;
   }
 }
+
+/** The hit volume of an enemy is a vertical cylinder: at least the player's own radius (0.3 m) wide, as tall as the archetype. Shared with the hit-box overlay. */
+export const HIT_ZONES = { head: 0.82, body: 0.35 };                      // fractions of the height: above 82 % = head, above 35 % = body, below = legs
+export const hitRadius = (def) => Math.max(def.radius, 0.3);
+export const hitPart = (rel) => (rel > HIT_ZONES.head ? 'head' : rel > HIT_ZONES.body ? 'body' : 'leg');
 
 /** Ray vs a vertical cylinder (base centre `c`, radius r, height h). Returns the distance along the ray or null. */
 export function rayCylinder(o, d, c, r, h) {
