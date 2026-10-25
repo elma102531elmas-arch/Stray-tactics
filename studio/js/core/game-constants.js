@@ -59,4 +59,8 @@ export const PROCEDURAL_PROP_DIMS = {
   locker: [0.62, 1.95, 0.52], gurney: [0.66, 0.92, 1.95], body: [0.9, 0.35, 2.05], optable: [0.7, 1.0, 2.0],
   surglamp: [0.84, 1.0, 0.84], morgue: [2.0, 2.2, 0.75], fountain: [4.5, 2.4, 4.5], sleepbag: [0.75, 0.12, 1.9],
   papers: [0.9, 0.02, 0.9], sink: [0.55, 0.85, 0.42], bucket: [0.3, 0.3, 0.3], padding: [0.96, 2.4, 0.12],
+  // added with the 2026-10-25 story rework (woods, control level); measured from the procedural builders in props.js
+  tent: [1.6, 1.15, 2.1], tentdown: [1.6, 0.35, 2.1], firepit: [1.2, 0.25, 1.2], grave: [0.8, 0.95, 1.7], cross: [0.42, 1.0, 0.05],
+  rock: [1.3, 0.8, 1.3], viewer: [0.35, 1.42, 0.4], noticeboard: [1.7, 2.0, 0.4], stump: [0.6, 0.5, 0.6], memorial: [1.2, 1.5, 0.7],
+  core: [4.6, 2.97, 4.6], pylon: [0.62, 2.9, 0.62], console: [1.4, 1.3, 0.7],
 };

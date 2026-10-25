@@ -111,3 +111,13 @@ test('walls that overlap or meet flush (corners, T-junctions, collinear) are NOT
   const gaps = validateProject(p, { only: ['wallGaps'] }).issues;
   assert.deepEqual(gaps.map((g) => g.message), []);
 });
+
+test('a window beside a wall is reported as not cutting it; one tagged as a painted overlay (the game’s window tiles) is not', () => {
+  const p = room();
+  p.scene.insert(makeNode('wall', { name: 'W', p: [0, 0, -4], props: { length: 6, autoOpenings: false } }));
+  const win = makeNode('window', { name: 'Win', p: [0, 1, -3.8], props: { width: 0.64, height: 1.35 } });
+  p.scene.insert(win);
+  assert.ok(codes(p, ['openingPlacement']).includes('opening-misaligned'));
+  p.scene.get(win.id).tags.push('overlay');
+  assert.deepEqual(codes(p, ['openingPlacement']), []);
+});

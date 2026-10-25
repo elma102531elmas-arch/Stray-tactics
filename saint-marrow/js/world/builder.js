@@ -471,11 +471,14 @@ export class LevelBuilder {
       rm.castShadow = true;
       this.root.add(rm);
     }
-    // dead trees: a few variants drawn with instancing
+    // dead trees: a few variants drawn with instancing, one batch per variant per 12 m tile so the camera, the torch's
+    // shadow camera and the fog cull (level.buildCullList) can skip tiles nobody sees — one map-wide batch drew all
+    // ~1600 trees twice a frame
     if (lvl.treeCells.length) {
       const variants = [0, 1, 2, 3].map((v) => makeDeadTree(this.assets, 1000 + v * 77));
       const mat = this.assets.mat('pine_bark', { color: 0x6e655c });
-      const buckets = variants.map(() => []);
+      const TILE = 12;
+      const buckets = new Map();
       const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), pos = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
       for (const [x, z] of lvl.treeCells) {
         const v = (this.rng() * variants.length) | 0;
@@ -483,16 +486,21 @@ export class LevelBuilder {
         q.setFromAxisAngle(up, this.rng() * Math.PI * 2);
         sc.set(s, s * (0.9 + this.rng() * 0.3), s);
         pos.set(x + 0.5 + (this.rng() - 0.5) * 0.3, -0.1, z + 0.5 + (this.rng() - 0.5) * 0.3);
-        buckets[v].push(m4.compose(pos, q, sc).clone());
+        const key = v + ':' + Math.floor(x / TILE) + ':' + Math.floor(z / TILE);
+        if (!buckets.has(key)) buckets.set(key, { v, list: [] });
+        buckets.get(key).list.push(m4.compose(pos, q, sc).clone());
+        // the trunk is solid (you used to be able to walk through trees)
+        const r = 0.2 * s;
+        this.grid.addCollider({ minX: pos.x - r, maxX: pos.x + r, minZ: pos.z - r, maxZ: pos.z + r, minY: 0, maxY: 5, solidRay: true, prop: 'tree' });
       }
-      variants.forEach((geo, i) => {
-        if (!buckets[i].length) return;
-        const im = new THREE.InstancedMesh(geo, mat, buckets[i].length);
-        buckets[i].forEach((m, k) => im.setMatrixAt(k, m));
+      for (const { v, list } of buckets.values()) {
+        const im = new THREE.InstancedMesh(variants[v], mat, list.length);
+        list.forEach((m, k) => im.setMatrixAt(k, m));
         im.castShadow = true; im.receiveShadow = true;
         im.computeBoundingSphere();
+        im.userData.cullTile = true;
         this.root.add(im);
-      });
+      }
     }
   }
 

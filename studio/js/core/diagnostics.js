@@ -17,59 +17,36 @@ export const STATUSES = ['open', 'investigating', 'accepted', 'fixed', 'wontfix'
 export const STATUS_LABEL = { open: 'Open', investigating: 'Investigating', accepted: 'Accepted (intended)', fixed: 'Fixed', wontfix: 'Won’t fix' };
 
 const SRC = 'saint-marrow/js/chapters/chapters.js';
-const LVL = 'saint-marrow/js/world/level.js';
-const T = 'studio/tests/browser/original-oracle.test.mjs';
 
 /**
- * Verified findings about the original game. Matching: chapter (from the imported node's meta.source.chapter), validator code(s) and object name.
- * `evidence` says how each statement was established; entries marked [running game] were measured by running the original in Chromium.
+ * Verified findings about the game. Matching: chapter (from the imported node's meta.source.chapter), validator code(s) and object name.
+ * `evidence` says how each statement was established.
+ *
+ * Until 2026-10-24 this listed oddities of the frozen original (a fuse box use point 2.9 m up, blood writing in mid-air, notes beside desks,
+ * a basement region only scripts could join, …). The game has since been reworked and those were fixed in the game itself; what stays here
+ * is intended. Anything new the validator finds on the game should be fixed there first, and only recorded here if it is meant to be so.
  */
 export const KNOWN_QUIRKS = [
-  { id: 'ch2-fusebox-high', chapters: [2], codes: ['interaction-out-of-reach', 'unreachable'], name: /^use:fusebox$/, cls: 'quirk',
-    title: 'Fuse box interaction point sits 2.9 m up',
-    explanation: 'The game registers the fuse box’s “use” point at y = 2.9 m. The prop is mounted at 1.45 m and the legend adds useY (1.45) on top, so the point is a metre above the box itself. Players have to look up ~40° at the empty wall above it. The Studio preserves the original coordinates; the “lower to eye level” fix changes only your copy.',
-    evidence: ['[running game] level.interactables fusebox pos().y = 2.9 while the fusebox prop is at y = 1.45 (' + T + ': “the original fusebox interaction really is at y = 2.9”)', `${SRC}: legend f { prop: 'fusebox', useY: 1.45 }; props.js: fusebox mount 1.45`] },
-  { id: 'writing-no-wall', chapters: [2, 3, 4], codes: ['decal-floating'], name: /^Blood writing/, cls: 'quirk',
-    title: 'Blood writing floats in the open',
-    explanation: 'The map cell for this writing has no wall next to it. The game then falls back to “north” and places the writing 0.495 m north of the cell centre, in mid-air — it does the same in the original. Move the decal onto a wall (the Studio offers a snap fix) if you want it fixed in your copy.',
-    evidence: [`${LVL} placeDecal(): wd = this.wallDir(x, z) || [0, -1]; wallDir() returns null when no neighbouring cell is a wall`, 'tests/unit/diagnostics.test.mjs checks, per chapter, that the source cell has no adjacent wall'] },
-  { id: 'note-off-desk', chapters: [2, 4], codes: ['spawn-floating'], name: /^(codeNote|note n_lab)$/, cls: 'quirk',
-    title: 'Note placed at desk height beside the desk',
-    explanation: 'The legend gives this note an explicit height of 0.79 m (the desk top), but the desks are in the neighbouring map row, 0.5 m away, so the note hovers at 0.79 m with nothing under it — in the original game as well.',
-    evidence: [`${SRC}: legend N { note: 'n_code', id: 'codeNote', y: 0.79 }, e { note: 'n_lab', tape: true, y: 0.79 }`, `${LVL} placeNote(): mesh.position.y = d.y ?? surfaceHeight(...) — the explicit y wins`, 'imported colliders: desks at z 10.03–10.98 (ch2) and 19.03–19.98 (ch4); the notes are at z 11.5 and 20.5'] },
-  { id: 'generator-low', chapters: [4], codes: ['interaction-awkward'], name: /^use:generator$/, cls: 'quirk',
-    title: 'Generator interaction point is near the floor',
-    explanation: 'The original registers the generator’s “use” point at y = 0.6 m (useY: 0.6), so a standing player looks down ~35° at it. Same in the original.',
-    evidence: ['[running game] interaction point identical to the import in x, y, z (' + T + ')', `${SRC}: G { prop: 'generator', use: 'generator', useY: 0.6 }`] },
-  { id: 'battery-in-table-box', chapters: [1, 5], codes: ['spawn-embedded', 'intersection'], name: /^(battery \(7,53\)|nightstand \(7,53\)|Facade \((6,52|6,53)\))$/, cls: 'quirk',
-    title: 'Battery / nightstand overlap a table box and the hut facade',
-    explanation: 'In the hut, the 2.4 m-wide table’s bounding box (x 7.30–9.70) overlaps the nightstand at (7,53) where the battery lies, and the facade walls touch the nightstand. The game builds the same boxes: its prop colliders are bounding boxes of the models, which are solid in the box but open underneath in reality.',
-    evidence: ['[running game] prop colliders in the hut: table x 7.3–9.7, z 52.93–54.07; nightstand x 7.24–7.76 (same as the import)', `${LVL} placeProp(): col = propCollider(obj, 0.0) — the model’s bounding box`] },
-  { id: 'hut-doorway-squeeze', chapters: [1, 5], codes: ['unreachable'], name: /^(battery \(7,53\)|hutNote|bandage \(9,55\))$/, cls: 'limit',
-    title: 'Hut interior behind a 0.43 m gap',
-    explanation: 'Right behind the hut door the table and the tool chest leave a 0.43 m gap, narrower than the player (0.6 m). The Studio’s navigation, and a strict collision flood-fill of the original, cannot get through, so items deeper in the hut count as unreachable. The original’s push-out collision may let a player squeeze through — the Studio does not claim to know. The boltcutters and crowbar can be picked up from the doorway and are not flagged.',
-    evidence: ['[running game] hut prop colliders equal the import to < 1 cm; the game’s own findInteractable() cannot pick these items from any position a radius-0.3 circle can reach (' + T + ')', 'Studio and original agree on geometry, so this is about player squeeze tolerance, not import accuracy'] },
-  { id: 'ch1-gate-closed', chapters: [1], codes: ['unreachable'], name: /^theo$/, cls: 'note',
-    title: 'Theo is behind the chained gate',
-    explanation: 'In chapter 1 the main gate is chained shut until the player uses the bolt cutters; everything inside is cut off until then. (In chapter 5 the gate is open and Theo is reachable.)',
-    evidence: [`${SRC}: buildGate(level, false) in chapter 1, buildGate(level, true) in chapter 5`, '[running game] chapter 1: flood fill cannot reach Theo, chapter 5: can; the import now builds the chapter 5 gate open (' + T + ')'] },
-  { id: 'ch4-disconnected-region', chapters: [4], codes: ['unreachable'], name: null, cls: 'script',
-    title: 'Basement region joined by game logic',
-    explanation: 'From the player’s spawn, the part of the basement holding these objects is not connected by walkable space — not even with every door opened, in the original game’s own collision. The original joins it with scripted events (the service-tunnel ladder, the flood trigger), which the Studio cannot import.',
-    evidence: ['[running game] flood fill with all doors opened from the spawn cell: none of these objects reachable (' + T + ')', 'the ladder interaction and the flood trigger are handled in chapters.js chapter-4 functions (not importable)'] },
-  { id: 'dormant-on-props', chapters: [3], codes: ['spawn-dormant-overlap'], name: /^hollow spawn/, cls: 'note',
+  { id: 'dormant-on-props', chapters: [4], codes: ['spawn-dormant-overlap'], name: /^hollow spawn/, cls: 'note',
     title: 'Dormant enemies lie on furniture',
-    explanation: 'Dormant enemies are placed lying on beds/gurneys on purpose; the overlap is intended.', evidence: [`${SRC}: h { spawn: 'hollow', dormant: true }, g { prop: 'gurney', spawn: 'hollow', dormant: true }`] },
+    explanation: 'Dormant enemies are placed lying on beds/gurneys on purpose; the overlap is intended.', evidence: [`${SRC}: chapter 4 legend g { prop: 'gurney', spawn: 'hollow', dormant: true, scriptOnly: true, dz: 1.0, tag: 'theatre' }`] },
 ];
 
 const sourceOf = (node) => node?.meta?.source || null;
 const isImported = (node) => sourceOf(node)?.game === 'saint-marrow';
 
-/** Does any original-game reference script of this chapter mention the event's id? (e.g. “trigger:bay” → 'bay' in onTrigger()) */
+/** Does the game source text handle this id: names it literally, or tests a prefix of it (id.startsWith('relay') handles relay1…3)? */
+export function sourceMentions(code, id) {
+  const re = new RegExp(`['"\`]${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]`);
+  if (re.test(code)) return true;
+  for (const m of code.matchAll(/startsWith\(\s*['"`]([^'"`]+)['"`]\s*\)/g)) if (id.startsWith(m[1])) return true;
+  return false;
+}
+
+/** Which original-game reference scripts of this chapter handle the event's id? (e.g. “trigger:bay” → 'bay' in onTrigger()) */
 function handlersFor(project, chapter, eventName) {
   const id = String(eventName).split(':').slice(1).join(':'); if (!id) return [];
-  const re = new RegExp(`['"\`]${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]`);
-  return Object.entries(project.data.scripts || {}).filter(([k, s]) => k.startsWith(`ref_ch${chapter}_`) && typeof s.code === 'string' && re.test(s.code)).map(([k]) => k.replace(`ref_ch${chapter}_`, '') + '()');
+  return Object.entries(project.data.scripts || {}).filter(([k, s]) => k.startsWith(`ref_ch${chapter}_`) && typeof s.code === 'string' && sourceMentions(s.code, id)).map(([k]) => k.replace(`ref_ch${chapter}_`, '') + '()');
 }
 
 /** Classification of one validator issue (see CLASSES). Pure: depends only on the project and the issue. */

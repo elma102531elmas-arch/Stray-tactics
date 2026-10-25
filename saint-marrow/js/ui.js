@@ -2,6 +2,8 @@
 import { CFG, saveCfg, SAVE, QUALITY } from './settings.js';
 import { t } from './i18n.js';
 import { fmtTime, isTouch } from './util.js';
+import { CHAPTERS, CHAPTER_COUNT } from './chapters/chapters.js';
+import { MAX_PLAYERS } from './net.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
@@ -110,9 +112,10 @@ export class UI {
   buildChapters() {
     const list = $('#chapterList');
     list.innerHTML = '';
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= CHAPTER_COUNT; i++) {
       const lockedCh = i > SAVE.unlocked;
-      const b = el('button', 'chapterBtn' + (lockedCh ? ' locked' : ''), `<span class="num">${String(i).padStart(2, '0')}</span><span class="nm">${esc(t('ch' + i))}</span><small>${lockedCh ? esc(t('locked')) : esc(t('ch' + i + 'sub'))}</small>`);
+      const draft = CHAPTERS[i - 1]?.draft;
+      const b = el('button', 'chapterBtn' + (lockedCh ? ' locked' : '') + (draft ? ' draft' : ''), `<span class="num">${String(i).padStart(2, '0')}</span><span class="nm">${esc(t('ch' + i))}${draft ? ` <em class="draftTag">${esc(t('draftTag'))}</em>` : ''}</span><small>${lockedCh ? esc(t('locked')) : esc(t('ch' + i + 'sub'))}</small>`);
       b.disabled = lockedCh;
       b.addEventListener('click', () => { this.game.audio.play('ui', { vol: 0.6 }); this.game.startSolo(i); });
       list.appendChild(b);
@@ -125,14 +128,14 @@ export class UI {
     $('#lobbyCode').textContent = code || '-----';
     const ul = $('#lobbyPlayers');
     ul.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < MAX_PLAYERS; i++) {
       const p = m.players?.find((q) => q.slot === i);
       const li = el('li', p ? '' : 'empty', p ? `<span>${esc(p.name)}</span><small>${i === 0 ? 'HOST' : 'P' + (i + 1)}</small>` : '<span>—</span>');
       ul.appendChild(li);
     }
     const sel = $('#lobbyChapter');
     sel.innerHTML = '';
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= CHAPTER_COUNT; i++) {
       const b = el('button', (m.chapter === i ? 'active' : '') + (isHost && i > SAVE.unlocked ? ' dim' : ''), String(i));
       b.title = t('ch' + i);
       b.addEventListener('click', () => { if (!isHost) return; this.game.lobbyChapter = i; this.game.net.pushLobby(); });

@@ -1,6 +1,7 @@
-// The ORIGINAL game is the oracle. This test runs it (read-only) in Chromium and compares what it reports with what the Studio's importer and
+// The game is the oracle. This test runs it (read-only) in Chromium and compares what it reports with what the Studio's importer and
 // validator say, so a mistake such as "shifted a collider", "lost the open gate" or "flags reachable items as unreachable" fails here.
 // Nothing in /saint-marrow is modified; the page only reads state through the game's own window.__game handle.
+// (Until the 2026-10-25 rework this was the frozen original; it now follows the reworked game — six chapters and the epilogue.)
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -29,8 +30,9 @@ after(async () => { await h?.close(); });
 
 const importChapter = (n) => { const p = new Project('c' + n), hist = new History(p.ctx); importIntoProject(p, hist, importChapterDef(mods.CHAPTERS[n - 1], mods)); return p; };
 
-for (let n = 1; n <= 5; n++) {
-  test(`chapter ${n}: the running original game and the Studio import agree (colliders, interaction points, reachability)`, async () => {
+const CHAPTER_DEFS = 7;
+for (let n = 1; n <= CHAPTER_DEFS; n++) {
+  test(`chapter ${n}: the running game and the Studio import agree (colliders, interaction points, reachability)`, async () => {
     const p = importChapter(n);
     const v = validateProject(p, { only: ['reachability'] });
     const flagged = v.issues.filter((i) => i.code === 'unreachable').map((i) => { const nd = p.scene.get(i.nodes[0]), w = p.scene.worldPosition(nd.id); return { name: nd.name, x: w.x, z: w.z }; });
@@ -71,7 +73,8 @@ for (let n = 1; n <= 5; n++) {
         }
         return { name: it.name, interactable: !!target, canInteract: usable, spot };
       });
-      return { cells: seen.reduce((s, v) => s + v, 0), interactables, cols, reach };
+      const gate = L.gate ? { open: L.gate.target, blocks: !L.gate.col.disabled } : null;
+      return { cells: seen.reduce((s, v) => s + v, 0), interactables, cols, reach, gate };
     }, [spawn.x, spawn.z, allItems]);
     orig[n] = o; studio[n] = { p, flagged };
 
@@ -102,9 +105,10 @@ for (let n = 1; n <= 5; n++) {
     assert.ok(stat.missing.length <= Math.ceil(studioCols.length * 0.1), `imported props with no game counterpart: ${stat.missing.join('; ')}`);
 
     // 2. interaction points: every "use" interactable the game registers exists in the import, centred on the same x, y AND z
+    //    (matched by id: chapter 6 has three consoles that share use 'station')
     let compared = 0;
     for (const i of o.interactables.filter((x) => x.use && x.use !== 'gate')) {
-      const nd = p.scene.find((x) => x.type === 'interaction' && x.name === 'use:' + i.use)[0];
+      const nd = p.scene.find((x) => x.type === 'interaction' && x.name === 'use:' + i.id)[0] || p.scene.find((x) => x.type === 'interaction' && x.name === 'use:' + i.use)[0];
       if (!nd) continue;                                                         // not every use becomes a volume (reported by the importer)
       const c = nodeWorldAABB(p.scene, nd.id, p.geoCtx).getCenter(new THREE.Vector3());
       assert.ok(Math.hypot(c.x - i.x, c.z - i.z) < 0.3 && Math.abs(c.y - i.y) < 0.15, `${i.use}: import centred at (${c.x.toFixed(2)}, ${c.y.toFixed(2)}, ${c.z.toFixed(2)}) vs game (${i.x.toFixed(2)}, ${i.y.toFixed(2)}, ${i.z.toFixed(2)})`);
@@ -118,34 +122,29 @@ for (let n = 1; n <= 5; n++) {
   });
 }
 
-test('the original fusebox interaction really is at y = 2.9 (the importer keeps the original coordinates, including this quirk)', () => {
+test('use points sit at the thing you use: the fuse box’s is at 1.45 m in the game and in the import (it was 2.9 m before the rework)', () => {
   const fb = orig[2].interactables.find((i) => i.use === 'fusebox');
-  assert.ok(Math.abs(fb.y - 2.9) < 0.01, `the running game reports y=${fb.y}`);
-  const vol = studio[2].p.scene.find((x) => x.type === 'interaction' && x.name === 'use:fusebox')[0], w = studio[2].p.scene.worldPosition(vol.id);
-  assert.ok(Math.abs(w.x - fb.x) < 0.01 && Math.abs(w.z - fb.z) < 0.01, 'same x/z');
+  assert.ok(Math.abs(fb.y - 1.45) < 0.01, `the running game reports y=${fb.y}`);
+  const vol = studio[2].p.scene.find((x) => x.type === 'interaction' && x.name === 'use:fusebox')[0];
+  const c = nodeWorldAABB(studio[2].p.scene, vol.id, studio[2].p.geoCtx).getCenter(new THREE.Vector3());
+  assert.ok(Math.abs(c.x - fb.x) < 0.01 && Math.abs(c.z - fb.z) < 0.01 && Math.abs(c.y - fb.y) < 0.15, 'same point');
 });
 
-test('chapter 5 imports the gate OPEN (as the game builds it): the grounds are connected to the start, theo and the medkit are reachable', () => {
-  const gate = studio[5].p.scene.find((x) => x.name === 'Iron gate (open)')[0];
-  assert.ok(gate, 'open gate present'); assert.equal(gate.props.collision, 'none');
-  assert.ok(Math.abs(gate.t.r[1] + 91.67) < 0.1, `rotated about the hinge like the game (got ${gate.t.r[1]})`);
-  const names = studio[5].flagged.map((f) => f.name);
-  assert.ok(!names.includes('theo') && !names.some((x) => x.startsWith('medkit')), `still flagged: ${names.join(', ')}`);
-  const g1 = studio[1].p.scene.find((x) => x.name === 'Iron gate')[0]; assert.equal(g1.props.collision, 'custom', 'chapter 1: the gate is shut');
+test('the woods gate: shut and blocking in chapter 1, open in the epilogue — in the game and in the import', () => {
+  assert.deepEqual(orig[1].gate, { open: 0, blocks: true });
+  assert.deepEqual(orig[7].gate, { open: 1, blocks: false });
+  assert.equal(studio[1].p.scene.find((x) => x.name === 'Iron gate')[0]?.props.collision, 'custom');
+  assert.equal(studio[7].p.scene.find((x) => x.name === 'Iron gate (open)')[0]?.props.collision, 'none');
+  for (const n of [2, 3, 4, 5, 6]) assert.equal(orig[n].gate, null, `chapter ${n} has no gate`);
 });
 
-test('everything the Studio still flags is also unreachable in the original game (or is a documented tight doorway the original squeezes through)', () => {
-  for (const n of [1, 2, 3, 4, 5]) {
-    for (const f of studio[n].flagged) {
-      const r = orig[n].reach.find((x) => x.name === f.name);
-      assert.ok(r && !r.canInteract, `chapter ${n}: ${f.name} is flagged by the Studio but the game's own findInteractable() can pick it from ${JSON.stringify(r?.spot)}`);
-    }
+test('nothing is flagged unreachable, and the game’s own pickup logic agrees for every item and use point', () => {
+  const flagged = {}, notUsable = {};
+  for (let n = 1; n <= CHAPTER_DEFS; n++) {
+    flagged[n] = studio[n].flagged.map((f) => f.name).sort();
+    notUsable[n] = orig[n].reach.filter((r) => r.interactable && !r.canInteract).map((r) => r.name).sort();
   }
-  const flagged = Object.fromEntries([1, 2, 3, 4, 5].map((n) => [n, studio[n].flagged.map((f) => f.name).sort()]));
-  assert.deepEqual(flagged, {
-    1: ['bandage (9,55)', 'battery (7,53)', 'hutNote', 'theo'],                       // hut interior (0.43 m doorway squeeze) + theo behind the chained gate
-    2: [], 3: [],
-    4: ['ammo9 (12,6)', 'ammo9 (20,33)', 'ammo9 (27,26)', 'battery (21,2)', 'medkit (32,25)', 'note n_lab', 'painkillers (35,22)', 'use:ladder'],   // basement region joined by the game's scripts
-    5: ['bandage (9,55)', 'battery (7,53)', 'hutNote'],
-  }, 'the known list, each entry explained in docs/KNOWN_LIMITATIONS.md and core/diagnostics.js');
+  const none = Object.fromEntries(Object.keys(flagged).map((n) => [n, []]));
+  assert.deepEqual(flagged, none, 'Studio: unreachable items');
+  assert.deepEqual(notUsable, none, 'game: items no reachable standing spot can pick');
 });

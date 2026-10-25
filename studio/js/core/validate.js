@@ -112,6 +112,8 @@ checks.openingPlacement = (ctx) => {
   scene.walk((n) => {
     if (n.type !== 'door' && n.type !== 'window') return;
     if (cutBy.has(n.id)) return;
+    // a window painted on a solid wall (the game's window tiles: builder.js windowOverlay) is not meant to cut it
+    if (n.tags?.includes('overlay')) return;
     const box = nodeWorldAABB(scene, n.id, geo).expandByScalar(0.35);
     // find a nearby wall that is almost aligned and report why it did not cut
     let hint = null;

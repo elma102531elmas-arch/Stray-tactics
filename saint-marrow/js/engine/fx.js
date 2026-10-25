@@ -187,16 +187,34 @@ export class FX {
     };
     this.casings = [];
     this.bloodLevel = 1;
+    this.flames = new Particles(scene, 400, { map: dot, gravity: 1.6, drag: 1.4, additive: true });
+    this.fires = [];
+  }
+
+  // a burning patch on the floor (chapter 6): flames, smoke and a flickering light, until clear().
+  // The light is a fixture in the level's light pool (game sets fx.lightSys), not a PointLight of its own: every extra
+  // real light is per-pixel cost on every surface and a shader recompile.
+  fire(p) {
+    this.lightSys?.add('virtual', p.x, 0.8, p.z, { color: 0xff6a20, intensity: 40, range: 9, state: 'fire' });
+    this.fires.push({ p: p.clone(), t: 0 });
+  }
+
+  // a chunk of ceiling coming down: falling grit, then a dust burst where it lands
+  debris(p) {
+    for (let i = 0; i < 16; i++) this.dust.emit(p.x + rand(-0.4, 0.4), p.y, p.z + rand(-0.4, 0.4), rand(-0.3, 0.3), rand(-3, -1), rand(-0.3, 0.3), rand(0.6, 1.2), rand(0.1, 0.25), 0.5, 0.48, 0.45, 0.6, 2);
+    for (let i = 0; i < 10; i++) this.sparks.emit(p.x, p.y, p.z, rand(-1, 1), rand(-4, -2), rand(-1, 1), rand(0.4, 0.8), 0.02, 0.5, 0.48, 0.45, 1);
+    setTimeout(() => { for (let i = 0; i < 14; i++) this.dust.emit(p.x, 0.1, p.z, rand(-1.5, 1.5), rand(0.2, 1.2), rand(-1.5, 1.5), rand(0.8, 1.6), rand(0.2, 0.4), 0.55, 0.52, 0.48, 0.55, 2.5); }, 350);
   }
 
   clear() {
     this.wet.clear(); this.dry.clear(); this.old.clear();
-    this.blood.clear(); this.mist.clear(); this.sparks.clear(); this.dust.clear();
+    this.blood.clear(); this.mist.clear(); this.sparks.clear(); this.dust.clear(); this.flames.clear();
+    this.fires = [];
     for (const c of this.casings) this.scene.remove(c.m);
     this.casings = [];
   }
 
-  setScreen(h) { for (const p of [this.blood, this.mist, this.sparks, this.dust]) p.setScale(h); }
+  setScreen(h) { for (const p of [this.blood, this.mist, this.sparks, this.dust, this.flames]) p.setScale(h); }
 
   // Blood burst at hit point along direction (bullet travel)
   bloodHit(p, dir, power = 1) {
@@ -282,6 +300,12 @@ export class FX {
     this.mist.update(dt);
     this.sparks.update(dt);
     this.dust.update(dt);
+    this.flames.update(dt);
+    for (const f of this.fires) {
+      f.t += dt;
+      for (let i = 0; i < 2; i++) this.flames.emit(f.p.x + rand(-0.5, 0.5), 0.05, f.p.z + rand(-0.5, 0.5), rand(-0.2, 0.2), rand(0.8, 1.8), rand(-0.2, 0.2), rand(0.35, 0.7), rand(0.18, 0.4), 1.0, rand(0.35, 0.55), 0.12, 0.85, -0.3);
+      if (Math.random() < 0.3) this.dust.emit(f.p.x, 1.2, f.p.z, rand(-0.2, 0.2), rand(0.4, 0.9), rand(-0.2, 0.2), rand(1.2, 2.2), rand(0.3, 0.5), 0.12, 0.11, 0.1, 0.5, 1.2);
+    }
     for (const c of this.casings) {
       if (c.rest) continue;
       c.t += dt;

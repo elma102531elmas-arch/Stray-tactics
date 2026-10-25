@@ -67,6 +67,7 @@ export class Enemy {
     if (this.state === s) return;
     this.state = s;
     this.stateT = 0;
+    if (s === 'wander' && this.patrol) this.wanderGoal = null;     // rejoin the route at the nearest point
     if (s === 'chase' && this.kind === 'warden') this.game.onWardenChase(this, true);
     if (s !== 'chase' && this.kind === 'warden') this.game.onWardenChase(this, false);
   }
@@ -111,6 +112,16 @@ export class Enemy {
         if (this.stateT > rand(3, 7)) this.setState('wander');
         break;
       case 'wander':
+        if (this.patrol?.length) {
+          // a fixed route (chapter 3): walk it point by point, pausing to listen at each one
+          if (!this.wanderGoal) { let best = 0, bd = Infinity; this.patrol.forEach((p, i) => { const d = p.distanceTo(this.pos); if (d < bd) { bd = d; best = i; } }); this.patrolI = best; this.wanderGoal = this.patrol[best]; }
+          if (this.pos.distanceTo(this.wanderGoal) < 0.9) {
+            this.patrolWait = (this.patrolWait ?? 0) + dt;
+            if (this.patrolWait > 1.6) { this.patrolWait = 0; this.patrolI = (this.patrolI + 1) % this.patrol.length; this.wanderGoal = this.patrol[this.patrolI]; }
+            goal = null; speed = 0;
+          } else { goal = this.wanderGoal; speed = walk; }
+          break;
+        }
         if (!this.wanderGoal || this.pos.distanceTo(this.wanderGoal) < 0.8 || this.stateT > 14) {
           const r = g.level.grid.randomWalkable(Math.random, this.home || this.pos, this.kind === 'warden' ? 14 : 7);
           this.wanderGoal = r ? new THREE.Vector3(r.x, 0, r.z) : null;

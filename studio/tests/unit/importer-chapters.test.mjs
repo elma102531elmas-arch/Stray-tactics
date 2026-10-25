@@ -21,9 +21,15 @@ before(async () => {
 const importOne = (def) => { const p = new Project('imp'); const h = new History(p.ctx); const r = importChapterDef(def, mods); importIntoProject(p, h, r); return { p, h, r }; };
 const cellsOf = (def) => { const g = new mods.Grid({ grid: def.map, legend: def.legend || {}, defaultTheme: def.defaultTheme ?? 0, themes: def.themes }); const c = {}; for (let i = 0; i < g.type.length; i++) c[g.type[i]] = (c[g.type[i]] || 0) + 1; return { g, c }; };
 
-test('the game exposes five chapters', () => { assert.equal(mods.CHAPTERS.length, 5); });
+// six story chapters (4 and 5 are drafts) and the hidden epilogue of chapter 6, which the game loads as chapter 7
+const CHAPTER_DEFS = 7;
+test('the game exposes six story chapters and a hidden epilogue', () => {
+  assert.equal(mods.CHAPTERS.length, CHAPTER_DEFS);
+  assert.deepEqual(mods.CHAPTERS.map((c) => !!c.hidden), [false, false, false, false, false, false, true]);
+  assert.deepEqual(mods.CHAPTERS.filter((c) => c.draft).map((c) => c.id), [4, 5]);
+});
 
-for (let n = 1; n <= 5; n++) {
+for (let n = 1; n <= CHAPTER_DEFS; n++) {
   test(`chapter ${n}: imported object counts match the game's own grid`, () => {
     const def = mods.CHAPTERS[n - 1];
     const { p, r } = importOne(def);
@@ -103,4 +109,25 @@ test('locks on imported doors are copied verbatim from the game legend', () => {
     const leg = def.legend?.[door.meta.source.mark];
     if (leg?.door) assert.equal(door.props.locked || '', leg.lock || leg.locked || '', `lock of ${door.name}`);
   }
+});
+
+test('a legend letter the grid reads as a tile is reported (never placed by the game), and no chapter has one', () => {
+  const def = { id: 99, key: 'x', map: ['#####', '#.B.#', '#####'], legend: { B: { prop: 'console', id: 'oops' } } };
+  const r = importChapterDef(def, mods);
+  const hit = r.report.unimportable.find((u) => u.what.startsWith('legend "B"'));
+  assert.ok(hit, 'clash reported');
+  assert.match(hit.what, /oops/);
+  for (const ch of mods.CHAPTERS) {
+    const clash = importChapterDef(ch, mods).report.unimportable.filter((u) => u.what.startsWith('legend "'));
+    assert.deepEqual(clash, [], `chapter ${ch.id}`);
+  }
+});
+
+test('the woods gate is imported in the pose the chapter builds it: shut in chapter 1, open in the epilogue', () => {
+  const shut = importOne(mods.CHAPTERS[0]).p.scene.find((x) => /^Iron gate/.test(x.name));
+  assert.deepEqual(shut.map((x) => [x.name, x.props.collision]), [['Iron gate', 'custom']]);
+  const open = importOne(mods.CHAPTERS[6]).p.scene.find((x) => /^Iron gate/.test(x.name));
+  assert.deepEqual(open.map((x) => [x.name, x.props.collision]), [['Iron gate (open)', 'none']]);
+  assert.ok(Math.abs(open[0].t.r[1] + 91.67) < 0.1, `rotated about the hinge like the game (got ${open[0].t.r[1]})`);
+  for (const n of [2, 3, 4, 5, 6]) assert.equal(importOne(mods.CHAPTERS[n - 1]).p.scene.find((x) => /^Iron gate/.test(x.name)).length, 0, `chapter ${n}`);
 });

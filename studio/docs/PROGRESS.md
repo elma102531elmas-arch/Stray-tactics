@@ -4,9 +4,9 @@ Status of the 16 phases of the Saint Marrow Developer Studio instructions. “Do
 
 | # | Phase | Status | Where | Verified by |
 |---|---|---|---|---|
-| 1 | Analyse the real source, project guide, backup | Done | `../CLAUDE.md`, `../backups/` (tarball + SHA-256 of every original file) | `00-original-game-untouched` (5 tests) |
+| 1 | Analyse the real source, project guide, backup | Done | `../CLAUDE.md`, `../backups/` (tarball + SHA-256 of every original file) | `00-original-backup-intact` (3 tests) |
 | 2 | 3D editor workspace (viewport, gizmos, hierarchy, inspector, undo/redo, panels, shortcuts) | Done | `js/viewport`, `js/tools`, `js/ui` | `editor` (browser), `scene-model`, `history-commands`, `app-level` |
-| 3 | Map / environment builder; **Create new map** and **Import existing map** with an honest report | Done (chapters 1–5 of the game importable; JS logic is not) | `js/core/importers/sm-chapter.js`, `js/tools/build.js` | `importer-chapters` (29), `chapter` (browser), **`original-oracle`** (runs the real game and compares) |
+| 3 | Map / environment builder; **Create new map** and **Import existing map** with an honest report | Done (all chapters of the game importable, the epilogue too; JS logic is not) | `js/core/importers/sm-chapter.js`, `js/tools/build.js` | `importer-chapters` (41), `chapter` (browser), **`original-oracle`** (runs the real game and compares) |
 | 4 | External asset import (glTF/GLB, OBJ(+MTL), FBX, images, audio), inspection, licence confirmation, refusal of code | Done | `js/assets` | `assets-classify`, `assets` (browser) |
 | 5 | Material / texture editor with live preview, clone-before-edit for shared materials | Done | `js/workspaces/materials.js`, `js/ui/matpreview.js` | `assets` (browser) |
 | 6 | Cinematic / jumpscare timeline (camera, transform, property, audio, event, text, fade, shake, flash, animation) | Done | `js/core/sequence.js`, `js/ui/timeline.js` | `sequence` (15), `timeline` (browser) |
@@ -22,7 +22,7 @@ Status of the 16 phases of the Saint Marrow Developer Studio instructions. “Do
 | 16 | Real automated tests, documentation, compatibility report, known limitations | Done | `tests/`, `docs/` | `docs-fresh` keeps the generated reports in step with the code |
 
 ## What the Studio does not do (on purpose)
-* It does not change, repack or export into the playable game (rules 1–3 of the project). The `00-original-game-untouched` test fails the build if any original file changes.
+* It does not change, repack or export into the playable game. (The game was reworked separately, by hand, on 2026-10-25 — see below; the original stays in `backups/`, checked by `00-original-backup-intact`.)
 * It does not write story, levels or enemies for you. The only content that comes from outside is what you import and the *read-only* conversion of the original chapters’ map data.
 
 ## Decisions log
@@ -36,6 +36,20 @@ Status of the 16 phases of the Saint Marrow Developer Studio instructions. “Do
 * **Story, enemies and weapons are data, not code.** They are plain JSON in the project; scripts are separate, and permission-gated.
 * **Budgets are guidance.** Performance budgets are the Studio’s numbers and are labelled as such; they are not the game’s limits.
 * **Docs that contain numbers are generated** (`tools/gen-docs.mjs`) and a unit test fails when they drift, so COMPATIBILITY.md and DIAGNOSTICS.md cannot silently go stale.
+
+## The game rework (2026-10-25)
+The user asked for the game itself to be reworked to the story design document (v0.1): scary, no bugs, good hitboxes, a new viewmodel and reloads, and more use of the Studio. What changed, and how it is checked:
+
+| Area | What | Checked by |
+|---|---|---|
+| Story structure | Six chapters as in the document — 1 The Woods, 2 Inside, 3 Below, 4 and 5 **draft** (labelled in the game), 6 Burn the Memory — plus a hidden epilogue (out through the woods, the hospital comes down). 1–5 players. Nothing from the document's "later decisions" list is invented. | `game-woods`, `game-inside`, `game-drafts`, `game-finale`, `game-epilogue` (every chapter finished with real keys) |
+| The watcher | A tall figure that stands between the trees and vanishes when approached, stared at or lit; seen once more when the gate closes. Host-driven, synced in co-op. | `game-woods` (gate closes → figure appears) |
+| Viewmodel | Two-bone IK arms and posed hands; pistol, rifle, crowbar and torch rebuilt; keyframed reloads whose sounds come from the animation. | `game-viewmodel` (sound order, ammo, magazine back in the grip) |
+| Hitboxes | Capsules fitted to each creature's skinned mesh per bone (head / torso / limbs); F9 shows them. | measured: head 30/30, coverage 92 % (Hollow), 88 % (Warden) |
+| Stealth | Patrol routes, bottles to throw (X), noise pulls the patrol. | `game-inside` (thrown bottle → patrol investigates) |
+| Performance | Trees batched per 12 m tile (frustum, shadow and fog culling now work; 218k → 142k triangles a frame in the woods); fire lights go through the light pool. | measured on software GL |
+
+**Bugs the Studio and the playthrough tests found in the game, all fixed:** chapter 6's east console used the legend letter `B`, which the grid reads as an exterior wall, so the chapter could not be finished (the importer now reports any legend letter that is a tile letter); a timer that loads the next chapter crashed the frame (the timer list was replaced mid-loop); the chapter 6 exit and the stairs triggers were one-shot although their handlers wait for a condition, so visiting them early soft-locked the chapter; the security code note and the lab plan lay on the floor in front of their desks; the epilogue showed "use" prompts that did nothing; four basement doorways were walled up; the fuse box use point was 2.9 m up; blood writing floated in mid-air. The Studio's own false alarms found on the way (prefix handlers counted as dead triggers, painted windows expected to cut walls, the gate pose hard-coded per chapter number) were fixed in the Studio.
 
 ## Measured (software rendering, so absolute speed is pessimistic)
 Chapter 2 imported: 413–466 objects depending on chapter; ≈540 draw calls, ≈156 k triangles, ≈524 geometries; navigation mesh 136–227 ms (≈24 k cells); full validation 189–261 ms; import ≈31 ms.

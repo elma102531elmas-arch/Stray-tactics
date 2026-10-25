@@ -472,6 +472,49 @@ export class Audio {
       this.buf('objective', 1.8, (n, sr) => { const o = new Float32Array(n); for (const f of [220, 261.6, 329.6]) { const s = sine(n, sr, f, f); mul(s, env(n, sr, 0.05, 0.6)); add(o, s, 0.3); } const b = sine(n, sr, 55, 55); mul(b, env(n, sr, 0.02, 0.8)); add(o, b, 0.4); return norm(o, 0.4); });
       this.buf('ui', 0.1, (n, sr) => { const o = sine(n, sr, 1400, 900); mul(o, env(n, sr, 0.001, 0.02)); return norm(o, 0.25); });
     });
+    // ---- the woods, the gate, and the end (chapters 1 and 6) ----
+    R.push(() => {
+      const loop = (nm, dur, fn) => this.buf(nm, dur, (n, sr) => {
+        const x = fn(n, sr);
+        const fade = Math.floor(0.5 * sr);
+        for (let i = 0; i < fade; i++) { const t = i / fade; x[i] = x[i] * t + x[n - fade + i] * (1 - t); }
+        return x.slice(0, n - fade);
+      });
+      // a dry twig snapping under weight
+      this.buf('branch', 0.5, (n, sr) => {
+        const o = new Float32Array(n);
+        for (const [t, f, g] of [[0, 3200, 1], [0.012, 1800, 0.8], [0.03, 2600, 0.5], [0.07, 1400, 0.35]]) { const k = filt(noise(Math.floor(0.03 * sr)), biq('bp', f, 3, sr)); mul(k, env(k.length, sr, 0.0003, 0.006)); add(o, k, g, Math.floor(t * sr)); }
+        const thump = filt(noise(n), biq('lp', 300, 0.7, sr)); mul(thump, env(n, sr, 0.002, 0.04)); add(o, thump, 0.5);
+        return norm(o, 0.7);
+      });
+      // distant owl: hoo … hoo-hoo
+      this.buf('owl', 2.2, (n, sr) => {
+        const o = new Float32Array(n);
+        for (const [at, len] of [[0, 0.45], [0.9, 0.22], [1.2, 0.5]]) {
+          const m = Math.floor(len * sr); const s = sine(m, sr, 395, 360); mul(s, env(m, sr, 0.06, len * 0.5)); add(o, s, 0.8, Math.floor(at * sr));
+        }
+        filt(o, biq('lp', 900, 0.7, sr));
+        return norm(o, 0.5);
+      });
+      loop('amb_forest', 14, (n, sr) => {
+        const o = filt(brown(n), biq('lp', 180, 0.7, sr)); mul(o, new Float32Array(n).fill(0.6));
+        const leaves = noise(n); sweep(leaves, sr, (t) => ['bp', 1800 + 900 * Math.sin(t * 0.37), 0.6], 128);
+        const e = new Float32Array(n); for (let i = 0; i < n; i++) e[i] = 0.25 + 0.75 * Math.max(0, Math.sin(i / sr * 0.31) * Math.sin(i / sr * 0.83 + 1)); mul(leaves, e); add(o, leaves, 0.25);
+        // crickets, thin and far
+        for (let k = 0; k < 40; k++) { const at = Math.floor(Math.random() * (n - sr * 0.3)); const len = Math.floor(0.12 * sr); const c = sine(len, sr, 4300 + Math.random() * 400, 4300); const am = new Float32Array(len); for (let i = 0; i < len; i++) am[i] = Math.max(0, Math.sin(i / sr * 160)) * Math.sin(Math.PI * i / len); mul(c, am); add(o, c, 0.035, at); }
+        return norm(o, 0.5);
+      });
+      loop('gate_motor', 4, (n, sr) => { const o = new Float32Array(n); let ph = 0; for (let i = 0; i < n; i++) { ph += (88 + Math.sin(i / sr * 7) * 3) / sr; o[i] = ((ph % 1) * 2 - 1) * 0.6 + Math.sin(ph * TAU * 2) * 0.3; } filt(o, biq('lp', 700, 0.8, sr)); add(o, filt(noise(n), biq('bp', 3000, 2, sr)), 0.05); return norm(sat(o, 1.5), 0.5); });
+      this.buf('gate_clang', 2.5, (n, sr) => { const o = new Float32Array(n); for (const f of [180, 263, 410, 587, 811]) { const s = sine(n, sr, f, f * 0.995); mul(s, env(n, sr, 0.001, 0.5 + 200 / f)); add(o, s, 0.3); } const hit = filt(noise(n), biq('bp', 900, 1, sr)); mul(hit, env(n, sr, 0.0005, 0.05)); add(o, hit, 0.8); return norm(sat(o, 1.4), 0.9); });
+      loop('alarm', 3, (n, sr) => { const o = new Float32Array(n); let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr; const f = (t % 1.5) < 0.75 ? 660 : 520; ph += f / sr; o[i] = (ph % 1) < 0.5 ? 0.6 : -0.6; } filt(o, biq('lp', 2400, 0.7, sr)); filt(o, biq('hp', 300, 0.7, sr)); return norm(o, 0.45); });
+      loop('fire', 4, (n, sr) => { const o = filt(brown(n), biq('lp', 400, 0.7, sr)); for (let k = 0; k < 260; k++) { const at = Math.floor(Math.random() * (n - 400)); const c = filt(noise(300), biq('bp', 1500 + Math.random() * 3000, 2, sr)); mul(c, env(300, sr, 0.0002, 0.002)); add(o, c, 0.5 + Math.random(), at); } return norm(o, 0.5); });
+      this.buf('rumble', 5, (n, sr) => { const o = filt(brown(n), biq('lp', 90, 0.7, sr)); const e = new Float32Array(n); for (let i = 0; i < n; i++) { const t = i / n; e[i] = Math.min(1, t * 3) * Math.min(1, (1 - t) * 3); } mul(o, e); return norm(sat(o, 2), 0.95); }, 2);
+      this.buf('collapse', 6, (n, sr) => {
+        const o = filt(brown(n), biq('lp', 140, 0.7, sr)); const e = env(n, sr, 0.01, 2.2); mul(o, e);
+        for (let k = 0; k < 70; k++) { const at = Math.floor(Math.random() * n * 0.7); const len = Math.floor((0.05 + Math.random() * 0.3) * sr); const c = filt(noise(len), biq('bp', 200 + Math.random() * 2500, 1.5, sr)); mul(c, env(len, sr, 0.001, len / sr * 0.3)); add(o, c, 0.4 + Math.random() * 0.6, at); }
+        return norm(sat(o, 2.5), 0.98);
+      }, 2);
+    });
     return R;
   }
 

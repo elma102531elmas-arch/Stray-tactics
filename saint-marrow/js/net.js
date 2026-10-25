@@ -1,7 +1,7 @@
 // Peer-to-peer co-op over PeerJS (WebRTC data channels). The host is authoritative for monsters,
 // doors, pickups and story; everyone simulates their own body and sends it ~15 times a second.
 const PREFIX = 'saintmarrow-v1-';
-export const MAX_PLAYERS = 4;
+export const MAX_PLAYERS = 5;
 
 export class Net {
   constructor(game) {

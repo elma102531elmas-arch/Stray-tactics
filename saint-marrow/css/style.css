@@ -111,6 +111,8 @@ button.ghost { width: auto; background: none; border: none; color: var(--ash); j
 .chapterBtn { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; align-items: center; text-align: left; padding: 10px 14px; background: rgba(230, 223, 204, 0.04); border: 1px solid var(--line); }
 .chapterBtn .num { grid-row: span 2; font-family: var(--display); font-size: 34px; color: var(--blood); }
 .chapterBtn .nm { font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.chapterBtn .draftTag { font-style: normal; font-size: 12px; letter-spacing: 0.14em; color: var(--warn); border: 1px solid var(--warn); padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+.chapterBtn.draft { border-style: dashed; }
 .chapterBtn small { color: var(--ash); font-size: 13px; }
 .chapterBtn.locked { opacity: 0.35; cursor: not-allowed; }
 

@@ -22,7 +22,7 @@ export async function loadGameModules(baseUrl) {
   const imp = (p) => import(/* @vite-ignore */ `${baseUrl}/js/${p}`);
   try {
     const [chapters, grid, themes, props] = await Promise.all([imp('chapters/chapters.js'), imp('world/grid.js'), imp('world/themes.js'), imp('world/props.js')]);
-    return { CHAPTERS: chapters.CHAPTERS, Grid: grid.Grid, T: grid.T, THEMES: themes.THEMES, PRESETS: props.PRESETS, ITEMS: props.ITEMS };
+    return { CHAPTERS: chapters.CHAPTERS, Grid: grid.Grid, T: grid.T, TILE_CHARS: grid.TILE_CHARS, THEMES: themes.THEMES, PRESETS: props.PRESETS, ITEMS: props.ITEMS };
   } catch (e) {
     throw new Error(`Could not load the original Saint Marrow modules from "${baseUrl}" (${e.message}). Serve the repository root so the Studio can read ../saint-marrow/js read-only.`);
   }
@@ -62,6 +62,14 @@ export function importChapterDef(def, mods, opts = {}) {
   const report = { chapter: chapterNo, key: def.key, size: [W, H], counts: {}, unimportable: [], notes: [], proxies: [] };
   const count = (k, n = 1) => { report.counts[k] = (report.counts[k] || 0) + n; };
   const bad = (what, n, reason) => { if (n) report.unimportable.push({ what, count: n, reason }); };
+  // a legend letter the grid reads as a tile is never placed by the game either (chapter 6's east console was a wall)
+  if (mods.TILE_CHARS) {
+    const text = def.map.join('\n');
+    for (const [k, d] of Object.entries(def.legend || {})) {
+      if (!(k in mods.TILE_CHARS) || !text.includes(k)) continue;
+      bad(`legend "${k}"${d.id ? ` (${d.id})` : ''}`, [...text].filter((c) => c === k).length, `"${k}" is a grid tile letter, so the game builds a tile there and never places this legend entry. Use another letter.`);
+    }
+  }
 
   const materials = {};
   const matFromTheme = (themeName, slot) => {
@@ -165,7 +173,7 @@ export function importChapterDef(def, mods, opts = {}) {
       const nt = typeAt(x + dx, z + dz);
       if (!indoorFloor(nt)) continue;
       const yaw = Math.atan2(dx, dz) * D2R; // face normal points toward the walkable side
-      put(makeNode('window', { name: `Window (${x},${z})`, p: [x + 0.5 + dx * 0.5, 1.0, z + 0.5 + dz * 0.5], r: [0, yaw, 0], props: { width: 0.64, height: 1.35, thick: 0.04, boarded: true }, meta: src(x, z, { note: 'decor only — the game does not cut an opening' }) }), group('Windows'));
+      put(makeNode('window', { name: `Window (${x},${z})`, p: [x + 0.5 + dx * 0.5, 1.0, z + 0.5 + dz * 0.5], r: [0, yaw, 0], props: { width: 0.64, height: 1.35, thick: 0.04, boarded: true }, tags: ['overlay'], meta: src(x, z, { note: 'decor only — the game does not cut an opening' }) }), group('Windows'));
     }
   }
 
@@ -340,8 +348,8 @@ export function importChapterDef(def, mods, opts = {}) {
       put(makeNode('itemSpawn', { name: id && !d.prop ? id : `${d.item} (${x},${z})`, p: [px, y, pz], props: { item: d.item, count: d.count || 1, model: it?.model ? modelAsset(it.model) : '', prompt: 'take' }, meta: src(x, z, { id, y: d.y ?? 'surface' }) }), group('Items'));
     }
     if (d.note) {
-      const px = x + 0.5 + (d.dx || 0), pz = z + 0.5 + (d.dz || 0);
-      put(makeNode('itemSpawn', { name: id || `note ${d.note}`, p: [px, d.y ?? surfaceHeight(px, pz), pz], props: { item: `${d.tape ? 'tape' : 'note'}:${d.note}`, count: 1, model: d.tape ? modelAsset('portable_cassette_player') : '', prompt: d.tape ? 'listen' : 'read' }, meta: src(x, z, { id, note: d.note, tape: !!d.tape }) }), group('Items'));
+      const px = x + 0.5 + (d.noteDx ?? d.dx ?? 0), pz = z + 0.5 + (d.noteDz ?? d.dz ?? 0);
+      put(makeNode('itemSpawn', { name: id || `note ${d.note}`, p: [px, d.noteY ?? d.y ?? surfaceHeight(px, pz), pz], props: { item: `${d.tape ? 'tape' : 'note'}:${d.note}`, count: 1, model: d.tape ? modelAsset('portable_cassette_player') : '', prompt: d.tape ? 'listen' : 'read' }, meta: src(x, z, { id, note: d.note, tape: !!d.tape }) }), group('Items'));
     }
     if (d.light) {
       const kind = d.light;
@@ -361,8 +369,19 @@ export function importChapterDef(def, mods, opts = {}) {
     if (d.decal) {
       const kind = d.decal;
       if (kind === 'writing') {
-        const wdd = d.face ? FACE[d.face] : (wallDirFirst(x, z).dir || [0, -1]);
-        put(makeNode('decal', { name: `Blood writing "${d.text}"`, p: [x + 0.5 + wdd[0] * 0.495, d.y || 1.65, z + 0.5 + wdd[1] * 0.495], r: [0, Math.atan2(-wdd[0], -wdd[1]) * D2R, 0], props: { texture: 'builtin:decal/writing', w: d.w || 2.4, h: (d.w || 2.4) / 4, color: '#ffffff' }, meta: src(x, z, { text: d.text }) }), group('Decals'));
+        // as level.js placeDecal: the adjacent wall, else the nearest wall up to 3 cells away in a straight open line, else the floor
+        let wdd = d.face ? FACE[d.face] : wallDirFirst(x, z).dir, dist = 0.495;
+        if (!wdd) {
+          const solid = (t) => t === T.WALL || t === T.EXT;
+          for (let k = 2; k <= 3 && !wdd; k++) for (const dir of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+            let open = true;
+            for (let s = 1; s < k; s++) if (solid(grid.get(x + dir[0] * s, z + dir[1] * s))) open = false;
+            if (open && solid(grid.get(x + dir[0] * k, z + dir[1] * k))) { wdd = dir; dist = k - 0.505; break; }
+          }
+        }
+        const props = { texture: 'builtin:decal/writing', w: d.w || 2.4, h: (d.w || 2.4) / 4, color: '#ffffff' };
+        if (wdd) put(makeNode('decal', { name: `Blood writing "${d.text}"`, p: [x + 0.5 + wdd[0] * dist, d.y || 1.65, z + 0.5 + wdd[1] * dist], r: [0, Math.atan2(-wdd[0], -wdd[1]) * D2R, 0], props, meta: src(x, z, { text: d.text }) }), group('Decals'));
+        else put(makeNode('decal', { name: `Blood writing "${d.text}"`, p: [x + 0.5, 0.015, z + 0.5], r: [-90, 0, 0], props, meta: src(x, z, { text: d.text, onFloor: true }) }), group('Decals'));
       } else if (kind === 'hand' || kind === 'drip') {
         const wdd = wallDirFirst(x, z).dir || [0, -1];
         put(makeNode('decal', { name: `Blood ${kind}`, p: [x + 0.5 + wdd[0] * 0.5, d.y || 1.3, z + 0.5 + wdd[1] * 0.5], r: [0, Math.atan2(-wdd[0], -wdd[1]) * D2R, 0], props: { texture: `builtin:decal/${kind}`, w: d.size || 0.6, h: d.size || 0.6 }, meta: src(x, z) }), group('Decals'));
@@ -371,14 +390,16 @@ export function importChapterDef(def, mods, opts = {}) {
       }
     }
     if (d.use) {
-      // Game semantics (level.js placeEntity): interaction point = prop position + useY. We import it as-is.
+      // Game semantics (level.js placeEntity): useY is the height above the floor; without it, prop height + 1.2.
       const baseY = propNode ? propNode.t.p[1] : 0;
-      const bx = propNode ? propNode.t.p[0] : x + 0.5, bz = propNode ? propNode.t.p[2] : z + 0.5;
+      let bx = propNode ? propNode.t.p[0] : x + 0.5, bz = propNode ? propNode.t.p[2] : z + 0.5;
+      if (d.useFront && propNode) { const pr = PRESETS[d.prop]; const wd = d.face ? FACE[d.face] : (pr && (pr.wall || pr.mount) ? wallDirFirst(x, z).dir : null); if (wd) { bx -= wd[0] * d.useFront; bz -= wd[1] * d.useFront; } }
+      bx += d.useDx || 0; bz += d.useDz || 0;
       const rad = d.useR || 0.8;
       put(makeNode('interaction', {
-        name: `use:${d.id || d.use}`, p: [bx, baseY + (d.useY ?? 1.2), bz],
+        name: `use:${d.id || d.use}`, p: [bx, d.useY ?? baseY + 1.2, bz],
         props: { shape: 'sphere', size: [rad * 2, rad * 2, rad * 2], prompt: d.prompt || 'use', hold: d.hold || 0, event: `use:${d.id || d.use}` },
-        meta: src(x, z, { use: d.use, id: d.id || null, formula: 'prop.position.y + useY (as in level.js)' }),
+        meta: src(x, z, { use: d.use, id: d.id || null, formula: 'useY above the floor, else prop.position.y + 1.2 (as in level.js)' }),
       }), group('Interactions'));
     }
   }
@@ -388,19 +409,21 @@ export function importChapterDef(def, mods, opts = {}) {
 
   // gate & ladder built by chapter extra() code
   const gate = nodes.find((e) => e.node.type === 'marker' && e.node.props.kind === 'gate')?.node;
-  if (gate && (chapterNo === 1 || chapterNo === 5)) {
-    // chapters.js buildGate(level, open): the gate is a 3 m leaf hinged at (m.x - 1.5, m.z). Chapter 1 builds it shut (chain + collider); chapter 5 builds it OPEN:
-    // swung by -1.6 rad about the hinge with its collider disabled. Reproduce both poses exactly (hinge maths from the game's own pivot/offset).
-    const open = chapterNo === 5, hingeX = gate.t.p[0] - 1.5, hingeZ = gate.t.p[2];
+  // chapters.js buildGate(level, open): which pose this chapter builds is read from its own extra() source (the woods: shut in chapter 1, open in the epilogue)
+  const gateCall = String(def.extra || '').match(/buildGate\(\s*level\s*,\s*(true|false)/);
+  if (gate && gateCall) {
+    // the gate is a 3 m leaf hinged at (m.x - 1.5, m.z). Shut: collider on. Open: swung by -1.6 rad about the hinge with its collider disabled.
+    // Reproduce both poses exactly (hinge maths from the game's own pivot/offset).
+    const open = gateCall[1] === 'true', hingeX = gate.t.p[0] - 1.5, hingeZ = gate.t.p[2];
     const ang = open ? -1.6 : 0, cx = hingeX + 1.5 * Math.cos(ang), cz = hingeZ - 1.5 * Math.sin(ang);
-    put(makeNode('model', { name: open ? 'Iron gate (open)' : 'Iron gate', p: [cx, 0, cz], r: [0, ang * 180 / Math.PI, 0], s: [1.02, 0.85, 1], props: open ? { asset: modelAsset('large_iron_gate'), collision: 'none' } : { asset: modelAsset('large_iron_gate'), collision: 'custom', colliderCenter: [0, 1.25, 0], colliderSize: [3, 2.5, 0.3] }, tags: ['structural'], meta: { source: { game: 'saint-marrow', chapter: chapterNo, from: 'chapters.js buildGate()' }, note: open ? 'Open in the game: swung -1.6 rad about its hinge, collider disabled (reproduced as such).' : 'Chained shut until the bolt cutters are used.' } }), group('Props'));
+    put(makeNode('model', { name: open ? 'Iron gate (open)' : 'Iron gate', p: [cx, 0, cz], r: [0, ang * 180 / Math.PI, 0], s: [1.02, 0.85, 1], props: open ? { asset: modelAsset('large_iron_gate'), collision: 'none' } : { asset: modelAsset('large_iron_gate'), collision: 'custom', colliderCenter: [0, 1.25, 0], colliderSize: [3, 2.5, 0.3] }, tags: ['structural'], meta: { source: { game: 'saint-marrow', chapter: chapterNo, from: 'chapters.js buildGate()' }, note: open ? 'Open in the game: swung -1.6 rad about its hinge, collider disabled (reproduced as such).' : 'Shut until the gate is opened by the chapter script.' } }), group('Props'));
   }
 
   // ---------------------------------------------------------------- unimportable features
   bad('chapter scripts (start/update/onTrigger/onPickup/onUse/onEvent/onRead/onKilled)', Object.keys(def).filter((k) => typeof def[k] === 'function' && k !== 'extra').length, 'JavaScript story logic cannot be converted automatically. The function source is stored under Scripts as read-only reference.');
   if ((def.oldBlood ?? 1) > 0 && !def.env) bad('old blood decals', 1, 'level.js scatterOldBlood() sprinkles decals randomly per session from the level seed; they are not part of the map data.');
   else if ((def.oldBlood ?? 1) > 0) report.notes.push('Procedural "old blood" decals are generated per session (level.js scatterOldBlood) and are not imported.');
-  if (def.extra) report.notes.push('This chapter builds extra objects in code (def.extra): ' + (chapterNo === 4 ? 'a service-tunnel ladder (not imported; the ladder interaction is).' : 'the main gate (imported as a model).'));
+  if (def.extra) report.notes.push('This chapter builds extra objects in code (def.extra): ' + (gate && gateCall ? 'the main gate is imported as a model; anything else it builds is not.' : 'they are not imported.'));
   report.notes.push('Walls are imported as one material (the game splits tiled lower / painted upper wall halves).');
   if (def.warden) report.notes.push(`Warden director settings (${JSON.stringify(def.warden)}) are not scene data; see the reference archetypes.`);
   const warns = nodes.filter((e) => e.node.type === 'door' && e.node.props.locked).length;

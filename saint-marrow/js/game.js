@@ -10,6 +10,7 @@ import { FX, Rain, DustMotes } from './engine/fx.js';
 import { makeBloodAtlas, makeLensBlood, makeSkinDetail } from './engine/textures.js';
 import { LightSystem } from './world/lights.js';
 import { Level } from './world/level.js';
+import { bottleMesh } from './world/props.js';
 import { T } from './world/grid.js';
 import { Player, WEAPONS } from './entities/player.js';
 import { Viewmodel } from './entities/viewmodel.js';
@@ -18,12 +19,13 @@ import { RemotePlayer } from './entities/remote.js';
 import { buildCreatureTemplate, instantiate, animate } from './entities/creatures.js';
 import { Net } from './net.js';
 import { UI } from './ui.js';
-import { CHAPTERS } from './chapters/chapters.js';
+import { CHAPTERS, CHAPTER_COUNT } from './chapters/chapters.js';
+import { Watcher, WatcherDirector } from './entities/watcher.js';
 import { clamp, damp, lerp, rand, pick, isTouch, mulberry32 } from './util.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _f = new THREE.Vector3();
 const KEY_ITEMS = new Set(['boltcutters', 'fuse', 'keycard', 'key', 'fuel']);
-const CONSUMABLE = { battery: 'battery', bandage: 'bandage', medkit: 'medkit', painkillers: 'painkillers', ammo9: 'ammo9', ammo762: 'ammo762' };
+const CONSUMABLE = { battery: 'battery', bandage: 'bandage', medkit: 'medkit', painkillers: 'painkillers', ammo9: 'ammo9', ammo762: 'ammo762', bottle: 'bottle' };
 
 export class Game {
   constructor() {
@@ -88,6 +90,7 @@ export class Game {
     this.fx.bloodLevel = CFG.blood === 'off' ? 0 : CFG.blood === 'low' ? 0.4 : 1;
     this.renderer.setBloodTexture(makeLensBlood());
     this.lights = new LightSystem(this.scene, this.assets, this.renderer.q.lights);
+    this.fx.lightSys = this.lights;
     this.rain = new Rain(this.scene);
     this.rain.setEnabled(false);
     this.dust = new DustMotes(this.scene);
@@ -177,9 +180,11 @@ export class Game {
 
   defaultLoadout(ch) {
     // sensible kit when starting a later chapter directly
-    const s = { inv: { bandage: 1, medkit: 0, painkillers: 0, battery: 1, ammo9: 0, ammo762: 0 }, owned: { none: true, crowbar: ch > 1, pistol: ch > 2, rifle: ch > 3 }, mag: { pistol: ch > 2 ? 8 : 0, rifle: ch > 3 ? 5 : 0 }, weapon: ch > 2 ? 'pistol' : ch > 1 ? 'crowbar' : 'none', battery: 1, hp: 100 };
-    if (ch > 2) s.inv.ammo9 = 8;
-    if (ch > 3) s.inv.ammo762 = 3;
+    // what you would be carrying if you had played the chapters before this one
+    const s = { inv: { bandage: 1, medkit: 0, painkillers: 0, battery: 1, ammo9: 0, ammo762: 0, bottle: 0 }, owned: { none: true, crowbar: ch > 2, pistol: ch > 2, rifle: ch > 4 }, mag: { pistol: ch > 2 ? 8 : 0, rifle: ch > 4 ? 5 : 0 }, weapon: ch > 2 ? 'pistol' : 'none', battery: 1, hp: 100 };
+    if (ch > 2) s.inv.ammo9 = 6;
+    if (ch > 4) s.inv.ammo762 = 3;
+    if (ch > 3) s.inv.bottle = 1;
     return s;
   }
 
@@ -189,7 +194,7 @@ export class Game {
     if (st) { this.ui.coopStatus(t(st)); return; }
     this.ui.coopStatus(t('connecting'));
     this.mode = 'host';
-    this.lobbyChapter = Math.min(SAVE.unlocked, 5);
+    this.lobbyChapter = Math.min(SAVE.unlocked, CHAPTER_COUNT);
     this.lobbyChapter = 1;
     this.net.host(CFG.name, (ev, info) => {
       if (ev === 'open') this.net.pushLobby();
@@ -277,6 +282,11 @@ export class Game {
     if (this.level) this.level.dispose();
     this.fx.clear();
     if (this.jonah) { this.scene.remove(this.jonah.root); this.jonah = null; }
+    if (this.watcher) this.watcher.hide('instant');
+    this.watcherDir = null;
+    this.binoc = null;
+    this.debrisBlock = null;
+    if (this.alarm) { this.alarm.stop?.(); this.alarm = null; }
     if (this.rescue) { this.scene.remove(this.rescue); this.rescue = null; }
     await new Promise((r) => setTimeout(r, 30));
     // build
@@ -297,7 +307,7 @@ export class Game {
     this.vm.setWeapon(P.weapon === 'none' ? null : P.weapon);
     // checkpoint
     if (this.mode !== 'client') {
-      SAVE.unlocked = Math.max(SAVE.unlocked, n);
+      SAVE.unlocked = Math.max(SAVE.unlocked, Math.min(n, CHAPTER_COUNT));
       if (this.mode === 'solo') SAVE.checkpoint = { chapter: n, inv: P.saveState() };
       writeSave();
     }
@@ -309,11 +319,15 @@ export class Game {
         const e = this.spawnEnemy('hollow', m.x + (d.dx || 0), m.z + (d.dz || 0), { dormant: d.dormant, crawler: d.crawler, id: d.id, scriptOnly: d.scriptOnly, tag: d.tag, side: Math.random() < 0.5 ? 1 : -1 }, true);
         if (e) e.home = e.pos.clone();
       }
-      if (def.warden && (def.warden.enabled || def.id === 2)) {
+      if (def.warden?.enabled) {
         this.warden = this.spawnEnemy('warden', 2, 2, { id: 'warden' }, true);
         this.wardenCfg = Object.assign({}, def.warden);
         this.wardenTimer = def.warden.first ?? rand(...(def.warden.gap || [30, 60]));
+        if (def.warden.patrol && this.warden) this.warden.patrol = this.makePatrol(level, 7);
       }
+      if (!this.watcher) this.watcher = new Watcher(this);
+      this.watcherDir = new WatcherDirector(this, def.watcher || { enabled: false });
+      if (!def.watcher) this.watcherDir.enabled = false;
     }
     this.stats.time = 0;
     this.journalCh = n;
@@ -325,7 +339,7 @@ export class Game {
     this.state = 'play';
     this.ui.showHud(true);
     this.ui.objective('', def.key);
-    this.ui.chapterCard(n, def.key, def.key + 'sub');
+    if (!def.hidden) this.ui.chapterCard(n, def.key, def.key + 'sub');   // the epilogue continues chapter 6 without a new title
     this.input.reset();
     this.input.enabled = true;
     this.input.lockPointer();
@@ -351,13 +365,13 @@ export class Game {
     this.input.unlockPointer();
     this.ui.showHud(false);
     const next = this.chapterNo + 1;
-    if (this.mode !== 'client') { SAVE.unlocked = Math.max(SAVE.unlocked, Math.min(5, next)); if (this.mode === 'solo' && next <= 5) SAVE.checkpoint = { chapter: next, inv: this.player.saveState() }; writeSave(); }
-    this.ui.chapterDone(this.stats, next <= 5 && this.mode !== 'client');
+    if (this.mode !== 'client') { SAVE.unlocked = Math.max(SAVE.unlocked, Math.min(CHAPTER_COUNT, next)); if (this.mode === 'solo' && next <= CHAPTER_COUNT) SAVE.checkpoint = { chapter: next, inv: this.player.saveState() }; writeSave(); }
+    this.ui.chapterDone(this.stats, next <= CHAPTER_COUNT && this.mode !== 'client');
     if (this.mode === 'client') document.getElementById('btnNext').hidden = true;
   }
   nextChapter() {
     const next = this.chapterNo + 1;
-    if (next > 5) return this.quitToMenu();
+    if (next > CHAPTER_COUNT) return this.quitToMenu();
     const inv = this.player.saveState();
     if (this.mode === 'host') {
       const seed = (Math.random() * 1e9) | 0;
@@ -855,6 +869,8 @@ export class Game {
       case 'sting': this.audio.play(e.name, { vol: 0.9, bus: 'music', reverb: 0.3 }); return;
       case 'power': this.lights.setGroup(e.group, e.on); return;
       case 'custom': if (this.chapter.onEvent) this.chapter.onEvent(this, e); return;
+      case 'wshow': if (this.watcher) this.watcher.show(e.x, e.z, { peek: e.peek }); return;
+      case 'whide': if (this.watcher) this.watcher.hide(e.mode); return;
       case 'spawn': {
         if (this.isHost() || this.enemyById(e.id)) return;
         const en = new Enemy(this, e.kind, e.x, e.z, Object.assign({ id: e.id, yaw: e.yaw }, e.opts || {}));
@@ -1032,14 +1048,19 @@ export class Game {
     if (simulate && this.state !== 'loading') {
       // timers & chapter script (host)
       if (this.isHost()) {
-        for (let i = this.timers.length - 1; i >= 0; i--) {
-          const tm = this.timers[i];
+        // a timer may load the next chapter (continueChapter), which replaces this.timers: stop walking the old list then
+        const timers = this.timers;
+        for (let i = timers.length - 1; i >= 0 && this.timers === timers; i--) {
+          const tm = timers[i];
+          if (!tm) continue;
           tm.t -= dt;
-          if (tm.t <= 0) { this.timers.splice(i, 1); try { tm.fn(); } catch (err) { console.error(err); } }
+          if (tm.t <= 0) { timers.splice(i, 1); try { tm.fn(); } catch (err) { console.error(err); } }
         }
+        if (this.state === 'loading') return;   // the old level is being torn down; the next chapter starts next frame
         if (this.chapter.update) this.chapter.update(this, dt);
         this.checkTriggers();
         this.directWarden(dt);
+        this.watcherDir?.update(dt);
         for (const e of this.enemies) e.think(dt);
       } else for (const e of this.enemies) e.netSmooth(dt);
       for (const e of this.enemies) e.update(dt, t);
@@ -1049,6 +1070,8 @@ export class Game {
         animate(this.jonah, { phase: 0, speed: 0, t, crouch: 0.85, twitch: tw, hunch: 0.5, pitch: 0.3, armsDown: true });
       }
       if (this.rescue?.userData.update) this.rescue.userData.update(t);
+      this.watcher?.update(dt, t);
+      this.updateProjectiles(dt);
       // network
       if (this.net.online) {
         this.netT -= dt;
@@ -1062,11 +1085,12 @@ export class Game {
     // camera
     P.applyCamera(this.camera, dt, t);
     const ads = this.vm.state.ads;
-    const zoom = P.weapon === 'rifle' && ads > 0.85 ? 0.32 : 1 - ads * 0.18;
+    let zoom = P.weapon === 'rifle' && ads > 0.85 ? 0.32 : 1 - ads * 0.18;
+    zoom *= this.applyBinoculars(dt);
     const fov = CFG.fov * zoom * (P.sprinting ? 1.06 : 1);
     if (Math.abs(this.camera.fov - fov) > 0.05) { this.camera.fov = damp(this.camera.fov, fov, 14, dt); this.camera.updateProjectionMatrix(); }
     this.camera.updateMatrixWorld(true);
-    this.vm.root.visible = !P.dead && !P.downed && !P.hidden && !(P.weapon === 'rifle' && ads > 0.85);
+    this.vm.root.visible = !P.dead && !P.downed && !P.hidden && !(P.weapon === 'rifle' && ads > 0.85) && !(this.binoc && this.binoc.t > 0.3);
     {
       this.camera.getWorldPosition(_v); this.camera.getWorldDirection(_f);
       // crude eye adaptation: whatever the beam hits up close would blow out, so dim the torch
@@ -1147,6 +1171,100 @@ export class Game {
       if (ok && near < 32) return c;
     }
     return null;
+  }
+
+  // A patrol route for the Warden: points spread over the whole floor, each one reachable on foot.
+  makePatrol(level, n) {
+    const g = level.grid, rng = mulberry32(this.seed ^ 0x5eed);
+    const start = level.playerSpawns[0] || new THREE.Vector3(2, 0, 2);
+    const cand = [];
+    for (let i = 0; i < 400 && cand.length < 80; i++) {
+      const c = g.randomWalkable(rng);
+      if (!c || Math.hypot(c.x - start.x, c.z - start.z) < 10) continue;
+      const path = g.findPath(start.x, start.z, c.x, c.z, true);
+      if (path && path.length) cand.push(new THREE.Vector3(c.x, 0, c.z));
+    }
+    if (!cand.length) return null;
+    const out = [cand[0]];
+    while (out.length < Math.min(n, cand.length)) {
+      let best = null, bd = -1;
+      for (const c of cand) { const d = Math.min(...out.map((o) => o.distanceTo(c))); if (d > bd) { bd = d; best = c; } }
+      out.push(best);
+    }
+    // order them into a loop (nearest neighbour) so the route does not zig-zag across the map
+    const loop = [out.shift()];
+    while (out.length) { const last = loop[loop.length - 1]; let bi = 0; out.forEach((p, i) => { if (p.distanceTo(last) < out[bi].distanceTo(last)) bi = i; }); loop.push(out.splice(bi, 1)[0]); }
+    return loop;
+  }
+
+  // ---- binoculars / a forced look (the finale): turn the camera toward a point and zoom, then hand control back
+  binoculars(target, dur) { this.binoc = { target: target.clone(), dur, t: 0, zoom: 0.16, overlay: true }; this.audio.play('click', { vol: 0.4 }); }
+  lookBack(target, dur) { this.binoc = { target: target.clone(), dur, t: 0, zoom: 0.8, overlay: false, hold: true }; this.input.enabled = false; }
+  applyBinoculars(dt) {
+    const b = this.binoc;
+    if (!this.binocEl) {
+      const d = document.createElement('div');
+      d.id = 'binoc';
+      d.innerHTML = '<svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><defs><mask id="bm"><rect width="160" height="90" fill="white"/><circle cx="62" cy="45" r="30" fill="black"/><circle cx="98" cy="45" r="30" fill="black"/></mask><radialGradient id="bg"><stop offset="0.75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.85"/></radialGradient></defs><rect width="160" height="90" fill="#000" mask="url(#bm)"/><circle cx="62" cy="45" r="30" fill="url(#bg)"/><circle cx="98" cy="45" r="30" fill="url(#bg)"/></svg>';
+      d.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:6;opacity:0;transition:none';
+      document.body.appendChild(d);
+      this.binocEl = d;
+    }
+    if (!b) { this.binocEl.style.opacity = 0; return 1; }
+    b.t += dt;
+    const k = Math.min(1, b.t / 0.6) * (b.hold ? 1 : Math.min(1, Math.max(0, (b.dur - b.t) / 0.6)));
+    const cam = this.camera;
+    const look = new THREE.Matrix4().lookAt(cam.position, b.target, new THREE.Vector3(0, 1, 0));
+    const q = new THREE.Quaternion().setFromRotationMatrix(look);
+    cam.quaternion.slerp(q, k);
+    this.binocEl.style.opacity = b.overlay ? k : 0;
+    if (b.t >= b.dur && !b.hold) this.binoc = null;
+    return 1 + (b.zoom - 1) * k;
+  }
+
+  // a thrown bottle (chapter 3): simple ballistic flight, shatters on the first thing it hits and makes a noise there
+  throwBottle(o, v) {
+    const m = bottleMesh();
+    m.position.copy(o);
+    m.castShadow = true;
+    this.scene.add(m);
+    (this.projectiles ||= []).push({ m, v, t: 0, spin: new THREE.Vector3(rand(-8, 8), rand(-8, 8), rand(-8, 8)) });
+  }
+  updateProjectiles(dt) {
+    if (!this.projectiles?.length) return;
+    const grid = this.level?.grid;
+    for (const p of this.projectiles) {
+      p.t += dt;
+      p.v.y -= 9.8 * dt;
+      const a = p.m.position, step = p.v.clone().multiplyScalar(dt), len = step.length();
+      const dir = step.clone().divideScalar(len || 1);
+      let hit = grid ? grid.raycast(a.x, a.y, a.z, dir.x, dir.y, dir.z, len, { props: true, ceil: this.level.ceilAt(a.x, a.z) }) : null;
+      let point = null;
+      if (hit) point = new THREE.Vector3(hit.x, hit.y, hit.z);
+      else if (a.y + step.y <= 0.03) point = a.clone().add(step).setY(0.03);
+      else if (p.t > 4) point = a.clone();
+      if (point) {
+        p.dead = true;
+        this.scene.remove(p.m);
+        if (this.isHost()) this.netSound('glass', point, 1); else this.audio.play('glass', { pos: point.clone(), vol: 1 });
+        this.fx.impact({ x: point.x, y: point.y, z: point.z, nx: 0, ny: 1, nz: 0 }, dir, 'metal');
+        this.makeNoise(point, 18, 'throw');
+        continue;
+      }
+      a.add(step);
+      p.m.rotation.x += p.spin.x * dt; p.m.rotation.y += p.spin.y * dt; p.m.rotation.z += p.spin.z * dt;
+    }
+    this.projectiles = this.projectiles.filter((p) => !p.dead);
+  }
+
+  // straight into another chapter without the 'chapter complete' screen (chapter 6 → its epilogue)
+  continueChapter(n) {
+    if (!this.isHost()) return;
+    const inv = this.player.saveState();
+    const seed = (Math.random() * 1e9) | 0;
+    if (this.mode === 'host') this.net.broadcast({ t: 'start', chapter: n, seed, diff: CFG.difficulty, players: this.net.players, keep: true });
+    this.player.loadState(inv);
+    this.loadChapter(n, { seed });
   }
 
   updateAtmosphere(dt, t) {

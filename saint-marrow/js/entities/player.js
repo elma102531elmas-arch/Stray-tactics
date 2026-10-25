@@ -42,7 +42,7 @@ export class Player {
     this.dmgDir = 0; this.dmgDirT = 0;
     if (full) {
       this.battery = 1;
-      this.inv = { bandage: 1, medkit: 0, painkillers: 0, battery: 0, ammo9: 0, ammo762: 0 };
+      this.inv = { bandage: 1, medkit: 0, painkillers: 0, battery: 0, ammo9: 0, ammo762: 0, bottle: 0 };
       this.owned = { none: true, crowbar: false, pistol: false, rifle: false };
       this.mag = { pistol: 0, rifle: 0 };
       this.weapon = 'none';
@@ -168,6 +168,7 @@ export class Player {
 
     // ---- weapons & items
     this.fireCd -= dt;
+    if (this.throwCd > 0) this.throwCd -= dt;
     if (this.useItemT > 0) {
       this.useItemT -= dt;
       if (this.useItemT <= 0) this.finishUseItem();
@@ -183,6 +184,7 @@ export class Player {
       for (const [k, w] of [['w1', 'crowbar'], ['w2', 'pistol'], ['w3', 'rifle'], ['w4', 'none']]) if (I.pressed.has(k) && this.owned[w]) this.equip(w);
       if (I.held.fire || I.pressed.has('fire')) this.tryFire(I.pressed.has('fire'));
       if (I.pressed.has('reload')) this.tryReload();
+      if (I.pressed.has('throw')) this.tryThrow();
       if (I.pressed.has('heal')) this.useBest();
       if (I.pressed.has('medkit')) this.useItem('medkit');
       if (I.pressed.has('battery')) this.useItem('battery');
@@ -293,6 +295,22 @@ export class Player {
       const right = new THREE.Vector3(1, 0, 0).transformDirection(cam.matrixWorld);
       g.fx.casing(_v, right.multiplyScalar(rand(1.5, 2.4)).add(new THREE.Vector3(0, rand(1.5, 2.5), 0)), g.assets);
     }
+  }
+
+  // throw a bottle: it breaks where it lands and everything nearby goes to look
+  tryThrow() {
+    const g = this.game;
+    if (!this.inv.bottle) { g.ui.toast(g.t('noBottle')); return; }
+    if (this.throwCd > 0) return;
+    this.throwCd = 0.8;
+    this.inv.bottle--;
+    const cam = g.camera;
+    cam.getWorldPosition(_o);
+    cam.getWorldDirection(_d);
+    const v = _d.clone().multiplyScalar(13).add(new THREE.Vector3(0, 3.2, 0));
+    g.throwBottle(_o.clone().addScaledVector(_d, 0.4).add(new THREE.Vector3(0, -0.1, 0)), v);
+    g.audio.play('swing', { vol: 0.45, rate: 1.2 });
+    g.vm.flashToggle();
   }
 
   meleeStrike() {

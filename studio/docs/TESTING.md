@@ -18,13 +18,13 @@ Last full run (this document is updated by hand when the suites change; run the 
 ## Unit suites (what each proves)
 | Suite | Proves |
 |---|---|
-| `00-original-game-untouched` | Every file of the original game is byte-identical to the pre-Studio SHA-256 list; nothing was added to `saint-marrow/`; the backup archive exists |
+| `00-original-backup-intact` | The backup archive of the original game holds every file of the SHA-256 list, byte-identical; the Studio's source never writes into the game |
 | `scene-model`, `history-commands` | Scene tree rules (parenting, cycles, names), every command’s do/undo/redo round trip, merging and transactions |
 | `project-format` | Versioned format, migrations, refusal of newer/foreign files, bundle round trip with hashes, unsafe zip paths rejected |
 | `app-level` | App object without a DOM: creating nodes, selection, copy/paste, the Room tool as one undo step, doors cutting wall openings, action dispatch, project replacement |
 | `assets-classify` | File classification, refusal of executable/script files with help text |
 | `collision-nav` | Raycasts, pushes, ground queries, nav mesh components and reachability |
-| `importer-chapters` | The five chapters import with pinned counts, preserve coordinates, report what cannot be imported |
+| `importer-chapters` | All seven chapter definitions (six chapters + the epilogue) import with counts equal to the game's own grid, preserve coordinates, report what cannot be imported (including legend letters the grid reads as tiles); the woods gate in the pose each chapter builds |
 | `validation` | Each validator check fires on a crafted case and stays quiet on a clean one |
 | `events`, `sequence` | Event runtime semantics (clock, loops, budgets), timeline evaluation and player semantics |
 | `playtest`, `weapons`, `ai`, `aisystem` | Player movement and interaction rules, weapon stats/recoil/ammo, enemy state machines and senses, hit zones |
@@ -48,12 +48,15 @@ Last full run (this document is updated by hand when the suites change; run the 
 | `plugins` | Review-and-approve flow, approvals withdrawn on edit, hostile code (network, storage, timers, flooding, infinite loops) contained, one undo step per command, scripts run in playtest only after approval |
 | `story` | Building a story graph with the mouse, analysis results, outline export, nothing generated automatically |
 | `diagnostics` | Triage table with “Why?” evidence, filters, issue tracker (track, status, notes, undo), your own objects classified as bugs in your map, Markdown export, hit-box overlay and calculator, performance panel with measured steps |
-| `original-oracle` | Studio import equals the running original (see above) |
+| `original-oracle` | Studio import equals the running game in all seven chapter definitions (see above): colliders, use points (the fuse box at 1.45 m), the gate, and nothing unreachable by either |
+| `game-woods`, `game-inside`, `game-drafts`, `game-finale`, `game-epilogue` | **The game itself**, every chapter finished with real key presses: look at a thing and press E, keypad clicks, notes closed with the mouse, a bottle thrown with X (the patrol goes to look), early visits to the exits do not use them up, the epilogue ends the game. Walking is a teleport (see KNOWN_LIMITATIONS.md). |
+| `game-viewmodel` | Reloads with the R key: pistol (magazine out → in, slide only when empty), rifle (bolt open → a click per round → bolt closed), ammo adds up, the magazine is back in the grip |
+| `game-single-file` | `saint-marrow.html` opens from disk with no server, fetches no asset, starts chapter 1 and answers keys |
 
 ## What is NOT tested (so nobody assumes it is)
 * Real GPU output, visual fidelity, frame rate, or memory growth over long sessions.
 * Real audio output — tests verify what the Web Audio graph was told, not what a person would hear.
 * Browsers other than Chromium; touch input; screen readers.
-* The original game’s runtime behaviour beyond what the oracle reads (its AI, scripts and physics feel).
-* Very large maps (the largest imported chapter has 466 objects).
+* The game's AI, scare timing and physics feel beyond what the playthrough tests drive; walking routes on foot (the tests teleport).
+* Very large maps (the largest imported chapter, the woods, has 1927 objects).
 * Flakiness: the plugins browser suite once failed 1 test of 17 and could not be reproduced in six re-runs; diagnostic logging was added. If it fails for you, re-run once and report the output.

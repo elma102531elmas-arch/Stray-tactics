@@ -31,6 +31,7 @@ export class Fixture {
       return n > 0.45 ? 0.05 : 0.35 + 0.2 * noise2(t * 13, this.phase);
     }
     if (this.state === 'pulse') return 0.5 + 0.5 * Math.sin(t * 3 + this.phase);
+    if (this.state === 'fire') return 0.78 + 0.14 * Math.sin(t * 17 + this.phase) + 0.12 * noise2(t * 11, this.phase);
     return 1;
   }
 }

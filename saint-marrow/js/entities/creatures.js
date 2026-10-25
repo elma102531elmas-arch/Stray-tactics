@@ -75,7 +75,7 @@ function bodyPrims(kind, J, P) {
   L.push(ell('hips', addv(J.hips, [0, 0.0, -0.005]), [0.15 * bulk, 0.11, 0.1 * bulk], 0.06));
   L.push(cone('spine', J.hips, J.chest, 0.11 * thin * bulk, 0.13 * thin * bulk, 0.06, kind === 'hollow' ? { r: 1 } : {}));
   const ribs = ell('chest', addv(J.chest, [0, 0.06, 0.005]), [0.165 * bulk * (0.8 + thin * 0.2), 0.17, 0.115 * bulk * (0.85 + thin * 0.15)], 0.07);
-  if (kind === 'hollow' || kind === 'warden') {
+  if (kind === 'hollow' || kind === 'warden' || kind === 'watcher') {
     // visible ribs and a sunken belly on the emaciated ones
     const c = ribs.c;
     ribs.noise = (x, y, z) => {
@@ -150,6 +150,27 @@ function bodyPrims(kind, J, P) {
 }
 
 // Colour functions (linear RGB) per vertex.
+// The watcher of the woods: pale, dirt-streaked skin, black eye sockets, old and fresh blood around the mouth.
+function watcherColor(x, y, z, J) {
+  const n = fbm3(x * 5, y * 5, z * 5, 3);
+  let c = [0.47 + n * 0.07, 0.45 + n * 0.06, 0.42 + n * 0.05];
+  const dirt = fbm3(x * 2.5 + 7, y * 2.5, z * 2.5, 3);
+  if (dirt > 0.05) c = mix3(c, [0.17, 0.15, 0.12], Math.min(1, (dirt - 0.05) * 3) * 0.75);
+  if (y < J.shinL[1] + 0.1) c = mix3(c, [0.09, 0.08, 0.06], 0.7);          // mud up to the shins
+  const hc = addv(J.head, [0, 0.105, 0.01]);
+  for (const s of [1, -1]) { const de = Math.hypot(x - (hc[0] + s * 0.033), (y - (hc[1] + 0.006)) * 1.2, z - (hc[2] + 0.09)); if (de < 0.04) c = mix3(c, [0.01, 0.005, 0.005], (1 - de / 0.04)); }
+  let wet = 0;
+  const mx = x - hc[0], my = y - (hc[1] - 0.085), mz = z - (hc[2] + 0.075);
+  const mouth = Math.hypot(mx * 1.2, my * 0.8, mz);
+  if (mouth < 0.075) { c = mix3(c, [0.09, 0.004, 0.004], 0.95); wet = 0.9; }
+  else if (mouth < 0.11 && noise3(x * 40, y * 40, z * 40) > -0.1) { c = mix3(c, [0.13, 0.02, 0.015], 0.8); wet = 0.5; }
+  // dried runs down the chin, neck and chest
+  const run = Math.abs(mx + noise3(y * 9, 0, 3) * 0.03) < 0.035 && y < hc[1] - 0.09 && y > J.chest[1] - 0.1 && z > J.chest[2] + 0.04;
+  if (run && noise3(x * 18, y * 5, 2) > -0.25) { c = mix3(c, [0.11, 0.015, 0.01], 0.85); wet = Math.max(wet, 0.35); }
+  for (const S of ['L', 'R']) { const h = J['hand' + S]; if (y < h[1] + 0.03 && Math.abs(x - h[0]) < 0.1) c = mix3(c, [0.1, 0.03, 0.02], 0.6); }
+  return [c, wet];
+}
+
 function hollowColor(x, y, z, J, rng) {
   const n = fbm3(x * 6, y * 6, z * 6, 3);
   let c = [0.25 + n * 0.06, 0.235 + n * 0.05, 0.205 + n * 0.04];
@@ -277,6 +298,7 @@ function scaleGeo(geo, s) { geo.scale(s, s, s); geo.computeBoundingSphere(); }
 export const CREATURE_DEFS = {
   hollow: { P: { thin: 0.62, arm: 1.08, finger: 0.1, claw: true, openJaw: 1, neckLen: 1.25, hunch: 0.06, headW: 0.95 }, scale: 1.0, color: hollowColor, gown: true, rough: 0.55 },
   warden: { P: { thin: 0.55, arm: 1.45, leg: 1.12, sh: 0.25, finger: 0.14, claw: true, hand: 1.35, hunch: 0.2, sackHead: true, torso: 1.12, handThick: 1.2, neckLen: 1.4 }, scale: 1.18, color: wardenColor, apron: true, rough: 0.6 },
+  watcher: { P: { thin: 0.5, arm: 1.38, leg: 1.2, sh: 0.2, finger: 0.16, claw: true, hand: 1.35, hunch: 0.04, neckLen: 1.55, headW: 0.88, openJaw: 0.7, torso: 1.12, neckW: 0.85 }, scale: 1.1, color: watcherColor, rough: 0.62 },
   human: { P: { thin: 1.0, bulk: 1.18, boots: true, hood: true, pack: true, finger: 0.08, handThick: 1.25 }, scale: 1.0, color: humanColor, rough: 0.8 },
 };
 

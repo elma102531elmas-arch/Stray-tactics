@@ -6,6 +6,8 @@ const CHAR = {
   ' ': T.VOID, '#': T.WALL, 'B': T.EXT, '.': T.FLOOR, ',': T.GROUND, ';': T.GRASS, '=': T.ROAD, '_': T.PATH, 'D': T.DOOR, 'O': T.DOOR,
   'W': T.WINDOW, 'F': T.FENCE, 'T': T.TREE, '~': T.WATER,
 };
+// letters the grid reads as tiles; a chapter legend entry under one of these is never placed (the Studio importer reports it)
+export const TILE_CHARS = Object.freeze({ ...CHAR });
 export const OUTDOOR = new Set([T.GROUND, T.ROAD, T.PATH, T.TREE, T.FENCE, T.GRASS]);
 const SOLID_MOVE = new Set([T.VOID, T.WALL, T.EXT, T.WINDOW, T.FENCE]);
 const SOLID_RAY = new Set([T.VOID, T.WALL, T.EXT, T.WINDOW]);
@@ -140,7 +142,6 @@ export class Grid {
       const x0 = Math.floor(px - r), x1 = Math.floor(px + r), z0 = Math.floor(pz - r), z1 = Math.floor(pz + r);
       for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
         if (this.solidForMove(x, z)) [px, pz] = pushBox(px, pz, r, x, z, x + 1, z + 1);
-        else if (this.get(x, z) === T.TREE) [px, pz] = pushCircle(px, pz, r, x + 0.5, z + 0.5, 0.22);
         else if (this.get(x, z) === T.DOOR) {
           const d = this.doorAt(x, z);
           if (d && d.blocking()) {
@@ -155,6 +156,12 @@ export class Grid {
       }
     }
     return [px, pz];
+  }
+
+  // true when a circle of radius r at (x,z) overlaps something solid (collide() would have to move it)
+  blocked(x, z, r, ignoreProps = false) {
+    const [nx, nz] = this.collide(x, z, r, ignoreProps);
+    return Math.hypot(nx - x, nz - z) > 0.005;
   }
 
   // Grid ray march (Amanatides & Woo). Ray in XZ plane with height check against door tops etc.

@@ -92,7 +92,14 @@ export class Level {
       this.cull.push({ o, c: sph.center.clone(), r: sph.radius });
     };
     for (const o of this.root.children) {
-      if (o.name === 'levelGeometry') { for (const m of o.children) if (m.isMesh && !m.isInstancedMesh) add(m); continue; }
+      if (o.name === 'levelGeometry') {
+        for (const m of o.children) {
+          if (m.isMesh && !m.isInstancedMesh) add(m);
+          // tree tiles go sooner: a trunk 36 m out is 94% fog already, and the trees are most of what the woods draw
+          else if (m.userData.cullTile && m.boundingSphere) this.cull.push({ o: m, c: m.boundingSphere.center.clone(), r: m.boundingSphere.radius, k: 0.79 });
+        }
+        continue;
+      }
       if (o.isSprite || o.isLight || o === this.sky) continue;
       add(o);
     }
@@ -103,7 +110,7 @@ export class Level {
     const d2 = this.cullDist;
     for (const c of this.cull) {
       if (c.o.userData.hidden) { c.o.visible = false; continue; }
-      c.o.visible = c.c.distanceTo(camPos) - c.r < d2;
+      c.o.visible = c.c.distanceTo(camPos) - c.r < d2 * (c.k ?? 1);
     }
   }
 
@@ -241,9 +248,13 @@ export class Level {
     if (d.decal) this.placeDecal(d, x, z);
     if (d.use) {
       const base = ent?.obj ? ent.obj.position.clone() : new THREE.Vector3(x + 0.5, 0, z + 0.5);
+      // useFront: step out from a wall-placed prop into the room; useDx/useDz: a fixed offset (a panel on one side)
+      if (d.useFront && ent?.wallDir) { base.x -= ent.wallDir[0] * d.useFront; base.z -= ent.wallDir[1] * d.useFront; }
+      base.x += d.useDx || 0; base.z += d.useDz || 0;
       this.addInteractable({
         id: d.id || d.use, kind: 'use', use: d.use,
-        pos: () => base.clone().add(new THREE.Vector3(0, d.useY ?? 1.2, 0)), radius: d.useR || 0.8,
+        // useY is the height above the floor (it used to be added on top of a wall mount: fuse box at 2.9 m)
+        pos: () => new THREE.Vector3(base.x, d.useY ?? base.y + 1.2, base.z), radius: d.useR || 0.8,
         prompt: () => d.prompt || 'use', hold: d.hold || 0,
       });
       if (d.id && !this.entities.has(d.id)) this.entities.set(d.id, { pos: base, x, z, obj: ent?.obj });
@@ -281,8 +292,9 @@ export class Level {
 
   placeNote(d, x, z) {
     const mesh = makeItemMesh(this.assets, d.tape ? 'tape' : 'note');
-    const px = x + 0.5 + (d.dx || 0), pz = z + 0.5 + (d.dz || 0);
-    mesh.position.set(px, d.y ?? this.surfaceHeight(px, pz), pz);
+    // noteDx/noteDz/noteY place a note on its own when it shares a cell with a prop (dx/dz/y move the prop too)
+    const px = x + 0.5 + (d.noteDx ?? d.dx ?? 0), pz = z + 0.5 + (d.noteDz ?? d.dz ?? 0);
+    mesh.position.set(px, d.noteY ?? d.y ?? this.surfaceHeight(px, pz), pz);
     mesh.rotation.y = this.rng() * Math.PI * 2;
     this.root.add(mesh);
     const id = d.id || 'note_' + d.note;
@@ -311,12 +323,28 @@ export class Level {
   placeDecal(d, x, z) {
     const fx = this.game.fx;
     if (d.decal === 'writing') {
-      const wd = (d.face ? { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] }[d.face] : this.wallDir(x, z)) || [0, -1];
+      let wd = d.face ? { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] }[d.face] : this.wallDir(x, z);
+      let dist = 0.495;
+      if (!wd) {
+        // no wall right here: write on the nearest wall within three cells (straight line, open floor between)
+        const solid = (t) => t === T.WALL || t === T.EXT;
+        for (let k = 2; k <= 3 && !wd; k++) for (const dir of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+          let open = true;
+          for (let s = 1; s < k; s++) if (solid(this.grid.get(x + dir[0] * s, z + dir[1] * s))) open = false;
+          if (open && solid(this.grid.get(x + dir[0] * k, z + dir[1] * k))) { wd = dir; dist = k - 0.505; break; }
+        }
+      }
       const w = d.w || 2.4, h = w / 4;
       const tex = makeBloodWriting(d.text, 1024, 256, Math.floor(this.rng() * 1000));
       const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.35, polygonOffset: true, polygonOffsetFactor: -2 }));
-      m.position.set(x + 0.5 + wd[0] * 0.495, d.y || 1.65, z + 0.5 + wd[1] * 0.495);
-      m.rotation.y = Math.atan2(-wd[0], -wd[1]);
+      if (wd) {
+        m.position.set(x + 0.5 + wd[0] * dist, d.y || 1.65, z + 0.5 + wd[1] * dist);
+        m.rotation.y = Math.atan2(-wd[0], -wd[1]);
+      } else {
+        // nothing to write on: it is scrawled across the floor
+        m.position.set(x + 0.5, 0.015, z + 0.5);
+        m.rotation.set(-Math.PI / 2, 0, this.rng() * 0.6 - 0.3);
+      }
       m.renderOrder = 3;
       this.root.add(m);
       return;

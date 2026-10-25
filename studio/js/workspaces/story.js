@@ -122,12 +122,13 @@ class StoryWorkspace {
       if (!this.gameRef) {
         const mods = await loadGameModules(new URL('../saint-marrow', this.app.baseUrl).href.replace(/\/$/, ''));
         const i18n = await import(/* @vite-ignore */ new URL('../saint-marrow/js/i18n.js', this.app.baseUrl).href);
-        this.gameRef = mods.CHAPTERS.map((c) => ({ id: c.id, key: c.key, title: i18n.t(c.key), sub: i18n.t(c.key + 'sub'), size: c.map ? `${c.map[0]?.length || '?'}×${c.map.length}` : '' }));
+        // the hidden epilogue is part of chapter 6 (same key), not a chapter of its own; drafts stay labelled as the game labels them
+        this.gameRef = mods.CHAPTERS.filter((c) => !c.hidden).map((c) => ({ id: c.id, key: c.key, title: i18n.t(c.key), draft: !!c.draft, sub: i18n.t(c.key + 'sub'), size: c.map ? `${c.map[0]?.length || '?'}×${c.map.length}` : '' }));
       }
     } catch (e) { this.leftBody.replaceChildren(h('div', { class: 'note err' }, 'Could not read the original chapters: ' + e.message)); return; }
     if (this.tab !== 'reference') return;
     this.leftBody.replaceChildren(h('div', { class: 'note warn' }, h('b', {}, 'Read-only reference. '), 'The original game’s chapters, read from its source. Nothing is added to your story unless you press “Add shell” (a chapter with only its title).'),
-      ...this.gameRef.map((c) => h('div', { 'data-ref': c.key, style: { padding: '6px 10px', borderBottom: '1px solid var(--line)' } }, h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, h('b', { style: { flex: 1 } }, `${c.id}. ${c.title}`), button('Add shell', () => this.addShell(c))), h('div', { style: { color: 'var(--dim)', fontSize: '12px' } }, c.sub))));
+      ...this.gameRef.map((c) => h('div', { 'data-ref': c.key, style: { padding: '6px 10px', borderBottom: '1px solid var(--line)' } }, h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, h('b', { style: { flex: 1 } }, `${c.id}. ${c.title}${c.draft ? ' (draft)' : ''}`), button('Add shell', () => this.addShell(c))), h('div', { style: { color: 'var(--dim)', fontSize: '12px' } }, c.sub))));
   }
   addShell(c) {
     const n = S.newChapter(40, 40, c.title); n.data.map = `original game: ${c.key}`;

@@ -1,5 +1,5 @@
-// Triage of validator issues. The expensive claims (what the running original game does) are verified by tests/browser/original-oracle.test.mjs;
-// these tests check that every claim the classifier makes about the original's SOURCE is true, and that nothing imported is left unexplained.
+// Triage of validator issues on the imported game. What the running game does is checked by tests/browser/original-oracle.test.mjs;
+// these tests check that every claim the classifier makes about the game's SOURCE is true, and that nothing imported is left unexplained.
 import test, { before } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,80 +10,72 @@ import { makeNode } from '../../js/core/scene.js';
 import { setBuiltinLibrary } from '../../js/core/builtin.js';
 import { validateProject } from '../../js/core/validate.js';
 import * as D from '../../js/core/diagnostics.js';
-import { fixCommand } from '../../js/core/fixes.js';
+import { removeNodes } from '../../js/core/commands.js';
 
-let mods; const projects = {}, issues = {};
+let mods, N; const projects = {}, issues = {};
 before(async () => {
   setBuiltinLibrary(JSON.parse(fs.readFileSync(new URL('../../assets-builtin/library.json', import.meta.url))));
   mods = await loadGameModules(new URL('../../../saint-marrow', import.meta.url).href);
-  for (let n = 1; n <= 5; n++) { const p = new Project('ch' + n); importIntoProject(p, new History(p.ctx), importChapterDef(mods.CHAPTERS[n - 1], mods)); projects[n] = p; issues[n] = D.enrichIssues(p, validateProject(p).issues); }
+  N = mods.CHAPTERS.length;
+  for (let n = 1; n <= N; n++) { const p = new Project('ch' + n); importIntoProject(p, new History(p.ctx), importChapterDef(mods.CHAPTERS[n - 1], mods)); projects[n] = p; issues[n] = D.enrichIssues(p, validateProject(p).issues); }
 });
 
 test('every issue on an imported chapter is explained: none is left as an unverified guess, none is called a bug in the map', () => {
-  for (let n = 1; n <= 5; n++) {
+  for (let n = 1; n <= N; n++) {
     const unexplained = issues[n].filter((i) => i.triage.cls === 'unverified' || i.triage.cls === 'bug');
     assert.deepEqual(unexplained.map((i) => `${i.code}: ${i.message}`), [], `chapter ${n}`);
     for (const i of issues[n]) { assert.ok(i.triage.imported, 'imported'); if (['quirk', 'script', 'limit'].includes(i.triage.cls)) assert.ok(i.triage.evidence.length >= 1, `${i.code} ${i.names[0]} cites evidence`); }
   }
 });
 
-test('the class counts per chapter are pinned (a change means the importer or validator changed behaviour)', () => {
-  const counts = {}; for (let n = 1; n <= 5; n++) counts[n] = D.summarize(issues[n]);
+test('the class counts per chapter are pinned (a change means the game, the importer or the validator changed behaviour)', () => {
+  const counts = {}; for (let n = 1; n <= N; n++) counts[n] = D.summarize(issues[n]);
   assert.deepEqual(counts, {
-    1: { bug: 0, quirk: 5, script: 3, limit: 3, unverified: 0, note: 1 },
-    2: { bug: 0, quirk: 4, script: 2, limit: 0, unverified: 0, note: 0 },
-    3: { bug: 0, quirk: 1, script: 1, limit: 0, unverified: 0, note: 2 },
-    4: { bug: 0, quirk: 4, script: 11, limit: 0, unverified: 0, note: 0 },
-    5: { bug: 0, quirk: 7, script: 2, limit: 3, unverified: 0, note: 0 },
+    1: { bug: 0, quirk: 0, script: 6, limit: 0, unverified: 0, note: 0 },
+    2: { bug: 0, quirk: 1, script: 2, limit: 0, unverified: 0, note: 0 },
+    3: { bug: 0, quirk: 1, script: 3, limit: 0, unverified: 0, note: 0 },
+    4: { bug: 0, quirk: 0, script: 1, limit: 0, unverified: 0, note: 2 },
+    5: { bug: 0, quirk: 1, script: 4, limit: 0, unverified: 0, note: 0 },
+    6: { bug: 0, quirk: 0, script: 5, limit: 0, unverified: 0, note: 0 },
+    7: { bug: 0, quirk: 0, script: 0, limit: 0, unverified: 0, note: 0 },
   });
 });
 
 test('no entry of the quirk registry is stale: each one explains at least one real issue', () => {
-  const used = new Set(); for (let n = 1; n <= 5; n++) for (const i of issues[n]) if (i.triage.quirk) used.add(i.triage.quirk);
+  const used = new Set(); for (let n = 1; n <= N; n++) for (const i of issues[n]) if (i.triage.quirk) used.add(i.triage.quirk);
   assert.deepEqual(D.KNOWN_QUIRKS.map((q) => q.id).filter((id) => !used.has(id)), []);
   assert.ok(used.has('dead-trigger'), 'the data-driven rule also fired');
   for (const q of D.KNOWN_QUIRKS) { assert.ok(q.evidence.length && q.explanation.length > 40 && q.title && D.CLASSES[q.cls], q.id); }
 });
 
-test('claim “writing-no-wall”: every flagged blood-writing sits in a map cell with NO adjacent wall in the game’s own grid', () => {
-  const T = mods.T; let checked = 0;
-  for (const n of [2, 3, 4]) {
-    const def = mods.CHAPTERS[n - 1], g = new mods.Grid({ grid: def.map, legend: def.legend || {}, defaultTheme: def.defaultTheme ?? 0, themes: def.themes });
-    for (const i of issues[n].filter((x) => x.triage.quirk === 'writing-no-wall')) {
-      const node = projects[n].scene.get(i.nodes[0]), [cx, cz] = node.meta.source.cell;
-      const adj = [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dz]) => g.get(cx + dx, cz + dz));
-      assert.ok(!adj.some((t) => t === T.WALL || t === T.EXT || t === T.WINDOW), `chapter ${n} (${cx},${cz}) has a wall next to it: ${adj}`); checked++;
-    }
+test('fixed in the game, kept fixed: blood writing is on a wall and notes lie on something, in every chapter', () => {
+  let writing = 0;
+  for (let n = 1; n <= N; n++) {
+    assert.deepEqual(issues[n].filter((i) => i.code === 'decal-floating' || i.code === 'spawn-floating').map((i) => i.message), [], `chapter ${n}`);
+    writing += projects[n].scene.find((x) => /^Blood writing/.test(x.name)).length;
   }
-  assert.equal(checked, 3);
+  assert.ok(writing >= 5, `blood writing imported (${writing})`);
+  // the two story notes that used to lie on the floor in front of their desks
+  for (const [n, name] of [[2, 'codeNote'], [3, 'plan']]) {
+    const y = projects[n].scene.worldPosition(projects[n].scene.byName(name).id).y;
+    assert.ok(Math.abs(y - 0.79) < 0.02, `${name} on the desk top (y = ${y})`);
+  }
 });
 
-test('claim “note-off-desk”: the legend sets y explicitly, and no desk covers the note’s position', () => {
-  let checked = 0;
-  for (const n of [2, 4]) {
-    const def = mods.CHAPTERS[n - 1];
-    for (const i of issues[n].filter((x) => x.triage.quirk === 'note-off-desk')) {
-      const node = projects[n].scene.get(i.nodes[0]), mark = node.meta.source.mark, w = projects[n].scene.worldPosition(node.id);
-      assert.equal(def.legend[mark].y, 0.79, 'explicit y in the legend');
-      const covered = projects[n].scene.find((x) => /^desk/.test(x.name)).some((d) => { const b = d.props; const p = projects[n].scene.worldPosition(d.id); return Math.abs(w.x - p.x) < 1.2 && Math.abs(w.z - p.z) < 0.5; });
-      assert.equal(covered, false, 'no desk within reach of the note’s xz'); checked++;
-    }
-  }
-  assert.equal(checked, 2);
-});
-
-test('claim “handled by the original script” / “dead trigger”: decided from the original chapter functions themselves (not from the importer’s copy)', () => {
+test('“handled by the game script” / “dead trigger”: decided from the chapter functions themselves (not from the importer’s copy)', () => {
   let script = 0; const dead = [];
-  for (let n = 1; n <= 5; n++) {
+  for (let n = 1; n <= N; n++) {
     const def = mods.CHAPTERS[n - 1], fnSrc = Object.entries(def).filter(([, v]) => typeof v === 'function').map(([, v]) => v.toString()).join('\n');
     for (const i of issues[n].filter((x) => x.code === 'unhandled-event')) {
-      const id = i.names[0].split(':')[1], mentioned = new RegExp(`['"\`]${id}['"\`]`).test(fnSrc);
+      const id = i.names[0].split(':')[1], mentioned = D.sourceMentions(fnSrc, id);
       assert.equal(i.triage.cls, mentioned ? 'script' : 'quirk', `${i.names[0]} (chapter ${n})`);
       if (mentioned) script++; else dead.push(`ch${n}:${i.names[0]}`);
     }
   }
-  assert.equal(script, 11, 'events handled by original JavaScript');
-  assert.deepEqual(dead.sort(), ['ch1:trigger:gateInside', 'ch2:trigger:nearStairs', 'ch4:trigger:nearExit', 'ch5:trigger:bay', 'ch5:trigger:gateInside', 'ch5:trigger:wheel'], 'triggers the original defines but never handles');
+  assert.equal(script, 21, 'events handled by the game’s JavaScript');
+  assert.deepEqual(dead.sort(), ['ch2:trigger:nearStairs', 'ch3:trigger:nearExit', 'ch5:trigger:nearStairs'], 'triggers the game defines but never handles');
+  // a prefix test in a handler counts: chapter 5 handles relay1…3 with id.startsWith('relay')
+  assert.ok(issues[5].filter((i) => /^use:relay/.test(i.names[0])).every((i) => i.triage.cls === 'script'));
 });
 
 test('issue keys survive a re-import (node ids change, source cells do not); different issues have different keys', () => {
@@ -105,18 +97,17 @@ test('authored objects are bugs, info is a note: classification does not depend 
 });
 
 test('tracker: quirks start as accepted, bugs as open; trackedState notices when an issue stops reproducing', () => {
-  const fuse = issues[2].find((i) => i.triage.quirk === 'ch2-fusebox-high' && i.code === 'interaction-out-of-reach');
-  const t = D.newTracked(fuse); assert.equal(t.status, 'accepted'); assert.equal(t.cls, 'quirk'); assert.match(t.title, /Fuse box/); assert.ok(t.evidence.length >= 1); assert.deepEqual(t.nodeNames, ['use:fusebox']);
+  const dead = issues[2].find((i) => i.triage.quirk === 'dead-trigger');
+  const t = D.newTracked(dead); assert.equal(t.status, 'accepted'); assert.equal(t.cls, 'quirk'); assert.match(t.title, /never handles/); assert.ok(t.evidence.length >= 1); assert.deepEqual(t.nodeNames, ['trigger:nearStairs']);
   assert.equal(D.trackedState([t], issues[2])[0].reproduces, true);
-  // the author fixes it in their copy: the issue disappears and the tracker says so
-  const p = projects[2], h = new History(p.ctx); h.exec(fixCommand(p, fuse.fix));              // the author applies the offered fix in their copy
-  const after = D.enrichIssues(p, validateProject(p).issues);
-  assert.equal(D.trackedState([t], after)[0].reproduces, false, 'the tracker notices the issue no longer reproduces'); h.undo();
+  // the author deletes the useless trigger in their copy: the issue disappears and the tracker says so
+  const p = projects[2], h = new History(p.ctx); h.exec(removeNodes([p.scene.byName('trigger:nearStairs').id]));
+  assert.equal(D.trackedState([t], D.enrichIssues(p, validateProject(p).issues))[0].reproduces, false, 'the tracker notices the issue no longer reproduces'); h.undo();
   assert.equal(D.trackedState([t], D.enrichIssues(p, validateProject(p).issues))[0].reproduces, true);
-  assert.equal(D.newTracked({ ...fuse, triage: { ...fuse.triage, cls: 'bug', quirk: null } }).status, 'open');
+  assert.equal(D.newTracked({ ...dead, triage: { ...dead.triage, cls: 'bug', quirk: null } }).status, 'open');
 });
 
 test('the markdown report groups by class, explains each group and cites evidence', () => {
   const md = D.reportMarkdown(projects[2], issues[2]);
-  assert.match(md, /# Diagnostics — ch2/); assert.match(md, /## Original-game quirk/); assert.match(md, /### Fuse box interaction point sits 2\.9 m up/); assert.match(md, /Evidence: \[running game\]/); assert.match(md, /\| Original script logic \| 2 \|/); assert.match(md, /### Trigger the original never handles/);
+  assert.match(md, /# Diagnostics — ch2/); assert.match(md, /## Original-game quirk/); assert.match(md, /### Trigger the original never handles/); assert.match(md, /- Evidence: /); assert.match(md, /\| Original script logic \| 2 \|/); assert.match(md, /### Handled by the original game’s script/);
 });

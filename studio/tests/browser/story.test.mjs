@@ -141,14 +141,14 @@ test('the original game\'s chapters are a read-only reference; “Add shell” c
   await page.click(`${ws} button[data-tab="reference"]`);
   await page.waitForSelector(`${ws} [data-ref]`, { timeout: 15000 });
   const rows = await page.locator(`${ws} [data-ref]`).allInnerTexts();
-  assert.equal(rows.length, 5);
-  assert.match(rows[0], /1\. The Gate/); assert.match(rows[1], /Admissions/); assert.match(rows[2], /Ward 9/); assert.match(rows[3], /The Marrow/); assert.match(rows[4], /Last Light/);
+  assert.equal(rows.length, 6, 'six chapters; the epilogue belongs to chapter 6');
+  assert.match(rows[0], /1\. The Woods/); assert.match(rows[1], /Inside/); assert.match(rows[2], /Below/); assert.match(rows[3], /The Hidden Wing \(draft\)/); assert.match(rows[4], /The System \(draft\)/); assert.match(rows[5], /6\. Burn the Memory/);
   assert.match(await page.locator(`${ws} .note.warn`).innerText(), /Read-only reference/);
   assert.deepEqual(await story(), before, 'merely looking changed nothing');
   await page.locator(`${ws} [data-ref="ch3"] button`, { hasText: 'Add shell' }).click();
   await page.waitForFunction((n) => window.__studio.project.data.story.graph.nodes.length === n + 1, before.graph.nodes.length);
   const shell = (await nodes('chapter')).at(-1);
-  assert.deepEqual([shell.data.title, shell.data.summary, shell.data.objective, shell.data.map], ['Ward 9', '', '', 'original game: ch3']);
+  assert.deepEqual([shell.data.title, shell.data.summary, shell.data.objective, shell.data.map], ['Below', '', '', 'original game: ch3']);
 });
 
 test('story edits are undoable and survive a save/load round trip; the validator reports story problems with their nodes', async () => {
@@ -157,7 +157,7 @@ test('story edits are undoable and survive a save/load round trip; the validator
     const before = JSON.stringify(a.project.data.story);
     const copy = Project.fromJSON ? Project.fromJSON(JSON.parse(JSON.stringify(a.project.toJSON()))) : null;
     const v = validateProject(a.project, { only: ['story'] });
-    a.undo();                                            // the "Ward 9" shell
+    a.undo();                                            // the "Below" shell
     return { same: copy ? JSON.stringify(copy.data.story) === before : null, codes: v.issues.map((i) => i.code), withNodes: v.issues.filter((i) => i.storyNodes?.length).length, after: a.project.data.story.graph.nodes.length, nodesBefore: JSON.parse(before).graph.nodes.length };
   });
   assert.equal(r.same, true);

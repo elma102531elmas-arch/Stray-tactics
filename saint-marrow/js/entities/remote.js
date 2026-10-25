@@ -4,7 +4,7 @@ import { buildCreatureTemplate, instantiate, animate, deadPose, crawlPose } from
 import { damp, dampAngle, clamp } from '../util.js';
 import { makeCanvas } from '../util.js';
 
-const SUITS = [[0.07, 0.09, 0.07], [0.14, 0.07, 0.03], [0.04, 0.07, 0.12], [0.11, 0.11, 0.1]];
+const SUITS = [[0.07, 0.09, 0.07], [0.14, 0.07, 0.03], [0.04, 0.07, 0.12], [0.11, 0.11, 0.1], [0.12, 0.05, 0.08]];
 
 export class RemotePlayer {
   constructor(game, slot, name) {
@@ -15,7 +15,7 @@ export class RemotePlayer {
     this.yaw = 0; this.netYaw = 0; this.pitch = 0;
     this.p = { flashOn: true, crouch: false, downed: false, hidden: false, dead: false, sprinting: false, weapon: 'none', hp: 100 };
     this.speed = 0; this.phase = 0; this.stepAcc = 0;
-    const tpl = buildCreatureTemplate('human', game.assets, game.skinDetail, game.renderer.qname, { suit: SUITS[slot % 4] });
+    const tpl = buildCreatureTemplate('human', game.assets, game.skinDetail, game.renderer.qname, { suit: SUITS[slot % SUITS.length] });
     this.inst = instantiate(tpl, game.assets);
     this.root = this.inst.root;
     game.scene.add(this.root);

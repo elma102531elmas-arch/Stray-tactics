@@ -1,4 +1,4 @@
-// Diagnostics workspace in a real browser, on the REAL imported chapter 2 of the original game: triage with evidence, tracker, hit boxes, performance.
+// Diagnostics workspace in a real browser, on the REAL imported chapter 2 of the game: triage with evidence, tracker, hit boxes, performance.
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { launch, openStudio, sleep, clickDialog } from './helpers.mjs';
@@ -13,7 +13,7 @@ const tab = (t) => page.click(`${ws} button[data-tab="${t}"]`);
 const tracked = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__studio.project.data.issues)));
 const row = (re) => page.locator(`${ws} .dg-issue`, { hasText: re }).first();
 
-test('import chapter 2 of the original game; the Diagnostics tab validates and triages every issue', async () => {
+test('import chapter 2 of the game; the Diagnostics tab validates and triages every issue', async () => {
   const n = await page.evaluate(async () => {
     const a = window.__studio; const { loadGameModules, importChapterDef, importIntoProject } = await import('/studio/js/core/importers/sm-chapter.js');
     const mods = await loadGameModules(new URL('/saint-marrow', location.origin).href);
@@ -24,18 +24,18 @@ test('import chapter 2 of the original game; the Diagnostics tab validates and t
   await page.click('.tab[data-ws="diagnostics"]');
   await page.waitForSelector(`${ws} .dg-issue`, { timeout: 30000 });
   const r = await rows();
-  assert.equal(r.length, 6);
+  assert.equal(r.length, 3);
   const byCls = {}; for (const x of r) byCls[x.cls] = (byCls[x.cls] || 0) + 1;
-  assert.deepEqual(byCls, { quirk: 4, script: 2 }, 'every imported issue is explained; none is called a bug');
-  assert.match(await page.locator('#dg-summary').innerText(), /6 issues: 4 original-game quirk · 2 original script logic/);
+  assert.deepEqual(byCls, { quirk: 1, script: 2 }, 'every imported issue is explained; none is called a bug');
+  assert.match(await page.locator('#dg-summary').innerText(), /3 issues: 1 original-game quirk · 2 original script logic/);
 });
 
-test('“Why?” shows the explanation and the evidence (what was measured in the running game, what was read in the source)', async () => {
-  await row(/Interaction volume "use:fusebox".*2\.9/).locator('button', { hasText: 'Why?' }).click();
-  const why = await page.locator(`${ws} .dg-why`).innerText();
-  assert.match(why, /Fuse box interaction point sits 2\.9 m up/); assert.match(why, /mounted at 1\.45 m/); assert.match(why, /\[running game\] level\.interactables fusebox pos\(\)\.y = 2\.9/); assert.match(why, /chapters\.js: legend f/);
-  await row(/Blood writing/).locator('button', { hasText: 'Why?' }).click();
-  assert.match(await row(/Blood writing/).locator('.dg-why').innerText(), /wallDir\(x, z\) \|\| \[0, -1\]/);
+test('“Why?” shows the explanation and the evidence (what was read in the game’s own functions)', async () => {
+  await row(/trigger:nearStairs/).locator('button', { hasText: 'Why?' }).click();
+  const why = await row(/trigger:nearStairs/).locator('.dg-why').innerText();
+  assert.match(why, /Trigger the original never handles/); assert.match(why, /never contain 'nearStairs'/); assert.match(why, /ref_ch2_/);
+  await row(/use:fusebox/).locator('button', { hasText: 'Why?' }).click();
+  assert.match(await row(/use:fusebox/).locator('.dg-why').innerText(), /onUse\(\) mention 'fusebox'/);
   assert.equal(await page.locator(`${ws} .dg-why`).count(), 2);
 });
 
@@ -43,22 +43,26 @@ test('class and severity filters and the search box narrow the list', async () =
   await page.click(`${ws} button[data-cls="script"]`);
   assert.deepEqual([...new Set((await rows()).map((x) => x.cls))], ['quirk']);
   await page.click(`${ws} button[data-cls="script"]`);
-  await page.locator(`${ws} input[aria-label="Search issues"]`).fill('fusebox');
+  await page.locator(`${ws} input[aria-label="Search issues"]`).fill('stairs');
   await page.waitForFunction(() => document.querySelectorAll('#ws-diagnostics .dg-issue').length === 2, null, { timeout: 5000 });
-  assert.ok((await rows()).every((x) => /fusebox/.test(x.text)));
+  assert.ok((await rows()).every((x) => /stairs/i.test(x.text)));
   await page.locator(`${ws} input[aria-label="Search issues"]`).fill('');
-  await page.waitForFunction(() => document.querySelectorAll('#ws-diagnostics .dg-issue').length === 6);
+  await page.waitForFunction(() => document.querySelectorAll('#ws-diagnostics .dg-issue').length === 3);
 });
 
 test('Track puts an issue in the project tracker (quirks start as accepted); fixing it in the map is noticed', async () => {
-  await row(/out of reach|centred at y=2\.9/).locator('button', { hasText: 'Track' }).click();
+  await row(/trigger:nearStairs/).locator('button', { hasText: 'Track' }).click();
   await tab('tracker');
   await page.waitForSelector(`${ws} [data-tracked]`);
-  let t = await tracked(); assert.equal(t.length, 1); assert.equal(t[0].status, 'accepted'); assert.equal(t[0].cls, 'quirk'); assert.match(t[0].title, /Fuse box/); assert.deepEqual(t[0].nodeNames, ['use:fusebox']);
+  let t = await tracked(); assert.equal(t.length, 1); assert.equal(t[0].status, 'accepted'); assert.equal(t[0].cls, 'quirk'); assert.match(t[0].title, /never handles/); assert.deepEqual(t[0].nodeNames, ['trigger:nearStairs']);
   assert.equal(await page.locator(`${ws} [data-repro]`).getAttribute('data-repro'), 'yes');
-  // apply the offered fix (lowers the interaction point in THIS copy of the map)
+  // the useless trigger is removed from THIS copy of the map: Show selects it in the Scene tab, the Delete key removes it
   await tab('issues');
-  await row(/centred at y=2\.9/).locator('button', { hasText: 'Fix' }).click();
+  await row(/trigger:nearStairs/).locator('button', { hasText: 'Show' }).click();
+  await page.waitForFunction(() => window.__studio.primary?.name === 'trigger:nearStairs');
+  await page.keyboard.press('Delete');
+  await page.waitForFunction(() => !window.__studio.scene.byName('trigger:nearStairs'));
+  await page.click('.tab[data-ws="diagnostics"]');
   await tab('tracker');
   await page.waitForSelector(`${ws} [data-repro="no"]`, { timeout: 15000 });
   await page.locator(`${ws} button`, { hasText: 'Mark fixed' }).click();
@@ -96,8 +100,8 @@ test('the diagnostics report exports as Markdown with the groups, explanations a
   await page.locator(`${ws} button`, { hasText: 'Export report' }).click();
   const d = await dl; const md = require_fs().readFileSync(await d.path(), 'utf8');
   assert.match(d.suggestedFilename(), /-diagnostics\.md$/);
-  assert.match(md, /# Diagnostics —/); assert.match(md, /## Original-game quirk/); assert.match(md, /### Blood writing floats in the open/); assert.match(md, /wallDir\(x, z\) \|\| \[0, -1\]/); assert.match(md, /### Trigger the original never handles/); assert.match(md, /## Bug in this map/); assert.match(md, /My floating decal/);
-  assert.doesNotMatch(md, /Fuse box interaction point/, 'the fuse box issue was fixed earlier in this test file, so it is gone from the report');
+  assert.match(md, /# Diagnostics —/); assert.match(md, /## Original script logic/); assert.match(md, /### Handled by the original game’s script/); assert.match(md, /- Evidence: /); assert.match(md, /## Bug in this map/); assert.match(md, /My floating decal/);
+  assert.doesNotMatch(md, /trigger:nearStairs/, 'the dead trigger was deleted earlier in this test file, so it is gone from the report');
 });
 import fs from 'node:fs';
 function require_fs() { return fs; }

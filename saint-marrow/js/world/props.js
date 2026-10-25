@@ -58,6 +58,21 @@ export const PRESETS = {
   sink: { proc: 'sink', mount: 0.85 },
   bloodbucket: { proc: 'bucket', free: true },
   cell: { proc: 'padding', wall: true },
+  // the woods (chapter 1)
+  tent: { proc: 'tent', col: true },
+  tentdown: { proc: 'tentdown', col: false, free: true },
+  firepit: { proc: 'firepit', col: false },
+  grave: { proc: 'grave', col: true, free: true },
+  cross: { proc: 'cross', col: true, free: true },
+  rock: { proc: 'rock', col: true, free: true },
+  viewer: { proc: 'viewer', col: true },
+  noticeboard: { proc: 'noticeboard', col: true },
+  stump: { proc: 'stump', col: true, free: true },
+  memorial: { proc: 'memorial', col: true },
+  // the control level (chapter 6)
+  core: { proc: 'core', col: true },
+  pylon: { proc: 'pylon', col: true },
+  console: { proc: 'console', col: true, wall: true },
 };
 
 // Item pickups: model + scale + rest pose.
@@ -78,6 +93,7 @@ export const ITEMS = {
   fuel: { model: 'metal_jerrycan', glint: true },
   note: { proc: 'note', glint: true },
   tape: { model: 'portable_cassette_player', scale: 1, glint: true },
+  bottle: { proc: 'bottle', glint: true },
 };
 
 let cache = {};
@@ -303,6 +319,180 @@ function sleepbag(assets) {
   return m;
 }
 
+// ------------------------------------------------------------------ the woods
+function tent(assets, seed, collapsed) {
+  const r = mulberry32(seed * 7 + 3);
+  const g = new THREE.Group();
+  const cloth = new THREE.MeshStandardMaterial({ color: [0x3c4a33, 0x5a3b26, 0x2d3d4a][seed % 3], roughness: 0.85, side: THREE.DoubleSide, normalMap: assets.tex.waffle_pique_cotton?.nor || null });
+  // a ridge tent: two sloped panels, sagging; a collapsed one lies almost flat
+  const L = 2.1, W = 1.6, H = collapsed ? 0.35 : 1.15;
+  const geo = new THREE.BufferGeometry();
+  const seg = 10, pos = [];
+  for (let i = 0; i <= seg; i++) for (let j = 0; j <= 4; j++) {
+    const z = (i / seg - 0.5) * L, u = j / 4;
+    const sag = Math.sin(Math.PI * i / seg) * 0.12 + (collapsed ? noise2(i * 0.7 + seed, j) * 0.12 : 0);
+    pos.push(-W / 2 + u * W / 2, u * (H - sag), z);
+  }
+  for (let i = 0; i <= seg; i++) for (let j = 0; j <= 4; j++) {
+    const z = (i / seg - 0.5) * L, u = 1 - j / 4;
+    const sag = Math.sin(Math.PI * i / seg) * 0.12 + (collapsed ? noise2(i * 0.7 + seed + 9, j) * 0.12 : 0);
+    pos.push(u * W / 2, u * (H - sag), z);
+  }
+  const idx = [];
+  for (const base of [0, (seg + 1) * 5]) for (let i = 0; i < seg; i++) for (let j = 0; j < 4; j++) { const a = base + i * 5 + j, b = a + 5; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  g.add(new THREE.Mesh(geo, cloth));
+  if (!collapsed) {
+    const pole = new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.6, roughness: 0.4 });
+    for (const z of [-L / 2, L / 2]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, H, 6), pole); p.position.set(0, H / 2, z); g.add(p); }
+    // back wall
+    const back = new THREE.Mesh(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-W / 2, 0, -L / 2), new THREE.Vector3(W / 2, 0, -L / 2), new THREE.Vector3(0, H - 0.05, -L / 2)]), cloth);
+    back.geometry.computeVertexNormals(); g.add(back);
+  }
+  g.rotation.y = r() * 0.3 - 0.15;
+  return g;
+}
+
+function firepit(assets, seed) {
+  const r = mulberry32(seed + 11);
+  const g = new THREE.Group();
+  const stone = assets.mat('concrete_wall_006', { color: 0x6d6a64 });
+  for (let i = 0; i < 9; i++) {
+    const a = i / 9 * Math.PI * 2;
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.12 + r() * 0.05, 0), stone);
+    m.position.set(Math.cos(a) * 0.5, 0.06, Math.sin(a) * 0.5); m.rotation.set(r() * 3, r() * 3, r() * 3); m.scale.y = 0.7;
+    g.add(m);
+  }
+  const ash = new THREE.Mesh(new THREE.CircleGeometry(0.42, 16), new THREE.MeshStandardMaterial({ color: 0x1b1916, roughness: 1 }));
+  ash.rotation.x = -Math.PI / 2; ash.position.y = 0.02; g.add(ash);
+  const wood = assets.mat('pine_bark', { color: 0x2a221c });
+  for (let i = 0; i < 4; i++) { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.6, 6), wood); l.rotation.set(Math.PI / 2 - 0.25, i * 0.8, 0); l.position.set(0, 0.1, 0); g.add(l); }
+  return g;
+}
+
+function grave(assets, seed) {
+  const r = mulberry32(seed * 13 + 1);
+  const g = new THREE.Group();
+  const stone = assets.mat('concrete_wall_006', { color: 0x7d7a73 });
+  const h = 0.6 + r() * 0.35;
+  const s = new THREE.Mesh(new RoundedBoxGeometry(0.5, h, 0.12, 2, 0.05), stone);
+  s.position.y = h / 2 - 0.05; s.rotation.set((r() - 0.5) * 0.12, (r() - 0.5) * 0.2, (r() - 0.5) * 0.18);
+  g.add(s);
+  const mound = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), assets.mat('mud_forest', { color: 0x5a4e40 }));
+  mound.scale.set(0.8, 0.18, 1.6); mound.position.set(0, 0, 0.75); g.add(mound);
+  return g;
+}
+
+function woodCross(assets, seed) {
+  const r = mulberry32(seed * 3 + 5);
+  const g = new THREE.Group();
+  const wood = assets.mat('wood_peeling_paint_weathered', { color: 0x6b5a48 });
+  const v = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.0, 0.05), wood); v.position.y = 0.45; g.add(v);
+  const h = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.07, 0.05), wood); h.position.y = 0.72; g.add(h);
+  g.rotation.z = (r() - 0.5) * 0.25;
+  return g;
+}
+
+function rock(assets, seed) {
+  const r = mulberry32(seed * 17 + 2);
+  const geo = new THREE.IcosahedronGeometry(1, 2);
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const k = 1 + fbm3(x * 1.7 + seed, y * 1.7, z * 1.7, 3) * 0.45; p.setXYZ(i, x * k, Math.max(-0.2, y) * k * 0.65, z * k); }
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, assets.mat('concrete_wall_006', { color: 0x605d58 }));
+  const s = 0.5 + r() * 0.7;
+  m.scale.setScalar(s); m.position.y = 0.1 * s; m.rotation.y = r() * 6;
+  return m;
+}
+
+function stump(assets, seed) {
+  const r = mulberry32(seed * 5 + 9);
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.22 + r() * 0.08, 0.32, 0.35 + r() * 0.25, 10), assets.mat('pine_bark', { color: 0x5a4f45 }));
+  m.position.y = 0.2;
+  return m;
+}
+
+function viewer(assets) {
+  // coin-operated binoculars on a post, the kind left at a scenic lookout
+  const g = new THREE.Group();
+  const metal = assets.mat('green_metal_rust', { metal: true, color: 0x55705a, env: 0.4 });
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 1.15, 10), metal); post.position.y = 0.575; g.add(post);
+  const head = new THREE.Mesh(new RoundedBoxGeometry(0.34, 0.2, 0.22, 3, 0.06), metal); head.position.set(0, 1.3, 0); g.add(head);
+  for (const x of [-0.07, 0.07]) { const e = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.14, 12), metal); e.rotation.x = Math.PI / 2; e.position.set(x, 1.32, 0.15); g.add(e); const f = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 12), metal); f.rotation.x = Math.PI / 2; f.position.set(x, 1.3, -0.15); g.add(f); }
+  return g;
+}
+
+let boardTex = null;
+function noticeboard(assets) {
+  if (!boardTex) {
+    const cv = makeCanvas(256, 160), ctx = cv.getContext('2d');
+    ctx.fillStyle = '#4a3a2a'; ctx.fillRect(0, 0, 256, 160);
+    // faded flyers, two of them MISSING posters
+    const sheets = [[14, 14, 70, 92, '#d8d2bf', 'MISSING'], [96, 22, 64, 84, '#cfc7b0', 'MISSING'], [172, 12, 70, 60, '#c9c2a6', 'TRAIL'], [170, 82, 74, 66, '#bdb69c', '']];
+    for (const [x, y, w, h, c, t] of sheets) {
+      ctx.fillStyle = c; ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = '#222'; ctx.font = 'bold 13px sans-serif'; if (t) ctx.fillText(t, x + 6, y + 16);
+      if (t === 'MISSING') { ctx.fillStyle = '#6b665a'; ctx.fillRect(x + 12, y + 24, w - 24, h - 48); ctx.fillStyle = '#333'; for (let i = 0; i < 3; i++) ctx.fillRect(x + 6, y + h - 20 + i * 5, w - 12, 2); }
+      else for (let i = 0; i < 6; i++) { ctx.fillStyle = '#555'; ctx.fillRect(x + 6, y + 24 + i * 7, w - 12 - (i % 3) * 8, 2); }
+    }
+    boardTex = new THREE.CanvasTexture(cv); boardTex.colorSpace = THREE.SRGBColorSpace;
+  }
+  const g = new THREE.Group();
+  const wood = assets.mat('wood_peeling_paint_weathered', { color: 0x5d4c3a });
+  for (const x of [-0.75, 0.75]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.0, 0.1), wood); p.position.set(x, 1.0, 0); g.add(p); }
+  const b = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.95, 0.05), wood); b.position.set(0, 1.35, 0); g.add(b);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(1.42, 0.88), new THREE.MeshStandardMaterial({ map: boardTex, roughness: 0.9 })); face.position.set(0, 1.35, 0.03); g.add(face);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.05, 0.35), wood); roof.position.set(0, 1.88, 0.05); roof.rotation.x = -0.25; g.add(roof);
+  return g;
+}
+
+function memorial(assets) {
+  const g = new THREE.Group();
+  const stone = assets.mat('concrete_wall_006', { color: 0x8a8780 });
+  const base = new THREE.Mesh(new RoundedBoxGeometry(1.2, 0.3, 0.7, 2, 0.05), stone); base.position.y = 0.15; g.add(base);
+  const slab = new THREE.Mesh(new RoundedBoxGeometry(0.9, 1.2, 0.22, 2, 0.06), stone); slab.position.y = 0.9; g.add(slab);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.4), new THREE.MeshStandardMaterial({ color: 0x5a4a2a, metalness: 0.7, roughness: 0.45 })); plate.position.set(0, 1.0, 0.115); g.add(plate);
+  return g;
+}
+
+// ------------------------------------------------------------------ the control level
+export const CORE_GLOW = new THREE.MeshStandardMaterial({ color: 0x101418, emissive: 0x7fd6ff, emissiveIntensity: 1.6, roughness: 0.4 });
+function coreMachine(assets) {
+  const g = new THREE.Group();
+  const metal = assets.mat('green_metal_rust', { metal: true, color: 0x4c5560, env: 0.5 });
+  const dark = assets.mat('rusty_metal_02', { metal: true, color: 0x3a3632, env: 0.4 });
+  // sized for a 3 m ceiling: cables run up into it
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.3, 0.3, 32), dark); base.position.y = 0.15; g.add(base);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.6, 2.2, 32, 1, true), metal); body.position.y = 1.4; g.add(body);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.4, 0.3, 32), dark); top.position.y = 2.65; g.add(top);
+  // glowing slits that dim when the system is shut down (material is shared and driven by the script)
+  for (let i = 0; i < 8; i++) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.8, 0.04), CORE_GLOW); const a = i / 8 * Math.PI * 2; s.position.set(Math.cos(a) * 1.46, 1.4, Math.sin(a) * 1.46); s.rotation.y = -a; g.add(s); }
+  // cables into the ceiling
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.3; const c = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.18, 6), dark); c.position.set(Math.cos(a) * 1.1, 2.88, Math.sin(a) * 1.1); g.add(c); }
+  const panel = new THREE.Mesh(new RoundedBoxGeometry(1.2, 1.0, 0.5, 3, 0.05), dark); panel.position.set(0, 0.8, 2.0); g.add(panel);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.5), CORE_GLOW); screen.position.set(0, 1.0, 2.26); g.add(screen);
+  return g;
+}
+function pylon(assets) {
+  const g = new THREE.Group();
+  const dark = assets.mat('rusty_metal_02', { metal: true, color: 0x3a3632, env: 0.4 });
+  const c = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.9, 0.6), dark); c.position.y = 1.45; g.add(c);
+  for (const y of [0.7, 1.4, 2.1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.05, 0.62), CORE_GLOW); l.position.y = y; g.add(l); }
+  return g;
+}
+function consoleDesk(assets) {
+  const g = new THREE.Group();
+  const dark = assets.mat('rusty_metal_02', { metal: true, color: 0x45403a, env: 0.4 });
+  const d = new THREE.Mesh(new RoundedBoxGeometry(1.4, 0.9, 0.7, 2, 0.04), dark); d.position.y = 0.45; g.add(d);
+  const sl = new THREE.Mesh(new RoundedBoxGeometry(1.3, 0.5, 0.25, 2, 0.03), dark); sl.position.set(0, 1.05, -0.2); sl.rotation.x = -0.4; g.add(sl);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.32), new THREE.MeshStandardMaterial({ color: 0x0a0c0a, emissive: 0x2a5a3a, emissiveIntensity: 0.6 }));
+  scr.position.set(0, 1.07, -0.07); scr.rotation.x = -0.4; g.add(scr);
+  g.userData.screen = scr;
+  return g;
+}
+
 let paperTex = null;
 function papers() {
   if (!paperTex) {
@@ -363,8 +553,16 @@ function padding(assets) {
 }
 
 // ---- small item meshes ----
+export function bottleMesh() {
+  const glass = new THREE.MeshStandardMaterial({ color: 0x2f5a2c, roughness: 0.12, metalness: 0.0, transparent: true, opacity: 0.82, envMapIntensity: 1.4 });
+  const pts = [[0, 0], [0.032, 0], [0.034, 0.005], [0.034, 0.15], [0.03, 0.18], [0.014, 0.21], [0.013, 0.26], [0.016, 0.265], [0.0001, 0.265]].map(([x, y]) => new THREE.Vector2(x, y));
+  const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 14), glass);
+  return m;
+}
+
 function itemProc(kind, assets) {
   const grp = new THREE.Group();
+  if (kind === 'bottle') { const b = bottleMesh(); b.rotation.z = Math.PI / 2; b.position.set(0.13, 0.034, 0); grp.add(b); return grp; }
   if (kind === 'battery') {
     const b = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.06, 14), new THREE.MeshStandardMaterial({ color: 0x1c1c1c, roughness: 0.4, metalness: 0.3 }));
     const c = new THREE.Mesh(new THREE.CylinderGeometry(0.0172, 0.0172, 0.02, 14), new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.35, metalness: 0.9 }));
@@ -472,6 +670,19 @@ export function makePropMesh(assets, name, seed = 1) {
       case 'sink': obj = sink(assets); break;
       case 'bucket': obj = bucket(assets); break;
       case 'padding': obj = padding(assets); break;
+      case 'tent': obj = tent(assets, seed, false); break;
+      case 'tentdown': obj = tent(assets, seed, true); break;
+      case 'firepit': obj = firepit(assets, seed); break;
+      case 'grave': obj = grave(assets, seed); break;
+      case 'cross': obj = woodCross(assets, seed); break;
+      case 'rock': obj = rock(assets, seed); break;
+      case 'viewer': obj = viewer(assets); break;
+      case 'noticeboard': obj = noticeboard(assets); break;
+      case 'stump': obj = stump(assets, seed); break;
+      case 'memorial': obj = memorial(assets); break;
+      case 'core': obj = coreMachine(assets); break;
+      case 'pylon': obj = pylon(assets); break;
+      case 'console': obj = consoleDesk(assets); break;
       default: obj = new THREE.Group();
     }
   } else {
