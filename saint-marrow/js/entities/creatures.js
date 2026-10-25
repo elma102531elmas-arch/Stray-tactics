@@ -2,6 +2,7 @@
 import * as THREE from '../../lib/three.module.js';
 import { buildSurface, skinGeometry, applyTriplanar, evalPrim } from './sdf.js';
 import { fbm3, noise3, clamp, lerp } from '../util.js';
+import { fitHitboxes } from './hitbox.js';
 
 const BONE_ORDER = ['hips', 'spine', 'chest', 'neck', 'head', 'clavL', 'armL', 'foreL', 'handL', 'clavR', 'armR', 'foreR', 'handR', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'];
 const PARENT = { hips: null, spine: 'hips', chest: 'spine', neck: 'chest', head: 'neck', clavL: 'chest', armL: 'clavL', foreL: 'armL', handL: 'foreL', clavR: 'chest', armR: 'clavR', foreR: 'armR', handR: 'foreR', thighL: 'hips', shinL: 'thighL', footL: 'shinL', thighR: 'hips', shinR: 'thighR', footR: 'shinR' };
@@ -327,7 +328,11 @@ export function buildCreatureTemplate(kind, assets, detail, quality = 'medium', 
     cloth: applyTriplanar(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.2 }), detail.map, { scale: 3, bump: 0.03 }),
     leather: applyTriplanar(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, side: THREE.DoubleSide, envMapIntensity: 0.3 }), detail.map, { scale: 4, bump: 0.025 }),
   };
-  const tpl = { kind, J, P, scale: D.scale, parts, mats, prims };
+  // hit boxes measured from the finished, scaled mesh (bones sit at J * scale in bind pose)
+  const bonePos = {};
+  for (const b of BONE_ORDER) bonePos[b] = new THREE.Vector3(J[b][0] * D.scale, J[b][1] * D.scale, J[b][2] * D.scale);
+  const hitboxes = fitHitboxes(parts.map((p) => p.geo), BONE_ORDER, bonePos);
+  const tpl = { kind, J, P, scale: D.scale, parts, mats, prims, hitboxes };
   cache[key] = tpl;
   return tpl;
 }
@@ -361,7 +366,7 @@ export function instantiate(tpl, assets) {
     hook.position.set(0, -0.12, 0.02);
     bones.handR.add(hook);
   }
-  return { root, bones, skeleton, meshes, rest: captureRest(bones), J: tpl.J, scale: s, kind: tpl.kind };
+  return { root, bones, skeleton, meshes, rest: captureRest(bones), J: tpl.J, scale: s, kind: tpl.kind, hitboxes: tpl.hitboxes };
 }
 
 function makeHook(assets) {

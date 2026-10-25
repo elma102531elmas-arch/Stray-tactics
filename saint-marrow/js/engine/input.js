@@ -5,7 +5,7 @@ const KEYMAP = {
   KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
   ShiftLeft: 'sprint', ShiftRight: 'sprint', KeyC: 'crouch', ControlLeft: 'crouch', KeyF: 'flash', KeyE: 'use', KeyR: 'reload',
   KeyQ: 'weapon', Digit1: 'w1', Digit2: 'w2', Digit3: 'w3', Digit4: 'w4', KeyH: 'heal', KeyG: 'medkit', Tab: 'journal', Escape: 'pause',
-  KeyP: 'pause', KeyV: 'aim', KeyT: 'chat', KeyB: 'battery',
+  KeyP: 'pause', KeyV: 'aim', KeyT: 'chat', KeyB: 'battery', F9: 'hitboxes',
 };
 
 export class Input {

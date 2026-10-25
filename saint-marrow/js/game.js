@@ -1022,6 +1022,8 @@ export class Game {
     if (this.state === 'play') {
       if (I.pressed.has('pause')) { this.pause(); return; }
       if (I.pressed.has('journal')) { this.ui.openJournal(); }
+      if (I.pressed.has('hitboxes')) { this.showHitboxes = !this.showHitboxes; this.ui.toast(this.showHitboxes ? 'Hit boxes: on (F9)' : 'Hit boxes: off'); }
+      if (this.showHitboxes || this.hbShown) { for (const e of this.enemies) e.showHitboxes(this.showHitboxes); this.hbShown = this.showHitboxes; }
       this.stats.time += dt;
       P.update(dt, I);
       this.updateInteraction(dt, I);

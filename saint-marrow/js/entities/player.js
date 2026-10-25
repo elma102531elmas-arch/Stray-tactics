@@ -5,7 +5,7 @@ import { clamp, damp, lerp, rand, noise2, pick } from '../util.js';
 
 export const WEAPONS = {
   crowbar: { kind: 'melee', dmg: 38, range: 1.75, rate: 0.62, noise: 6 },
-  pistol: { kind: 'gun', dmg: 34, mag: 8, rate: 0.2, spread: 0.022, adsSpread: 0.004, recoil: 0.045, reload: 1.85, ammo: 'ammo9', noise: 30, sound: 'shot_pistol', pellets: 1 },
+  pistol: { kind: 'gun', dmg: 34, mag: 8, rate: 0.2, spread: 0.022, adsSpread: 0.004, recoil: 0.045, reload: 1.7, reloadEmpty: 2.05, ammo: 'ammo9', noise: 30, sound: 'shot_pistol', pellets: 1 },
   rifle: { kind: 'gun', dmg: 135, mag: 5, rate: 1.25, spread: 0.03, adsSpread: 0.0008, recoil: 0.11, reload: 0.6, perRound: true, ammo: 'ammo762', noise: 42, sound: 'shot_rifle', pellets: 1, pierce: true },
 };
 export const WEAPON_ORDER = ['none', 'crowbar', 'pistol', 'rifle'];
@@ -282,7 +282,7 @@ export class Player {
     _d.x += rand(-spread, spread); _d.y += rand(-spread, spread); _d.z += rand(-spread, spread);
     _d.normalize();
     g.fireShot(_o.clone(), _d.clone(), w, this.weapon);
-    g.vm.fire(this.weapon);
+    g.vm.fire(this.weapon, this.mag[this.weapon] === 0);
     // recoil
     this.pitch += w.recoil * (this.aim ? 0.6 : 1) * (0.8 + Math.random() * 0.4);
     this.yaw += rand(-0.012, 0.012) * (w.recoil / 0.045);
@@ -304,20 +304,16 @@ export class Player {
     if (!w || w.kind !== 'gun' || this.reloading > 0) return;
     if (this.mag[this.weapon] >= w.mag || this.inv[w.ammo] <= 0) return;
     const g = this.game;
+    // the viewmodel's reload clip plays the matching sounds (magazine, slide, bolt, rounds) on its own keyframes
     if (w.perRound) {
       const n = Math.min(w.mag - this.mag[this.weapon], this.inv[w.ammo]);
       this.reloading = 0.6 + n * w.reload;
       this.reloadRounds = n;
-      g.vm.reload('rifle', this.reloading);
-      g.audio.play('bolt_open', { vol: 0.6 });
-      for (let i = 0; i < n; i++) g.audio.play('round_in', { vol: 0.5, delay: 0.35 + i * w.reload });
-      g.audio.play('bolt_close', { vol: 0.6, delay: this.reloading - 0.2 });
+      g.vm.reload('rifle', this.reloading, { rounds: n });
     } else {
-      this.reloading = w.reload;
-      g.vm.reload('pistol', w.reload);
-      g.audio.play('mag_out', { vol: 0.6 });
-      g.audio.play('mag_in', { vol: 0.6, delay: w.reload * 0.55 });
-      g.audio.play('slide', { vol: 0.6, delay: w.reload * 0.82 });
+      const empty = this.mag[this.weapon] === 0;
+      this.reloading = empty ? w.reloadEmpty : w.reload;
+      g.vm.reload('pistol', this.reloading, { empty });
     }
     this.aimToggle = false;
   }

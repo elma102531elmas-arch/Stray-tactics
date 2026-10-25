@@ -2,6 +2,7 @@
 // AI runs on the host only; clients receive snapshots and animate locally.
 import * as THREE from '../../lib/three.module.js';
 import { buildCreatureTemplate, instantiate, animate, deadPose, crawlPose } from './creatures.js';
+import { raycastHitboxes, hitboxHelpers } from './hitbox.js';
 import { CFG, DIFF } from '../settings.js';
 import { clamp, damp, dampAngle, wrapAngle, rand, pick, lerp } from '../util.js';
 
@@ -436,28 +437,20 @@ export class Enemy {
     }
   }
 
-  // hit-test against simple body-part shapes built from bone positions
+  // hit-test against capsules fitted to this creature's mesh, one per bone (see hitbox.js)
   raycast(o, d, maxT) {
     if (this.state === 'absent' || this.state === 'dead') return null;
-    const B = this.inst.bones;
+    // quick reject: the ray must pass within 2.2 m of the creature's middle
+    const cx = this.pos.x - o.x, cy = this.pos.y + 0.9 - o.y, cz = this.pos.z - o.z;
+    const along = cx * d.x + cy * d.y + cz * d.z;
+    if (along < -2 || cx * cx + cy * cy + cz * cz - along * along > 2.2 * 2.2) return null;
     this.root.updateMatrixWorld(true);
-    const w = (b, out) => b.getWorldPosition(out);
-    const s = this.inst.scale;
-    const parts = [
-      ['head', w(B.head, new THREE.Vector3()).add(new THREE.Vector3(0, 0.1 * s, 0)), null, 0.12 * s],
-      ['body', w(B.hips, new THREE.Vector3()), w(B.neck, new THREE.Vector3()), 0.19 * s],
-      ['arm', w(B.armL, new THREE.Vector3()), w(B.handL, new THREE.Vector3()), 0.065 * s],
-      ['arm', w(B.armR, new THREE.Vector3()), w(B.handR, new THREE.Vector3()), 0.065 * s],
-      ['leg', w(B.thighL, new THREE.Vector3()), w(B.footL, new THREE.Vector3()), 0.085 * s],
-      ['leg', w(B.thighR, new THREE.Vector3()), w(B.footR, new THREE.Vector3()), 0.085 * s],
-    ];
-    let best = null;
-    for (const [part, a, b, r] of parts) {
-      const t = b ? rayCapsule(o, d, a, b, r) : raySphere(o, d, a, r);
-      if (t !== null && t > 0 && t < maxT && (!best || t < best.t)) best = { t, part };
-    }
-    if (best) best.point = o.clone().addScaledVector(d, best.t);
-    return best;
+    return raycastHitboxes(this.inst.hitboxes || [], this.inst.bones, o, d, maxT);
+  }
+
+  showHitboxes(on) {
+    if (on && !this.hbHelpers) this.hbHelpers = hitboxHelpers(this.inst.hitboxes || [], this.inst.bones);
+    if (this.hbHelpers) for (const h of this.hbHelpers) { h.visible = !!on; h.layers.enableAll(); }
   }
 
   snapshot() {
@@ -483,28 +476,4 @@ export class Enemy {
     this.pos.z = damp(this.pos.z, this.netPos.z, 10, dt);
     this.yaw = dampAngle(this.yaw, this.netYaw, 10, dt);
   }
-}
-
-function raySphere(o, d, c, r) {
-  _a.copy(o).sub(c);
-  const b = _a.dot(d), cc = _a.dot(_a) - r * r;
-  const h = b * b - cc;
-  if (h < 0) return null;
-  return -b - Math.sqrt(h);
-}
-function rayCapsule(ro, rd, pa, pb, r) {
-  const ba = _a.copy(pb).sub(pa), oa = _b.copy(ro).sub(pa);
-  const baba = ba.dot(ba), bard = ba.dot(rd), baoa = ba.dot(oa), rdoa = rd.dot(oa), oaoa = oa.dot(oa);
-  const a = baba - bard * bard, b = baba * rdoa - baoa * bard, c = baba * oaoa - baoa * baoa - r * r * baba;
-  const h = b * b - a * c;
-  if (h >= 0) {
-    const t = (-b - Math.sqrt(h)) / a;
-    const y = baoa + t * bard;
-    if (y > 0 && y < baba) return t;
-    const oc = y <= 0 ? oa : _c.copy(ro).sub(pb);
-    const bb = rd.dot(oc), cc2 = oc.dot(oc) - r * r;
-    const hh = bb * bb - cc2;
-    if (hh > 0) return -bb - Math.sqrt(hh);
-  }
-  return null;
 }
