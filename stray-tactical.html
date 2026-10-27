@@ -818,6 +818,18 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
   .pFoot{height:60px;} .goBtn{height:44px;}
 }
 @media (prefers-reduced-motion:reduce){ .navBtn{transition:none;} #cbTime.bomb{animation:none;} }
+/* @@CSS:maps — styles from the maps work go right below this line */
+
+
+/* @@CSS:net — styles from the net work go right below this line */
+
+
+/* @@CSS:anim — styles from the anim work go right below this line */
+
+
+/* @@CSS:polish — styles from the polish work go right below this line */
+
+
 </style>
 </head>
 <body>
@@ -1286,6 +1298,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const __EXT={}; function gameExport(o){ Object.defineProperties(__EXT,Object.getOwnPropertyDescriptors(o)); } // extra window.__game entries (getters preserved)
 
 const $=id=>document.getElementById(id);
 const DEG=Math.PI/180, TAU=Math.PI*2;
@@ -2744,9 +2757,11 @@ function kumVadisiData(){
   A({t:'siteA',p:[31,0,-31],s:[26,3.5,22]}); A({t:'siteB',p:[-31,0,-31],s:[26,3.5,26]});
   return normalizeMap({id:'kumvadisi',name:'Kum Vadisi',builtin:1,settings:{size:48,sky:1,ground:'sand',sunAz:-38,sunEl:48,fog:.0048,mode:'bomb',preview:{p:[0,14,46],t:[0,0,0]}},objects:O});
 }
+const EXTRA_MAPS=[]; // built-in map data factories registered by later blocks: EXTRA_MAPS.push(()=>normalizeMap({...}))
 async function loadMapLibrary(){
   const custom=(await Store.allMaps()).map(m=>{ try{ return normalizeMap(m); }catch(e){ return null; } }).filter(Boolean);
-  MAPLIB.list=[avluData(),kumVadisiData(),...custom.filter(m=>m.id!=='avlu'&&m.id!=='kumvadisi')];
+  const built=[avluData(),kumVadisiData(),...EXTRA_MAPS.map(f=>f())], bid=new Set(built.map(m=>m.id));
+  MAPLIB.list=[...built,...custom.filter(m=>!bid.has(m.id))];
   rebuildMapIndex();
   for(const m of custom) for(const o of m.objects) if(o.t==='model'&&o.key) await loadGLBIntoCache(o.key);
 }
@@ -8679,6 +8694,18 @@ function addGround(){
   const m=new THREE.Mesh(g,getMapMat('sand')); m.receiveShadow=true; m.position.y=-.002; m.renderOrder=-1; scene.add(m); WORLD.ground=m;
 }
 
+/* @@BLOCK:maps — code from the maps work goes right below this line */
+
+
+/* @@BLOCK:net — code from the net work goes right below this line */
+
+
+/* @@BLOCK:anim — code from the anim work goes right below this line */
+
+
+/* @@BLOCK:polish — code from the polish work goes right below this line */
+
+
 /* =====================================================================
    BOOT
    ===================================================================== */
@@ -8701,6 +8728,7 @@ async function init(){
   animate();
 }
 window.__game={ get bots(){return bots;}, MapBuilder, MOBJ, buildMapFromData, buildWeaponObject, scene, get COMP(){return COMP;}, startComp, toggleBuy, buyItem, showScoreboard, openMapEditor, MAPLIB, WORLD, ME, get meCam(){return meCam;}, meSelect, meAdd, setScope, throwNade, dropCurrent, step:(n,dt)=>{ window.__manual=true; for(let i=0;i<n;i++) tick(dt||1/60,i===n-1); }, resume:()=>{ window.__manual=false; }, edStep:(n)=>{ for(let i=0;i<n;i++){ ED.last=performance.now()-16; } }, cmd:(s)=>{ const [c,...a]=s.split(/\s+/); CMDS[c](a); }, fire:()=>tryFire(true), switchSlot, tryReload, get CFG(){return CFG;}, get match(){return match;}, get player(){return player;}, startMatch, openEditor, LIB, ED, edSetView, edSelect, setMap, camera, applyQuality, applyVideo, showScreen, get VM(){return VM;}, vmFire, vmReload, vmInspect, updateRig, renderInventory, edFocus, openProfile, edPart, renderMapPreview, MENU, MENU_POSE, STATS, openDevAsk, weaponIcon, get curScreen(){return curScreen;}, renderer, vmScene, vmCam, get composer(){return composer;}, SND, sndPlay, weaponSound, weaponFire, announce, get PACK(){return PACK;}, PACK_UI, packImport, packLoad, packClear, packSummary, packPick, packHas, packGroups, packCount, packList, packAssign, packRemap, packRunImport, packPreview, soundVer, soundVerRaw, setSoundVer, sndProfile, Store, renderSoundWorkshop, renderSettings, cycleScope, doKnifeHit, c4Sounds, sfx, get AUD(){return AUD;}, ensureAudio, openSoundWorkshop, damageAgent, getWeapon, toggleSilencer, isSuppressed, SIL_POSE, DECOYS, NADES, DROPS, radarDecoys, updateHUD, inaccuracy };
+Object.defineProperties(window.__game,Object.getOwnPropertyDescriptors(__EXT));
 init().catch(e=>{ window.__showErr('KRİTİK HATA: '+e.message+'\n'+(e.stack||'')); $('loadTxt').textContent='Hata oluştu — aşağıya bak'; });
 </script>
 </body>
