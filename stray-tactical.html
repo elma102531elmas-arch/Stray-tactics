@@ -828,6 +828,49 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 
 
 /* @@CSS:polish — styles from the polish work go right below this line */
+/* touch controls v2 (CS-mobile style); positions / sizes come from touchApplyLayout (CFG.touch.layout) */
+#touch .tbtn{position:absolute;pointer-events:auto;box-sizing:border-box;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:radial-gradient(circle at 50% 36%,rgba(46,54,66,.62),rgba(9,12,17,.6));border:1.5px solid rgba(255,255,255,.3);box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.14);
+  color:#fff;font-family:var(--f-display);font-weight:800;letter-spacing:.05em;user-select:none;-webkit-user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;
+  transition:transform .06s,background .12s,border-color .12s;font-size:calc(var(--bs,50px)*.16);line-height:1;}
+#touch .tbtn .ti{width:44%;height:44%;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.65));pointer-events:none;}
+#touch .tbtn .tl{font-size:calc(var(--bs,50px)*.15);margin-top:1px;opacity:.92;text-shadow:0 1px 2px #000;pointer-events:none;white-space:nowrap;}
+#touch .tbtn .tk{font-size:calc(var(--bs,50px)*.36);line-height:1;pointer-events:none;}
+#touch .tbtn.tSm .tl{display:none;} #touch .tbtn.tSm .ti{width:50%;height:50%;}
+#touch .tbtn.down{transform:scale(.92);background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.34),rgba(60,70,84,.55));}
+#touch .tbtn.on{background:radial-gradient(circle at 50% 40%,rgba(255,182,72,.6),rgba(120,70,10,.55));border-color:var(--amber);}
+#touch .tbtn.tFire{background:radial-gradient(circle at 50% 38%,rgba(255,78,92,.45),rgba(110,8,18,.48));border:2px solid rgba(255,96,108,.9);}
+#touch .tbtn.tFire .ti{stroke-width:2;width:48%;height:48%;}
+#touch .tbtn.tFire.down{background:radial-gradient(circle at 50% 40%,rgba(255,110,120,.78),rgba(170,20,32,.62));}
+#touch #useBtnTouch{border-color:var(--amber);background:radial-gradient(circle at 50% 38%,rgba(255,182,72,.45),rgba(90,52,8,.5));}
+#touch #buyBtnTouch{border-color:#7ee08a;background:radial-gradient(circle at 50% 38%,rgba(126,224,138,.38),rgba(20,70,30,.5));}
+#touch .stick{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.03) 55%,rgba(255,255,255,.09));border:2px solid rgba(255,255,255,.2);pointer-events:none;box-sizing:border-box;}
+#touch .stick .knob{position:absolute;border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.5),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.55);box-shadow:0 2px 8px rgba(0,0,0,.4);}
+#touch .stick.down{border-color:rgba(255,255,255,.4);}
+#moveZone{position:absolute;left:0;bottom:0;width:44%;height:80%;pointer-events:auto;touch-action:none;}
+#lookZone{width:56%;touch-action:none;}
+#nadeWheel{position:absolute;z-index:3;display:flex;gap:6px;padding:6px;background:rgba(9,12,17,.82);border:1px solid rgba(255,255,255,.18);pointer-events:auto;}
+#nadeWheel button{min-width:62px;height:44px;padding:0 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);color:#fff;font-family:var(--f-display);font-weight:800;font-size:13px;letter-spacing:.04em;}
+#nadeWheel button.on{border-color:var(--amber);background:rgba(255,182,72,.28);}
+/* touch HUD fit: compact radar, ammo top-left in every mode, kill feed under the round bar */
+body.touch #radar{width:var(--trs,110px)!important;height:var(--trs,110px)!important;}
+body.touch #ammoBox{top:max(56px,calc(env(safe-area-inset-top) + 50px));bottom:auto;right:auto;left:max(64px,calc(env(safe-area-inset-left) + 56px));text-align:left;transform-origin:left top;}
+body.touch #killFeed{top:max(62px,calc(env(safe-area-inset-top) + 56px));bottom:auto;left:50%;right:auto;transform:translateX(-50%) scale(calc(var(--hs) * .85));transform-origin:top center;align-items:center;}
+body.touch #useHint{bottom:auto;top:62%;}
+body.touch #bombIcon{top:max(122px,calc(env(safe-area-inset-top) + 118px));left:max(14px,env(safe-area-inset-left));}
+/* touch layout editor */
+#touchEd{position:fixed;inset:0;z-index:29;background:rgba(5,8,12,.35);background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+#touchEd .teBar{position:fixed;left:50%;top:max(6px,env(safe-area-inset-top));transform:translateX(-50%);z-index:32;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;max-width:calc(100vw - 270px);
+  padding:6px 10px;background:rgba(10,13,18,.94);border:1px solid var(--amber);color:#fff;font-size:11px;font-family:var(--f-ui,sans-serif);pointer-events:auto;}
+#touchEd .teBar b{font-family:var(--f-display);letter-spacing:.08em;color:var(--amber);font-size:13px;}
+#touchEd .teBar label{display:flex;align-items:center;gap:4px;color:#c9d1dc;} #touchEd .teBar input[type=range]{width:86px;}
+#touchEd #teSel{min-width:70px;color:#fff;font-weight:700;}
+#touchEd .teBar .cBtn{height:26px;padding:0 9px;font-size:11px;margin:0;}
+#touchEd .teHint{position:fixed;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:32;color:#c9d1dc;font-size:11px;background:rgba(0,0,0,.55);padding:3px 10px;white-space:nowrap;}
+body.touchEditing #touch{z-index:31;}
+body.touchEditing #touch .tbtn,body.touchEditing #touch .stick{pointer-events:auto;cursor:move;outline:1px dashed rgba(255,255,255,.35);outline-offset:2px;}
+body.touchEditing #touch .teSel{outline:2px solid var(--amber);outline-offset:3px;}
+body.touchEditing #lookZone,body.touchEditing #moveZone{pointer-events:none;}
 
 
 </style>
@@ -1091,17 +1134,34 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 
 <div id="touch">
   <div id="lookZone"></div>
+  <div id="moveZone"></div>
   <div id="moveStick" class="stick"><div class="knob"></div></div>
   <div id="fireBtn" class="tbtn">ATEŞ</div>
   <div id="fireBtnL" class="tbtn">ATEŞ</div>
   <div id="jumpBtn" class="tbtn">ZIPLA</div>
   <div id="crouchBtn" class="tbtn">ÇÖMEL</div>
+  <div id="walkBtnTouch" class="tbtn">YÜRÜ</div>
   <div id="reloadBtnTouch" class="tbtn">R</div>
   <div id="swapBtnTouch" class="tbtn">⇄</div>
+  <div id="nadeBtnTouch" class="tbtn hidden">BOMBA</div>
   <div id="scopeBtnTouch" class="tbtn hidden">ZOOM</div>
-  <div id="pauseBtnTouch" class="tbtn">II</div>
   <div id="useBtnTouch" class="tbtn hidden">E</div>
+  <div id="inspectBtnTouch" class="tbtn">F</div>
+  <div id="dropBtnTouch" class="tbtn">G</div>
+  <div id="scoreBtnTouch" class="tbtn hidden">TAB</div>
+  <div id="pauseBtnTouch" class="tbtn">II</div>
   <div id="buyBtnTouch" class="tbtn hidden">$</div>
+  <div id="nadeWheel" class="hidden"></div>
+</div>
+<div id="touchEd" class="hidden">
+  <div class="teBar">
+    <b>DOKUNMATİK DÜZEN</b><span id="teSel">Bir buton seç</span>
+    <label>Boyut<input id="teSize" type="range" min=".6" max="1.8" step=".02"></label>
+    <label>Genel ölçek<input id="teScale" type="range" min=".7" max="1.4" step=".01"></label>
+    <label>Opaklık<input id="teAlpha" type="range" min=".2" max="1" step=".01"></label>
+    <button id="teReset" class="cBtn sm">SIFIRLA</button><button id="teCancel" class="cBtn sm">İPTAL</button><button id="teSave" class="cBtn sm pri">KAYDET</button>
+  </div>
+  <div class="teHint">Butonları sürükleyerek taşı · seçili butonun boyutunu “Boyut” ile değiştir</div>
 </div>
 
 <div id="console" class="hidden"><div id="conLog"></div><input id="conIn" autocomplete="off" spellcheck="false" placeholder="komut yaz · help"></div>
@@ -3074,6 +3134,7 @@ function updateListener(){
   if(!AUD.ctx) return; const L=AUD.ctx.listener; const p=camera.position; camera.getWorldDirection(_v1); _v2.set(0,1,0).applyQuaternion(camera.quaternion);
   if(L.positionX){ L.positionX.value=p.x; L.positionY.value=p.y; L.positionZ.value=p.z; L.forwardX.value=_v1.x; L.forwardY.value=_v1.y; L.forwardZ.value=_v1.z; L.upX.value=_v2.x; L.upY.value=_v2.y; L.upZ.value=_v2.z; }
   else { L.setPosition(p.x,p.y,p.z); L.setOrientation(_v1.x,_v1.y,_v1.z,_v2.x,_v2.y,_v2.z); }
+  polishTick();
 }
 
 /* =====================================================================
@@ -3111,12 +3172,12 @@ function updateListener(){
    high-passed at 25 Hz (DC-free), sanitized (no NaN/Inf, tiny values flushed), peak <= 0.98.
    Loops (loop(id) === true) are crossfade-wrapped instead of faded so they repeat without a click.
 
-   LEVEL GUIDE (peak of the rendered buffer; the game plays everything at unity gain):
-     fire:   AK-47 V1 0.95 (reference) | AWP 0.98 | SSG 08 0.93 | Nova 0.95 | Deagle 0.90 | Galil 0.88 | AUG 0.86
-             M4A4 0.85 | M4A1-S unsuppressed 0.85 | FAMAS 0.84 | P90 0.78 | MP9 0.76 | MAC-10 0.75
-             USP-S unsuppressed 0.74 | P250 0.72 | Tec-9 0.72 | Glock 0.68 | M4A1-S 0.45 | USP-S 0.35
-             generic: rifle 0.88, sniper 0.95, shotgun 0.93, smg 0.75, pistol 0.70, silenced 0.45, silpistol 0.35
-     far:    0.55 x the gun's fire level (AK far 0.52, AWP far 0.54, USP-S far 0.19)
+   LEVEL GUIDE (the game plays everything at unity gain):
+     fire:   loudness-normalised: RMS of the first 100 ms = -13.2 dBFS + ld (dB re AK-47), peak capped at lvl.
+             ld: AWP +2.2 | Nova +1.6 | SSG 08 +1.2 | Deagle +0.6 | AK 0 | Galil -0.6 | AUG / M4A1-S unsup. -1.0 | M4A4 -1.2
+                 FAMAS -1.6 | MAC-10 / P90 / USP-S unsup. -2.4 | MP9 -2.8 | P250 / Tec-9 -3.0 | Glock -3.6 | M4A1-S -11 | USP-S -13
+             resulting peaks ~0.5-0.98 (crest 9-12 dB, like a limited game recording)
+     far:    RMS of the first 100 ms = -23 dBFS + ld, peak <= 0.6 x lvl (supersonic rifles: faint crack 45-80 ms before the boom)
      handling: clipout 0.48 (pistol 0.45), clipin 0.52 (pistol 0.50), boltback 0.50 (pistol 0.45),
                boltfwd 0.55 (pistol 0.52), sniper bolt 0.55, shotgun pump 0.55, shotgun shell load 0.45,
                draw 0.40, dry fire 0.40
@@ -3639,155 +3700,171 @@ function eqVer(Lc, Rc, v, amt) { eqMono(Lc, v, amt); eqMono(Rc, v, amt); }
 const mono2 = (x) => ({ L: x, R: x.slice() });
 
 /* =====================================================================
-   WEAPON PROFILES (V1 'Klasik' values; versions derive from these in gunVer)
-     cls  rifle | smg | pistol | sniper | shotgun | srifle (suppressed rifle) | spistol (suppressed pistol)
-     lvl  output peak of fire:P (AK V1 = 0.95 reference)
-     bl   [positive-phase ms, gain]            Friedlander muzzle blast (punch)
-     cr   [HP Hz, decay s, gain, presence Hz]  high-frequency crack burst
-     nw   [duration s, gain]                   supersonic N-wave snap
-     bk   [Hz, Q, decay s, gain, upper Hz, upper gain, attack s]   mid 'bark'
-     bd   [end Hz, start Hz, glide s, decay s, gain]               low body / thump
-     rs   [[Hz, decay s, amp], ...]           barrel / frame resonances (identity)
-     mc   [[time s, Hz, gain, ring, thud, brightness], ...]       action clicks after the shot
-     sp   [time s, f0, f1, dur, gain]          buffer-spring twang (optional)
-     tl   {len, g, lp0, lp1, er, t0, t1, erg, roll, hump}         reflections + diffuse outdoor tail
-     dr/as  saturation drive / asymmetry;  gr [delay ms, gain] ground reflection
-     far  {lp, len}                          distant version;  h {size, heavy, ring, poly}  handling foley
+   WEAPON PROFILES — layered physical model (V1 'Klasik' values; versions derive from these in gunVer)
+   A close (first-person) shot is the sum of:
+     blast  asymmetric Friedlander N-wave: finite rise, positive phase T+, longer shallow negative phase
+     body   calibre-dependent low thump: gliding damped sine + brown-noise push (propellant gas, ground coupling)
+     chest  low-mid boom (band noise 150-500 Hz)          bark  rough mid noise through two falling formants
+     crack  supersonic bullet N-wave + short HF burst (rifles, snipers, Deagle, P90)
+     ring   barrel / frame modes     mech  bolt / slide / hammer clicks     brass  faint case ping
+     space  ground reflection, early reflections, long rolling outdoor tail with a slapback echo
+   Suppressed guns: low-passed blast (dull thump) + 'pfft' gas + prominent mechanical clack, small tail.
+   Fields (V1 values):
+     cls  rifle | smg | pistol | sniper | shotgun | srifle | spistol      lvl  peak cap of fire:P
+     ld   loudness of the first 100 ms in dB re the AK-47 (the louder of ld / lvl wins the normalisation)
+     bl   [T+ ms, gain, rise ms, negative lobe length x T+]
+     bd   [end Hz, start Hz, glide s, decay s, gain]            lo  [Hz, Q, decay s, gain]
+     bk   [Hz, Q, decay s, gain, upper formant Hz, upper gain]  cr  [HP Hz, decay s, gain]   nw  [N-wave s, gain]
+     rs   [[Hz, decay s, amp], ...]   mc  [[time s, Hz, gain, ring, thud, brightness], ...]   sp  [t, f0, f1, dur, gain]
+     br   [time s, Hz, gain] brass ping     gr  [ground delay ms, gain]     dr / as  saturation drive / asymmetry
+     tl   {len (s to -60 dB), g, lp0, lp1, er, t0, t1, erg, roll, hump, sl:[slapback s, gain]}
+     far  {lp, len, g, sl}     h  handling-foley character {size, heavy, ring, poly}
    ===================================================================== */
 const GUNS = {
-  ak47: { cls: 'rifle', lvl: 0.95, bl: [1.9, 1.0], cr: [2600, 0.003, 0.55, 5200], nw: [0.00035, 0.35],
-    bk: [800, 1.3, 0.030, 1.0, 1750, 0.35, 0], bd: [85, 220, 0.008, 0.043, 0.85],
-    rs: [[1830, 0.045, 0.05], [2640, 0.035, 0.045], [3420, 0.03, 0.035], [4970, 0.02, 0.03]],
-    mc: [[0.004, 1500, 0.16, 0.8, 0, 0.6], [0.021, 950, 0.42, 1.4, 0.45, 0.45]],
-    tl: { len: 0.55, g: 0.3, lp0: 3200, lp1: 450, er: 6, t0: 0.035, t1: 0.22, erg: 0.36, roll: 0.25 },
-    dr: 2.4, as: 0.08, gr: [3.2, 0.22], far: { lp: 1100, len: 1.5 }, h: { size: 0.9, heavy: 1.25, ring: 1.1, poly: 0 } },
-  m4a4: { cls: 'rifle', lvl: 0.85, bl: [1.4, 0.9], cr: [3000, 0.0028, 0.6, 6200], nw: [0.0003, 0.35],
-    bk: [1350, 1.5, 0.024, 1.0, 2700, 0.35, 0], bd: [105, 260, 0.007, 0.031, 0.6],
-    rs: [[2150, 0.035, 0.05], [3180, 0.03, 0.045], [4260, 0.025, 0.04], [6100, 0.018, 0.03]],
-    mc: [[0.003, 1900, 0.16, 0.7, 0, 0.7], [0.016, 1350, 0.36, 1.1, 0.25, 0.6]], sp: [0.012, 1100, 700, 0.08, 0.05],
-    tl: { len: 0.45, g: 0.26, lp0: 3600, lp1: 500, er: 5, t0: 0.03, t1: 0.18, erg: 0.3, roll: 0.2 },
-    dr: 2.0, as: 0.06, gr: [3.0, 0.2], far: { lp: 1250, len: 1.32 }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
-  m4a1s: { cls: 'srifle', lvl: 0.45, bl: [3.5, 0.22], cr: [3500, 0.0015, 0.08, 6000], nw: [0, 0],
-    bk: [1100, 0.55, 0.018, 1.0, 2400, 0.25, 0.0012], bd: [130, 220, 0.006, 0.015, 0.25],
-    rs: [[2600, 0.02, 0.03], [4300, 0.015, 0.02]],
-    mc: [[0.005, 2100, 0.45, 0.8, 0.1, 0.7], [0.026, 1550, 0.75, 1.3, 0.3, 0.65]], sp: [0.011, 1300, 800, 0.07, 0.12],
-    tl: { len: 0.15, g: 0.1, lp0: 2500, lp1: 600, er: 3, t0: 0.02, t1: 0.07, erg: 0.16, roll: 0 },
-    dr: 1.2, as: 0.02, gr: [3.0, 0.15], far: { lp: 900, len: 0.44 }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
-  galil: { cls: 'rifle', lvl: 0.88, bl: [1.7, 0.95], cr: [2800, 0.003, 0.55, 5600], nw: [0.00033, 0.35],
-    bk: [1000, 1.3, 0.028, 1.0, 2050, 0.4, 0], bd: [95, 235, 0.008, 0.037, 0.75],
-    rs: [[1950, 0.04, 0.05], [2870, 0.035, 0.045], [3760, 0.03, 0.04], [5400, 0.02, 0.03]],
-    mc: [[0.004, 1650, 0.18, 0.8, 0, 0.6], [0.019, 1100, 0.4, 1.3, 0.35, 0.5], [0.031, 2300, 0.12, 0.6, 0, 0.8], [0.039, 2900, 0.08, 0.5, 0, 0.8]],
-    tl: { len: 0.5, g: 0.3, lp0: 3300, lp1: 470, er: 6, t0: 0.033, t1: 0.2, erg: 0.34, roll: 0.22 },
-    dr: 2.2, as: 0.07, gr: [3.1, 0.2], far: { lp: 1150, len: 1.41 }, h: { size: 0.95, heavy: 1.1, ring: 1.0, poly: 0.1 } },
-  famas: { cls: 'rifle', lvl: 0.84, bl: [1.2, 0.85], cr: [3300, 0.0026, 0.65, 6800], nw: [0.0003, 0.35],
-    bk: [1500, 1.6, 0.020, 1.0, 3000, 0.4, 0], bd: [112, 280, 0.006, 0.028, 0.5],
-    rs: [[2450, 0.035, 0.06], [3620, 0.03, 0.05], [4880, 0.025, 0.045], [6900, 0.016, 0.035]],
-    mc: [[0.003, 2400, 0.18, 0.7, 0, 0.8], [0.013, 1750, 0.36, 1.0, 0.2, 0.75]],
-    tl: { len: 0.45, g: 0.25, lp0: 3800, lp1: 520, er: 5, t0: 0.03, t1: 0.17, erg: 0.3, roll: 0.18 },
-    dr: 1.9, as: 0.05, gr: [2.9, 0.2], far: { lp: 1300, len: 1.32 }, h: { size: 1.12, heavy: 0.8, ring: 1.2, poly: 0.35 } },
-  awp: { cls: 'sniper', lvl: 0.98, bl: [2.8, 1.15], cr: [2300, 0.005, 0.75, 4800], nw: [0.0005, 0.6],
-    bk: [600, 1.1, 0.045, 1.0, 1350, 0.4, 0], bd: [57, 170, 0.012, 0.105, 1.25],
-    rs: [[1350, 0.07, 0.04], [2080, 0.06, 0.04], [2950, 0.05, 0.035], [4300, 0.03, 0.03]],
-    mc: [[0.03, 1100, 0.1, 1.5, 0.2, 0.4]],
-    tl: { len: 1.25, g: 0.42, lp0: 2800, lp1: 300, er: 7, t0: 0.045, t1: 0.32, erg: 0.42, roll: 0.45, hump: [0.35, 0.12, 0.35] },
-    dr: 2.8, as: 0.1, gr: [3.4, 0.25], far: { lp: 1000, len: 2.2 }, h: { size: 0.82, heavy: 1.5, ring: 1.3, poly: 0 } },
-  ssg08: { cls: 'sniper', lvl: 0.93, bl: [1.9, 1.0], cr: [3200, 0.0045, 0.9, 6200], nw: [0.0004, 0.6],
-    bk: [950, 1.4, 0.032, 1.0, 2100, 0.45, 0], bd: [90, 240, 0.009, 0.056, 0.7],
-    rs: [[2100, 0.06, 0.05], [3180, 0.05, 0.045], [4400, 0.04, 0.04], [6300, 0.025, 0.03]],
-    mc: [[0.025, 1500, 0.1, 1.2, 0.1, 0.5]],
-    tl: { len: 0.75, g: 0.33, lp0: 3400, lp1: 380, er: 6, t0: 0.04, t1: 0.26, erg: 0.36, roll: 0.3 },
-    dr: 2.2, as: 0.06, gr: [3.2, 0.22], far: { lp: 1150, len: 1.76 }, h: { size: 0.95, heavy: 1.0, ring: 1.1, poly: 0.1 } },
-  mac10: { cls: 'smg', lvl: 0.75, bl: [1.0, 0.75], cr: [3200, 0.0022, 0.55, 6500], nw: [0, 0],
-    bk: [2000, 1.3, 0.016, 1.0, 3600, 0.4, 0], bd: [150, 330, 0.005, 0.019, 0.4],
-    rs: [[2900, 0.025, 0.05], [4100, 0.02, 0.045], [5600, 0.016, 0.04]],
-    mc: [[0.003, 2600, 0.24, 0.6, 0, 0.8], [0.011, 1900, 0.34, 0.8, 0.15, 0.75]],
-    tl: { len: 0.35, g: 0.22, lp0: 3800, lp1: 600, er: 4, t0: 0.028, t1: 0.14, erg: 0.28, roll: 0.15 },
-    dr: 1.8, as: 0.05, gr: [2.8, 0.18], far: { lp: 1400, len: 1.14 }, h: { size: 1.15, heavy: 0.7, ring: 0.9, poly: 0.2 } },
-  mp9: { cls: 'smg', lvl: 0.76, bl: [1.2, 0.85], cr: [3000, 0.0025, 0.55, 6000], nw: [0.00025, 0.2],
-    bk: [1700, 1.35, 0.019, 1.0, 3200, 0.38, 0], bd: [130, 300, 0.006, 0.024, 0.5],
-    rs: [[2600, 0.028, 0.05], [3700, 0.022, 0.045], [5100, 0.018, 0.04]],
-    mc: [[0.003, 2300, 0.2, 0.6, 0, 0.75], [0.012, 1650, 0.34, 0.9, 0.2, 0.7]],
-    tl: { len: 0.38, g: 0.24, lp0: 3700, lp1: 560, er: 5, t0: 0.03, t1: 0.15, erg: 0.3, roll: 0.15 },
-    dr: 1.9, as: 0.05, gr: [2.9, 0.2], far: { lp: 1350, len: 1.23 }, h: { size: 1.1, heavy: 0.8, ring: 0.9, poly: 0.4 } },
-  nova: { cls: 'shotgun', lvl: 0.95, bl: [3.0, 1.2], cr: [2200, 0.004, 0.5, 4500], nw: [0.0003, 0.25],
-    bk: [650, 0.7, 0.040, 1.0, 1500, 0.5, 0], bd: [65, 190, 0.01, 0.081, 1.1],
-    rs: [[1250, 0.05, 0.04], [1900, 0.045, 0.04], [2750, 0.035, 0.035]],
-    mc: [[0.035, 1300, 0.08, 1.0, 0.1, 0.4]],
-    tl: { len: 0.85, g: 0.4, lp0: 3000, lp1: 360, er: 7, t0: 0.04, t1: 0.28, erg: 0.42, roll: 0.35 },
-    dr: 2.6, as: 0.1, gr: [3.3, 0.25], far: { lp: 1050, len: 1.85 }, h: { size: 0.9, heavy: 1.2, ring: 1.0, poly: 0.5 } },
-  glock: { cls: 'pistol', lvl: 0.68, bl: [0.9, 0.75], cr: [3400, 0.0022, 0.6, 6500], nw: [0, 0],
-    bk: [1800, 1.5, 0.015, 1.0, 3400, 0.4, 0], bd: [140, 320, 0.005, 0.017, 0.4],
-    rs: [[2800, 0.025, 0.05], [3900, 0.02, 0.045], [5300, 0.015, 0.04]],
-    mc: [[0.006, 2200, 0.28, 0.7, 0.1, 0.75], [0.017, 1700, 0.34, 0.9, 0.15, 0.7]],
-    tl: { len: 0.4, g: 0.22, lp0: 3800, lp1: 600, er: 4, t0: 0.03, t1: 0.15, erg: 0.28, roll: 0.15 },
-    dr: 1.8, as: 0.05, gr: [2.8, 0.18], far: { lp: 1400, len: 1.06 }, h: { size: 1.25, heavy: 0.6, ring: 0.8, poly: 0.5 } },
-  usps: { cls: 'spistol', lvl: 0.35, bl: [3.0, 0.2], cr: [3500, 0.0012, 0.05, 6000], nw: [0, 0],
-    bk: [900, 0.6, 0.012, 1.0, 1900, 0.2, 0.0012], bd: [180, 260, 0.004, 0.011, 0.25],
-    rs: [[3200, 0.012, 0.02]],
-    mc: [[0.006, 2600, 0.5, 0.7, 0.1, 0.8], [0.019, 2000, 0.6, 0.9, 0.15, 0.75]],
-    tl: { len: 0.1, g: 0.06, lp0: 2500, lp1: 700, er: 2, t0: 0.02, t1: 0.05, erg: 0.1, roll: 0 },
-    dr: 1.1, as: 0.02, gr: [2.8, 0.12], far: { lp: 900, len: 0.35 }, h: { size: 1.25, heavy: 0.6, ring: 0.9, poly: 0.2 } },
-  p250: { cls: 'pistol', lvl: 0.72, bl: [1.2, 0.85], cr: [3100, 0.0025, 0.6, 6000], nw: [0, 0],
-    bk: [1500, 1.4, 0.018, 1.0, 3000, 0.4, 0], bd: [120, 300, 0.006, 0.022, 0.55],
-    rs: [[2500, 0.03, 0.05], [3600, 0.025, 0.045], [4900, 0.02, 0.04]],
-    mc: [[0.006, 2000, 0.28, 0.8, 0.15, 0.7], [0.018, 1500, 0.36, 1.0, 0.2, 0.65]],
-    tl: { len: 0.45, g: 0.25, lp0: 3600, lp1: 560, er: 5, t0: 0.03, t1: 0.16, erg: 0.3, roll: 0.18 },
-    dr: 2.0, as: 0.06, gr: [2.9, 0.2], far: { lp: 1350, len: 1.14 }, h: { size: 1.2, heavy: 0.7, ring: 0.9, poly: 0.3 } },
-  deagle: { cls: 'pistol', lvl: 0.9, bl: [1.8, 1.05], cr: [2800, 0.0035, 0.75, 5500], nw: [0.00035, 0.45],
-    bk: [1100, 1.3, 0.030, 1.0, 2300, 0.45, 0], bd: [75, 230, 0.008, 0.05, 0.9],
-    rs: [[1700, 0.08, 0.06], [2550, 0.07, 0.055], [3700, 0.06, 0.05], [5200, 0.04, 0.04]],
-    mc: [[0.008, 1300, 0.45, 2.2, 0.3, 0.6], [0.022, 1050, 0.42, 2.5, 0.4, 0.55]],
-    tl: { len: 0.7, g: 0.32, lp0: 3300, lp1: 450, er: 6, t0: 0.035, t1: 0.22, erg: 0.36, roll: 0.25 },
-    dr: 2.4, as: 0.08, gr: [3.0, 0.22], far: { lp: 1150, len: 1.58 }, h: { size: 1.0, heavy: 1.1, ring: 1.6, poly: 0 } },
-  // FN P90 (5.7x28 bullpup, ~857 rpm): tight snappy high-mid crack, small supersonic snap, light body, hollow polymer
-  // shell resonance, bolt right next to the ear, short dry tail
-  p90: { cls: 'smg', lvl: 0.78, bl: [0.95, 0.8], cr: [3600, 0.0021, 0.62, 7200], nw: [0.00022, 0.28],
-    bk: [2250, 1.6, 0.014, 1.0, 4100, 0.45, 0], bd: [150, 350, 0.0045, 0.017, 0.4],
-    rs: [[980, 0.018, 0.03], [3050, 0.022, 0.045], [4550, 0.018, 0.04], [6300, 0.014, 0.035]],
-    mc: [[0.003, 2700, 0.22, 0.55, 0, 0.85], [0.009, 2000, 0.36, 0.7, 0.18, 0.75], [0.024, 3300, 0.1, 0.5, 0, 0.9]],
-    tl: { len: 0.3, g: 0.2, lp0: 4000, lp1: 650, er: 4, t0: 0.026, t1: 0.12, erg: 0.26, roll: 0.12 },
-    dr: 1.9, as: 0.05, gr: [2.8, 0.18], far: { lp: 1450, len: 1.1 }, h: { size: 1.12, heavy: 0.75, ring: 0.8, poly: 0.65 } },
-  // Tec-9 (9 mm, steel upper): sharper, brighter and harsher than the Glock, ringing metallic frame, hard blowback bolt
-  tec9: { cls: 'pistol', lvl: 0.72, bl: [0.9, 0.78], cr: [3800, 0.0024, 0.68, 7400], nw: [0, 0],
-    bk: [1950, 1.75, 0.015, 1.0, 3900, 0.5, 0], bd: [145, 330, 0.0048, 0.017, 0.4],
-    rs: [[3150, 0.04, 0.07], [4420, 0.034, 0.065], [5950, 0.027, 0.055], [7700, 0.02, 0.045]],
-    mc: [[0.005, 2600, 0.3, 1.0, 0.05, 0.85], [0.014, 1950, 0.4, 1.2, 0.12, 0.8]],
-    tl: { len: 0.42, g: 0.23, lp0: 4200, lp1: 640, er: 4, t0: 0.03, t1: 0.15, erg: 0.3, roll: 0.15 },
-    dr: 2.15, as: 0.08, gr: [2.8, 0.18], far: { lp: 1450, len: 1.06 }, h: { size: 1.15, heavy: 0.7, ring: 1.25, poly: 0.3 } },
-  // Steyr AUG (5.56 bullpup): punchy rifle with a tighter, more tonal 'pang' and a brighter top than the M4A4,
-  // extra bolt tick near the ear, translucent polymer magazine
-  aug: { cls: 'rifle', lvl: 0.86, bl: [1.3, 0.95], cr: [3500, 0.0027, 0.85, 7300], nw: [0.0003, 0.4],
-    bk: [1550, 1.85, 0.019, 1.0, 3400, 0.62, 0], bd: [105, 300, 0.006, 0.028, 0.6],
-    rs: [[2050, 0.04, 0.055], [2990, 0.034, 0.055], [4180, 0.028, 0.055], [5900, 0.02, 0.045], [7950, 0.012, 0.03]],
-    mc: [[0.003, 2200, 0.2, 0.7, 0, 0.8], [0.008, 3000, 0.12, 0.5, 0, 0.9], [0.015, 1500, 0.38, 1.1, 0.3, 0.65]], sp: [0.011, 1450, 900, 0.06, 0.05],
-    tl: { len: 0.46, g: 0.27, lp0: 3900, lp1: 520, er: 5, t0: 0.03, t1: 0.17, erg: 0.31, roll: 0.2 },
-    dr: 2.1, as: 0.06, gr: [3.0, 0.2], far: { lp: 1300, len: 1.32 }, h: { size: 1.05, heavy: 0.95, ring: 1.05, poly: 0.45 } },
-  // USP-S with the suppressor removed (.45 ACP, subsonic): loud, deeper and punchier than Glock / P250, no N-wave
-  uspu: { cls: 'pistol', lvl: 0.74, bl: [1.5, 0.98], cr: [2900, 0.0028, 0.58, 5600], nw: [0, 0],
-    bk: [1200, 1.3, 0.021, 1.0, 2500, 0.38, 0], bd: [95, 280, 0.007, 0.029, 0.75],
-    rs: [[2250, 0.035, 0.05], [3300, 0.028, 0.045], [4550, 0.022, 0.04]],
-    mc: [[0.006, 2150, 0.3, 0.8, 0.15, 0.7], [0.018, 1600, 0.38, 1.0, 0.25, 0.65]],
-    tl: { len: 0.5, g: 0.27, lp0: 3400, lp1: 500, er: 5, t0: 0.032, t1: 0.17, erg: 0.32, roll: 0.2 },
-    dr: 2.25, as: 0.07, gr: [2.9, 0.2], far: { lp: 1250, len: 1.2 }, h: { size: 1.25, heavy: 0.6, ring: 0.9, poly: 0.2 } },
-  // M4A1-S with the suppressor removed: full 5.56 report, a little lower / rounder bark and longer tail than the M4A4,
-  // same action + buffer spring as the M4A1-S
-  m4a1u: { cls: 'rifle', lvl: 0.85, bl: [1.5, 0.92], cr: [3150, 0.003, 0.64, 6500], nw: [0.0003, 0.38],
-    bk: [1220, 1.45, 0.025, 1.0, 2500, 0.4, 0], bd: [100, 255, 0.007, 0.033, 0.64],
-    rs: [[2000, 0.038, 0.05], [2960, 0.032, 0.045], [4380, 0.026, 0.04], [5750, 0.02, 0.035]],
-    mc: [[0.004, 2050, 0.17, 0.75, 0, 0.7], [0.018, 1450, 0.38, 1.2, 0.28, 0.62]], sp: [0.012, 1250, 760, 0.08, 0.055],
-    tl: { len: 0.48, g: 0.28, lp0: 3500, lp1: 480, er: 5, t0: 0.032, t1: 0.19, erg: 0.32, roll: 0.22 },
-    dr: 2.1, as: 0.07, gr: [3.0, 0.2], far: { lp: 1220, len: 1.36 }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
+  // AK-47 (7.62x39, 600 rpm): deep heavy boom, coarse mid bark, heavy bolt carrier slam, long rolling tail
+  ak47: { cls: 'rifle', lvl: 0.95, ld: 0, bl: [1.35, 1.0, 0.06, 2.6], bd: [66, 150, 0.010, 0.085, 0.95], lo: [255, 1.1, 0.045, 0.55],
+    bk: [820, 1.25, 0.024, 0.62, 1900, 0.32], cr: [3600, 0.0028, 0.32], nw: [0.00032, 0.28],
+    rs: [[1830, 0.05, 0.03], [2640, 0.04, 0.026], [3420, 0.032, 0.02]], mc: [[0.004, 1350, 0.1, 0.8, 0.2, 0.5], [0.058, 880, 0.2, 1.4, 0.55, 0.4]],
+    br: [0.03, 6200, 0.015], gr: [3.2, 0.28], dr: 2.4, as: 0.08,
+    tl: { len: 1.45, g: 0.42, lp0: 2600, lp1: 420, er: 6, t0: 0.03, t1: 0.2, erg: 0.34, roll: 0.35, sl: [0.11, 0.22] },
+    far: { lp: 2100, len: 2.0, g: 0.5, sl: [0.32, 0.4] }, h: { size: 0.9, heavy: 1.25, ring: 1.1, poly: 0 } },
+  // M4A4 (5.56, 666 rpm): tighter, brighter crack, lighter body, buffer-spring 'boing'
+  m4a4: { cls: 'rifle', lvl: 0.86, ld: -1.2, bl: [1.0, 0.95, 0.05, 2.4], bd: [80, 175, 0.008, 0.06, 0.72], lo: [300, 1.2, 0.035, 0.48],
+    bk: [1080, 1.35, 0.02, 0.62, 2500, 0.36], cr: [4200, 0.0026, 0.38], nw: [0.00027, 0.3],
+    rs: [[2150, 0.04, 0.03], [3180, 0.032, 0.026], [4260, 0.026, 0.022]], mc: [[0.003, 1800, 0.1, 0.7, 0, 0.65], [0.05, 1250, 0.17, 1.1, 0.3, 0.55]],
+    sp: [0.05, 1100, 700, 0.08, 0.04], br: [0.026, 6900, 0.014], gr: [3.0, 0.26], dr: 2.1, as: 0.06,
+    tl: { len: 1.25, g: 0.38, lp0: 3000, lp1: 480, er: 5, t0: 0.03, t1: 0.18, erg: 0.3, roll: 0.3, sl: [0.1, 0.2] },
+    far: { lp: 2400, len: 1.8, g: 0.48, sl: [0.3, 0.38] }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
+  // M4A1-S suppressed: dull 'thwump' + gas 'pfft' + loud bolt clack and buffer spring
+  m4a1s: { cls: 'srifle', lvl: 0.5, ld: -11, bl: [2.6, 0.75, 0.5, 2.2], bd: [88, 150, 0.008, 0.05, 1.1], lo: [230, 1.0, 0.03, 0.45],
+    bk: [620, 0.9, 0.018, 0.32, 1500, 0.15], cr: [0, 0, 0], nw: [0, 0],
+    rs: [[1350, 0.03, 0.02], [2600, 0.02, 0.015]], mc: [[0.004, 1900, 0.16, 0.8, 0.25, 0.55], [0.048, 1400, 0.26, 1.2, 0.45, 0.5]],
+    sp: [0.048, 1300, 800, 0.07, 0.06], br: [0.03, 6800, 0.01], gr: [3.0, 0.2], dr: 1.5, as: 0.03, sup: [800, 0.18],
+    tl: { len: 0.75, g: 0.18, lp0: 2000, lp1: 420, er: 3, t0: 0.02, t1: 0.09, erg: 0.17, roll: 0.15 },
+    far: { lp: 1900, len: 0.6, g: 0.3, sl: [0.22, 0.25] }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
+  // Galil AR (5.56, heavier receiver): between AK and M4, rattly action
+  galil: { cls: 'rifle', lvl: 0.9, ld: -0.6, bl: [1.15, 0.97, 0.055, 2.5], bd: [72, 160, 0.009, 0.072, 0.85], lo: [275, 1.1, 0.04, 0.52],
+    bk: [930, 1.3, 0.022, 0.62, 2150, 0.34], cr: [3900, 0.0027, 0.34], nw: [0.0003, 0.28],
+    rs: [[1950, 0.045, 0.03], [2870, 0.04, 0.026], [3760, 0.03, 0.022]], mc: [[0.004, 1550, 0.11, 0.8, 0, 0.55], [0.055, 1050, 0.19, 1.3, 0.4, 0.45], [0.066, 2300, 0.06, 0.6, 0, 0.8]],
+    br: [0.028, 6500, 0.014], gr: [3.1, 0.27], dr: 2.3, as: 0.07,
+    tl: { len: 1.35, g: 0.4, lp0: 2800, lp1: 450, er: 6, t0: 0.032, t1: 0.2, erg: 0.33, roll: 0.32, sl: [0.12, 0.21] },
+    far: { lp: 2200, len: 1.9, g: 0.5, sl: [0.31, 0.4] }, h: { size: 0.95, heavy: 1.1, ring: 1.0, poly: 0.1 } },
+  // FAMAS (5.56 bullpup, ~1000 rpm): bright snappy report, action right at the cheek
+  famas: { cls: 'rifle', lvl: 0.85, ld: -1.6, bl: [0.9, 0.94, 0.045, 2.3], bd: [86, 185, 0.007, 0.052, 0.62], lo: [320, 1.25, 0.03, 0.45],
+    bk: [1220, 1.45, 0.018, 0.64, 2800, 0.4], cr: [4500, 0.0024, 0.42], nw: [0.00026, 0.3],
+    rs: [[2450, 0.035, 0.035], [3620, 0.03, 0.03], [4880, 0.025, 0.026]], mc: [[0.003, 2300, 0.14, 0.7, 0, 0.75], [0.034, 1700, 0.2, 1.0, 0.2, 0.7]],
+    br: [0.022, 7200, 0.016], gr: [2.9, 0.25], dr: 2.0, as: 0.05,
+    tl: { len: 1.15, g: 0.36, lp0: 3200, lp1: 520, er: 5, t0: 0.028, t1: 0.17, erg: 0.3, roll: 0.28, sl: [0.1, 0.19] },
+    far: { lp: 2500, len: 1.7, g: 0.47, sl: [0.29, 0.37] }, h: { size: 1.12, heavy: 0.8, ring: 1.2, poly: 0.35 } },
+  // Steyr AUG (5.56 bullpup): punchy, tonal 'pang', polymer stock, tick near the ear
+  aug: { cls: 'rifle', lvl: 0.87, ld: -1.0, bl: [1.0, 0.96, 0.05, 2.4], bd: [78, 172, 0.008, 0.062, 0.76], lo: [290, 1.2, 0.036, 0.5],
+    bk: [1150, 1.6, 0.02, 0.64, 2650, 0.44], cr: [4300, 0.0026, 0.38], nw: [0.00028, 0.32],
+    rs: [[2050, 0.045, 0.04], [2990, 0.036, 0.036], [4180, 0.03, 0.03]], mc: [[0.003, 2150, 0.11, 0.7, 0, 0.75], [0.009, 3000, 0.06, 0.5, 0, 0.9], [0.045, 1450, 0.18, 1.1, 0.3, 0.6]],
+    sp: [0.046, 1450, 900, 0.06, 0.035], br: [0.024, 7000, 0.014], gr: [3.0, 0.26], dr: 2.15, as: 0.06,
+    tl: { len: 1.3, g: 0.39, lp0: 3000, lp1: 470, er: 5, t0: 0.03, t1: 0.18, erg: 0.31, roll: 0.3, sl: [0.105, 0.2] },
+    far: { lp: 2500, len: 1.85, g: 0.48, sl: [0.3, 0.38] }, h: { size: 1.05, heavy: 0.95, ring: 1.05, poly: 0.45 } },
+  // AWP (.338 Lapua Magnum): huge blast, very deep body, strong supersonic crack, long thunder
+  awp: { cls: 'sniper', lvl: 0.98, ld: 2.2, bl: [2.3, 1.1, 0.07, 2.8], bd: [50, 125, 0.014, 0.14, 1.2], lo: [205, 1.0, 0.07, 0.6],
+    bk: [640, 1.1, 0.036, 0.6, 1500, 0.36], cr: [3200, 0.004, 0.42], nw: [0.00048, 0.45],
+    rs: [[1350, 0.08, 0.026], [2080, 0.06, 0.022], [2950, 0.05, 0.02]], mc: [[0.006, 1100, 0.07, 1.4, 0.25, 0.4]],
+    gr: [3.4, 0.3], dr: 2.7, as: 0.1,
+    tl: { len: 3.0, g: 0.5, lp0: 2200, lp1: 260, er: 7, t0: 0.045, t1: 0.32, erg: 0.42, roll: 0.5, hump: [0.4, 0.16, 0.4], sl: [0.16, 0.3] },
+    far: { lp: 1800, len: 3.4, g: 0.55, sl: [0.4, 0.45] }, h: { size: 0.82, heavy: 1.5, ring: 1.3, poly: 0 } },
+  // SSG 08 (.308): sharp crack, tighter than the AWP, still a long tail
+  ssg08: { cls: 'sniper', lvl: 0.94, ld: 1.2, bl: [1.6, 1.0, 0.055, 2.6], bd: [62, 145, 0.011, 0.1, 0.9], lo: [245, 1.1, 0.05, 0.55],
+    bk: [880, 1.35, 0.028, 0.62, 2100, 0.42], cr: [3900, 0.0035, 0.46], nw: [0.0004, 0.45],
+    rs: [[2100, 0.06, 0.03], [3180, 0.05, 0.026], [4400, 0.04, 0.022]], mc: [[0.006, 1500, 0.07, 1.2, 0.1, 0.5]],
+    gr: [3.2, 0.28], dr: 2.4, as: 0.07,
+    tl: { len: 2.1, g: 0.45, lp0: 2700, lp1: 340, er: 6, t0: 0.04, t1: 0.26, erg: 0.37, roll: 0.42, sl: [0.14, 0.26] },
+    far: { lp: 2100, len: 2.6, g: 0.52, sl: [0.36, 0.42] }, h: { size: 0.95, heavy: 1.0, ring: 1.1, poly: 0.1 } },
+  // MAC-10 (.45 ACP open bolt, ~1100 rpm): blunt subsonic thud, rattly stamped-steel bolt slam
+  mac10: { cls: 'smg', lvl: 0.78, ld: -2.4, bl: [0.85, 0.9, 0.06, 2.4], bd: [78, 160, 0.008, 0.05, 0.85], lo: [270, 1.1, 0.032, 0.52],
+    bk: [880, 1.2, 0.018, 0.56, 2000, 0.3], cr: [3800, 0.0022, 0.24], nw: [0, 0],
+    rs: [[2900, 0.03, 0.035], [4100, 0.025, 0.03]], mc: [[0.004, 2100, 0.12, 0.7, 0.1, 0.7], [0.03, 1400, 0.24, 1.0, 0.3, 0.6], [0.036, 2900, 0.07, 0.6, 0, 0.85]],
+    br: [0.02, 5600, 0.016], gr: [2.8, 0.24], dr: 2.2, as: 0.06,
+    tl: { len: 0.95, g: 0.34, lp0: 3000, lp1: 520, er: 4, t0: 0.028, t1: 0.14, erg: 0.3, roll: 0.25, sl: [0.09, 0.18] },
+    far: { lp: 2300, len: 1.6, g: 0.47, sl: [0.27, 0.36] }, h: { size: 1.15, heavy: 0.7, ring: 0.9, poly: 0.2 } },
+  // MP9 (9 mm, polymer): snappy higher bark, light body
+  mp9: { cls: 'smg', lvl: 0.76, ld: -2.8, bl: [0.7, 0.9, 0.045, 2.3], bd: [92, 190, 0.007, 0.042, 0.66], lo: [320, 1.2, 0.028, 0.48],
+    bk: [1150, 1.35, 0.016, 0.6, 2600, 0.36], cr: [4300, 0.0021, 0.3], nw: [0, 0],
+    rs: [[2600, 0.028, 0.03], [3700, 0.022, 0.026]], mc: [[0.003, 2250, 0.12, 0.6, 0, 0.75], [0.03, 1650, 0.18, 0.9, 0.2, 0.7]],
+    br: [0.02, 6400, 0.015], gr: [2.9, 0.24], dr: 2.0, as: 0.05,
+    tl: { len: 0.9, g: 0.33, lp0: 3200, lp1: 520, er: 5, t0: 0.03, t1: 0.15, erg: 0.3, roll: 0.24, sl: [0.09, 0.17] },
+    far: { lp: 2500, len: 1.5, g: 0.46, sl: [0.27, 0.35] }, h: { size: 1.1, heavy: 0.8, ring: 0.9, poly: 0.4 } },
+  // P90 (5.7x28 bullpup, ~900 rpm): tight snappy report, small supersonic snap, hollow polymer shell
+  p90: { cls: 'smg', lvl: 0.78, ld: -2.4, bl: [0.68, 0.9, 0.045, 2.3], bd: [86, 180, 0.007, 0.046, 0.78], lo: [310, 1.2, 0.03, 0.5],
+    bk: [1200, 1.5, 0.016, 0.6, 2900, 0.4], cr: [4600, 0.0021, 0.32], nw: [0.0002, 0.2],
+    rs: [[980, 0.02, 0.025], [3050, 0.025, 0.03], [4550, 0.02, 0.026]], mc: [[0.003, 2600, 0.12, 0.55, 0, 0.85], [0.03, 1950, 0.18, 0.7, 0.18, 0.75], [0.04, 3300, 0.06, 0.5, 0, 0.9]],
+    br: [0.022, 7600, 0.012], gr: [2.8, 0.24], dr: 2.1, as: 0.05,
+    tl: { len: 0.9, g: 0.33, lp0: 3300, lp1: 560, er: 4, t0: 0.026, t1: 0.13, erg: 0.28, roll: 0.22, sl: [0.085, 0.17] },
+    far: { lp: 2600, len: 1.45, g: 0.46, sl: [0.26, 0.35] }, h: { size: 1.12, heavy: 0.75, ring: 0.8, poly: 0.65 } },
+  // Nova (12 gauge pump): huge blunt boom, no crack, long low tail
+  nova: { cls: 'shotgun', lvl: 0.96, ld: 1.6, bl: [2.0, 1.1, 0.08, 2.8], bd: [56, 130, 0.012, 0.11, 1.15], lo: [215, 1.0, 0.06, 0.62],
+    bk: [700, 0.9, 0.032, 0.62, 1600, 0.4], cr: [3000, 0.0035, 0.26], nw: [0, 0],
+    rs: [[1250, 0.05, 0.026], [1900, 0.045, 0.022]], mc: [[0.006, 1300, 0.06, 1.0, 0.1, 0.4]],
+    gr: [3.3, 0.3], dr: 2.6, as: 0.1,
+    tl: { len: 2.0, g: 0.46, lp0: 2400, lp1: 320, er: 7, t0: 0.04, t1: 0.28, erg: 0.42, roll: 0.42, sl: [0.13, 0.26] },
+    far: { lp: 1900, len: 2.5, g: 0.53, sl: [0.35, 0.42] }, h: { size: 0.9, heavy: 1.2, ring: 1.0, poly: 0.5 } },
+  // Glock-18 (9 mm, polymer frame): snappy pop, light slide, short tail
+  glock: { cls: 'pistol', lvl: 0.72, ld: -3.6, bl: [0.62, 0.9, 0.045, 2.2], bd: [98, 200, 0.006, 0.04, 0.62], lo: [330, 1.2, 0.026, 0.48],
+    bk: [1150, 1.4, 0.015, 0.6, 2700, 0.36], cr: [4300, 0.002, 0.3], nw: [0, 0],
+    rs: [[2800, 0.025, 0.03], [3900, 0.02, 0.026]], mc: [[0.004, 2200, 0.16, 0.7, 0.1, 0.75], [0.026, 1700, 0.2, 0.9, 0.15, 0.7]],
+    br: [0.03, 6800, 0.016], gr: [2.8, 0.24], dr: 2.0, as: 0.05,
+    tl: { len: 0.95, g: 0.33, lp0: 3200, lp1: 560, er: 4, t0: 0.03, t1: 0.15, erg: 0.3, roll: 0.22, sl: [0.09, 0.17] },
+    far: { lp: 2400, len: 1.5, g: 0.46, sl: [0.27, 0.35] }, h: { size: 1.25, heavy: 0.6, ring: 0.8, poly: 0.5 } },
+  // USP-S suppressed (.45): dull low 'thup', soft gas puff, loud slide clack
+  usps: { cls: 'spistol', lvl: 0.42, ld: -13, bl: [2.2, 0.75, 0.6, 2.0], bd: [86, 135, 0.007, 0.04, 1.15], lo: [210, 1.0, 0.025, 0.4],
+    bk: [560, 0.9, 0.014, 0.26, 1300, 0.12], cr: [0, 0, 0], nw: [0, 0],
+    rs: [[3200, 0.014, 0.012]], mc: [[0.004, 2300, 0.13, 0.7, 0.25, 0.55], [0.024, 1750, 0.19, 0.9, 0.35, 0.5]],
+    br: [0.034, 6600, 0.008], gr: [2.8, 0.18], dr: 1.4, as: 0.02, sup: [700, 0.16],
+    tl: { len: 0.6, g: 0.15, lp0: 2000, lp1: 450, er: 3, t0: 0.02, t1: 0.07, erg: 0.13, roll: 0.1 },
+    far: { lp: 1900, len: 0.45, g: 0.25, sl: [0.2, 0.2] }, h: { size: 1.25, heavy: 0.6, ring: 0.9, poly: 0.2 } },
+  // P250 (.357 SIG / 9 mm): sharper higher pop than the Glock, steel slide
+  p250: { cls: 'pistol', lvl: 0.74, ld: -3.0, bl: [0.7, 0.92, 0.045, 2.3], bd: [94, 195, 0.006, 0.042, 0.64], lo: [320, 1.2, 0.027, 0.48],
+    bk: [1250, 1.4, 0.016, 0.62, 2900, 0.4], cr: [4500, 0.0022, 0.34], nw: [0, 0],
+    rs: [[2500, 0.03, 0.032], [3600, 0.025, 0.028]], mc: [[0.004, 2000, 0.16, 0.8, 0.15, 0.7], [0.027, 1500, 0.22, 1.0, 0.2, 0.65]],
+    br: [0.03, 6500, 0.016], gr: [2.9, 0.24], dr: 2.05, as: 0.06,
+    tl: { len: 1.0, g: 0.34, lp0: 3200, lp1: 540, er: 5, t0: 0.03, t1: 0.16, erg: 0.3, roll: 0.24, sl: [0.095, 0.17] },
+    far: { lp: 2500, len: 1.55, g: 0.46, sl: [0.28, 0.35] }, h: { size: 1.2, heavy: 0.7, ring: 0.9, poly: 0.3 } },
+  // Tec-9 (9 mm, steel upper): low thick pop with a ringing steel receiver, hard blowback bolt
+  tec9: { cls: 'pistol', lvl: 0.74, ld: -3.0, bl: [0.72, 0.92, 0.05, 2.4], bd: [84, 175, 0.007, 0.05, 0.8], lo: [280, 1.1, 0.03, 0.52],
+    bk: [950, 1.35, 0.017, 0.58, 2300, 0.32], cr: [4000, 0.0022, 0.26], nw: [0, 0],
+    rs: [[3150, 0.045, 0.045], [4420, 0.036, 0.04], [5950, 0.028, 0.032]], mc: [[0.004, 2500, 0.16, 1.0, 0.05, 0.8], [0.028, 1850, 0.22, 1.2, 0.15, 0.75]],
+    br: [0.03, 6200, 0.016], gr: [2.8, 0.25], dr: 2.15, as: 0.08,
+    tl: { len: 1.0, g: 0.34, lp0: 3100, lp1: 520, er: 4, t0: 0.03, t1: 0.15, erg: 0.3, roll: 0.24, sl: [0.09, 0.17] },
+    far: { lp: 2300, len: 1.55, g: 0.46, sl: [0.28, 0.35] }, h: { size: 1.15, heavy: 0.7, ring: 1.25, poly: 0.3 } },
+  // Desert Eagle (.50 AE): massive blast and body, supersonic snap, heavy slide clank, long ring and tail
+  deagle: { cls: 'pistol', lvl: 0.92, ld: 0.6, bl: [1.35, 1.05, 0.06, 2.7], bd: [60, 145, 0.01, 0.09, 1.05], lo: [235, 1.0, 0.05, 0.58],
+    bk: [800, 1.2, 0.026, 0.6, 1900, 0.38], cr: [3500, 0.003, 0.34], nw: [0.00034, 0.32],
+    rs: [[1700, 0.08, 0.035], [2550, 0.07, 0.032], [3700, 0.06, 0.028]], mc: [[0.006, 1250, 0.16, 2.0, 0.35, 0.55], [0.034, 1000, 0.24, 2.4, 0.45, 0.5]],
+    br: [0.036, 5200, 0.02], gr: [3.0, 0.28], dr: 2.4, as: 0.08,
+    tl: { len: 1.6, g: 0.42, lp0: 2700, lp1: 420, er: 6, t0: 0.035, t1: 0.22, erg: 0.36, roll: 0.35, sl: [0.11, 0.22] },
+    far: { lp: 2200, len: 2.0, g: 0.5, sl: [0.32, 0.4] }, h: { size: 1.0, heavy: 1.1, ring: 1.6, poly: 0 } },
+  // USP-S with the suppressor removed (.45 ACP, subsonic): loud round boom, deeper than Glock / P250, no crack
+  uspu: { cls: 'pistol', lvl: 0.76, ld: -2.4, bl: [0.8, 0.95, 0.05, 2.4], bd: [84, 175, 0.007, 0.05, 0.78], lo: [285, 1.1, 0.032, 0.52],
+    bk: [1000, 1.3, 0.018, 0.6, 2300, 0.34], cr: [4000, 0.0022, 0.28], nw: [0, 0],
+    rs: [[2250, 0.035, 0.03], [3300, 0.028, 0.026]], mc: [[0.004, 2150, 0.16, 0.8, 0.15, 0.7], [0.026, 1600, 0.22, 1.0, 0.25, 0.65]],
+    br: [0.032, 6000, 0.016], gr: [2.9, 0.25], dr: 2.2, as: 0.07,
+    tl: { len: 1.05, g: 0.35, lp0: 3000, lp1: 500, er: 5, t0: 0.032, t1: 0.17, erg: 0.32, roll: 0.26, sl: [0.095, 0.18] },
+    far: { lp: 2300, len: 1.6, g: 0.47, sl: [0.28, 0.36] }, h: { size: 1.25, heavy: 0.6, ring: 0.9, poly: 0.2 } },
+  // M4A1-S with the suppressor removed: full 5.56 report, a little rounder and longer than the M4A4
+  m4a1u: { cls: 'rifle', lvl: 0.86, ld: -1.0, bl: [1.05, 0.96, 0.05, 2.4], bd: [78, 170, 0.008, 0.064, 0.76], lo: [290, 1.15, 0.036, 0.5],
+    bk: [1030, 1.3, 0.021, 0.62, 2400, 0.35], cr: [4100, 0.0026, 0.36], nw: [0.00027, 0.3],
+    rs: [[2000, 0.04, 0.03], [2960, 0.034, 0.026], [4380, 0.026, 0.022]], mc: [[0.004, 1950, 0.1, 0.75, 0, 0.65], [0.05, 1400, 0.18, 1.2, 0.3, 0.6]],
+    sp: [0.05, 1250, 760, 0.08, 0.04], br: [0.026, 6800, 0.014], gr: [3.0, 0.26], dr: 2.15, as: 0.07,
+    tl: { len: 1.3, g: 0.39, lp0: 2900, lp1: 470, er: 5, t0: 0.032, t1: 0.19, erg: 0.31, roll: 0.3, sl: [0.105, 0.2] },
+    far: { lp: 2350, len: 1.85, g: 0.48, sl: [0.3, 0.38] }, h: { size: 1.0, heavy: 1.0, ring: 1.0, poly: 0.2 } },
 };
 // generic class fallbacks: sensible averages of their class
-GUNS.rifle = { ...GUNS.galil, lvl: 0.88, bk: [1000, 1.35, 0.027, 1.0, 2100, 0.38, 0], bd: [95, 240, 0.008, 0.037, 0.72],
-  mc: [[0.004, 1600, 0.17, 0.8, 0, 0.6], [0.019, 1150, 0.4, 1.2, 0.33, 0.55]], h: { size: 0.97, heavy: 1.05, ring: 1.0, poly: 0.15 } };
-GUNS.smg = { ...GUNS.mp9, lvl: 0.75, bk: [1850, 1.3, 0.017, 1.0, 3400, 0.4, 0], bd: [140, 315, 0.0055, 0.02, 0.45] };
-GUNS.pistol = { ...GUNS.p250, lvl: 0.7, bk: [1650, 1.45, 0.016, 1.0, 3200, 0.4, 0], bd: [130, 310, 0.0055, 0.02, 0.48] };
-GUNS.sniper = { ...GUNS.awp, lvl: 0.95, bl: [2.3, 1.08], cr: [2700, 0.0048, 0.8, 5400], bk: [750, 1.25, 0.04, 1.0, 1650, 0.42, 0],
-  bd: [65, 200, 0.011, 0.093, 1.05], tl: { ...GUNS.awp.tl, len: 1.0, g: 0.38, hump: [0.3, 0.1, 0.25] }, far: { lp: 1050, len: 1.94 } };
-GUNS.shotgun = { ...GUNS.nova, lvl: 0.93, bk: [700, 0.75, 0.038, 1.0, 1600, 0.5, 0], bd: [70, 200, 0.01, 0.074, 1.0] };
-GUNS.silenced = { ...GUNS.m4a1s, lvl: 0.45, bk: [1000, 0.55, 0.019, 1.0, 2300, 0.25, 0.0012] };
-GUNS.silpistol = { ...GUNS.usps, lvl: 0.35, bk: [850, 0.6, 0.013, 1.0, 1800, 0.2, 0.0012] };
+GUNS.rifle = { ...GUNS.galil, lvl: 0.88, ld: -0.8, bk: [960, 1.3, 0.021, 0.62, 2250, 0.35], bd: [74, 165, 0.009, 0.068, 0.82],
+  mc: [[0.004, 1600, 0.1, 0.8, 0, 0.6], [0.052, 1150, 0.18, 1.2, 0.33, 0.55]], h: { size: 0.97, heavy: 1.05, ring: 1.0, poly: 0.15 } };
+GUNS.smg = { ...GUNS.mp9, lvl: 0.76, ld: -2.6, bk: [1050, 1.3, 0.017, 0.58, 2400, 0.34], bd: [86, 180, 0.0075, 0.046, 0.74] };
+GUNS.pistol = { ...GUNS.p250, lvl: 0.73, ld: -3.2, bk: [1150, 1.35, 0.016, 0.6, 2700, 0.37], bd: [92, 190, 0.0065, 0.044, 0.68] };
+GUNS.sniper = { ...GUNS.awp, lvl: 0.96, ld: 1.7, bl: [1.9, 1.05, 0.06, 2.7], cr: [3500, 0.0038, 0.44], bk: [760, 1.2, 0.032, 0.6, 1800, 0.4],
+  bd: [56, 135, 0.012, 0.12, 1.05], tl: { ...GUNS.awp.tl, len: 2.5, g: 0.47, hump: [0.35, 0.13, 0.3] }, far: { ...GUNS.awp.far, len: 3.0 } };
+GUNS.shotgun = { ...GUNS.nova, lvl: 0.94, ld: 1.2, bk: [740, 0.95, 0.03, 0.62, 1650, 0.4], bd: [60, 135, 0.012, 0.1, 1.05] };
+GUNS.silenced = { ...GUNS.m4a1s, lvl: 0.5, bk: [600, 0.9, 0.019, 0.32, 1450, 0.15] };
+GUNS.silpistol = { ...GUNS.usps, lvl: 0.42, bk: [540, 0.9, 0.015, 0.26, 1250, 0.12] };
 
 const PROFILES = { ak47: 'AK-47', m4a4: 'M4A4', m4a1s: 'M4A1-S', m4a1u: 'M4A1-S (susturucusuz)', galil: 'Galil AR', famas: 'FAMAS',
   aug: 'AUG', awp: 'AWP', ssg08: 'SSG 08', mac10: 'MAC-10', mp9: 'MP9', p90: 'P90', nova: 'Nova', glock: 'Glock-18', usps: 'USP-S',
@@ -3804,105 +3881,153 @@ function clone(o) {
 function gunVer(B, v, R) {
   const G = clone(B);
   const mapMc = (fn) => { G.mc = G.mc.map(fn); };
-  if (v === 2) {
-    G.bl[0] *= 1.25; G.bl[1] *= 1.12;
-    G.cr[0] *= 0.82; G.cr[1] *= 1.2; G.cr[2] *= 0.8; G.cr[3] *= 0.85; G.nw[1] *= 0.85;
-    G.bk[0] *= 0.88; G.bk[2] *= 1.25; G.bk[4] *= 0.88; G.bk[5] *= 0.85;
-    G.bd[0] *= 0.9; G.bd[1] *= 0.9; G.bd[3] *= 1.3; G.bd[4] *= 1.25;
+  if (v === 2) {                              // Ağır: longer blast, deeper + bigger body, darker bark, longer darker tail
+    G.bl[0] *= 1.22; G.bl[1] *= 1.05;
+    G.bd[0] *= 0.9; G.bd[1] *= 0.9; G.bd[3] *= 1.25; G.bd[4] *= 1.22; G.lo[0] *= 0.9; G.lo[3] *= 1.18; G.lo[2] *= 1.2;
+    G.bk[0] *= 0.86; G.bk[2] *= 1.2; G.bk[4] *= 0.86; G.bk[5] *= 0.8; G.cr[2] *= 0.7; G.cr[0] *= 0.85; G.nw[1] *= 0.8;
     G.rs = G.rs.map((m) => [m[0] * 0.9, m[1] * 1.3, m[2]]);
-    mapMc((m) => [m[0] * 1.08, m[1] * 0.87, m[2] * 1.1, m[3] * 1.3, (m[4] || 0) * 1.6 + 0.1, m[5] * 0.8]);
-    G.tl.len *= 1.35; G.tl.g *= 1.2; G.tl.lp0 *= 0.8; G.tl.lp1 *= 0.85; G.tl.erg *= 1.15; G.tl.t1 *= 1.15;
-    G.dr *= 1.2; G.far.len *= 1.2; G.far.lp *= 0.88;
-  } else if (v === 3) {
-    G.bl[0] *= 0.8;
-    G.cr[0] *= 1.25; G.cr[1] *= 0.85; G.cr[2] *= 1.45; G.cr[3] *= 1.15; G.nw[1] *= 1.25;
-    G.bk[0] *= 1.15; G.bk[1] *= 1.2; G.bk[2] *= 0.8; G.bk[5] *= 1.2;
-    G.bd[0] *= 1.06; G.bd[3] *= 0.8; G.bd[4] *= 0.8;
+    mapMc((m) => [m[0] * 1.06, m[1] * 0.87, m[2] * 1.05, m[3] * 1.3, (m[4] || 0) * 1.5 + 0.1, m[5] * 0.8]);
+    G.tl = Object.assign({}, G.tl, { len: G.tl.len * 1.25, g: G.tl.g * 1.12, lp0: G.tl.lp0 * 0.82, lp1: G.tl.lp1 * 0.85, erg: G.tl.erg * 1.12, t1: G.tl.t1 * 1.15 });
+    G.dr *= 1.15; G.far = Object.assign({}, G.far, { len: G.far.len * 1.2, lp: G.far.lp * 0.85 });
+  } else if (v === 3) {                       // Keskin: shorter harder blast, louder crack + HF, tighter body, brighter shorter tail
+    G.bl[0] *= 0.82; G.bl[2] *= 0.7;
+    G.bd[0] *= 1.07; G.bd[3] *= 0.8; G.bd[4] *= 0.82; G.lo[3] *= 0.85;
+    G.bk[0] *= 1.15; G.bk[1] *= 1.15; G.bk[2] *= 0.82; G.bk[5] *= 1.25; G.cr[2] *= 1.45; G.cr[0] *= 1.15; G.nw[1] *= 1.3;
     G.rs = G.rs.map((m) => [m[0] * 1.1, m[1] * 0.9, m[2] * 1.4]);
-    mapMc((m) => [m[0] * 0.95, m[1] * 1.12, m[2] * 1.55, m[3] * 0.9, (m[4] || 0) * 0.7, Math.min(1, m[5] * 1.25)]);
-    G.tl.len *= 0.7; G.tl.g *= 0.85; G.tl.lp0 *= 1.2; G.tl.t1 *= 0.85;
-    G.dr *= 0.88; G.far.len *= 0.85; G.far.lp *= 1.12;
+    mapMc((m) => [m[0] * 0.95, m[1] * 1.12, m[2] * 1.35, m[3] * 0.9, (m[4] || 0) * 0.7, Math.min(1, m[5] * 1.25)]);
+    G.tl = Object.assign({}, G.tl, { len: G.tl.len * 0.78, g: G.tl.g * 0.9, lp0: G.tl.lp0 * 1.25, t1: G.tl.t1 * 0.85 });
+    G.dr *= 0.9; G.far = Object.assign({}, G.far, { len: G.far.len * 0.85, lp: G.far.lp * 1.15 });
   }
-  const p = R.j(1, 0.022);
-  G.bk[0] *= p; G.bk[4] *= p; G.bd[0] *= Math.sqrt(p); G.bd[1] *= p;
+  const p = R.j(1, 0.025);                    // per-variant micro jitter (pitch, layer balance, action timing)
+  G.bk[0] *= p; G.bk[4] *= p; G.bd[0] *= Math.sqrt(p); G.bd[1] *= p; G.lo[0] *= p;
   G.rs = G.rs.map((m) => [m[0] * p, m[1], m[2]]);
-  mapMc((m) => [m[0], m[1] * R.j(1, 0.03), m[2] * R.j(1, 0.1), m[3], m[4], m[5]]);
-  G.cr[2] *= R.j(1, 0.1); G.bk[2] *= R.j(1, 0.06);
+  mapMc((m) => [m[0] * R.j(1, 0.05), m[1] * R.j(1, 0.03), m[2] * R.j(1, 0.12), m[3], m[4], m[5]]);
+  G.cr[2] *= R.j(1, 0.12); G.bk[3] *= R.j(1, 0.08); G.bd[4] *= R.j(1, 0.06); G.lo[3] *= R.j(1, 0.08);
   return G;
 }
 const isSup = (G) => G.cls === 'srifle' || G.cls === 'spistol';
 
-/* ------------------------------ gunshot, close (first person) ------------------------------ */
-function gunFire(G, R, v) {
-  const T = G.tl, pre = 40, sup = isSup(G);
-  const lastMc = G.mc.length ? G.mc[G.mc.length - 1][0] : 0;
-  const ndSec = Math.max(0.2, G.bd[3] * 5.5, lastMc + 0.12, G.bk[2] * 13), nd = ns(ndSec + 0.01), dry = new Float32Array(nd);
-  // 1) Friedlander muzzle blast: instant rise, positive phase bl[0] ms, long shallow negative phase
-  const bT = G.bl[0] * 1e-3 * SR, nb = Math.min(nd - pre, Math.ceil(bT * 12)), nA = sup ? ns(0.0012) : 3;
-  for (let i = 0; i < nb; i++) {
-    const x = i / bT; let a = 1; if (i < nA) { const u = (i + 1) / (nA + 1); a = u * u * (3 - 2 * u); }
-    dry[pre + i] += G.bl[1] * a * (1 - x) * Math.exp(-1.6 * x);
+/** asymmetric Friedlander blast: smooth rise over `rise` s, positive phase T s (decay constant b), then a longer,
+ *  shallower negative lobe of length nl x T whose area cancels `bal` of the positive impulse */
+function addBlast(out, at, T, g, rise, nl, b, bal) {
+  at = at | 0; const nT = Math.max(2, T * SR), nR = Math.max(1, rise * SR), n1 = Math.ceil(nT), nN = Math.max(4, nT * nl), n2 = Math.ceil(nN);
+  let aP = 0;
+  for (let i = 0; i < n1 && at + i < out.length; i++) {
+    const x = i / nT; let a = (1 - x) * Math.exp(-b * x);
+    if (i < nR) { const u = (i + 1) / (nR + 1); a *= u * u * (3 - 2 * u); }
+    out[at + i] += g * a; aP += a;
   }
-  // 2) high-frequency crack + supersonic N-wave
-  if (G.cr[2] > 0) {
-    const c = burst({ tau: G.cr[1], seed: R.seed(), f: [['hp', G.cr[0], 0.8], ['hp', G.cr[0] * 0.7, 0.6], ['pk', G.cr[3], 1.2, 5]] });
-    normTo(c, G.cr[2]); mix(dry, c, pre);
-  }
-  if (G.nw[1] > 0) { const nn = Math.max(3, Math.round(G.nw[0] * SR)); for (let i = 0; i < nn; i++) dry[pre + i] += G.nw[1] * (1 - 2 * i / (nn - 1)); }
-  // 3) mid 'bark': rough noise through two falling formants, fast + slow decay
-  const bf = G.bk[0], bq = G.bk[1], bt = G.bk[2];
-  const b1 = burst({ att: G.bk[6] || 0.0002, hold: 0.0015, tau: bt, tau2: bt * 2.6, m2: 0.22, am: 0.4, amT: 0.0012, seed: R.seed() });
+  let s = 0; for (let i = 0; i < n2; i++) s += Math.pow(Math.max(0, Math.sin(Math.PI * (i + 0.5) / nN)), 1.4);
+  const k = (bal === undefined ? 0.9 : bal) * aP / s;
+  for (let i = 0; i < n2 && at + n1 + i < out.length; i++) out[at + n1 + i] -= g * k * Math.pow(Math.max(0, Math.sin(Math.PI * (i + 0.5) / nN)), 1.4);
+}
+/** short supersonic bullet N-wave (linear ramp from +g to -g over d seconds, 2-sample edges) */
+function addNWave(out, at, d, g) {
+  at = at | 0; const n = Math.max(4, Math.round(d * SR));
+  for (let i = 0; i <= n && at + i < out.length; i++) { let a = 1 - 2 * i / n; if (i < 2) a *= (i + 1) / 3; else if (i > n - 2) a *= (n - i + 1) / 3; out[at + i] += g * a; }
+}
+/** rough propellant-gas noise through two falling formants, RMS-normalised over its active part */
+function barkNoise(G, R, len, bkMul, att) {
+  const bf = G.bk[0] * (bkMul || 1), bt = G.bk[2];
+  const b1 = burst({ att: att || 0.0003, hold: 0.0012, tau: bt, tau2: bt * 3, m2: 0.35, am: 0.45, amT: 0.0012, seed: R.seed(), len });
   const b2 = b1.slice();
-  filtv(b1, 'bp', (t) => bf * (1 + 0.45 * Math.exp(-t / 0.006)), bq);
-  filtv(b2, 'bp', (t) => G.bk[4] * (1 + 0.3 * Math.exp(-t / 0.005)), bq * 1.25);
-  const nAct = ns((G.bk[6] || 0) + 0.0015 + bt);
-  normRms(b1, G.bk[3] * 0.32, nAct); normRms(b2, G.bk[3] * G.bk[5] * 0.32, nAct); mix(dry, b1, pre); mix(dry, b2, pre);
-  // 4) body: pitch-gliding sine (slightly shaped) + brown-noise thump
-  addSweep(dry, pre, { f0: G.bd[1], f1: G.bd[0], gl: G.bd[2], tau: G.bd[3], amp: G.bd[4] * 0.42, att: sup ? 0.002 : 0.0007, sh: 1.3 });
-  const th = burst({ att: 0.0004, tau: G.bd[3] * 0.5, color: 'b', seed: R.seed(), f: [['lp', G.bd[0] * 2.6, 0.7]] });
-  normRms(th, G.bd[4] * 0.12, ns(G.bd[3] * 0.5 + 0.001)); mix(dry, th, pre);
-  // 5) barrel / frame resonances (identity)
-  addModes(dry, pre, G.rs, 1, R, 0.0004);
-  // 6) action mechanics: bolt / slide clicks, buffer spring
-  for (const m of G.mc) addClick(dry, pre + ns(m[0] * R.j(1, 0.04)), { f: m[1], g: m[2], ring: m[3], thud: m[4], thudF: 170, br: m[5], n: 7 }, R);
-  if (G.sp) addSpring(dry, pre + ns(G.sp[0]), { f0: G.sp[1], f1: G.sp[2], dur: G.sp[3], g: G.sp[4], bp: 2600 }, R);
-  // 7) ground reflection (short comb colouring like a real outdoor close mic)
-  if (G.gr) { const d = ns(G.gr[0] * 1e-3 * R.j(1, 0.12)), y = dry.slice(0, Math.min(nd - d, ns(0.3))); lp1(y, 4500); mix(dry, y, d, G.gr[1]); }
-  // 8) saturation: density + punch (recording-chain overload)
-  satur(dry, G.dr, G.as || 0);
-  eqMono(dry, v);
-  { const f = ns(0.04); for (let i = 0; i < f; i++) dry[nd - 1 - i] *= i / f; }
-  // 9) stereo: centred transient, baked early reflections, diffuse rolling outdoor tail
-  const N = ns(Math.max(ndSec, T.len + 0.08) + 0.05), Lc = new Float32Array(N), Rc = new Float32Array(N);
-  mix(Lc, dry, 0); mix(Rc, dry, 0);
-  const sl = Math.min(nd, ns(0.13)), src = dry.slice(0, sl), fo = ns(0.02);
-  for (let i = 0; i < fo; i++) src[sl - 1 - i] *= i / fo;
-  if (T.er) addEchoes(Lc, Rc, src, 0, { n: T.er, t0: T.t0, t1: T.t1, g: T.erg, decay: 0.74, lp0: T.lp0, lpMul: 0.78, smear: 0.007, hp: 70, w: 0.8 }, R);
-  addTail(Lc, Rc, ns(0.01), { rise: 0.035, len: T.len, g: T.g, lp0: T.lp0, lp1: T.lp1, hp: T.hp || 90, roll: T.roll, rollHz: 3.5, emph: [bf * 0.7, 0.8, 5], hump: T.hump }, R);
-  return finish(Lc, Rc, G.lvl);
+  filtv(b1, 'bp', (t) => bf * (1 + 0.6 * Math.exp(-t / 0.005)), G.bk[1]);
+  filtv(b2, 'bp', (t) => G.bk[4] * (bkMul || 1) * (1 + 0.35 * Math.exp(-t / 0.004)), G.bk[1] * 1.3);
+  const nAct = ns(0.0015 + bt * 1.5);
+  normRms(b1, 1, nAct); normRms(b2, G.bk[5], nAct); mix(b1, b2, 0);
+  return b1;
+}
+/** final loudness / peak normalisation of a gun buffer: loudness of the first 100 ms set by ld (dB re AK), peak capped at lvl */
+function gunFinish(Lc, Rc, G, far) {
+  const out = finish(Lc, Rc, 1);
+  const n = Math.min(out.L.length, ns(0.1)); let e = 0, m = 0;
+  for (let i = 0; i < n; i++) e += out.L[i] * out.L[i] + out.R[i] * out.R[i];
+  for (let i = 0; i < out.L.length; i++) { const a = Math.abs(out.L[i]), b = Math.abs(out.R[i]); if (a > m) m = a; if (b > m) m = b; }
+  const rms = Math.sqrt(e / (2 * n)) || 1e-9, target = dbg((far ? -23 : -13.2) + (G.ld || 0));
+  const k = Math.min(target / rms, Math.min(0.98, G.lvl * (far ? 0.6 : 1)) / (m || 1));
+  for (let i = 0; i < out.L.length; i++) { out.L[i] *= k; out.R[i] *= k; }
+  // trim the tail at -58 dB re peak (inaudible under the game's own reverb; keeps the sound bank small), 25 ms fade to exact 0
+  const thr = m * k * 1.26e-3; let last = out.L.length - 1;
+  while (last > 0 && Math.abs(out.L[last]) < thr && Math.abs(out.R[last]) < thr) last--;
+  const len = Math.min(out.L.length, last + ns(0.01)), fo = Math.min(len >> 2, ns(0.025)), L = out.L.subarray(0, len), Rr = out.R.subarray(0, len);
+  for (let i = 0; i < fo; i++) { const g = 0.5 - 0.5 * Math.cos(Math.PI * i / fo); L[len - 1 - i] *= g; Rr[len - 1 - i] *= g; }
+  L[len - 1] = 0; Rr[len - 1] = 0;
+  return { L, R: Rr };
 }
 
-/* ------------------------------ gunshot, distant (40-80 m) ------------------------------ */
-function gunFar(G, R, v) {
-  const F = G.far, pre = 40, nd = ns(0.45), dry = new Float32Array(nd);
-  const bT = G.bl[0] * 2.5e-3 * SR, nb = Math.min(nd - pre, Math.ceil(bT * 12)), na = ns(0.002);
-  for (let i = 0; i < nb; i++) { const x = i / bT, a = i < na ? i / na : 1; dry[pre + i] += G.bl[1] * a * (1 - x) * Math.exp(-1.6 * x); }
-  const bk = burst({ att: 0.0025, hold: 0.003, tau: G.bk[2] * 1.7, tau2: G.bk[2] * 4, m2: 0.3, am: 0.3, seed: R.seed(), len: 0.4 });
-  filtv(bk, 'bp', (t) => G.bk[0] * 0.65 * (1 + 0.3 * Math.exp(-t / 0.01)), 0.9);
-  normTo(bk, 0.9); mix(dry, bk, pre);
-  addSweep(dry, pre, { f0: G.bd[1] * 0.8, f1: G.bd[0] * 0.85, gl: G.bd[2] * 1.5, tau: G.bd[3] * 1.6, amp: G.bd[4] * 1.1, att: 0.003, sh: 1.1 });
-  const th = burst({ att: 0.003, tau: G.bd[3] * 0.8, color: 'b', seed: R.seed(), f: [['lp', 200, 0.7]] });
-  normTo(th, 0.5 * G.bd[4]); mix(dry, th, pre);
-  filt(dry, 'lp', F.lp, 0.6); filt(dry, 'lp', F.lp * 1.3, 0.6);  // air absorption
-  satur(dry, 1.5, 0.05);
-  eqMono(dry, v, 0.6);
-  const N = ns(F.len + 0.6), Lc = new Float32Array(N), Rc = new Float32Array(N);
-  mix(Lc, dry, 0, 0.85); mix(Rc, dry, 0, 0.85);
-  const sl = ns(0.25), src = dry.slice(0, sl), fo = ns(0.03);
+/* ------------------------------ gunshot, close (first person) ------------------------------ */
+const GM = { body: 0.22, push: 0.1, chest: 0.3, bark: 0.4, air: 0.3, drive: 1.4, tail: 1.9, er: 1.8 };   // layer balance (tuned against measured band energies)
+function gunFire(G, R, v) {
+  const T = G.tl, pre = 48, sup = isSup(G);
+  const lastMc = G.mc.length ? G.mc[G.mc.length - 1][0] : 0;
+  const ndSec = Math.max(0.24, G.bd[3] * 6, lastMc + 0.14), nd = ns(ndSec + 0.01), dry = new Float32Array(nd);
+  // 1) muzzle blast (suppressed: smeared + low-passed inside the can)
+  const bl = new Float32Array(nd);
+  addBlast(bl, pre, G.bl[0] * 1e-3, G.bl[1], G.bl[2] * 1e-3, G.bl[3], 1.25, 0.85);
+  if (sup) { filt(bl, 'lp', G.sup[0], 0.6); filt(bl, 'lp', G.sup[0] * 1.4, 0.6); normTo(bl, G.bl[1] * 0.9); }
+  else filt(bl, 'lp', 15000, 0.6);
+  mix(dry, bl, 0);
+  // 2) body: calibre-dependent low thump (gliding damped sine) + brown push
+  addSweep(dry, pre, { f0: G.bd[1], f1: G.bd[0], gl: G.bd[2], tau: G.bd[3], amp: G.bd[4] * GM.body, att: sup ? 0.0025 : 0.0012, sh: 1.25 });
+  const th = burst({ att: sup ? 0.002 : 0.0006, tau: G.bd[3] * 0.45, color: 'b', seed: R.seed(), f: [['lp', G.bd[0] * 2.4, 0.7]] });
+  normRms(th, G.bd[4] * GM.push, ns(G.bd[3] * 0.5 + 0.002)); mix(dry, th, pre);
+  // 3) chest: low-mid boom
+  const lo = burst({ att: sup ? 0.0015 : 0.0005, hold: 0.002, tau: G.lo[2], color: 'p', seed: R.seed(), f: [['bp', G.lo[0], G.lo[1]], ['lp', G.lo[0] * 3, 0.7]] });
+  normRms(lo, G.lo[3] * GM.chest, ns(G.lo[2] * 1.2)); mix(dry, lo, pre);
+  // 4) bark: rough mid propellant noise (suppressed: soft 'pfft' leaking from the can)
+  const bk = barkNoise(G, R, ndSec * 0.6, 1, sup ? 0.0015 : 0.0003);
+  if (sup) { filt(bk, 'lp', G.sup[0] * 1.6, 0.7); scale(bk, G.sup[1] / Math.max(1e-6, G.bk[3])); }
+  scale(bk, G.bk[3] * GM.bark); mix(dry, bk, pre);
+  // 5) supersonic crack + HF burst
+  if (G.cr[2] > 0) { const c = burst({ tau: G.cr[1], seed: R.seed(), f: [['hp', G.cr[0], 0.8], ['hp', G.cr[0] * 0.75, 0.6], ['lp', 13000, 0.7]] }); normTo(c, G.cr[2]); mix(dry, c, pre); }
+  if (!sup) { const hs = burst({ att: 0.0002, hold: 0.001, tau: G.bk[2] * 0.55, seed: R.seed(), f: [['hp', 2300, 0.7], ['lp', 11000, 0.7]] }); normRms(hs, G.bk[3] * GM.air * (0.5 + G.cr[2]), ns(G.bk[2] * 0.6 + 0.001)); mix(dry, hs, pre); }
+  if (G.nw[1] > 0) addNWave(dry, pre, G.nw[0], G.nw[1]);
+  // 6) barrel / frame ring
+  addModes(dry, pre, G.rs, 1, R, 0.0006);
+  // 7) action: bolt / slide / hammer, buffer spring, brass ping
+  for (const m of G.mc) addClick(dry, pre + ns(m[0]), { f: m[1], g: m[2], ring: m[3], thud: m[4], thudF: 170, br: m[5], n: 7 }, R);
+  if (G.sp) addSpring(dry, pre + ns(G.sp[0]), { f0: G.sp[1], f1: G.sp[2], dur: G.sp[3], g: G.sp[4], bp: 2600 }, R);
+  if (G.br) addModes(dry, pre + ns(G.br[0] * R.j(1, 0.15)), [[G.br[1] * R.j(1, 0.03), 0.03, 1], [G.br[1] * 1.41, 0.022, 0.6], [G.br[1] * 1.93, 0.016, 0.4]], G.br[2], R, 0.0003);
+  // 8) ground reflection (comb colouring of a real close perspective)
+  if (G.gr) { const d = ns(G.gr[0] * 1e-3 * R.j(1, 0.12)), y = dry.slice(0, Math.min(nd - d, ns(0.25))); lp1(y, 3800); mix(dry, y, d, G.gr[1]); }
+  // 9) recording-chain saturation (density, lower crest factor) + version tint
+  satur(dry, G.dr * GM.drive, G.as || 0);
+  eqMono(dry, v);
+  { const f = ns(0.04); for (let i = 0; i < f; i++) dry[nd - 1 - i] *= i / f; }
+  // 10) stereo space: centred dry, early reflections, slapback, long rolling outdoor tail
+  const N = ns(Math.max(ndSec, T.len + 0.1) + 0.05), Lc = new Float32Array(N), Rc = new Float32Array(N);
+  mix(Lc, dry, 0); mix(Rc, dry, 0);
+  const sl = Math.min(nd, ns(0.12)), src = dry.slice(0, sl), fo = ns(0.02);
   for (let i = 0; i < fo; i++) src[sl - 1 - i] *= i / fo;
-  addEchoes(Lc, Rc, src, 0, { n: 5, t0: 0.09, t1: Math.min(0.9, F.len * 0.45), curve: 1.4, g: 0.55, decay: 0.8, lp0: F.lp * 0.8, lpMul: 0.85, smear: 0.02, hp: 50, w: 0.9 }, R);
-  addTail(Lc, Rc, ns(0.03), { rise: 0.08, len: F.len, g: 0.42, lp0: F.lp, lp1: 220, hp: 40, roll: 0.55, rollHz: 2.2, hump: [F.len * 0.25, F.len * 0.12, 0.4] }, R);
-  return finish(Lc, Rc, G.lvl * 0.55);
+  if (T.er) addEchoes(Lc, Rc, src, 0, { n: T.er, t0: T.t0, t1: T.t1, g: T.erg * GM.er, decay: 0.76, lp0: T.lp0 * 1.1, lpMul: 0.8, smear: 0.008, hp: 70, w: 0.85 }, R);
+  if (T.sl) addEchoes(Lc, Rc, src, 0, { n: 2, t0: T.sl[0], t1: T.sl[0] * 1.45, g: T.sl[1], decay: 0.6, lp0: T.lp0 * 0.6, lpMul: 0.7, smear: 0.014, hp: 90, w: 0.6 }, R);
+  addTail(Lc, Rc, ns(0.008), { rise: 0.03, len: T.len, g: T.g * GM.tail, lp0: T.lp0, lp1: T.lp1, hp: 45, roll: T.roll, rollHz: 2.6, emph: [G.lo[0] * 1.2, 0.7, 3], hump: T.hump }, R);
+  return gunFinish(Lc, Rc, G, false);
+}
+
+/* ------------------------------ gunshot, distant (40-80 m): low-passed rolling thunder with delayed echoes ------------------------------ */
+function gunFar(G, R, v) {
+  const F = G.far, pre = 40, sup = isSup(G), nd = ns(0.5), dry = new Float32Array(nd);
+  const crk = !sup && G.nw[1] > 0 && v !== 2, lag = crk ? R.r(0.045, 0.08) : 0, at = pre + ns(lag);
+  // supersonic rifles: the bullet's crack arrives first (sharp but already band-limited), the muzzle report follows
+  if (crk) { const c = new Float32Array(ns(0.03)); addNWave(c, 20, G.nw[0] * 1.6, 1); filt(c, 'hp', 900, 0.7); filt(c, 'lp', 5200, 0.7); normTo(c, 0.32 * (v === 3 ? 1.35 : 1)); mix(dry, c, pre - 20); }
+  // smeared blast (HF lost to air absorption -> slower rise), mid 'pop', reduced body
+  addBlast(dry, at, G.bl[0] * 2.4e-3, 0.8, 0.0018, 2.6, 1.2, 0.85);
+  const bk = barkNoise(G, R, 0.45, sup ? 0.75 : 0.85, 0.0025); scale(bk, sup ? 0.08 : 0.2); mix(dry, bk, at);
+  addSweep(dry, at, { f0: G.bd[1] * 0.85, f1: G.bd[0] * 1.1, gl: G.bd[2] * 1.5, tau: G.bd[3] * 1.3, amp: G.bd[4] * 0.22, att: 0.004, sh: 1.1 });
+  const lo = burst({ att: 0.003, hold: 0.004, tau: G.lo[2] * 1.6, color: 'p', seed: R.seed(), f: [['bp', G.lo[0] * 1.3, 0.9]] }); normRms(lo, 0.06, ns(0.05)); mix(dry, lo, at);
+  filt(dry, 'lp', F.lp * 1.15, 0.6); filt(dry, 'lp', F.lp * 2.6, 0.6); filt(dry, 'hp', 110, 0.6);  // air absorption + lost ground coupling
+  satur(dry, 1.6, 0.04);
+  eqMono(dry, v, 0.6);
+  const FL = F.len * 1.2, N = ns(FL + 0.7), Lc = new Float32Array(N), Rc = new Float32Array(N);
+  mix(Lc, dry, 0, 0.8); mix(Rc, dry, 0, 0.8);
+  const sl = ns(0.22), src = dry.slice(0, sl), fo = ns(0.03);
+  for (let i = 0; i < fo; i++) src[sl - 1 - i] *= i / fo;
+  // dense early reflections, then one or two distinct delayed echoes off distant walls (slapback), then the rolling thunder
+  addEchoes(Lc, Rc, src, 0, { n: 5, t0: 0.05, t1: 0.22, curve: 1.3, g: 0.5, decay: 0.78, lp0: F.lp * 0.9, lpMul: 0.85, smear: 0.016, hp: 90, w: 0.9 }, R);
+  addEchoes(Lc, Rc, src, ns(F.sl[0] * R.j(1, 0.08)), { n: 2, t0: 0, t1: F.sl[0] * 0.6, g: F.sl[1], decay: 0.55, lp0: F.lp * 0.7, lpMul: 0.75, smear: 0.025, hp: 100, w: 0.7 }, R);
+  addTail(Lc, Rc, ns(0.02), { rise: 0.07, len: FL, g: F.g * 1.15, lp0: F.lp * 1.1, lp1: 300, hp: 70, roll: 0.6, rollHz: 1.9, emph: [700, 0.8, 3], hump: [FL * 0.2, FL * 0.12, 0.45] }, R);
+  return gunFinish(Lc, Rc, G, true);
 }
 
 /* ------------------------------ foley output helper ------------------------------ */
@@ -4111,6 +4236,16 @@ function knifeSnd(kind, R, v) {
 }
 
 /* ------------------------------ explosions ------------------------------ */
+/** falling rubble / dirt rain: clumpy amplitude-modulated noise band. r: [peak time s, end s, HP Hz, LP Hz, rms gain, clump probability] */
+function addRain(ch, at, r, R) {
+  const n = Math.min(ch.length - at, ns(r[1])), x = white(n, R.seed()), k = 1 - Math.exp(-1 / (0.004 * SR)); let a = 0;
+  for (let i = 0; i < n; i += 32) {
+    const t = i * INV_SR, env = (t < r[0] ? t / r[0] : Math.exp(-3.2 * (t - r[0]) / Math.max(0.05, r[1] - r[0]))) * Math.min(1, (n - i) / ns(0.4)), tg = (R.u() < r[5] ? R.r(0.5, 1) : R.r(0, 0.22)) * env, e = Math.min(n, i + 32);
+    for (let j = i; j < e; j++) { a += k * (tg - a); x[j] *= a; }
+  }
+  filt(x, 'hp', r[2], 0.7); filt(x, 'lp', r[3], 0.7); filt(x, 'pk', Math.sqrt(r[2] * r[3]), 0.8, 3);
+  normRms(x, r[4]); mix(ch, x, at);
+}
 /** generic explosion. o: {dur, dry, T (ms), bg, crack:[hp,tau,g], sub:[f0,f1,gl,tau,amp], roar:[hold,tau,tau2,m2,lp0,lp1,lt,g],
  *  debris:[n,t0,t1,fLo,fHi,amp], chunks:[n,t0,t1,amp], drive, er:{...}, tail:{...}, far (LP Hz), lvl} */
 function explosion(o, R, v) {
@@ -4133,7 +4268,8 @@ function explosion(o, R, v) {
   mix(Lc, dry, 0); mix(Rc, dry, 0);
   const d = o.debris, c = o.chunks;
   for (const ch of [Lc, Rc]) {
-    if (d) addGrains(ch, pre, { n: d[0] >> 1, t0: d[1], t1: d[2], shape: 1.8, f: [d[3], d[4]], Q: [3, 10], len: [0.0003, 0.002], amp: d[5], decay: 3 }, R);
+    if (d) addGrains(ch, pre, { n: d[0] >> 1, t0: d[1], t1: d[2], shape: 1.8, f: [d[3], d[4]], Q: [1.2, 4], len: [0.0003, 0.002], amp: d[5], decay: 3 }, R);
+    if (o.rain && !o.far) addRain(ch, pre, o.rain, R);
     if (c) addGrains(ch, pre, { n: c[0] >> 1, t0: c[1], t1: c[2], shape: 1.5, f: [250, 1400], Q: [2, 5], len: [0.001, 0.004], amp: c[3], decay: 2 }, R);
   }
   if (d && o.far) { filt(Lc, 'lp', o.far * 1.5, 0.6); filt(Rc, 'lp', o.far * 1.5, 0.6); }
@@ -4149,7 +4285,7 @@ function explosion(o, R, v) {
 function nadeSnd(kind, R, v, k) {
   const hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0;
   if (kind === 'he') return explosion({ dur: 2.6, dry: 1.4, T: 6, bg: 1.3, crack: [2000, 0.006, 1.0], sub: [120, 48, 0.03, 0.18, 0.38],
-    roar: [0.02, 0.12, 0.45, 0.3, 6000, 450, 0.15, 0.3], debris: [260, 0.03, 1.4, 1500, 9000, 0.22], chunks: [50, 0.15, 1.6, 0.25], drive: 2.6,
+    roar: [0.03, 0.12, 0.55, 0.32, 6000, 450, 0.18, 0.3], debris: [420, 0.03, 1.4, 1500, 9000, 0.17], chunks: [70, 0.15, 1.6, 0.22], rain: [0.08, 1.5, 1600, 8000, 0.04, 0.3], drive: 2.6,
     tail: { len: 2.0, g: 0.45, hump: [0.5, 0.25, 0.4] }, lvl: 0.98 }, R, v);
   if (kind === 'hefar') return explosion({ dur: 3.2, dry: 1.2, T: 12, bg: 1.0, sub: [90, 40, 0.05, 0.3, 0.6],
     roar: [0.04, 0.2, 0.7, 0.35, 1200, 250, 0.3, 0.35], chunks: [20, 0.3, 1.5, 0.08], drive: 1.6, far: 700,
@@ -4284,15 +4420,26 @@ function addBeep(out, at, f, dur, g, o) {
   if (o.pz !== 0) filt(tmp, 'pk', o.pz || 3200, 1.2, 4);
   mix(out, tmp, at, g);
 }
+/** piezo buzzer tone: fundamental + strong even harmonic (a driven piezo disc), raised-cosine edges, slight case resonance */
+function addPiezo(out, at, f, dur, g, hs) {
+  at = at | 0; hs = hs || [1, 0.7, 0.12];
+  const n = Math.min(out.length - at, ns(dur)), ea = ns(0.0015), er = ns(0.004), tmp = new Float32Array(n + 8);
+  for (let h = 0; h < hs.length; h++) { const fh = f * (h + 1); if (fh > 17000) break; const w = TAU * fh * INV_SR, cw = Math.cos(w), sw = Math.sin(w); let c = 1, sn = 0;
+    for (let i = 0; i < n; i++) { const t = c * cw - sn * sw; sn = c * sw + sn * cw; c = t; tmp[i] += hs[h] * sn; } }
+  for (let i = 0; i < n; i++) { let e = 1; if (i < ea) e = 0.5 - 0.5 * Math.cos(Math.PI * i / ea); else if (i > n - er) e = 0.5 - 0.5 * Math.cos(Math.PI * (n - i) / er); tmp[i] *= e; }
+  filt(tmp, 'pk', f * 1.04, 3, 3); filt(tmp, 'hp', 900, 0.7);
+  mix(out, tmp, at, g);
+}
 const DTMF = [[697, 1209], [697, 1336], [770, 1209], [770, 1477], [852, 1336], [941, 1209], [852, 1477]];
 function c4Snd(kind, R, v, k) {
   const hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0;
-  if (kind === 'explode') return explosion({ dur: 3.8, dry: 2.0, T: 10, bg: 1.0, crack: [1800, 0.008, 0.6], sub: [75, 32, 0.06, 0.35, 0.7],
-    roar: [0.04, 0.25, 0.9, 0.35, 4000, 250, 0.35, 0.32], debris: [400, 0.05, 2.8, 1200, 8000, 0.2], chunks: [90, 0.2, 3.0, 0.25], drive: 2.8,
-    er: { n: 7, t0: 0.06, t1: 0.6, g: 0.55, lp0: 2000, smear: 0.02 }, tail: { len: 3.0, g: 0.5, lp0: 1500, lp1: 150, roll: 0.65, rollHz: 1.4, hump: [0.7, 0.35, 0.5] }, lvl: 0.98 }, R, v);
+  if (kind === 'explode') return explosion({ dur: 4.6, dry: 2.8, T: 10, bg: 1.0, crack: [1800, 0.008, 0.6], sub: [75, 32, 0.06, 0.35, 0.7],
+    roar: [0.3, 0.3, 1.3, 0.45, 4500, 280, 0.6, 0.34], debris: [700, 0.05, 2.8, 1200, 8000, 0.16], chunks: [140, 0.2, 3.0, 0.22], rain: [0.25, 3.4, 1400, 7000, 0.05, 0.35], drive: 2.8,
+    er: { n: 7, t0: 0.06, t1: 0.6, g: 0.55, lp0: 2000, smear: 0.02 }, tail: { len: 3.6, g: 0.55, lp0: 1600, lp1: 160, roll: 0.65, rollHz: 1.4, hump: [0.8, 0.45, 0.55] }, lvl: 0.98 }, R, v);
   const out = new Float32Array(ns(1.4));
   if (kind === 'beep') {                      // the armed beep: ~2 kHz square-ish, ~90 ms, cutting
-    addBeep(out, 40, 2050 * (1 - 0.03 * hv + 0.03 * sh), 0.09, 0.8, { att: 0.0025, rel: 0.008, harm: sh ? [1, 0.38, 0.2, 0.11, 0.06] : hv ? [1, 0.22, 0.08, 0.03] : [1, 0.3, 0.14, 0.07, 0.035] });
+    addPiezo(out, 40, 4120 * (1 - 0.1 * hv + 0.05 * sh), 0.075, 0.8, sh ? [1, 0.85, 0.2, 0.1] : hv ? [1, 0.4, 0.06] : [1, 0.7, 0.12]);
+    addClick(out, 40, { f: 2400, g: 0.05, ring: 0.3, n: 4, poly: 0.8 }, R);   // relay tick of the timer circuit
     return foley(out, 0.55, v, R, { room: 0.1, eq: 0 });
   }
   if (kind === 'key') {                       // keypad press: plastic click + DTMF-like dual tone through a piezo
@@ -4304,8 +4451,8 @@ function c4Snd(kind, R, v, k) {
     return foley(out, 0.35, v, R, { room: 0.08, eq: 0.3 });
   }
   if (kind === 'planted') {                   // armed confirmation chirp: quick rising triplet + held tone
-    [1500, 1900, 2350].forEach((f, i) => addBeep(out, 40 + ns(i * 0.07), f, 0.05, 0.6, {}));
-    addBeep(out, 40 + ns(0.22), 2350, 0.16, 0.6, { rel: 0.03 });
+    [3100, 3600, 4120].forEach((f, i) => addPiezo(out, 40 + ns(i * 0.07), f * (1 - 0.06 * hv + 0.04 * sh), 0.05, 0.6));
+    addPiezo(out, 40 + ns(0.22), 4120 * (1 - 0.06 * hv + 0.04 * sh), 0.16, 0.6);
     return foley(out, 0.45, v, R, { room: 0.1, eq: 0.3 });
   }
   if (kind === 'draw') {
@@ -4412,9 +4559,11 @@ function impactSnd(kind, R, v, k) {
     addGrains(out, 30, { n: 60, t0: 0, t1: 0.25, shape: 1.6, f: [2000, 9000], Q: [1, 3], len: [0.0002, 0.001], amp: 0.08 }, R);
   } else if (kind === 'metal') {
     const f = [1900, 2150, 1750, 2050][k & 3] * (1 - 0.08 * hv + 0.08 * sh);
-    addClick(out, 20, { f, g: 0.8, ring: 1.6, n: 9, br: 0.7, thud: 0.2, thudF: 300 }, R);
-    addModes(out, 20, [[f * 1.26, 0.12, 0.3], [f * 1.267, 0.1, 0.15], [f * 1.95, 0.09, 0.25], [f * 2.95, 0.06, 0.2]].map((m) => [m[0], m[1] * (1 + 0.3 * hv), m[2]]), 1, R);
-    if (!(k & 1)) { Lx = new Float32Array(N); Rx = new Float32Array(N); addWhine(Lx, Rx, ns(0.015), R.r(3500, 4200), R.r(1500, 1900), 0.38, 0.25, R.n() * 0.3, R.n(), R); }
+    addClick(out, 20, { f, g: 0.8, ring: 1.0, n: 9, br: 0.7, thud: 0.25, thudF: 300 }, R);
+    addBurst(out, 20, 0.7, { tau: 0.002, seed: R.seed(), f: [['hp', 2500, 0.7]] });
+    addModes(out, 20, [[f * 1.26, 0.05, 0.3], [f * 1.267, 0.045, 0.15], [f * 1.95, 0.035, 0.25], [f * 2.95, 0.025, 0.2]].map((m) => [m[0], m[1] * (1 + 0.3 * hv), m[2]]), 1, R);
+    addGrains(out, 30, { n: 18, t0: 0, t1: 0.07, shape: 1.6, f: [3000, 10000], Q: [2, 6], len: [0.0002, 0.0008], amp: 0.12, decay: 2 }, R);   // sparks / spall
+    if (k === 0) { Lx = new Float32Array(N); Rx = new Float32Array(N); addWhine(Lx, Rx, ns(0.015), R.r(3500, 4200), R.r(1500, 1900), 0.3, 0.18, R.n() * 0.3, R.n(), R); }
   } else if (kind === 'wood') {
     addClick(out, 20, { f: 600 * (1 - 0.1 * hv + 0.1 * sh), g: 0.8, ring: 1.2, n: 6, poly: 0.85, thud: 0.6, thudF: 220 }, R);
     addModes(out, 20, [[420, 0.03, 0.4], [870, 0.025, 0.3], [1430, 0.02, 0.2]], 1, R);
@@ -4437,23 +4586,25 @@ function foleyStereo(out, v, R, o) {
 
 /* ------------------------------ bullet whiz-by ------------------------------ */
 function whizSnd(R, v, k) {
+  // a supersonic bullet passing close: sharp N-wave 'snap' first, then a short Doppler 'zip' of turbulent air (broad, not a whistle)
   const N = ns(0.4), Lc = new Float32Array(N), Rc = new Float32Array(N), dir = k & 1 ? 1 : -1, sh = v === 3 ? 1 : 0, hv = v === 2 ? 1 : 0;
-  const c = new Float32Array(ns(0.02)), nn = 11;
-  for (let i = 0; i < nn; i++) c[20 + i] += 0.55 * (1 - 2 * i / (nn - 1));    // supersonic N-wave snap
-  addBurst(c, 20, 0.4, { tau: 0.001, seed: R.seed(), f: [['hp', 3000, 0.7]] });
-  addPan(Lc, Rc, c, 0, 0.9, dir * -0.3);
-  const n = ns(0.25), x = white(n, R.seed()), f0 = [5200, 4800, 5600, 5000][k & 3] * (1 + 0.1 * sh - 0.1 * hv);
-  for (let i = 0; i < n; i++) { const u = i / n; x[i] *= Math.min(1, u / 0.06) * Math.pow(1 - u, 2); }
-  filtv(x, 'bp', (t) => f0 * (0.4 + 0.6 / (1 + Math.pow(t / 0.05, 2))), 8);
+  const c = new Float32Array(ns(0.03));
+  addNWave(c, 20, R.r(0.00018, 0.00028), 0.8);
+  addBurst(c, 20, 0.35, { tau: 0.0012, seed: R.seed(), f: [['hp', 2500, 0.7]] });
+  filt(c, 'lp', 12000, 0.7);
+  addPan(Lc, Rc, c, 0, 1, dir * -0.35);
+  const n = ns(0.22), x = white(n, R.seed()), f0 = [4200, 3800, 4600, 4000][k & 3] * (1 + 0.1 * sh - 0.1 * hv);
+  for (let i = 0; i < n; i++) { const u = i / n; x[i] *= Math.min(1, u / 0.04) * Math.pow(1 - u, 2.2); }
+  const fAt = (t) => f0 * (0.35 + 0.65 / (1 + Math.pow(t / 0.035, 2)));
+  filtv(x, 'bp', fAt, 2.8); filt(x, 'hp', 600, 0.7);
   normTo(x, 0.5);
-  const tn = new Float32Array(n); let ph = 0;
-  for (let i = 0; i < n; i++) { const t = i * INV_SR, u = i / n; ph += TAU * f0 * 0.98 * (0.4 + 0.6 / (1 + Math.pow(t / 0.05, 2))) * INV_SR; tn[i] = 0.3 * Math.sin(ph) * Math.min(1, u / 0.05) * Math.pow(1 - u, 2.5); }
+  const tn = new Float32Array(n); let ph = 0;                     // faint tone of the vortex shedding
+  for (let i = 0; i < n; i++) { const t = i * INV_SR, u = i / n; ph += TAU * fAt(t) * 0.97 * INV_SR; tn[i] = 0.07 * Math.sin(ph) * Math.min(1, u / 0.05) * Math.pow(1 - u, 2.5); }
   mix(x, tn, 0);
-  addPanSweep(Lc, Rc, x, ns(0.004), 1.2, dir * -0.6, dir * 0.8);
+  addPanSweep(Lc, Rc, x, ns(0.003), 1.0, dir * -0.6, dir * 0.8);
   eqVer(Lc, Rc, v, 0.3);
   return finish(Lc, Rc, 0.5);
 }
-
 /* ------------------------------ body fall ------------------------------ */
 function deathSnd(R, v) {
   const hv = v === 2 ? 1 : 0, out = new Float32Array(ns(1.1));
@@ -4471,39 +4622,46 @@ function deathSnd(R, v) {
 /* ------------------------------ footsteps / landings / jump ------------------------------ */
 function stepHit(out, at, surf, g, R, v) {
   const hv = v === 2 ? 1 : 0, sh = v === 3 ? 1 : 0;
-  if (surf === 'stone') {
-    addBurst(out, at, 0.8 * g, { tau: 0.004, seed: R.seed(), f: [['hp', 1000 * (1 + 0.3 * sh), 0.7]] });
-    addBurst(out, at, 0.7 * g, { tau: 0.006, seed: R.seed(), f: [['bp', 1200 * (1 - 0.15 * hv), 1.0]] });
-    addThud(out, at, { f: 110 * (1 - 0.1 * hv), tau: 0.012, g: 0.15 * g * (1 + hv), lp: 400 }, R);
-    addClick(out, at, { f: 1800, g: 0.45 * g, ring: 0.4, n: 5, poly: 0.7 }, R);
-  } else if (surf === 'sand') {
-    addGrains(out, at, { n: Math.round(70 * g), t0: 0, t1: 0.12, shape: 1.8, f: [1200, 7000 * (1 + 0.2 * sh)], Q: [1, 4], len: [0.0003, 0.002], amp: 0.25 * g, decay: 1.5 }, R);
-    addThud(out, at, { f: 90, tau: 0.02 * (1 + 0.3 * hv), g: 0.1 * g, lp: 300 }, R);
-  } else if (surf === 'metal') {
-    addClick(out, at, { f: 380 * (1 - 0.08 * hv + 0.08 * sh), g: 0.8 * g, ring: 2.0, n: 8, br: 0.3, thud: 0.5, thudF: 140 }, R);
-    addModes(out, at, [[180, 0.08, 0.3], [410, 0.06, 0.25], [760, 0.05, 0.2], [1250, 0.04, 0.15], [2100, 0.03, 0.12], [3300, 0.025, 0.08]].map((m) => [m[0] * R.j(1, 0.03), m[1] * (1 + 0.3 * hv), m[2]]), g, R);
-  } else {                                    // wood: hollow knock
-    addThud(out, at, { f: 140 * (1 - 0.08 * hv), tau: 0.03, g: 0.35 * g, lp: 600 }, R);
-    addClick(out, at, { f: 700 * (1 + 0.1 * sh), g: 0.5 * g, ring: 1.0, n: 6, poly: 0.85 }, R);
-    addModes(out, at, [[150, 0.05, 0.25], [460, 0.03, 0.2], [900, 0.02, 0.15], [1600, 0.015, 0.1]], g, R);
+  // body weight through the sole: a short, damped low push (every surface)
+  addThud(out, at, { f: 82 * (1 - 0.1 * hv) * R.j(1, 0.08), tau: 0.011, g: 0.11 * g * (1 + 0.5 * hv), lp: 280, nz: 1.4 }, R);
+  if (surf === 'stone') {                     // concrete / tile: crisp rubber-sole tap + grit crushed under the sole
+    addBurst(out, at, 0.85 * g, { att: 0.0003, tau: 0.0038, seed: R.seed(), f: [['bp', 2300 * (1 + 0.2 * sh) * R.j(1, 0.12), 0.9], ['hp', 450, 0.7]] });
+    addBurst(out, at, 0.5 * g, { att: 0.0005, tau: 0.008, color: 'p', seed: R.seed(), f: [['bp', 950 * (1 - 0.12 * hv) * R.j(1, 0.1), 1.1]] });
+    addGrains(out, at, { n: Math.round(14 * g), t0: 0, t1: 0.03, shape: 1.6, f: [2500, 9000], Q: [1.5, 4], len: [0.0002, 0.0008], amp: 0.12 * g }, R);
+  } else if (surf === 'sand') {               // sand / dirt: soft crunch of many grains under a dull thud
+    addBurst(out, at, 0.22 * g, { att: 0.003, tau: 0.03, color: 'p', am: 0.8, amT: 0.002, seed: R.seed(), f: [['bp', 1700, 0.6], ['hp', 300, 0.7]] });
+    addGrains(out, at, { n: Math.round(90 * g), t0: 0, t1: 0.11, shape: 1.5, f: [1200, 7500 * (1 + 0.2 * sh)], Q: [0.8, 2.5], len: [0.0003, 0.0018], amp: 0.2 * g, ampJ: 0.85, decay: 1.6 }, R);
+  } else if (surf === 'metal') {              // sheet metal / grating: dull clang with a short inharmonic ring + loose rattle
+    const p = R.j(1, 0.06) * (1 - 0.08 * hv + 0.08 * sh);
+    addBurst(out, at, 0.55 * g, { tau: 0.003, seed: R.seed(), f: [['bp', 1500 * p, 0.8]] });
+    addModes(out, at, [[210, 0.035, 0.45], [470, 0.032, 0.45], [830, 0.03, 0.4], [1340, 0.025, 0.32], [1990, 0.02, 0.26], [2870, 0.015, 0.2], [3900, 0.012, 0.14]]
+      .map((m) => [m[0] * p * R.j(1, 0.04), m[1] * (1 + 0.4 * hv), m[2] * R.r(0.6, 1)]), 0.5 * g, R, 0.0004);
+    addRattle(out, at + ns(0.008), { n: 3, t: 0.05, f: 3200 * p, g: 0.07 * g, ring: 0.6 }, R);
+  } else {                                    // wood planks: hollow knock with a short box resonance
+    const p = R.j(1, 0.05) * (1 - 0.06 * hv + 0.06 * sh);
+    addBurst(out, at, 0.5 * g, { tau: 0.003, seed: R.seed(), f: [['bp', 1100 * p, 1.0]] });
+    addModes(out, at, [[165, 0.03, 0.6], [390, 0.022, 0.5], [720, 0.016, 0.38], [1180, 0.012, 0.25], [1850, 0.008, 0.15]]
+      .map((m) => [m[0] * p * R.j(1, 0.05), m[1] * (1 + 0.3 * hv), m[2]]), 0.5 * g, R, 0.0006);
   }
 }
 function stepSnd(surf, R, v, k, land) {
   const out = new Float32Array(ns(0.7)), pre = 20;
-  if (land) {
-    stepHit(out, pre, surf, 1.5, R, v); stepHit(out, pre + ns(R.r(0.015, 0.03)), surf, 1.2, R, v);
-    addThud(out, pre, { f: 75, tau: 0.05, g: 0.6, lp: 250 }, R);
-    addCloth(out, 0, { dur: 0.25, n: 20, amp: 0.06 }, R);
-    addRattle(out, ns(0.02), { n: 4, t: 0.12, f: 2600, g: 0.08 }, R);
-    return foley(out, 0.45, v, R, { room: surf === 'metal' ? 0.3 : 0.2, tail: 0.2, tailG: 0.03 });
+  if (land) {                                 // landing: both feet nearly together, heavy body thud, knees + gear
+    stepHit(out, pre, surf, 1.45, R, v); stepHit(out, pre + ns(R.r(0.012, 0.028)), surf, 1.15, R, v);
+    addThud(out, pre + ns(0.004), { f: 68, f0: 120, tau: 0.026, g: 0.55, lp: 220, nz: 2.2 }, R);
+    addCloth(out, 0, { dur: 0.22, n: 22, amp: 0.06, shape: 1.4 }, R);
+    addRattle(out, ns(0.03), { n: 4, t: 0.12, f: 2700, g: 0.07 }, R);
+    if (surf === 'sand') addGrains(out, pre + ns(0.03), { n: 60, t0: 0, t1: 0.2, shape: 1.8, f: [1500, 7000], Q: [1, 3], len: [0.0003, 0.0015], amp: 0.12, decay: 2 }, R);
+    return foley(out, 0.45, v, R, { room: surf === 'metal' ? 0.26 : 0.18, tail: 0.18, tailG: 0.025 });
   }
-  const dt = R.r(0.035, 0.06);
+  const dt = R.r(0.04, 0.07);                 // heel strike, then the toe rolls down
   stepHit(out, pre, surf, 1, R, v);
-  stepHit(out, pre + ns(dt), surf, 0.45, R, v);
-  if (surf === 'stone' || surf === 'wood') addScrape(out, pre + ns(dt), { dur: 0.03, f0: 3500, f1: 3000, q: 1, g: 0.12, grit: 0.8, att: 0.2, rel: 0.6 }, R);
-  if (surf === 'stone') addGrains(out, pre, { n: 6, t0: 0, t1: 0.05, f: [3000, 9000], Q: [2, 5], amp: 0.05 }, R);
-  if (surf === 'wood' && k === 3) addScrape(out, pre + ns(0.02), { dur: 0.09, f0: 600, f1: 520, q: 6, g: 0.1, rate: 200, imp: 0.6, grit: 0.3, modes: [[600, 10, 1]] }, R);
-  return foley(out, surf === 'metal' ? 0.38 : surf === 'sand' ? 0.33 : 0.35, v, R, { room: surf === 'metal' ? 0.25 : 0.18, eq: 0.3 });
+  stepHit(out, pre + ns(dt), surf, R.r(0.35, 0.5), R, v);
+  if (surf === 'stone' || surf === 'wood') addScrape(out, pre + ns(dt * 0.6), { dur: R.r(0.025, 0.045), f0: 3200, f1: 2600, q: 0.9, g: 0.08, grit: 0.85, att: 0.2, rel: 0.6 }, R);   // sole scuff
+  if (surf === 'sand') addGrains(out, pre + ns(dt), { n: 30, t0: 0, t1: 0.07, shape: 1.4, f: [1500, 7000], Q: [1, 3], len: [0.0003, 0.0015], amp: 0.08, decay: 1.5 }, R);
+  if (surf === 'wood' && k === 3) addScrape(out, pre + ns(0.02), { dur: 0.09, f0: 600, f1: 520, q: 6, g: 0.08, rate: 200, imp: 0.6, grit: 0.3, modes: [[600, 10, 1]] }, R);   // plank creak
+  if (k === 1 || k === 2) addRattle(out, pre + ns(R.r(0.01, 0.04)), { n: 2, t: 0.05, f: R.r(2600, 3600), g: 0.025 }, R);   // gear jingle
+  return foley(out, surf === 'metal' ? 0.38 : surf === 'sand' ? 0.33 : 0.35, v, R, { room: surf === 'metal' ? 0.22 : 0.16, eq: 0.3 });
 }
 function jumpSnd(R, v) {
   const out = new Float32Array(ns(0.5));
@@ -4948,7 +5106,7 @@ function sndBuildBuses(){
   AUD.muffle=ctx.createBiquadFilter(); AUD.muffle.type='lowpass'; AUD.muffle.frequency.value=20000; AUD.muffle.Q.value=.5;
   AUD.master.disconnect(); AUD.master.connect(AUD.muffle); AUD.muffle.connect(AUD.comp);
   for(const k of ['weapons','fx','voice','music','ui']){ const g=ctx.createGain(); g.connect(k==='music'||k==='ui'?AUD.comp:AUD.master); SND.bus[k]=g; }
-  applyVolumes();
+  applyVolumes(); acuBuild();
 }
 function applyVolumes(){ if(!AUD.ctx) return; AUD.master.gain.value=CFG.vol; const B=SND.bus; if(!B.weapons) return;
   B.weapons.gain.value=CFG.volW; B.fx.gain.value=CFG.volFx; B.voice.gain.value=CFG.volVoice; B.music.gain.value=CFG.volMusic*CFG.vol; B.ui.gain.value=CFG.volUi*CFG.vol; }
@@ -4966,14 +5124,16 @@ function sndPlay(id,o){
   if(!buf) buf=sndBuf(id,o.v||1,o.variant!==undefined?o.variant:sndVariant(id)); if(!buf) return null;
   const src=ctx.createBufferSource(); src.buffer=buf; src.playbackRate.value=(o.rate||1)*(o.jit===0?1:1+(Math.random()-.5)*(o.jit||.04)); src.loop=!!o.loop;
   const g=ctx.createGain(); g.gain.value=o.vol===undefined?1:o.vol; src.connect(g); let node=g;
-  if(o.lp){ const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=o.lp; node.connect(f); node=f; }
+  const lpF=o.lp||(o.pos&&!o.noAir?acuAirLP(o.pos.distanceTo(camera.position)):0);   // air absorption with distance
+  if(lpF){ const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lpF; node.connect(f); node=f; }
   if(o.radio){ const h=ctx.createBiquadFilter(); h.type='highpass'; h.frequency.value=420; const l=ctx.createBiquadFilter(); l.type='lowpass'; l.frequency.value=3200; const ws=ctx.createWaveShaper(); ws.curve=SND.radioCurve||(SND.radioCurve=(()=>{ const c=new Float32Array(1024); for(let i=0;i<1024;i++){ const x=i/511.5-1; c[i]=Math.tanh(x*2.2)/Math.tanh(2.2); } return c; })());
     node.connect(h); h.connect(l); l.connect(ws); node=ws; }
   const out=SND.bus[o.bus||'fx'];
   if(o.pos){ const pn=ctx.createPanner(); pn.panningModel='HRTF'; pn.distanceModel='inverse'; pn.refDistance=o.ref||3.5; pn.rolloffFactor=o.roll===undefined?1:o.roll; pn.maxDistance=300;
     if(pn.positionX){ pn.positionX.value=o.pos.x; pn.positionY.value=o.pos.y; pn.positionZ.value=o.pos.z; } else pn.setPosition(o.pos.x,o.pos.y,o.pos.z);
     node.connect(pn); pn.connect(out); node=pn; } else node.connect(out);
-  if(o.rev){ const r=ctx.createGain(); r.gain.value=o.rev; g.connect(r); r.connect(AUD.revIn); }
+  const rv=o.rev!==undefined?o.rev*acuRevMul():acuDefSend(id,o);                     // room / tunnel / street: see acuTick
+  if(rv){ const r=ctx.createGain(); r.gain.value=rv; g.connect(r); r.connect(AUD.revIn); }
   src.start(ctx.currentTime+(o.delay||0));
   return {src,g,stop:(t)=>{ try{ const n=ctx.currentTime; g.gain.setTargetAtTime(0,n,(t||.15)/3); src.stop(n+(t||.15)+.05); }catch(e){} }};
 }
@@ -5001,11 +5161,12 @@ function weaponSound(def,act,o){
 }
 // o (optional) is passed through to weaponSound: {unsup:true} = removable suppressor is off
 function weaponFire(def,pos,dist,o){
-  if(!pos){ weaponSound(def,'fire',Object.assign({rev:.18,jit:.03},o)); return; }
-  const d=dist||0, sup=/silenc|usps|m4a1s|silpistol/.test(sndProfile(def,o));
-  const nearV=clamp(1-(d-22)/26,0,1), farV=clamp((d-14)/26,0,1)*(sup?.35:1);
-  if(nearV>0) weaponSound(def,'fire',Object.assign({pos,ref:5,roll:.9,lp:d>12?Math.max(2600,16000/(1+d*.04)):0,rev:.22+d*.006,vol:nearV,jit:.05},o));
-  if(farV>0) weaponSound(def,'far',Object.assign({pos,ref:12,roll:.55,rev:.35,vol:farV*.95,jit:.05},o));
+  if(!pos){ weaponSound(def,'fire',Object.assign({rev:.16,jit:.03},o)); touchHaptic('fire'); return; }
+  const d=dist||0, sup=/silenc|usps|m4a1s|silpistol/.test(sndProfile(def,o)), occ=acuOcc(pos), src=acuSrc(pos);
+  const nearV=clamp(1-(d-22)/26,0,1), farV=clamp((d-14)/26,0,1)*(sup?.35:1), air=acuAirLP(d);
+  const lpN=occ?Math.min(air||20000,occ>.6?1250:2600):(air||(d>12?Math.max(2600,16000/(1+d*.04)):0));   // behind a wall: muffled, more room sound
+  if(nearV>0) weaponSound(def,'fire',Object.assign({pos,ref:5,roll:.9,lp:lpN,rev:(.22+d*.006)*src*(1+.7*occ),vol:nearV*(1-.42*occ),jit:.05},o));
+  if(farV>0) weaponSound(def,'far',Object.assign({pos,ref:12,roll:.55,lp:occ?1700:0,noAir:true,rev:.35*src*(1+.5*occ),vol:farV*.95*(1-.3*occ),jit:.05},o));
 }
 const SFX_OLD=Object.assign({},sfx);
 function playShotLegacy(kind,pos,dist){ SND_PLAYSHOT_OLD(kind,pos,dist); }
@@ -5026,7 +5187,7 @@ function hitSound(victim,zone,point){
   if(!SFX_LIB){ zone==='head'?SFX_OLD.head():SFX_OLD.hit(); return; }
   const helmet=victim&&victim.helmet!==false&&victim.armor>0, armor=victim&&victim.armor>0;
   const id=zone==='head'?(helmet?'hit:helmet':'hit:head'):(armor&&zone!=='legs'?'hit:kevlar':'hit:body');
-  sndPlay(id,{pos:point,ref:6,roll:.7,bus:'fx',vol:1.15});
+  sndPlay(id,{pos:point,ref:6,roll:.7,bus:'fx',vol:1.15}); touchHaptic(zone==='head'?'head':'hit');
 }
 function impactSound(p,surf){ if(!SFX_LIB||!p) return; const now=performance.now(); if(now-SND.lastImpact<45) return; const d=p.distanceTo(camera.position); if(d>34) return; SND.lastImpact=now;
   sndPlay('impact:'+(['stone','sand','metal','wood','flesh'].includes(surf)?surf:'stone'),{pos:p,ref:2.5,roll:1.1,bus:'fx',vol:.9}); }
@@ -5043,7 +5204,7 @@ function sndInstallHooks(){
     boltBack(){ weaponSound(curDef(),'boltback'); }, boltFwd(){ weaponSound(curDef(),'boltfwd'); },
     swing(){ sndPlay('knife:slash',{bus:'weapons'}); }, stab(){ sndPlay('knife:stab',{bus:'weapons'}); },
     hit(){ sndPlay('hit:body',{bus:'fx'}); }, head(){ sndPlay('hit:helmet',{bus:'fx'}); },
-    kill(){}, hurt(){ sndPlay('hit:self',{bus:'fx',vol:1}); }, die(){ sndPlay('death',{bus:'fx'}); },
+    kill(){}, hurt(){ sndPlay('hit:self',{bus:'fx',vol:1}); touchHaptic('hurt'); }, die(){ sndPlay('death',{bus:'fx'}); },
     win(){ sndPlay(SND.ids.has('mus:matchwin')?'mus:matchwin':'ui:buy',{bus:'music'}); }, lose(){ sndPlay(SND.ids.has('mus:matchlose')?'mus:matchlose':'ui:deny',{bus:'music'}); },
     click(){ uiSound('click'); },
     pin(){ sndPack('nade:pinstart','nade:pin',{bus:'weapons'}); }, clink(p,id,kind){ sndPack(id?[id+':bounce',kind+':bounce']:[],'nade:bounce',{pos:p,ref:2,bus:'fx'}); },   // id = grenade def id (incgren's kind is molotov)
@@ -5081,21 +5242,13 @@ function previewReload(def,v){ const parts=def.type==='shotgun'?[['clipout',0],[
 const VOICE_LINES={ planted:{en:'Bomb has been planted.',tr:'Bomba kuruldu.',l:'Bomba kuruldu'}, defused:{en:'Bomb has been defused.',tr:'Bomba imha edildi.',l:'Bomba çözüldü'},
   twin:{en:'Terrorists win.',tr:'Teröristler kazandı.',l:'Teröristler kazandı'}, ctwin:{en:'Counter-Terrorists win.',tr:'Anti-terör kazandı.',l:'Anti-terör kazandı'},
   fireinhole:{en:'Fire in the hole!',tr:'Bomba geliyor!',l:'El bombası çağrısı'}, flashout:{en:'Flashbang out!',tr:'Flaş atıyorum!',l:'Flaş çağrısı'}, smokeout:{en:'Smoke out!',tr:'Sis atıyorum!',l:'Sis çağrısı'}, molotovout:{en:'Molotov out!',tr:'Molotof atıyorum!',l:'Molotof çağrısı'}, decoyout:{en:'Decoy out!',tr:'Dekoy atıyorum!',l:'Dekoy çağrısı'} };
-let voiceCache=null;
-function pickVoice(lang){
-  if(!('speechSynthesis' in window)) return null; const vs=speechSynthesis.getVoices(); if(!vs.length) return null;
-  const want=lang==='tr'?/^tr/i:/^en/i, list=vs.filter(v=>want.test(v.lang)); if(!list.length) return null;
-  const pref=lang==='tr'?[/Yelda/i,/Google/i,/Microsoft/i]:[/Google UK English Male/i,/Daniel/i,/Microsoft (Guy|Ryan|David|Mark)/i,/Arthur/i,/Fred/i,/Alex/i,/Google US English/i,/Male/i];
-  for(const r of pref){ const v=list.find(x=>r.test(x.name)); if(v) return v; } return list[0];
-}
+// best voice for a language: your choice in Settings > Ses, else the highest scored (Natural / Neural / Online / Google UK Male / Daniel ...)
+function pickVoice(lang){ const L=voiceList(lang); if(!L.length) return null; if(CFG.voiceName){ const v=L.find(x=>x.name===CFG.voiceName); if(v) return v; } return L[0]; }
+// queued (never overlapping) radio announcements; preview = cut what is playing and say this now
 function announce(line,lang,preview){
-  lang=lang||CFG.voiceLang; if(lang==='off') return; ensureAudio();
-  const cust=SND.custom.get('voice:'+line);
-  if(cust){ const now=AUD.ctx.currentTime, d0=Math.max(0,SND.voiceT-now); sndPlay('radio:in',{bus:'voice',vol:.7,delay:d0}); sndPlay('',{buf:cust,bus:'voice',radio:!!CFG.radioFx,delay:d0+.08,jit:0}); sndPlay('radio:out',{bus:'voice',vol:.7,delay:d0+.12+cust.duration}); SND.voiceT=now+d0+.35+cust.duration; return; }
-  const L=VOICE_LINES[line]; const txt=L&&(L[lang]||L.en); if(!txt||!('speechSynthesis' in window)) return;
-  try{ sndPlay('radio:in',{bus:'voice',vol:.7}); const u=new SpeechSynthesisUtterance(txt); u.lang=lang==='tr'?'tr-TR':'en-US'; const v=pickVoice(lang); if(v) u.voice=v;
-    u.rate=1.04; u.pitch=.78; u.volume=clamp(CFG.vol*CFG.volVoice,0,1); u.onend=()=>sndPlay('radio:out',{bus:'voice',vol:.7});
-    if(preview) speechSynthesis.cancel(); setTimeout(()=>{ try{ speechSynthesis.speak(u); }catch(e){} },110); }catch(e){}
+  lang=lang||CFG.voiceLang; if(lang==='off'||!VOICE_LINES[line]) return; ensureAudio(); if(!AUD.ctx) return;
+  if(preview) voiceStop(); else { if(VOICE.cur===line||VOICE.q.some(x=>x.line===line)) return; if(VOICE.q.length>3) VOICE.q.shift(); }
+  VOICE.q.push({line,lang}); voicePump();
 }
 if('speechSynthesis' in window){ try{ speechSynthesis.onvoiceschanged=()=>{}; speechSynthesis.getVoices(); }catch(e){} }
 /* ---- custom sound files (any slot) ---- */
@@ -6088,7 +6241,7 @@ function updatePlayer(dt){
   const fw=_v1.set(-Math.sin(P.yaw),0,-Math.cos(P.yaw)), rt=_v2.set(Math.cos(P.yaw),0,-Math.sin(P.yaw));
   const wish=_v3.set(0,0,0).addScaledVector(fw,-mz).addScaledVector(rt,mx); const wl=wish.length(); if(wl>0) wish.multiplyScalar(1/wl);
   let maxs=MAXSPD*(def.stats.speed||1); if(P.scope>0) maxs*=def.stats.scopeType==='aug'?.92:.55;
-  const walking=!!keys[CFG.keys.walk]&&!CFG.isTouch; if(walking) maxs*=.52; if(P.h===CROUCH_H) maxs*=.34;
+  const walking=(!!keys[CFG.keys.walk]&&!CFG.isTouch)||!!touchState.walk; if(walking) maxs*=.52; if(P.h===CROUCH_H) maxs*=.34;
   maxs*=Math.min(1,wl);
   if(P.noclip){ const f=new THREE.Vector3(); camera.getWorldDirection(f); P.vel.set(0,0,0).addScaledVector(f,-mz*12).addScaledVector(rt,mx*12); if(keys[CFG.keys.jump]) P.vel.y+=10; P.pos.addScaledVector(P.vel,dt); P.onGround=false; }
   else {
@@ -6865,7 +7018,7 @@ function updateHUD(){
   [['primary','1'],['secondary','2'],['melee','3'],['grenade','4'],['c4','5']].forEach(([k,n])=>{ const s=P.slots[k]; if(!s) return; const e=document.createElement('div'); e.className='slot'+(P.cur===k?' active':'');
     const nm=k==='grenade'&&P.nades.length>1?P.nades.map(id=>(LIB.byId[id]||{name:id}).name.split(' ')[0]).join(' · '):s.def.name;
     const ic=weaponIcon(s.def); e.innerHTML=(P.cur===k?'<span class="sn">'+esc(nm.toUpperCase())+'</span>':'')+(ic?'<img alt="" src="'+ic+'">':'<span class="sn">'+esc(nm.toUpperCase())+'</span>')+'<b>'+n+'</b>'; e.addEventListener('click',()=>switchSlot(k)); sl.appendChild(e); });
-  const sbt=$('scopeBtnTouch'), hasSc=(d.stats.scope|0)>0; sbt.classList.toggle('hidden',!(hasSc||d.stats.silencer)); sbt.textContent=hasSc?'ZOOM':'SUS.';
+  const sbt=$('scopeBtnTouch'), hasSc=(d.stats.scope|0)>0; sbt.classList.toggle('hidden',!(hasSc||d.stats.silencer)); touchScopeLabel(sbt,hasSc);
 }
 function updateScoreUI(){ $('scMe').textContent=match.my; $('scOp').textContent=match.op; $('scTarget').textContent='İLK '+match.target;
   if(match.mode==='comp'){ $('cbCTsc').textContent=sideScore('CT'); $('cbTsc').textContent=sideScore('T'); $('cbRound').textContent='RAUNT '+COMP.round+' / '+COMP.maxRounds; COMP._alk=''; } }
@@ -7140,30 +7293,7 @@ addEventListener('mousedown',e=>{ if(!pointerLocked||!gameInput()) return;
 addEventListener('mouseup',e=>{ if(e.button===0) firing=false; if(e.button===2) firing2=false; });
 addEventListener('contextmenu',e=>{ if(match.state==='live'||!$('editor').classList.contains('hidden')||!$('mapEditor').classList.contains('hidden')) e.preventDefault(); });
 addEventListener('wheel',e=>{ if(!gameInput()||buyOpen) return; const o=SLOT_ORDER.filter(k=>player.slots[k]); const i=o.indexOf(player.cur); switchSlot(o[(i+(e.deltaY>0?1:o.length-1))%o.length]); },{passive:true});
-// touch
-function setupStick(el,cb){ let id=null,cx=0,cy=0;
-  el.addEventListener('touchstart',e=>{ const t=e.changedTouches[0]; id=t.identifier; const r=el.getBoundingClientRect(); cx=r.left+r.width/2; cy=r.top+r.height/2; touchState.active=true; e.preventDefault(); },{passive:false});
-  el.addEventListener('touchmove',e=>{ for(const t of e.changedTouches){ if(t.identifier!==id) continue; let dx=t.clientX-cx,dy=t.clientY-cy; const mx=48,l=Math.hypot(dx,dy); if(l>mx){ dx=dx/l*mx; dy=dy/l*mx; }
-    el.querySelector('.knob').style.transform='translate('+dx+'px,'+dy+'px)'; cb(dx/mx,dy/mx); } e.preventDefault(); },{passive:false});
-  const end=e=>{ for(const t of e.changedTouches){ if(t.identifier===id){ id=null; cb(0,0); el.querySelector('.knob').style.transform=''; } } };
-  el.addEventListener('touchend',end); el.addEventListener('touchcancel',end); }
-setupStick($('moveStick'),(x,y)=>{ touchState.mx=x; touchState.mz=y; });
-{ const lz=$('lookZone'); let lid=null,lx=0,ly=0;
-  lz.addEventListener('touchstart',e=>{ const t=e.changedTouches[0]; lid=t.identifier; lx=t.clientX; ly=t.clientY; e.preventDefault(); },{passive:false});
-  lz.addEventListener('touchmove',e=>{ for(const t of e.changedTouches){ if(t.identifier!==lid) continue; const dx=t.clientX-lx, dy=t.clientY-ly; const zs=player.scope?(1/(player.zoom||2.4)):1;
-      player.yaw-=dx*.0042*CFG.sens*zs; player.pitch=clamp(player.pitch-dy*.0042*CFG.sens*zs,-1.5,1.5); VM.swayT.x=clamp(VM.swayT.x-dx*.006,-1,1); VM.swayT.y=clamp(VM.swayT.y+dy*.006,-1,1); lx=t.clientX; ly=t.clientY; } e.preventDefault(); },{passive:false});
-  const le=e=>{ for(const t of e.changedTouches) if(t.identifier===lid) lid=null; }; lz.addEventListener('touchend',le); lz.addEventListener('touchcancel',le); }
-function bindHold(id,down,up){ const el=$(id); el.addEventListener('touchstart',e=>{ e.preventDefault(); e.stopPropagation(); ensureAudio(); down&&down(); },{passive:false}); el.addEventListener('touchend',e=>{ e.preventDefault(); up&&up(); },{passive:false}); el.addEventListener('touchcancel',()=>up&&up()); }
-bindHold('fireBtn',()=>{ firing=true; tryFire(true); },()=>{ firing=false; });
-bindHold('fireBtnL',()=>{ firing=true; tryFire(true); },()=>{ firing=false; });
-bindHold('jumpBtn',()=>{ touchState.jump=true; },()=>{ touchState.jump=false; });
-bindHold('crouchBtn',()=>{ touchState.crouch=!touchState.crouch; $('crouchBtn').style.background=touchState.crouch?'rgba(255,59,77,.35)':''; });
-bindHold('reloadBtnTouch',()=>tryReload());
-bindHold('swapBtnTouch',()=>cycleSlot());
-bindHold('scopeBtnTouch',()=>{ const d=curDef(); if((d.stats.scope|0)>0){ if(!player.reloading) cycleScope(d); } else if(d.stats.silencer) toggleSilencer(); });
-bindHold('pauseBtnTouch',()=>{ if(buyOpen) toggleBuy(false); togglePause(); });
-bindHold('useBtnTouch',()=>{ touchState.use=true; },()=>{ touchState.use=false; });
-bindHold('buyBtnTouch',()=>toggleBuy());
+// touch controls: setupStick / bindHold / bindFire / layout editor live in the polish block (touchInit)
 
 /* =====================================================================
    FRONT END (CS2-style): brand, navigation, home stage, play, settings, inventory, profile, DEV
@@ -7419,7 +7549,7 @@ function sDefs(tab){
     SEG('Spiker dili','Anonsların dili. Ses Atölyesi’nden kendi sesini kaydedip yerine koyabilirsin.',[['en','ENGLISH'],['tr','TÜRKÇE'],['off','KAPALI']],()=>CFG.voiceLang,v=>CFG.voiceLang=v),
     TG('Telsiz efekti','Kaydedilmiş anonsları telsizden geliyormuş gibi filtreler.',()=>CFG.radioFx,v=>CFG.radioFx=v),
     TG('Bomba çağrıları','El bombası atınca karakterin “Fire in the hole!” gibi seslenir.',()=>CFG.nadeCalls,v=>CFG.nadeCalls=v),
-    {t:'btns',l:'Anonsları dinle',d:'Seçili dilde örnek anonslar.',btns:[['BOMBA KURULDU',()=>announce('planted')],['BOMBA ÇÖZÜLDÜ',()=>announce('defused')],['T KAZANDI',()=>announce('twin')],['AT KAZANDI',()=>announce('ctwin')]]},
+    ...polishAudioRows(SEG,R,TG),
     {sec:'SİLAH SESLERİ'},
     SEG('Varsayılan ses versiyonu','Ses Atölyesi’nde ayrıca seçmediğin silahlar bu versiyonu kullanır. V1 klasik, V2 ağır, V3 keskin.',[[1,'V1 · KLASİK'],[2,'V2 · AĞIR'],[3,'V3 · KESKİN']],()=>CFG.svDefault,v=>{ CFG.svDefault=+v; previewWeaponSound(getWeapon(CFG.loadout.primary,'primary'),'fire'); }),
     {t:'btns',l:'Ses Atölyesi',d:'Her silah için ateş, çekme ve şarjör seslerini tek tek dinle ve seç ya da kendi ses dosyanı yükle.',btns:[['SES ATÖLYESİNİ AÇ',()=>openSoundWorkshop()]]},
@@ -7471,7 +7601,8 @@ function sDefs(tab){
     {sec:'RADAR'},
     TG('Radar dönsün','Açıkken radar baktığın yöne göre döner; kapalıyken kuzey hep yukarıda kalır.',()=>CFG.hud.radarRotate,v=>CFG.hud.radarRotate=v),
     R('Radar yakınlaştırma','Radarın ne kadar alanı gösterdiği.',()=>CFG.hud.radarZoom,v=>CFG.hud.radarZoom=v,.6,1.8,.01,v=>v.toFixed(2)+'×'),
-    R('Radar boyutu','Radarın ekrandaki büyüklüğü (piksel).',()=>CFG.hud.radarSize,v=>{ CFG.hud.radarSize=v; applyHud(); },120,280,2,v=>Math.round(v))
+    R('Radar boyutu','Radarın ekrandaki büyüklüğü (piksel).',()=>CFG.hud.radarSize,v=>{ CFG.hud.radarSize=v; applyHud(); },120,280,2,v=>Math.round(v)),
+    ...polishTouchRows(SEG,R,TG)
   ];
   return [];
 }
@@ -7513,7 +7644,7 @@ $('settingsBack').addEventListener('click',()=>{ saveCfg(); uiSound('back'); if(
 $('sReset').addEventListener('click',async()=>{ if(!(await confirmBox('Varsayılanlar','Bu sekmedeki ayarlar varsayılana dönsün mü?','Sıfırla','Vazgeç'))) return;
   const D=deepClone(CFG_DEF);
   if(sTab==='game'){ for(const k of ['botDiff','autoEquip','hitmarker','dmgNums','vmFov','vmOff','vmPreset','leftHand','vmBob','showFps']) CFG[k]=D[k]; applyVmFov(); applyHand(); }
-  if(sTab==='audio'){ for(const k of ['vol','volW','volFx','volVoice','volMusic','volUi','voiceLang','radioFx','nadeCalls','svDefault','packOn']) CFG[k]=D[k]; applyVolumes(); packBoot(); }
+  if(sTab==='audio'){ for(const k of ['vol','volW','volFx','volVoice','volMusic','volUi','voiceLang','radioFx','nadeCalls','svDefault','packOn','voiceName','voiceRate','voicePitch','voiceRadio','acoustics']) CFG[k]=D[k]; applyVolumes(); packBoot(); }
   if(sTab==='video'){ CFG.fov=D.fov; applyQuality(CFG.isTouch?'med':'high'); CFG.video.scale=1; CFG.video.exposure=D.video.exposure; renderer.toneMappingExposure=CFG.video.exposure; applyVideo(); }
   if(sTab==='input'){ CFG.sens=D.sens; CFG.zoomSens=D.zoomSens; CFG.invertY=D.invertY; CFG.keys=Object.assign({},KEY_DEF); }
   if(sTab==='crosshair') CFG.ch=D.ch; if(sTab==='hud'){ CFG.hud=D.hud; applyHud(); }
@@ -8704,6 +8835,314 @@ function addGround(){
 
 
 /* @@BLOCK:polish — code from the polish work goes right below this line */
+/* =====================================================================
+   POLISH — environment acoustics (raycast probe -> reverb / early reflections / slapback / tunnel boom,
+   air absorption, occlusion), announcer voice queue + voice settings, CS-mobile style touch controls with a
+   drag-to-aim fire button, grenade wheel, haptics and a touch layout editor
+   ===================================================================== */
+const POLISH_DEF={ voiceName:'', voiceRate:1, voicePitch:.95, voiceRadio:1, acoustics:1,
+  touch:{ mode:'auto', look:1, fireLook:.85, alpha:.85, scale:1, haptic:1, leftFire:1, dynStick:1, layout:{} } };
+for(const k in POLISH_DEF){ const v=POLISH_DEF[k]; if(!(k in CFG_DEF)) CFG_DEF[k]=deepClone(v);
+  if(CFG[k]===undefined||CFG[k]===null) CFG[k]=deepClone(v); else if(v&&typeof v==='object') CFG[k]=Object.assign(deepClone(v),CFG[k]); }
+if(!CFG.touch.layout||typeof CFG.touch.layout!=='object'||Array.isArray(CFG.touch.layout)) CFG.touch.layout={};
+if(CFG.touch.mode==='on') CFG.isTouch=true; else if(CFG.touch.mode==='off') CFG.isTouch=false;
+
+/* ---------------- acoustics ---------------- */
+const ACU={ enc:0, size:40, open:1, ceil:0, slapD:0, t:0, n:null, cells:new Map(), key:null, last:null };
+const ACU_DIRS=(()=>{ const L=[]; for(let i=0;i<8;i++){ const a=i*Math.PI/4; L.push(new THREE.Vector3(Math.sin(a),0,Math.cos(a))); }
+  for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; L.push(new THREE.Vector3(Math.sin(a)*.7071,.7071,Math.cos(a)*.7071)); } L.push(new THREE.Vector3(0,1,0)); return L; })();
+const _acuO=new THREE.Vector3(), _acuD=new THREE.Vector3();
+// diffuse reverb impulse: dense noise, pre-delay, high frequencies dying faster than lows (2-pole low-pass that closes over time)
+function acuIR(ctx){
+  const sr=ctx.sampleRate, len=Math.floor(sr*1.8), ir=ctx.createBuffer(2,len,sr), pre=Math.floor(sr*.007);
+  for(let c=0;c<2;c++){ const d=ir.getChannelData(c); let y=0, y2=0;
+    for(let i=pre;i<len;i++){ const t=(i-pre)/sr, f=500+8000*Math.exp(-t/.32), a=Math.exp(-2*Math.PI*f/sr);
+      y=a*y+(1-a)*(Math.random()*2-1); y2=a*y2+(1-a)*y;
+      d[i]=y2*Math.sqrt(f/500)*Math.exp(-6.9*t/1.55)*Math.min(1,.2+t/.015); } }
+  return ir;
+}
+function acuBuild(){
+  const ctx=AUD.ctx; if(!ctx||ACU.n||!AUD.revIn||!AUD.master) return;
+  const N={}, G=v=>{ const g=ctx.createGain(); g.gain.value=v; return g; }, F=(type,f,q)=>{ const b=ctx.createBiquadFilter(); b.type=type; b.frequency.value=f; if(q) b.Q.value=q; return b; };
+  try{
+    AUD.revIn.disconnect();
+    N.eq=F('lowshelf',220); N.eq.gain.value=0; N.hc=F('lowpass',5000,.5); N.conv=ctx.createConvolver(); N.conv.buffer=acuIR(ctx); N.wet=G(.8);
+    AUD.revIn.connect(N.eq); N.eq.connect(N.hc); N.hc.connect(N.conv); N.conv.connect(N.wet); N.wet.connect(AUD.master); AUD.rev=N.conv;
+    N.erLP=F('lowpass',4500); N.erLP.connect(AUD.master); N.taps=[];                         // early reflections off the nearest walls
+    for(let i=0;i<4;i++){ const d=ctx.createDelay(.5), g=G(0); d.delayTime.value=.02+.01*i; AUD.revIn.connect(d); d.connect(g); let last=g, p=null;
+      if(ctx.createStereoPanner){ p=ctx.createStereoPanner(); p.pan.value=[-.6,.6,-.3,.3][i]; g.connect(p); last=p; } last.connect(N.erLP); N.taps.push({d,g,p}); }
+    N.slD=ctx.createDelay(1.2); N.slD.delayTime.value=.25; N.slLP=F('lowpass',2200); N.slG=G(0); N.slFb=G(.16);   // slapback off distant buildings
+    AUD.revIn.connect(N.slD); N.slD.connect(N.slLP); N.slLP.connect(N.slG); N.slG.connect(AUD.master); N.slLP.connect(N.slFb); N.slFb.connect(N.slD);
+    N.cbD=ctx.createDelay(.2); N.cbD.delayTime.value=.03; N.cbLP=F('lowpass',1300); N.cbFb=G(0); N.cbG=G(0);         // tunnel / corridor boom (short feedback comb)
+    AUD.revIn.connect(N.cbD); N.cbD.connect(N.cbLP); N.cbLP.connect(N.cbFb); N.cbFb.connect(N.cbD); N.cbLP.connect(N.cbG); N.cbG.connect(AUD.master);
+    ACU.n=N;
+  }catch(e){ console.warn('acoustics',e); try{ AUD.revIn.connect(AUD.rev); }catch(e2){} }
+}
+// a few rays around a point: enclosure 0 (open street) .. 1 (tunnel / room), typical wall distance, nearest distant wall (slapback)
+function acuProbe(p){
+  const o=_acuO.copy(p), H=[]; let hits=0, near=0, diag=0;
+  for(let i=0;i<8;i++){ const h=rayWorld(o,ACU_DIRS[i],60), d=h?h.dist:60; H.push(d); if(h){ hits++; if(d<14) near++; } }
+  for(let i=8;i<12;i++) if(rayWorld(o,ACU_DIRS[i],18)) diag++;
+  const ceil=rayWorld(o,ACU_DIRS[12],14)?1:0, s=H.slice().sort((a,b)=>a-b), size=(s[1]+s[2]+s[3])/3, far=s.filter(d=>d>=12&&d<58);
+  return { enc:clamp(.5*ceil+.3*diag/4+.2*near/8,0,1), size, open:1-hits/8, ceil, slapD:far.length?far[0]:0, H };
+}
+function acuAt(p){
+  const key=WORLD.active; if(ACU.key!==key){ ACU.key=key; ACU.cells.clear(); }
+  const k=Math.round(p.x/2.5)+','+Math.round(p.y/2)+','+Math.round(p.z/2.5); let r=ACU.cells.get(k);
+  if(!r){ if(ACU.cells.size>3000) ACU.cells.clear(); r=WORLD.colliders&&WORLD.colliders.length?acuProbe(p):{enc:0,size:60,open:1,ceil:0,slapD:0,H:[60,60,60,60,60,60,60,60]}; ACU.cells.set(k,r); }
+  return r;
+}
+function acuOn(){ return CFG.acoustics!==0&&match.mode!=='none'&&match.state!=='menu'; }
+function acuTick(){
+  if(!AUD.ctx||!ACU.n) return; const now=performance.now(); if(now-ACU.t<250) return; ACU.t=now;
+  const on=acuOn(), P=on?acuAt(camera.position):null, N=ACU.n, t=AUD.ctx.currentTime, set=(prm,v)=>{ try{ prm.setTargetAtTime(v,t,.2); }catch(e){} };
+  ACU.last=P; ACU.enc+=((P?P.enc:0)-ACU.enc)*.6; ACU.size=P?P.size:60; ACU.open=P?P.open:1; ACU.ceil=P?P.ceil:0; ACU.slapD=P?P.slapD:0;
+  const e=ACU.enc, tight=P&&P.size<10?1:.45;
+  set(N.wet.gain,on?.5+1.1*e:.8); set(N.eq.gain,on?7.5*e*tight:0); set(N.hc.frequency,on?3000+3800*e:5000);
+  // early reflections: the 4 nearest horizontal walls, delay = round trip, pan = side of the wall relative to the view
+  const rt=_acuD.set(1,0,0).applyQuaternion(camera.quaternion), idx=P?[0,1,2,3,4,5,6,7].sort((a,b)=>P.H[a]-P.H[b]):[0,1,2,3];
+  for(let i=0;i<4;i++){ const T=N.taps[i], d=P?P.H[idx[i]]:60, g=on&&d<55?.5*clamp(3.5/(d+1.5),0,1)*(.45+.55*e):0;
+    set(T.d.delayTime,clamp(2*d/343,.004,.33)); set(T.g.gain,g); if(T.p) set(T.p.pan,clamp(ACU_DIRS[idx[i]].dot(rt)*.8,-.9,.9)); }
+  const sl=on&&ACU.slapD>0?.5*(1-e)*clamp(1.25-ACU.slapD/55,0,1):0;
+  if(ACU.slapD>0) set(N.slD.delayTime,clamp(2*ACU.slapD/343,.07,.34)); set(N.slG.gain,sl);
+  set(N.cbD.delayTime,clamp(2*ACU.size/343,.008,.07)); set(N.cbFb.gain,on?.55*e*tight:0); set(N.cbG.gain,on?.5*e*tight:0);
+}
+// air absorption: distant sources lose their highs (~20 kHz at 8 m .. ~6 kHz at 80 m .. ~3.5 kHz at 170 m)
+function acuAirLP(d){ return CFG.acoustics===0||d<8?0:Math.max(1800,20000/(1+(d-8)*.03)); }
+// 0 = clear line, .5 = partly blocked (cover between, head visible), 1 = behind a wall
+function acuOcc(pos){
+  if(CFG.acoustics===0||!WORLD.colliders) return 0; const o=camera.position, dir=_acuD.copy(pos).sub(o), L=dir.length(); if(L<1.5) return 0; dir.multiplyScalar(1/L);
+  if(!rayWorld(o,dir,L-.4)) return 0; const o2=_acuO.copy(o); o2.y+=1.4; const d2=pos.clone().setY(pos.y+1.4).sub(o2), L2=d2.length(); d2.multiplyScalar(1/L2);
+  return rayWorld(o2,d2,L2-.4)?1:.5;
+}
+function acuSrc(pos){ return CFG.acoustics===0?1:1+1.2*acuAt(pos).enc; }   // a shot fired inside a tunnel / room booms even when you stand outside
+function acuRevMul(){ return CFG.acoustics===0?1:.75+.9*ACU.enc; }
+function acuDefSend(id,o){
+  if(CFG.acoustics===0||!id||o.bus==='ui'||o.bus==='music'||o.bus==='voice') return 0;
+  if(!/^(step|land|jump|shell|impact|knife|nade|c4|death|hit:(body|head|helmet|kevlar))/.test(id)) return 0;
+  return (o.pos?.07:.03)+.25*ACU.enc;
+}
+
+/* ---------------- announcer: best voice, queue, radio squelch ---------------- */
+const VOICE={ q:[], busy:0, to:0, cur:null };
+function voiceScore(v,lang){ const n=v.name||''; let s=0;
+  if(/Natural|Neural/i.test(n)) s+=60; if(/Online/i.test(n)) s+=25; if(/Google UK English Male/i.test(n)) s+=55; if(/Google/i.test(n)) s+=20; if(/Daniel/i.test(n)) s+=30;
+  if(/\b(Arthur|Oliver|George|Ryan|Guy|Christopher|Eric|Davis|Andrew|Brian|Roger|Steffan|Thomas|Liam|William|Tony|Jason|Aaron|Rishi|Male)\b/i.test(n)) s+=16;
+  if(/(Female|Zira|Hazel|Susan|Samantha|Karen|Moira|Tessa|Fiona|Victoria|Aria|Jenny|Libby|Sonia|Emma|Ava|Michelle)/i.test(n)) s-=6;
+  if(/(compact|eSpeak|espeak|robot|Fred|Albert|Bad News|Bells|Boing|Bubbles|Cellos|Wobble|Whisper|Zarvox|Trinoids|Jester|Organ|Superstar|Ralph|Kathy|Junior|Good News|Hysterical|Deranged|Pipe)/i.test(n)) s-=45;
+  if(lang==='tr'){ if(/Ahmet|Tolga|Emel|Yelda/i.test(n)) s+=12; } else if(/en[-_]GB/i.test(v.lang)) s+=8; else if(/en[-_]US/i.test(v.lang)) s+=5;
+  if(v.localService===false) s+=4; return s; }
+function voiceList(lang){ if(!('speechSynthesis' in window)) return []; let vs=[]; try{ vs=speechSynthesis.getVoices()||[]; }catch(e){}
+  const want=lang==='tr'?/^tr/i:/^en/i; return vs.filter(v=>want.test(v.lang||'')).sort((a,b)=>voiceScore(b,lang)-voiceScore(a,lang)); }
+function voiceShort(n){ return String(n).replace(/^Microsoft\s+/i,'').replace(/\s*-\s*(English|Turkish|Türkçe).*$/i,'').replace(/\s*\((Natural|Neural)\)/i,' (Doğal)').trim(); }
+function voiceStop(){ VOICE.q.length=0; VOICE.busy=0; VOICE.cur=null; clearTimeout(VOICE.to); try{ speechSynthesis.cancel(); }catch(e){} }
+function voicePump(){
+  if(VOICE.busy||!VOICE.q.length) return; const it=VOICE.q.shift(), id=VOICE.busy=performance.now()+Math.random(), radio=CFG.voiceRadio!==0; VOICE.cur=it.line;
+  const done=()=>{ if(VOICE.busy!==id) return; VOICE.busy=0; VOICE.cur=null; clearTimeout(VOICE.to); setTimeout(voicePump,160); };
+  const sq=on=>{ if(radio) sndPlay(on?'radio:in':'radio:out',{bus:'voice',vol:.7,jit:0}); };
+  const cust=SND.custom.get('voice:'+it.line);
+  if(cust){ sq(true); sndPlay('',{buf:cust,bus:'voice',radio:!!CFG.radioFx,delay:radio?.09:0,jit:0}); const T=(radio?.09:0)+cust.duration;
+    VOICE.to=setTimeout(()=>{ sq(false); VOICE.to=setTimeout(done,220); },T*1000); return; }
+  const L=VOICE_LINES[it.line], txt=L&&(L[it.lang]||L.en); if(!txt||!('speechSynthesis' in window)){ done(); return; }
+  try{
+    const u=new SpeechSynthesisUtterance(txt), v=pickVoice(it.lang); u.lang=it.lang==='tr'?'tr-TR':'en-GB'; if(v){ u.voice=v; u.lang=v.lang; }
+    const nat=v&&/Natural|Neural|Online|Google/i.test(v.name);       // neural voices sound best near their native rate / pitch; classic ones get a firmer, lower read
+    u.rate=clamp((+CFG.voiceRate||1)*(nat?1:.95),.5,2); u.pitch=clamp((+CFG.voicePitch||1)*(nat?1:.9),0,2); u.volume=clamp(CFG.vol*CFG.volVoice,0,1);
+    u.onend=()=>{ if(VOICE.busy!==id) return; sq(false); clearTimeout(VOICE.to); VOICE.to=setTimeout(done,200); }; u.onerror=()=>done();
+    sq(true); setTimeout(()=>{ if(VOICE.busy!==id) return; try{ speechSynthesis.speak(u); }catch(e){ done(); } },radio?150:0);
+    VOICE.to=setTimeout(done,8000);                                   // safety net: some browsers never fire onend
+  }catch(e){ done(); }
+}
+
+/* ---------------- touch controls ---------------- */
+const TI={ fire:'<circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/>', jump:'<path d="M5 13l7-7 7 7M5 19l7-7 7 7"/>',
+  crouch:'<path d="M5 5l7 7 7-7M5 11l7 7 7-7"/>', reload:'<path d="M19.5 12A7.5 7.5 0 1 1 17.3 6.7"/><path d="M19.5 3.5v4.5H15"/>', swap:'<path d="M4 8h15l-4-4M20 16H5l4 4"/>',
+  scope:'<circle cx="12" cy="12" r="7.5"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/>', walk:'<path d="M9 3.5c1.6 0 2.4 1.7 2.4 4.3S10.6 11.5 9 11.5 6.6 10.4 6.6 7.8 7.4 3.5 9 3.5zM7 13.5h4l-.6 3.5H7.6zM15.5 8c1.6 0 2.4 1.7 2.4 4.3S17.1 16 15.5 16s-2.4-1.1-2.4-3.7S13.9 8 15.5 8zM13.5 18h4l-.6 3h-2.8z"/>',
+  inspect:'<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/>', drop:'<path d="M12 3v11M7 9.5l5 5 5-5M4 20h16"/>',
+  nade:'<circle cx="11" cy="14.5" r="6"/><path d="M9 8.5V6h4v2.5M13 6l3.5-2.5M16.5 3.5l2 2"/>', score:'<path d="M4 6h16M4 12h16M4 18h16"/>', pause:'<path d="M9 5.5v13M15 5.5v13"/>' };
+// id: [key, anchor (l|r + t|b), x, y (centre, px from those edges at 844x390), size, label, icon | letter]
+const TOUCH_DEF={
+  moveStick:['stick','lb',96,96,128], fireBtn:['fire','rb',114,134,96,'ATEŞ','fire'], fireBtnL:['fireL','lb',58,226,62,'ATEŞ','fire'],
+  jumpBtn:['jump','rb',40,206,60,'ZIPLA','jump'], crouchBtn:['crouch','rb',40,62,58,'ÇÖMEL','crouch'], reloadBtnTouch:['reload','rb',208,62,52,'ŞARJÖR','reload'],
+  scopeBtnTouch:['scope','rb',202,198,52,'ZOOM','scope'], useBtnTouch:['use','rb',282,130,56,'KULLAN','E'], swapBtnTouch:['swap','rb',118,252,48,'SİLAH','swap'],
+  nadeBtnTouch:['nade','rb',186,262,48,'BOMBA','nade'], walkBtnTouch:['walk','lb',198,42,46,'YÜRÜ','walk'],
+  scoreBtnTouch:['score','rt',210,32,40,'SKOR','score'], inspectBtnTouch:['inspect','rt',162,32,40,'İNCELE','inspect'], dropBtnTouch:['drop','rt',162,80,40,'BIRAK','drop'],
+  pauseBtnTouch:['pause','lt',33,33,40,'','pause'], buyBtnTouch:['buy','lt',80,33,40,'','$'] };
+const TCH={ look:null, fire:null, fireL:null, move:null, wheel:false, hapT:0, tick:0 };
+function touchK(){ return clamp(Math.min(innerHeight/390,innerWidth/844),.78,1.4); }
+function touchSpec(id){ const d=TOUCH_DEF[id], o=CFG.touch.layout[id]; return o&&isFinite(o.x)&&isFinite(o.y)?{a:o.a||d[1],x:+o.x,y:+o.y,s:+o.s||d[4]}:{a:d[1],x:d[2],y:d[3],s:d[4]}; }
+function touchMarkup(){
+  for(const id in TOUCH_DEF){ const el=$(id), D=TOUCH_DEF[id]; if(!el||id==='moveStick') continue; const ic=D[6];
+    el.className='tbtn'+(D[0]==='fire'||D[0]==='fireL'?' tFire':'')+(D[4]<=44?' tSm':'')+(el.classList.contains('hidden')?' hidden':'');
+    el.innerHTML=(TI[ic]?'<svg class="ti" viewBox="0 0 24 24">'+TI[ic]+'</svg>':'<b class="tk">'+ic+'</b>')+(D[5]?'<span class="tl">'+D[5]+'</span>':''); }
+}
+function touchApplyLayout(draft){
+  const k=touchK()*(+CFG.touch.scale||1), lay=draft||null;
+  for(const id in TOUCH_DEF){ const el=$(id); if(!el) continue; const L=lay&&lay[id]?Object.assign(touchSpec(id),lay[id]):touchSpec(id), s=L.s*k, x=L.x*k, y=L.y*k, st=el.style;
+    st.width=st.height=s+'px'; st.setProperty('--bs',s+'px'); st.left=st.right=st.top=st.bottom='';
+    if(L.a[0]==='l') st.left='calc('+(x-s/2).toFixed(1)+'px + env(safe-area-inset-left))'; else st.right='calc('+(x-s/2).toFixed(1)+'px + env(safe-area-inset-right))';
+    if(L.a[1]==='t') st.top=(y-s/2).toFixed(1)+'px'; else st.bottom=(y-s/2).toFixed(1)+'px';
+    st.opacity=String(clamp(+CFG.touch.alpha||.85,.15,1)*(id==='moveStick'?.85:1));
+    if(id==='moveStick'){ const kn=el.querySelector('.knob'); if(kn){ const ks=s*.42; Object.assign(kn.style,{width:ks+'px',height:ks+'px',left:(s-ks)/2-2+'px',top:(s-ks)/2-2+'px'}); } el._home={left:st.left,bottom:st.bottom,top:st.top,right:st.right}; } }
+  document.documentElement.style.setProperty('--trs',Math.round(clamp(innerHeight*.28,92,150))+'px');
+}
+function touchHaptic(kind){
+  if(!CFG.isTouch||!CFG.touch.haptic||!navigator.vibrate) return; const now=performance.now();
+  if(kind==='fire'&&now-TCH.hapT<70) return; TCH.hapT=now; try{ navigator.vibrate({fire:12,hit:22,head:34,hurt:45,kill:60}[kind]||15); }catch(e){}
+}
+function touchLook(dx,dy,mul){
+  const zs=player.scope?(1/(player.zoom||2.4))*CFG.zoomSens:1, k=.0042*(+CFG.touch.look||1)*(mul||1)*zs;
+  player.yaw-=dx*k; player.pitch=clamp(player.pitch-dy*k*(CFG.invertY?-1:1),-1.5,1.5);
+  VM.swayT.x=clamp(VM.swayT.x-dx*.006,-1,1); VM.swayT.y=clamp(VM.swayT.y+dy*.006,-1,1);
+}
+function touchScopeLabel(b,hasSc){ const t=b.querySelector('.tl'); if(t) t.textContent=hasSc?'ZOOM':'SUSTURUCU'; else b.textContent=hasSc?'ZOOM':'SUS.'; }
+function touchSwap(){ const o=['primary','secondary','melee'].filter(k=>player.slots[k]); if(!o.length) return; const i=o.indexOf(player.cur); switchSlot(o[(i+1)%o.length]); }
+function touchNadeOpts(){ const L=(player.nades||[]).map((id,i)=>({k:'n'+i,i,nm:(LIB.byId[id]&&LIB.byId[id].name)||id})); if(player.slots.c4) L.push({k:'c4',nm:'C4'}); return L; }
+function touchPickNade(o){
+  if(o.k==='c4'){ switchSlot('c4'); return; }
+  player.nadeIdx=o.i; refreshNadeSlot(); if(player.cur==='grenade') equipCurrent(); else switchSlot('grenade');
+}
+function touchWheel(show){
+  const w=$('nadeWheel'); if(!w) return; TCH.wheel=!!show; if(!show){ w.classList.add('hidden'); return; }
+  const L=touchNadeOpts(); if(L.length<=1){ w.classList.add('hidden'); TCH.wheel=false; if(L[0]) touchPickNade(L[0]); return; }
+  w.innerHTML=''; const curId=player.cur==='grenade'&&player.slots.grenade?player.slots.grenade.def.id:player.cur==='c4'?'c4':null;
+  for(const o of L){ const b=document.createElement('button'); b.textContent=o.nm; if((o.k==='c4'&&curId==='c4')||(o.k!=='c4'&&player.nades[o.i]===curId)) b.className='on';
+    b.addEventListener('touchstart',e=>{ e.preventDefault(); e.stopPropagation(); touchPickNade(o); touchWheel(false); },{passive:false});
+    b.addEventListener('click',e=>{ e.stopPropagation(); touchPickNade(o); touchWheel(false); }); w.appendChild(b); }
+  const nb=$('nadeBtnTouch').getBoundingClientRect(); w.classList.remove('hidden');
+  const ww=w.offsetWidth; w.style.left=clamp(nb.left+nb.width/2-ww/2,8,innerWidth-ww-8)+'px'; w.style.top=Math.max(8,nb.top-w.offsetHeight-10)+'px';
+}
+function touchTick(){
+  const now=performance.now(); if(now-TCH.tick<200) return; TCH.tick=now; if(!CFG.isTouch||TE.on) return;
+  const tg=(id,on)=>{ const e=$(id); if(e) e.classList.toggle('hidden',!on); }, mode=match.mode;
+  tg('nadeBtnTouch',!!((player.nades&&player.nades.length)||player.slots.c4)); tg('fireBtnL',!!CFG.touch.leftFire); tg('scoreBtnTouch',mode==='comp'||mode==='duel'||mode==='net');
+  tg('dropBtnTouch',mode==='comp'||mode==='range'||mode==='walk'); if(TCH.wheel&&!touchNadeOpts().length) touchWheel(false);
+  const cb=$('crouchBtn'); if(cb) cb.classList.toggle('on',!!touchState.crouch); const wb=$('walkBtnTouch'); if(wb) wb.classList.toggle('on',!!touchState.walk);
+}
+function setupStick(zone,cb){   // floating (dynamic) or fixed joystick: the stick follows your thumb inside the left move zone
+  const st=$('moveStick'), kn=st.querySelector('.knob'); let id=null, cx=0, cy=0, R=48;
+  const place=(x,y)=>{ const r=st.getBoundingClientRect(), s=r.width; st.style.left=(x-s/2)+'px'; st.style.top=(y-s/2)+'px'; st.style.right=st.style.bottom=''; };
+  zone.addEventListener('touchstart',e=>{ if(TE.on) return; const t=e.changedTouches[0]; if(id!==null) return; id=t.identifier; const r=st.getBoundingClientRect(); R=r.width*.38;
+    if(CFG.touch.dynStick!==0){ cx=clamp(t.clientX,r.width/2+4,innerWidth*.5); cy=clamp(t.clientY,r.height/2+4,innerHeight-r.height/2-4); place(cx,cy); }
+    else { cx=r.left+r.width/2; cy=r.top+r.height/2; }
+    st.classList.add('down'); touchState.active=true; ensureAudio(); e.preventDefault(); },{passive:false});
+  zone.addEventListener('touchmove',e=>{ for(const t of e.changedTouches){ if(t.identifier!==id) continue; let dx=t.clientX-cx, dy=t.clientY-cy; const l=Math.hypot(dx,dy); if(l>R){ dx=dx/l*R; dy=dy/l*R; }
+    kn.style.transform='translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px)'; cb(dx/R,dy/R); } e.preventDefault(); },{passive:false});
+  const end=e=>{ for(const t of e.changedTouches){ if(t.identifier!==id) continue; id=null; cb(0,0); kn.style.transform=''; st.classList.remove('down');
+    const h=st._home; if(h) Object.assign(st.style,h); } };
+  zone.addEventListener('touchend',end); zone.addEventListener('touchcancel',end);
+}
+function bindHold(id,down,up){ const el=$(id); if(!el) return;
+  el.addEventListener('touchstart',e=>{ e.preventDefault(); e.stopPropagation(); if(TE.on) return; ensureAudio(); el.classList.add('down'); down&&down(e); },{passive:false});
+  const fin=e=>{ if(e.cancelable) e.preventDefault(); el.classList.remove('down'); if(TE.on) return; up&&up(e); };
+  el.addEventListener('touchend',fin,{passive:false}); el.addEventListener('touchcancel',fin); }
+// fire button: hold to fire; dragging the finger on it aims at the same time (CS-mobile style)
+function bindFire(id,slot){ const el=$(id); if(!el) return;
+  el.addEventListener('touchstart',e=>{ e.preventDefault(); e.stopPropagation(); if(TE.on) return; ensureAudio(); const t=e.changedTouches[0];
+    TCH[slot]={id:t.identifier,x:t.clientX,y:t.clientY}; el.classList.add('down'); if(!player.alive&&match.mode==='comp'){ player._specNext=true; return; } firing=true; tryFire(true); },{passive:false});
+  el.addEventListener('touchmove',e=>{ e.preventDefault(); const S=TCH[slot]; if(!S||TE.on) return; for(const t of e.changedTouches){ if(t.identifier!==S.id) continue;
+    if(gameInput()) touchLook(t.clientX-S.x,t.clientY-S.y,+CFG.touch.fireLook||.85); S.x=t.clientX; S.y=t.clientY; } },{passive:false});
+  const fin=e=>{ const S=TCH[slot]; for(const t of e.changedTouches){ if(S&&t.identifier===S.id){ TCH[slot]=null; el.classList.remove('down'); if(!TCH.fire&&!TCH.fireL) firing=false; } } };
+  el.addEventListener('touchend',fin); el.addEventListener('touchcancel',fin); }
+function touchInit(){
+  touchMarkup(); touchState.walk=false;
+  setupStick($('moveZone'),(x,y)=>{ touchState.mx=x; touchState.mz=y; });
+  { const lz=$('lookZone');
+    lz.addEventListener('touchstart',e=>{ if(TE.on) return; const t=e.changedTouches[0]; if(TCH.look) return; TCH.look={id:t.identifier,x:t.clientX,y:t.clientY}; if(TCH.wheel) touchWheel(false); e.preventDefault(); },{passive:false});
+    lz.addEventListener('touchmove',e=>{ const S=TCH.look; if(!S) return; for(const t of e.changedTouches){ if(t.identifier!==S.id) continue; if(gameInput()) touchLook(t.clientX-S.x,t.clientY-S.y,1); S.x=t.clientX; S.y=t.clientY; } e.preventDefault(); },{passive:false});
+    const le=e=>{ for(const t of e.changedTouches) if(TCH.look&&t.identifier===TCH.look.id) TCH.look=null; }; lz.addEventListener('touchend',le); lz.addEventListener('touchcancel',le); }
+  bindFire('fireBtn','fire'); bindFire('fireBtnL','fireL');
+  bindHold('jumpBtn',()=>{ touchState.jump=true; },()=>{ touchState.jump=false; });
+  bindHold('crouchBtn',()=>{ touchState.crouch=!touchState.crouch; touchTick(); TCH.tick=0; });
+  bindHold('walkBtnTouch',()=>{ touchState.walk=!touchState.walk; TCH.tick=0; });
+  bindHold('reloadBtnTouch',()=>tryReload());
+  bindHold('swapBtnTouch',()=>touchSwap());
+  bindHold('nadeBtnTouch',()=>touchWheel(!TCH.wheel));
+  bindHold('scopeBtnTouch',()=>{ const d=curDef(); if((d.stats.scope|0)>0){ if(!player.reloading) cycleScope(d); } else if(d.stats.silencer) toggleSilencer(); });
+  bindHold('pauseBtnTouch',()=>{ if(buyOpen) toggleBuy(false); togglePause(); });
+  bindHold('useBtnTouch',()=>{ touchState.use=true; },()=>{ touchState.use=false; });
+  bindHold('buyBtnTouch',()=>toggleBuy());
+  bindHold('inspectBtnTouch',()=>{ if(canAct()) vmInspect(VM); });
+  bindHold('dropBtnTouch',()=>{ if(match.state==='live') dropCurrent(); });
+  bindHold('scoreBtnTouch',()=>showScoreboard(true),()=>showScoreboard(false));
+  touchApplyLayout(); addEventListener('resize',()=>{ touchApplyLayout(); if(TE.on) teSelect(TE.sel); });
+}
+function touchSetMode(m){ CFG.touch.mode=m; const was=CFG.isTouch; CFG.isTouch=m==='on'?true:m==='off'?false:(('ontouchstart' in window)||navigator.maxTouchPoints>0);
+  document.body.classList.toggle('touch',CFG.isTouch); if(was!==CFG.isTouch&&!$('hud').classList.contains('hidden')) $('touch').classList.toggle('active',CFG.isTouch); touchApplyLayout(); }
+
+/* ---------------- touch layout editor ---------------- */
+const TE={ on:false, sel:null, draft:null, alpha:.85, scale:1, drag:null, back:null };
+function openTouchEditor(){
+  if(TE.on) return; TE.on=true; TE.draft=deepClone(CFG.touch.layout||{}); TE.alpha=+CFG.touch.alpha||.85; TE.scale=+CFG.touch.scale||1; TE.sel=null;
+  const ss=$('settingsScreen'); TE.back={ settings:!ss.classList.contains('hidden'), touch:$('touch').classList.contains('active'), hud:$('hud').classList.contains('hidden'), topNav:$('topNav').classList.contains('hidden') };
+  ss.classList.add('hidden'); $('topNav').classList.add('hidden'); if(match.mode!=='none') $('hud').classList.remove('hidden');
+  document.body.classList.add('touchEditing'); $('touch').classList.add('active'); $('touchEd').classList.remove('hidden');
+  for(const id in TOUCH_DEF){ const e=$(id); if(e){ e.dataset.wasHidden=e.classList.contains('hidden')?1:''; e.classList.remove('hidden'); } }
+  $('teAlpha').value=TE.alpha; $('teScale').value=TE.scale; teApply(); teSelect(null);
+}
+function closeTouchEditor(save){
+  if(!TE.on) return;
+  if(save){ CFG.touch.layout=TE.draft; CFG.touch.alpha=TE.alpha; CFG.touch.scale=TE.scale; saveCfg(); toast('Dokunmatik düzen kaydedildi'); }
+  TE.on=false; document.body.classList.remove('touchEditing'); $('touchEd').classList.add('hidden');
+  for(const id in TOUCH_DEF){ const e=$(id); if(e){ if(e.dataset.wasHidden) e.classList.add('hidden'); e.classList.remove('teSel'); } }
+  const B=TE.back||{}; $('touch').classList.toggle('active',!!B.touch); if(B.hud) $('hud').classList.add('hidden'); if(!B.topNav) $('topNav').classList.remove('hidden');
+  if(B.settings){ $('settingsScreen').classList.remove('hidden'); renderSettings(); }
+  touchApplyLayout(); TCH.tick=0;
+}
+function teApply(){ const a=CFG.touch.alpha, s=CFG.touch.scale; CFG.touch.alpha=TE.alpha; CFG.touch.scale=TE.scale; touchApplyLayout(TE.draft); CFG.touch.alpha=a; CFG.touch.scale=s; }
+function teSelect(id){ TE.sel=id; for(const k in TOUCH_DEF){ const e=$(k); if(e) e.classList.toggle('teSel',k===id); }
+  const lab=$('teSel'), sz=$('teSize'); if(!id){ lab.textContent='Bir buton seç'; sz.disabled=true; return; }
+  const L=Object.assign(touchSpec(id),TE.draft[id]||{}); lab.textContent=(TOUCH_DEF[id][5]||{moveStick:'HAREKET',pauseBtnTouch:'DURAKLAT',buyBtnTouch:'SATIN AL'}[id]||id); sz.disabled=false; sz.value=L.s/TOUCH_DEF[id][4]; }
+function teInit(){
+  const T=$('touch');
+  T.addEventListener('pointerdown',e=>{ if(!TE.on) return; const b=e.target.closest&&e.target.closest('#touch .tbtn,#moveStick'); if(!b||!TOUCH_DEF[b.id]) { teSelect(null); return; }
+    e.preventDefault(); e.stopPropagation(); teSelect(b.id); const r=b.getBoundingClientRect(); TE.drag={id:b.id,pid:e.pointerId,ox:e.clientX-(r.left+r.width/2),oy:e.clientY-(r.top+r.height/2)};
+    try{ T.setPointerCapture(e.pointerId); }catch(er){} },true);
+  T.addEventListener('pointermove',e=>{ const D=TE.drag; if(!TE.on||!D||e.pointerId!==D.pid) return; e.preventDefault();
+    const k=touchK()*TE.scale, cx=clamp(e.clientX-D.ox,10,innerWidth-10), cy=clamp(e.clientY-D.oy,10,innerHeight-10), a=(cx<innerWidth/2?'l':'r')+(cy<innerHeight/2?'t':'b');
+    const cur=Object.assign(touchSpec(D.id),TE.draft[D.id]||{}); TE.draft[D.id]={a,x:+((a[0]==='l'?cx:innerWidth-cx)/k).toFixed(1),y:+((a[1]==='t'?cy:innerHeight-cy)/k).toFixed(1),s:cur.s}; teApply(); },true);
+  const up=e=>{ if(TE.drag&&e.pointerId===TE.drag.pid) TE.drag=null; }; T.addEventListener('pointerup',up,true); T.addEventListener('pointercancel',up,true);
+  $('teSize').addEventListener('input',()=>{ const id=TE.sel; if(!id) return; const cur=Object.assign(touchSpec(id),TE.draft[id]||{}); TE.draft[id]=Object.assign({},cur,{s:Math.round(TOUCH_DEF[id][4]*+$('teSize').value)}); teApply(); });
+  $('teAlpha').addEventListener('input',()=>{ TE.alpha=+$('teAlpha').value; teApply(); });
+  $('teScale').addEventListener('input',()=>{ TE.scale=+$('teScale').value; teApply(); });
+  $('teReset').addEventListener('click',()=>{ TE.draft={}; TE.alpha=POLISH_DEF.touch.alpha; TE.scale=1; $('teAlpha').value=TE.alpha; $('teScale').value=1; teApply(); teSelect(TE.sel); });
+  $('teCancel').addEventListener('click',()=>closeTouchEditor(false)); $('teSave').addEventListener('click',()=>closeTouchEditor(true));
+}
+
+/* ---------------- settings rows ---------------- */
+function polishAudioRows(SEG,R,TG){
+  const lang=CFG.voiceLang==='tr'?'tr':'en', L=voiceList(lang), best=L[0], opts={'':'Otomatik — en doğal ses'+(best?' ('+voiceShort(best.name)+')':'')};
+  for(const v of L) opts[v.name]=(/Natural|Neural|Online/i.test(v.name)?'★ ':'')+voiceShort(v.name)+' · '+v.lang;
+  if(CFG.voiceName&&!opts[CFG.voiceName]) opts[CFG.voiceName]=voiceShort(CFG.voiceName)+' (bu cihazda yok)';
+  const pv=k=>()=>announce(k,CFG.voiceLang==='off'?'en':CFG.voiceLang,true);
+  return [
+    {t:'select',l:'Spiker sesi',d:'Tarayıcının sunduğu sesler. ★ işaretli doğal (Natural / Neural / Online) sesler en gerçekçi sonucu verir; Otomatik en kaliteli sesi seçer.'+(L.length?'':' (Bu cihazda bu dilde ses bulunamadı.)'),opts,get:()=>CFG.voiceName||'',set:v=>{ CFG.voiceName=v; pv('planted')(); }},
+    {t:'btns',l:'Anonsları dinle',d:'Seçili ses, hız ve tonla örnek anonslar (telsiz açma / kapama sesiyle).',btns:[['▶ BOMBA KURULDU',pv('planted')],['▶ BOMBA ÇÖZÜLDÜ',pv('defused')],['▶ T KAZANDI',pv('twin')],['▶ AT KAZANDI',pv('ctwin')],['▶ EL BOMBASI',pv('fireinhole')]]},
+    R('Konuşma hızı','Spikerin konuşma hızı.',()=>CFG.voiceRate,v=>CFG.voiceRate=v,.6,1.5,.01,v=>v.toFixed(2)+'×'),
+    R('Ses tonu','Spikerin ses perdesi; düşük değer daha kalın ses.',()=>CFG.voicePitch,v=>CFG.voicePitch=v,.5,1.5,.01,v=>v.toFixed(2)),
+    TG('Telsiz cızırtısı','Her anonsun başında ve sonunda telsiz açma / kapama sesi.',()=>CFG.voiceRadio,v=>CFG.voiceRadio=v),
+    {sec:'ORTAM AKUSTİĞİ'},
+    TG('Ortam akustiği','Tünel ve odalarda yoğun yankı ve uğultu, açık alanda binalardan geri sekme, uzak seslerde hava sönümü ve duvar arkasındaki atışlarda boğukluk.',()=>CFG.acoustics,v=>{ CFG.acoustics=v; ACU.t=0; })
+  ];
+}
+function polishTouchRows(SEG,R,TG){
+  return [
+    {sec:'DOKUNMATİK KONTROLLER'},
+    SEG('Dokunmatik arayüz','Otomatik: dokunmatik ekranda açılır. Bilgisayarda düzenlemek için AÇIK yapabilirsin.',[['auto','OTOMATİK'],['on','AÇIK'],['off','KAPALI']],()=>CFG.touch.mode,v=>touchSetMode(v)),
+    R('Bakış hassasiyeti','Ekranın sağ yarısında parmağınla bakış hızı (fareden ayrı).',()=>CFG.touch.look,v=>CFG.touch.look=v,.2,3,.01,v=>v.toFixed(2)),
+    R('Ateşle nişan hassasiyeti','ATEŞ butonuna basılıyken parmağını sürükleyerek nişan alma hızı (bakış hassasiyetinin çarpanı).',()=>CFG.touch.fireLook,v=>CFG.touch.fireLook=v,.2,2,.01,v=>v.toFixed(2)+'×'),
+    R('Buton boyutu','Tüm dokunmatik butonların ölçeği.',()=>CFG.touch.scale,v=>{ CFG.touch.scale=v; touchApplyLayout(); },.7,1.4,.01,v=>Math.round(v*100)+'%'),
+    R('Buton opaklığı','Dokunmatik butonların görünürlüğü.',()=>CFG.touch.alpha,v=>{ CFG.touch.alpha=v; touchApplyLayout(); },.2,1,.01,v=>Math.round(v*100)+'%'),
+    SEG('Joystick','Dinamik: sol yarıda parmağını nereye koyarsan joystick oraya gelir. Sabit: yerinde durur.',[[1,'DİNAMİK'],[0,'SABİT']],()=>CFG.touch.dynStick?1:0,v=>CFG.touch.dynStick=+v),
+    TG('Sol ateş butonu','Sol başparmakla da ateş edebilmek için ek ATEŞ butonu.',()=>CFG.touch.leftFire,v=>{ CFG.touch.leftFire=v; TCH.tick=0; }),
+    TG('Titreşim','Ateş ederken, isabette ve hasar alınca kısa titreşim (destekleyen cihazlarda).',()=>CFG.touch.haptic,v=>{ CFG.touch.haptic=v; if(v) touchHaptic('hit'); }),
+    {t:'btns',l:'Buton düzeni',d:'Butonları sürükleyip taşı, boyutlarını ve opaklığı ayarla. Düzen bu cihazda kaydedilir.',btns:[['DÜZENLEYİCİYİ AÇ',()=>openTouchEditor()],['DÜZENİ SIFIRLA',()=>{ CFG.touch.layout={}; CFG.touch.scale=1; CFG.touch.alpha=POLISH_DEF.touch.alpha; saveCfg(); touchApplyLayout(); renderSettings(); toast('Varsayılan düzen'); }]]}
+  ];
+}
+function polishTick(){ acuTick(); touchTick(); }
+if('speechSynthesis' in window){ try{ speechSynthesis.addEventListener('voiceschanged',()=>{ if(sTab==='audio'&&!$('settingsScreen').classList.contains('hidden')) renderSettings(); }); }catch(e){} }
+touchInit(); teInit();
+gameExport({ ACU, acuProbe, acuAt, acuOcc, acuAirLP, VOICE, voiceList, pickVoice, openTouchEditor, closeTouchEditor, touchApplyLayout, touchSetMode, TOUCH_DEF, get touchState(){ return touchState; }, TE });
 
 
 /* =====================================================================
