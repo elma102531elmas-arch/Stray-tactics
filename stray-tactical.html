@@ -2730,7 +2730,7 @@ function avluData(){
     bx(s*2.0,0,s*.75,s*2.12,2.9,s*2.7,'door');
     bx(s*13.5,0,s*6,s*14.5,4,s*22,'sandstone',{cap:1});
     bx(s*-34,0,s*20,s*-20,1.0,s*34,'sandstone'); fl(s*-34,s*20,s*-20,s*34,'slabs',1.02);
-    O.push({t:'stairs',p:[s*-19,0,s*27],r:[0,s>0?-90:90,0],s:[6,1,2],m:'trim',n:4});
+    O.push({t:'stairway',p:[s*-19,0,s*27],r:[0,s>0?-90:90,0],s:[6,1,2],m:'trim',n:4});
     bx(s*-30,0,s*19.2,s*-24,.5,s*20,'trim');
     bx(s*-30,0,s*6,s*-22,5,s*14,'plaster',{cap:1});
     bx(s*-30.2,4.2,s*14,s*-21.8,4.45,s*14.6,'wood',{collide:false});
@@ -2740,6 +2740,7 @@ function avluData(){
     ba(s*9,s*20); ba(s*9.8,s*20.75); ba(s*30,s*-3);
     cr(s*-3.3,s*27.7,1.4); cr(s*6,s*26,2.0); cr(s*6.2,s*25.8,1.2,2.0);
     bx(s*20,0,s*4,s*26,1.15,s*5,'sandstone',{cap:1});
+    bx(s*-7,0,s*25.2,s*5,4.6,s*26,'sandstone',{cap:1}); bx(s*-8,0,s*5,s*8,3.0,s*5.8,'sandstone',{cap:1}); bx(s*-24,0,s*5,s*-18,3.2,s*5.8,'sandstone',{cap:1}); // spawn wall + door/gap shields: no spawn-to-spawn sightline through the centre door
     bx(s*26,0,s*24,s*36,6.6,s*36,'plaster',{cap:1});
     cr(s*31,s*14,1.6); cr(s*33,s*12.5,1.6); cr(s*33,s*12.5,1.1,1.6);
     bx(s*-36,0,s*-12,s*-31,3.2,s*-6,'plaster',{cap:1});
@@ -2787,10 +2788,10 @@ function kumVadisiData(){
   A({t:'floor',p:[31,-.015,-31],s:[26,.03,22],m:'slabs',c:0}); A({t:'floor',p:[-31,-.015,-31],s:[26,.03,26],m:'slabs',c:0});
   // catwalk (short A): raised walkway with stairs at both ends
   A({t:'block',p:[14,0,-20],s:[8,1.4,12],m:'sandstone',cap:0});
-  A({t:'stairs',p:[14,0,-12],r:[0,180,0],s:[8,1.4,4],m:'trim',n:5}); A({t:'stairs',p:[14,0,-28],s:[8,1.4,4],m:'trim',n:5});
+  A({t:'stairway',p:[14,0,-12],r:[0,180,0],s:[8,1.4,4],m:'trim',n:5}); A({t:'stairway',p:[14,0,-28],s:[8,1.4,4],m:'trim',n:5});
   // A site platform + ramp, B back platform + stairs
   A({t:'block',p:[39,0,-38],s:[10,1,8],m:'sandstone',cap:0}); A({t:'ramp',p:[37,0,-32],r:[0,180,0],s:[4,1,4],m:'sandstone'});
-  A({t:'block',p:[-40,0,-40],s:[8,1.2,8],m:'sandstone',cap:0}); A({t:'stairs',p:[-34,0,-40],r:[0,-90,0],s:[4,1.2,4],m:'trim',n:4});
+  A({t:'block',p:[-40,0,-40],s:[8,1.2,8],m:'sandstone',cap:0}); A({t:'stairway',p:[-34,0,-40],r:[0,-90,0],s:[4,1.2,4],m:'trim',n:4});
   // tunnel roofs
   A({t:'block',p:[-35,3.6,2],s:[6,.5,28],m:'concrete',cap:0}); A({t:'block',p:[-25,3.6,7],s:[14,.5,6],m:'concrete',cap:0});
   // cover
@@ -2799,6 +2800,7 @@ function kumVadisiData(){
   cr(-28,-30,2); cr(-28.3,-30.1,1.1,2); cr(-22,-38,1.4); cr(-38,-24,1.6); cr(-24,-22.5,1.2); ba(-43,-20);
   cr(0,-11,1.8); cr(3.6,4,1.4); ba(-4.6,9); ba(-4,9.8);
   A({t:'container',p:[41.5,0,4],s:[2.6,2.7,6.5]}); cr(35,17,1.4); cr(35.2,16.9,1,1.4); cr(43,-12,1.6);
+  A({t:'block',p:[0,0,-30.6],s:[14,4.6,.9],m:'sandstone',cap:1}); // CT spawn wall: no sightline down mid between the spawns
   A({t:'sandbag',p:[0,0,-29],s:[6,1,.9]}); A({t:'sandbag',p:[-6,0,32],s:[5,1,.9]}); A({t:'sandbag',p:[31,0,-20.5],s:[4,1,.9]});
   cr(-12,38,1.6); cr(14,34,1.4); ba(18,30); ba(18.8,30.6);
   // decor
@@ -8826,6 +8828,369 @@ function addGround(){
 }
 
 /* @@BLOCK:maps — code from the maps work goes right below this line */
+/* ---------- extra map materials (tinted variants of the procedural textures) ---------- */
+Object.assign(MAPMAT,{
+  plasterW:{tex:'plaster',tile:3,surf:'stone',dirt:.3,tint:'#fff8ec'},
+  ochre:{tex:'plaster',tile:3,surf:'stone',dirt:.4,tint:'#efc394'},
+  terracotta:{tex:'sandstone',tile:2,surf:'stone',dirt:.36,tint:'#e0a789'},
+  tiles:{tex:'slabs',tile:2.4,surf:'stone',tint:'#ecdcc4'},
+  blueP:{color:'#2e6a87',surf:'wood',rough:.72},
+  greenP:{color:'#3c6a4c',surf:'wood',rough:.72},
+  paintR:{color:'#8a3a2a',surf:'metal',rough:.5,metal:.35},
+  paintW:{color:'#d9d5cc',surf:'metal',rough:.42,metal:.3},
+  glass:{color:'#1b2329',surf:'metal',rough:.18,metal:.6},
+  rubber:{color:'#161616',surf:'cloth',rough:.92}
+});
+Object.assign(MATKEYS,{plasterW:'Beyaz badana',ochre:'Hardal sıva',terracotta:'Kiremit taşı',tiles:'Karo zemin',blueP:'Mavi boya',greenP:'Yeşil boya',paintR:'Paslı kırmızı',paintW:'Beyaz araç boyası'});
+/* wrecked car / van (cover object): body, cabin glass, roof, wheels; one box collider */
+MOBJ.vehicle={label:'Araç (hurda / minibüs)',cat:'Dekor',def:{s:[1.9,1.5,4.3],kind:'car',m:'paintR'},build(o,B){
+  const [w,h,d]=o.s, van=o.kind==='van', m=o.m||'paintR', wr=Math.min(.36,h*.22), base=wr*.7;
+  if(van){ const bh=h-base; B.box(m,0,base+bh*.36,0,w,bh*.72,d,{collide:false,ao:false}); B.box(m,0,base+bh*.86,-d*.08,w*.98,bh*.28,d*.84,{collide:false,ao:false});
+    B.box('glass',0,base+bh*.8,d*.4,w*.9,bh*.3,d*.12,{collide:false,ao:false}); for(const s of [-1,1]) B.box('glass',s*(w/2+.005),base+bh*.8,-d*.05,.02,bh*.22,d*.6,{collide:false,ao:false}); }
+  else { const bh=(h-base)*.5; B.box(m,0,base+bh/2,0,w,bh,d,{collide:false,ao:false});
+    B.box('glass',0,base+bh+(h-base-bh)*.45,-d*.04,w*.86,(h-base-bh)*.9,d*.48,{collide:false,ao:false}); B.box(m,0,h-.05,-d*.04,w*.88,.1,d*.44,{collide:false,ao:false}); }
+  for(const sx of [-1,1]) for(const sz of [-1,1]){ const g=new THREE.CylinderGeometry(wr,wr,.26,14); g.rotateZ(Math.PI/2); g.translate(sx*(w/2-.1),wr,sz*d*.32); B.mesh('rubber',g); }
+  if(o.c!==0) B.col('box',0,h/2,0,w/2,h/2,d/2,'metal'); B.aoRect(0,0,w/2,d/2,.55); }};
+
+/* stairs that look stepped but collide as one smooth ramp (bots' nav grid and players glide up them) */
+MOBJ.stairway={label:'Merdiven (rampalı)',cat:'Yapı',def:{s:[2.4,1.2,3],m:'trim',n:5},build(o,B){ const [w,h,d]=o.s, n=Math.max(1,o.n|0||5), m=o.m||'trim';
+  for(let i=0;i<n;i++){ const hh=h*(i+1)/n, dz=d/n; B.box(m,0,hh/2,-d/2+dz*(i+.5),w,hh,dz,{collide:false,ao:i===n-1}); }
+  if(o.c!==0) B.col('ramp',0,h/2,0,w/2,h/2,d/2,MAPMAT[m].surf); }};
+/* ---------- layout compiler: walkable rectangles on a 1 m grid -> walls, platforms, ramps, stairs, roofs ----------
+   L.S half size (outermost ring stays solid); areas [x0,z0,x1,z1,h,floorMat]; ramps {r,h0,h1,dir,m,st,n} (dir = side that is high);
+   wins [x0,z0,x1,z1,sill,top]; solids [x0,z0,x1,z1]; blocks [x0,y0,z0,x1,y1,z1,m,cap] (roofs, lintels, low walls); wall(x,z,edge)->[h,m] */
+function mpRampH(r,x,z){ const [x0,z0,x1,z1]=r.r; const t=r.dir==='e'?(x-x0)/(x1-x0):r.dir==='w'?(x1-x)/(x1-x0):r.dir==='s'?(z-z0)/(z1-z0):(z1-z)/(z1-z0); return r.h0+(r.h1-r.h0)*clamp(t,0,1); }
+function mpGreedy(N,keyAt,emit,maxW){ const used=new Uint8Array(N*N);
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const k=j*N+i; if(used[k]) continue; const key=keyAt(i,j); if(key===null) continue;
+    let w=1; while(i+w<N&&w<maxW&&!used[k+w]&&keyAt(i+w,j)===key) w++;
+    let h=1; grow: while(j+h<N&&h<maxW){ for(let q=0;q<w;q++){ if(used[(j+h)*N+i+q]||keyAt(i+q,j+h)!==key) break grow; } h++; }
+    for(let a=0;a<h;a++) for(let q=0;q<w;q++) used[(j+a)*N+i+q]=1;
+    emit(key,i,j,w,h); } }
+function mpCompile(L){
+  const S=L.S, N=2*S, K=new Int8Array(N*N), H=new Float32Array(N*N), FM=new Array(N*N).fill(''), O=[], R=mulberry(L.seed||7);
+  const ix=(x,z)=>(z+S)*N+(x+S), inner=(x,z)=>x>-S&&x<S-1&&z>-S&&z<S-1;
+  const each=(r,f)=>{ for(let z=Math.max(r[1],-S);z<Math.min(r[3],S);z++) for(let x=Math.max(r[0],-S);x<Math.min(r[2],S);x++) if(inner(x,z)) f(ix(x,z),x,z); };
+  for(const a of L.areas) each(a,k=>{ K[k]=1; H[k]=a[4]; FM[k]=a[5]||''; });
+  for(const r of L.ramps) each(r.r,(k,x,z)=>{ K[k]=2; H[k]=mpRampH(r,x+.5,z+.5); });
+  for(const s of L.solids||[]) each(s,k=>{ K[k]=0; });
+  for(const w of L.wins||[]) each(w,k=>{ K[k]=3; });
+  const wallKey=(x,z)=>{ const e=x===-S||x===S-1||z===-S||z===S-1; const [h,m]=L.wall(x,z,e); return h+'|'+m; };
+  // walls (solid mass) + facade windows
+  const walls=[];
+  mpGreedy(N,(i,j)=>K[j*N+i]===0?wallKey(i-S,j-S):null,(key,i,j,w,d)=>{ const [h,m]=key.split('|'); const x0=i-S, z0=j-S;
+    O.push({t:'block',p:[x0+w/2,0,z0+d/2],s:[w,+h,d],m,cap:1}); walls.push([x0,z0,w,d,+h]); },L.maxW||14);
+  const walk=(x,z)=>{ if(x<-S||z<-S||x>=S||z>=S) return null; const k=ix(x,z); return K[k]===1||K[k]===2?H[k]:null; };
+  const fac=L.facade||{};
+  for(const [x0,z0,w,d,h] of walls){
+    const sides=[[0,1,w,(t)=>[x0+t,z0+d],(t)=>[x0+t+.5,z0+d],0],[0,-1,w,(t)=>[x0+t,z0-1],(t)=>[x0+t+.5,z0],180],[1,0,d,(t)=>[x0+w,z0+t],(t)=>[x0+w,z0+t+.5],90],[-1,0,d,(t)=>[x0-1,z0+t],(t)=>[x0,z0+t+.5],-90]];
+    for(const [nx,nz,len,cell,pos,rot] of sides){ let run=[];
+      const flush=()=>{ if(run.length>=3){ const fh=Math.max(...run.map(q=>q[1])); const n=Math.max(1,Math.floor(run.length/5.5));
+          for(let q=0;q<n;q++){ const t=run[Math.floor((q+.5)*run.length/n)][0]; const [px,pz]=pos(t); const y=fh+3.0; if(h<fh+4.7||R()>(fac.p||.75)) continue;
+            const ox=nx*.03, oz=nz*.03, sw=(a,b)=>nx?[b,a]:[a,b], [ww,dd]=sw(1.05,.08);
+            O.push({t:'block',p:[px+ox,y,pz+oz],s:[ww,1.35,dd],m:'darkmetal',c:0});
+            const [sw2,sd2]=sw(1.35,.22); O.push({t:'block',p:[px+nx*.1,y-.12,pz+nz*.1],s:[sw2,.12,sd2],m:'trim',c:0});
+            if(R()<(fac.sh||.45)){ const shm=fac.shm?fac.shm[Math.floor(R()*fac.shm.length)]:'wood'; for(const s of [-1,1]){ const [a,b]=sw(.5,.07); O.push({t:'block',p:[px+ox*1.6+(nz?s*.8:0),y,pz+oz*1.6+(nx?s*.8:0)],s:[a,1.4,b],m:shm,c:0}); } }
+            if(fac.door&&R()<fac.door&&fh<.1+99){ const [dw,dd2]=sw(1.4,.1); O.push({t:'block',p:[px+nx*.05,fh,pz+nz*.05],s:[dw,2.3,dd2],m:fac.doorM||'door',c:0}); } } }
+        run=[]; };
+      for(let t=0;t<len;t++){ const [cx,cz]=cell(t); const f=walk(cx,cz); if(f===null) flush(); else run.push([t,f]); } flush(); } }
+  // raised platforms + floor plates (merged per height / material)
+  mpGreedy(N,(i,j)=>{ const k=j*N+i; return K[k]===1&&(H[k]>0||FM[k])?H[k].toFixed(2)+'|'+FM[k]:null; },(key,i,j,w,d)=>{ const [h,fm]=key.split('|'); const x0=i-S, z0=j-S, cx=x0+w/2, cz=z0+d/2;
+    if(+h>0) O.push({t:'block',p:[cx,0,cz],s:[w,+h,d],m:L.platM||'sandstone',cap:0});
+    if(fm) O.push({t:'floor',p:[cx,+h+.003,cz],s:[w,.02,d],m:fm,c:0}); },L.maxW||14);
+  // ramps and stairs (with a solid base when they start above ground)
+  for(const r of L.ramps){ const [x0,z0,x1,z1]=r.r, cx=(x0+x1)/2, cz=(z0+z1)/2, lo=Math.min(r.h0,r.h1), dh=Math.abs(r.h1-r.h0), ns=r.dir==='n'||r.dir==='s';
+    const W=ns?x1-x0:z1-z0, D=ns?z1-z0:x1-x0, rot={s:0,n:180,e:90,w:-90}[r.dir];
+    if(lo>0) O.push({t:'block',p:[cx,0,cz],s:[x1-x0,lo,z1-z0],m:L.platM||'sandstone',cap:0});
+    if(r.st) O.push({t:'stairway',p:[cx,lo,cz],r:[0,rot,0],s:[W,dh,D],m:r.m||'trim',n:r.n||Math.max(2,Math.round(dh/.26))});
+    else O.push({t:'ramp',p:[cx,lo,cz],r:[0,rot,0],s:[W,dh,D],m:r.m||'sandstone'}); }
+  // windows in the solid mass: sill block + head block
+  for(const w of L.wins||[]){ const [x0,z0,x1,z1,sill,top]=w, cx=(x0+x1)/2, cz=(z0+z1)/2, [hh,m]=L.wall(x0,z0,false);
+    O.push({t:'block',p:[cx,0,cz],s:[x1-x0,sill,z1-z0],m,cap:0}); O.push({t:'block',p:[cx,sill-.06,cz],s:[x1-x0+.1,.12,z1-z0+.1],m:'wood',c:0});
+    O.push({t:'block',p:[cx,top,cz],s:[x1-x0,hh-top,z1-z0],m,cap:1}); O.push({t:'block',p:[cx,top,cz],s:[x1-x0+.1,.14,z1-z0+.1],m:'wood',c:0}); }
+  for(const b of L.blocks||[]){ const [x0,y0,z0,x1,y1,z1,m,cap]=b; O.push({t:'block',p:[(x0+x1)/2,y0,(z0+z1)/2],s:[Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0)],m:m||'concrete',cap:cap?1:0}); }
+  return {O,K,H,S,N,walk};
+}
+/* height of the walkable floor at a world point (for placing decor on ramps / platforms) */
+function mpFloor(G,x,z){ const f=G.walk(Math.floor(x),Math.floor(z)); return f===null?0:+f.toFixed(3); }
+function mpDecor(O,G,list){ for(const d of list){ const o=Object.assign({r:[0,0,0]},d); if(o.p.length===2) o.p=[o.p[0],mpFloor(G,o.p[0],o.p[1]),o.p[1]]; O.push(o); } }
+/* door leaf hinged at (hx,hz), pointing along angle a (deg, 0=+X east, 90=+Z south) */
+function mpLeaf(hx,y,hz,a,w,h){ w=w||2; const r=a*DEG; return {t:'door',p:[hx+Math.cos(r)*w/2,y,hz+Math.sin(r)*w/2],r:[0,-a,0],s:[w,h||2.9,.12],c:1}; }
+
+/* ---------- built-in map: TOZ II (the classic long-A / catwalk / mid doors / B tunnels layout, 1 CS unit ≈ 0.019 m) ---------- */
+function toz2Data(){
+  const L={S:43,seed:211,areas:[],ramps:[],wins:[],solids:[],blocks:[],platM:'sandstone',facade:{p:.7,sh:.4,shm:['wood','blueP'],door:.12},
+    wall:(x,z,e)=>{ if(e) return [9.5,'sandstone']; const q=Math.floor((x+43)/8)*31+Math.floor((z+43)/8)*17, v=(q*2654435761>>>0)%5; return [[6.6,7.4,6.2,8.2,7.0][v],v%3===1?'plaster':'sandstone']; }};
+  const A=(x0,z0,x1,z1,h,fm)=>L.areas.push([x0,z0,x1,z1,h,fm===undefined?'sand':fm]);
+  const Rp=(x0,z0,x1,z1,h0,h1,dir,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,m:m||'sandstone'});
+  const St=(x0,z0,x1,z1,h0,h1,dir,n,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,st:1,n,m:m||'trim'});
+  const blk=(x0,y0,z0,x1,y1,z1,m,cap)=>L.blocks.push([x0,y0,z0,x1,y1,z1,m,cap]);
+  // --- T side ---
+  A(-13,29,9,41,1.2);                 // T spawn
+  A(9,31,19,38,1.2);                  // outside long (east leg)
+  A(12,14,19,31,1.2);                 // outside long (north leg)
+  A(14,11,18,14,1.2,'slabs');         // long doors
+  A(13,4,28,11,1.2);                  // long doors hall ("blue")
+  A(28,2,38,11,1.2);                  // long corner
+  Rp(28,-16,38,2,1.2,1.7,'n');        // long A (uphill to the site)
+  A(28,-24,38,-16,1.7);               // top of long
+  A(35,-28,38,-24,1.7);               // A car pocket
+  Rp(28,-30,35,-24,1.7,2.4,'n','slabs'); // A ramp
+  A(20,-41,36,-30,2.4,'slabs');       // A site
+  A(20,-30,28,-19,2.4,'slabs');       // A short landing
+  St(14,-23,20,-19,1.6,2.4,'e',4);    // A short stairs
+  A(8,-22,14,-8,1.6,'slabs');         // short
+  Rp(6,-12,8,-8,1.2,1.6,'e','slabs'); // catwalk -> short
+  A(1,-12,6,-5,1.2,'slabs');          // catwalk
+  St(1,-5,6,-1,0,1.2,'n',5);          // catwalk stairs (next to xbox)
+  A(-6,10,0,29,1.2);                  // top mid
+  Rp(-7,4,0,10,0,1.2,'s','sand');     // "suicide" slope down into mid
+  A(-8,-19,1,4,0,'slabs');            // mid
+  A(1,-1,6,2,0,'slabs');              // mid alcove at the catwalk stairs
+  A(-6,-20,-2,-19,0,'slabs');         // mid doors
+  A(-13,-31,2,-20,0,'slabs');         // CT mid
+  Rp(2,-32,6,-26,0,.8,'e','slabs');   // CT mid -> CT spawn
+  A(6,-37,15,-25,.8,'slabs');         // CT spawn
+  Rp(15,-34,20,-28,.8,2.4,'e','slabs'); // A cross (CT spawn -> A site)
+  // --- B side ---
+  A(-32,16,-8,30,1.2);                // outside tunnels
+  A(-34,-6,-28,16,1.2,'concrete');    // upper tunnels (entrance)
+  A(-39,-14,-28,-6,1.2,'concrete');   // upper tunnels (junction)
+  A(-38,-22,-32,-14,1.2,'concrete');  // B tunnels
+  St(-28,-13,-24,-9,0,1.2,'w',5);     // lower tunnel stairs
+  A(-24,-13,-8,-9,0,'concrete');      // lower tunnels -> mid
+  St(-38,-24,-32,-22,1.2,1.6,'n',2);  // tunnel exit steps
+  A(-41,-41,-23,-24,1.6,'slabs');     // B site
+  A(-41,-41,-31,-37,2.4,'slabs');     // back plat
+  St(-31,-41,-28,-37,1.6,2.4,'w',3);  // back plat stairs
+  A(-23,-31,-21,-27,1.6,'slabs');     // B doors
+  Rp(-21,-34,-13,-24,0,1.6,'w','slabs'); // B doors -> CT mid
+  L.wins.push([-23,-34,-21,-32,2.7,4.3]); // B window
+  // --- pit ---
+  St(34,11,38,14,0,1.2,'n',4); A(33,14,41,20,0); A(38,11,41,14,0);
+  // roofs, lintels, low walls
+  blk(-40,4.1,-22,-27,4.6,14,'concrete');   // upper tunnels roof
+  blk(-28,3.4,-14,-9,3.9,-8,'concrete');    // lower tunnels roof
+  blk(-9,3.0,-13,-8,7.0,-9,'sandstone');    // lower tunnels exit lintel
+  blk(14,4.2,11,18,7.0,14,'sandstone',1);   // long doors lintel
+  blk(-6,3.2,-20,-2,7.0,-19,'sandstone',1); // mid doors lintel
+  blk(-23,4.6,-31,-21,7.5,-27,'sandstone',1); // B doors lintel
+  blk(27.6,2.4,-24,28,3.35,-19,'sandstone',1); // low wall: A short landing over long
+  blk(20,2.4,-19.4,24,3.3,-19,'sandstone',1);  // low wall at the A short stairs
+  const G=mpCompile(L), O=G.O;
+  const cr=(x,z,s,y)=>({t:'crate',p:y===undefined?[x,z]:[x,y,z],s:[s,s,s]}), ba=(x,z)=>({t:'barrel',p:[x,z],s:[.7,1,.7]});
+  const lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]}), sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#3a3026'});
+  mpDecor(O,G,[
+    // T spawn + outside long
+    cr(-10,33,1.6),cr(-9.8,33.1,1,2.8),cr(6.4,39.2,1.4),cr(4.8,39.6,1.0),ba(-12,39.8),ba(-11.2,40.3),ba(8.2,33),
+    {t:'palm',p:[-11.6,30.6],s:[1,7,1],lean:1.1},{t:'palm',p:[7.6,30.2],r:[0,180,0],s:[1,6.4,1],lean:-.9},{t:'palm',p:[-1,39.8],s:[1,7.6,1],lean:.7},
+    {t:'awning',p:[-7,40.95],r:[0,180,0],s:[5,3.4,2.2]},{t:'awning',p:[3.5,40.95],r:[0,180,0],s:[4,3.2,2]},lamp(3,29.05,0,3.4),lamp(-12.95,35,90),
+    cr(17.6,36.6,1.4),ba(11,37.4),ba(11.8,37.5),cr(13.1,22,1.2),{t:'awning',p:[18.95,24],r:[0,-90,0],s:[4,3.2,2]},lamp(12.05,18,90),
+    // long doors, hall, long A
+    mpLeaf(14.1,1.2,11.0,-90),mpLeaf(17.9,1.2,11.0,235),
+    {t:'container',p:[22.5,5.35],r:[0,90,0],s:[2.6,2.7,6.5]},cr(14.6,5.6,1.4),lamp(24,10.95,180),sign(21,3.7,10.94,180,'UZUN',2.2),
+    cr(36.4,9.4,1.4),ba(29.3,9.9),ba(30.1,10.2),cr(36.7,-8,1.4),ba(29,-4),lamp(28.05,-6,90),lamp(37.95,-14,-90),
+    {t:'vehicle',p:[36.55,-26.1],s:[1.9,1.5,4.3],kind:'car',m:'paintR'},cr(29.1,-21.9,1.6),sign(28.03,3.6,-20,90,'A',2.6,'#2b2722'),
+    // A site
+    cr(33.6,-38.6,1.8),cr(33.7,-38.7,1.0,4.2),cr(25,-36,1.6),cr(26.4,-36.4,1.0),cr(30.6,-32.4,1.4),ba(21,-40.2),ba(21.8,-40.4),
+    {t:'sandbag',p:[23,-27.2],r:[0,90,0],s:[3.2,.9,.8]},sign(28,4.8,-40.95,0,'A',3.2,'#2b2722'),{t:'palm',p:[35,-40.3],s:[1,6.8,1],lean:-.9},
+    // short / catwalk / mid / top mid
+    cr(12.8,-9.6,1.4),ba(9,-21.2),sign(8.03,3.2,-15,90,'KISA',1.8),cr(-1.6,-2.6,1.8),cr(-7.2,-16.4,1.2),ba(.2,3.3),ba(-.6,3.5),
+    lamp(-7.95,0,90),lamp(-7.95,-14,90),sign(-7.97,2.7,-5,90,'MID',2.2),{t:'cable',p:[-8,5.2,-6],e:[9,-.3,2],sag:.7},
+    cr(-1.1,15.6,1.4),lamp(-5.95,20,90,3.4),{t:'cable',p:[-6,5.6,22],e:[6,-.2,-3],sag:.6},
+    // mid doors, CT mid, CT spawn
+    mpLeaf(-5.9,0,-20.0,-90),mpLeaf(-2.1,0,-20.0,210),cr(-6.6,-23.2,2.0),cr(-4.6,-23.2,2.0),cr(-2.7,-23.2,2.0),cr(-5.6,-23.3,1.2,2.0),ba(-12.3,-30.3),cr(.8,-30,1.4),lamp(-12.95,-24,90),
+    cr(7,-36,1.4),cr(7.1,-36.1,.9,2.2),{t:'palm',p:[14,-36.4],s:[1,6.6,1],lean:1},{t:'sandbag',p:[10,-25.6],s:[3,.9,.8]},
+    // B side
+    cr(-20,22,1.6),cr(-19.8,22.2,1,2.8),ba(-31,29.3),ba(-30.2,29.5),{t:'palm',p:[-10,17.6],s:[1,6.8,1],lean:.9},{t:'awning',p:[-18,16.05],s:[5,3.4,2.2]},sign(-28.2,3.6,16.03,0,'B',2.2,'#2b2722'),
+    lamp(-28.05,4,-90,3),lamp(-38.95,-10,90,3),lamp(-32.05,-18,-90,3),lamp(-16,-12.95,0,2.6),
+    cr(-31,-28.6,2.0),cr(-31.2,-28.8,1.2,3.6),cr(-29.2,-28.7,1.4),{t:'vehicle',p:[-26,-36.6],r:[0,90,0],s:[1.9,1.5,4.3],kind:'car',m:'paintR'},
+    cr(-39.4,-39.4,1.4,2.4),ba(-40.2,-25.2),ba(-39.4,-25.5),cr(-39.8,-27.2,1.2),sign(-32,4.6,-40.95,0,'B',3.2,'#2b2722'),
+    mpLeaf(-21.0,1.45,-31.0,0),mpLeaf(-21.0,1.45,-27.0,-40),cr(-14.2,-33,1.2),
+    // pit
+    cr(39.5,18.5,1.4),ba(34,19.3),ba(34.8,19.4)
+  ]);
+  for(const [x,z] of [[-4.5,36],[-1.5,36],[1.5,36],[-3,38.6],[0,38.6]]) O.push({t:'spawnT',p:[x,1.2,z],r:[0,0,0]});
+  for(const [x,z] of [[8.5,-33.5],[11,-33.5],[13.5,-33.5],[9.8,-30.5],[12.3,-30.5]]) O.push({t:'spawnCT',p:[x,.8,z],r:[0,180,0]});
+  O.push({t:'siteA',p:[27.5,2.0,-34.5],s:[15,3.5,13]}); O.push({t:'siteB',p:[-32,1.2,-32.5],s:[16,3.5,15]});
+  return normalizeMap({id:'toz2',name:'Toz II',builtin:1,settings:{size:43,sky:1,ground:'sand',sunAz:-36,sunEl:50,fog:.0042,mode:'bomb',preview:{p:[30,34,52],t:[2,0,-6]}},objects:O});
+}
+
+/* ---------- built-in map: SERAP (the classic A ramp / palace / window / apartments layout) ---------- */
+function serapData(){
+  const L={S:37,seed:977,areas:[],ramps:[],wins:[],solids:[],blocks:[],platM:'terracotta',facade:{p:.8,sh:.6,shm:['blueP','greenP','wood'],door:.15},
+    wall:(x,z,e)=>{ if(e) return [9.5,'plaster']; const q=Math.floor((x+37)/7)*29+Math.floor((z+37)/7)*13, v=(q*2654435761>>>0)%6; return [[6.8,7.6,6.4,8.4,7.2,6.8][v],['plasterW','ochre','plaster','plasterW','terracotta','ochre'][v]]; }};
+  const A=(x0,z0,x1,z1,h,fm)=>L.areas.push([x0,z0,x1,z1,h,fm===undefined?'tiles':fm]);
+  const Rp=(x0,z0,x1,z1,h0,h1,dir,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,m:m||'tiles'});
+  const St=(x0,z0,x1,z1,h0,h1,dir,n,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,st:1,n,m:m||'trim'});
+  const blk=(x0,y0,z0,x1,y1,z1,m,cap)=>L.blocks.push([x0,y0,z0,x1,y1,z1,m,cap]);
+  // --- T side ---
+  A(24,-8,36,12,2.0,'sand');          // T spawn
+  A(16,-9,24,-3,2.0,'sand');          // T mid passage
+  A(9,-8,16,2,2.0);                   // top mid
+  Rp(3,-6,9,2,1.0,2.0,'e');           // top mid -> mid
+  A(-12,-6,3,2,1.0);                  // mid
+  L.solids.push([24,8,26,12]);        // T spawn corner house (hides T spawn from the A ramp)
+  A(18,4,24,20,2.0,'sand');           // T ramp (runs south, out of sight of the site)
+  Rp(6,16,18,21,0,2.0,'e');           // A ramp (turns west, down into the site)
+  L.solids.push([2,14,8,17]);         // tetris corner: hides the ramp from jungle / stairs
+  A(26,12,32,22,2.0,'sand');          // palace alley
+  Rp(24,22,32,27,1.6,2.0,'e');        // palace entrance
+  A(12,22,24,30,1.6);                 // palace
+  A(8,22,12,30,1.6);                  // palace balcony / pillars
+  St(4,26,8,31,0,1.6,'e',6);          // pillars stairs
+  // --- A site, jungle, connector, CT ---
+  A(-8,14,8,34,0);                    // A site
+  A(-13,6,-3,14,1.0);                 // jungle
+  St(-7,14,-2,18,0,1.0,'n',4);        // A stairs
+  A(-6,2,-1,7,1.0);                   // connector
+  A(-34,10,-20,28,.4);                // CT spawn
+  Rp(-20,24,-14,32,0,.4,'w');         // CT -> A
+  A(-14,24,-8,32,0);                  // CT (ticket booth side)
+  Rp(-20,8,-13,13,.4,1.0,'e');        // CT -> jungle
+  St(-24,-2,-20,10,.4,2.6,'n',9);     // window stairs
+  A(-24,-7,-18,-2,2.6);               // window landing
+  A(-18,-7,-12,1,2.6);                // window room (sniper's nest)
+  L.solids.push([-13,-7,-12,-5],[-13,-1,-12,1]); // window frame
+  // --- B side ---
+  A(-35,-35,-14,-16,.4);              // B site
+  St(-18,-22,-14,-17,.4,1.6,'e',4);   // B short stairs
+  A(-14,-22,-9,-9,1.6);               // short (catwalk)
+  St(-12,-9,-8,-6,1.0,1.6,'n',3);     // catwalk steps from mid
+  A(-10,-18,-6,-11,1.6);              // ladder room
+  St(-6,-18,-2,-14,0,1.6,'w',6);      // ladder room stairs (to underpass)
+  St(-2,-10,3,-6,0,1.0,'s',4);        // underpass stairs (from mid)
+  A(-2,-22,3,-10,0,'concrete');       // underpass
+  St(-2,-29,3,-22,0,2.4,'n',9);       // underpass -> apartments
+  A(-6,-34,22,-28,2.4,'wood');        // B apartments (upper floor)
+  L.solids.push([4,-34,5,-32],[4,-30,5,-28],[13,-34,14,-33],[13,-31,14,-28]); // apartment partitions
+  St(-14,-34,-6,-29,.4,2.4,'e',8);    // apartments -> B site stairs
+  A(22,-26,28,-8,2.0,'sand');         // T apartments alley
+  Rp(22,-34,28,-26,2.0,2.4,'n','wood'); // apartments entrance
+  A(-34,-14,-26,-4,.4);               // market
+  A(-30,-16,-28,-14,.4);              // market door
+  L.wins.push([-34,-16,-32,-14,1.5,2.8]); // market window
+  A(-26,-14,-20,-8,.4);               // kitchen
+  A(-24,-16,-22,-14,.4);              // kitchen door
+  A(-34,-4,-28,10,.4);                // market -> CT spawn
+  // roofs, lintels, rails
+  blk(-7,5.2,-35,29,5.7,-27,'concrete');   // apartments roof
+  blk(-3,4.6,-28,4,5.1,-22,'concrete');    // underpass stairs roof
+  blk(-3,3.0,-23,4,3.5,-9,'concrete');     // underpass roof
+  blk(-11,4.4,-19,-5,4.9,-10,'concrete');  // ladder room roof
+  blk(-7,3.8,2,0,4.3,6,'concrete');        // connector roof
+  blk(-25,5.2,-8,-12,5.7,2,'concrete');    // window room roof
+  blk(-13,4.8,-5,-12,9,-1,'plasterW',1);   // window lintel
+  blk(8,4.4,21,33,4.9,31,'terracotta');    // palace roof
+  blk(-35,3.6,-15,-25,4.1,-3,'concrete');  // market roof
+  blk(-27,3.4,-15,-19,3.9,-7,'concrete');  // kitchen roof
+  blk(-30,2.8,-16,-28,7,-14,'plaster',1);  // market door lintel
+  blk(-24,2.8,-16,-22,7,-14,'plaster',1);  // kitchen door lintel
+  blk(8,1.6,22,8.3,2.55,26,'plasterW',1);  // palace balcony rail
+  blk(-13,1.0,13.7,-7,1.85,14,'plasterW',1); // jungle rail
+  blk(-14,2.4,-34.3,-9,3.3,-34,'plasterW',1); // apartments stairs rail
+  const G=mpCompile(L), O=G.O;
+  const cr=(x,z,s,y)=>({t:'crate',p:y===undefined?[x,z]:[x,y,z],s:[s,s,s]}), ba=(x,z)=>({t:'barrel',p:[x,z],s:[.7,1,.7]});
+  const lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]}), sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#2c3a44'});
+  mpDecor(O,G,[
+    // T spawn / T side
+    {t:'palm',p:[34.8,-6.6],s:[1,7.4,1],lean:1},{t:'palm',p:[34.6,10.6],r:[0,180,0],s:[1,6.8,1],lean:-1},cr(25.4,10.6,1.4),cr(25.6,10.4,.9,3.4),ba(35.2,4.8),ba(35.3,5.6),
+    {t:'awning',p:[30,-7.95],s:[5,3.6,2.2]},{t:'awning',p:[35.95,0],r:[0,-90,0],s:[4,3.4,2]},lamp(24.05,-1,90,3.4),
+    cr(20,-8.2,1.2),cr(15,1.2,1.4),{t:'awning',p:[12,-7.95],s:[4.5,3.4,2]},cr(17,7,1.4),ba(23.2,17.2),ba(22.5,17.3),cr(31.2,21.2,1.2),{t:'awning',p:[31.95,16],r:[0,-90,0],s:[4,3.4,2]},
+    cr(27,-20,1.2),{t:'palm',p:[27.4,-12],r:[0,180,0],s:[1,6.6,1],lean:-.8},lamp(22.05,-16,90),
+    // mid
+    cr(-3,1.2,1.2),{t:'awning',p:[-9.5,1.95],r:[0,180,0],s:[4,3.2,2]},{t:'awning',p:[1,1.95],r:[0,180,0],s:[3.4,3.2,2]},{t:'awning',p:[-4,-5.95],s:[4,3.4,2]},
+    {t:'cable',p:[-10,6.2,-6],e:[0,0,8],sag:.7},{t:'cable',p:[6,6.8,-8],e:[-2,-.4,10],sag:.9},lamp(2.95,-4,-90),sign(-1,3.4,-5.97,0,'MID',2.2),
+    // A site
+    cr(1.4,22,1.6),cr(3.05,22.1,1.6),cr(2.2,22,1.3,1.6),cr(2.6,20.2,2.0),cr(3.4,24.4,2.0),cr(-2,24.6,1.4),cr(-3.6,30,1.4),ba(-2.4,30.8),cr(4.9,18.2,1.2),cr(3.8,19.4,.9),
+    {t:'block',p:[-6.5,0,21],s:[3,2.9,6],m:'wood',cap:1},{t:'block',p:[-4.97,1.2,21],s:[.06,.9,2.2],m:'darkmetal',c:0},{t:'block',p:[-4.9,1.1,21],s:[.25,.08,2.4],m:'trim',c:0},
+    {t:'pillar',p:[8.4,1.6,22.4],s:[.6,2.8,.6]},{t:'pillar',p:[8.4,1.6,26.3],s:[.6,2.8,.6]},{t:'pillar',p:[11.6,1.6,29.6],s:[.6,2.8,.6]},
+    sign(0,3.8,33.95,180,'A',3,'#2b2722'),{t:'palm',p:[-7,15],s:[1,6.6,1],lean:.9},lamp(-7.95,20,90),cr(18,26,1.0),{t:'pillar',p:[18,1.6,25.6],s:[.7,2.8,.7]},
+    sign(23.97,3.4,25,-90,'SARAY',1.8),
+    // jungle, CT
+    cr(-12.2,7,1.2),{t:'palm',p:[-12.2,12.8],s:[1,6,1],lean:.6},{t:'palm',p:[-33,11],s:[1,7.2,1],lean:1},{t:'palm',p:[-33,25],r:[0,180,0],s:[1,6.6,1],lean:-1},
+    cr(-21,11,1.2),{t:'block',p:[-24,.4,24],s:[3,.6,3],m:'trim',cap:1},lamp(-33.95,18,90),
+    // B site / market / kitchen / short
+    {t:'vehicle',p:[-30,-21.5],r:[0,90,0],s:[2.1,2.3,5],kind:'van',m:'paintW'},{t:'block',p:[-21.5,.4,-16.75],s:[2.4,.45,.6],m:'wood'},
+    cr(-33,-33,1.6),cr(-33.1,-33.1,1.0,2.0),cr(-31.1,-33.3,1.2),{t:'pillar',p:[-24,.4,-27],s:[.9,3.2,.9]},ba(-15.2,-34.2),ba(-15.9,-34.4),
+    sign(-25,3.8,-34.95,0,'B',3,'#2b2722'),{t:'awning',p:[-20,-34.95],s:[4,3.4,2]},
+    cr(-28,-6,1.0),{t:'block',p:[-23,.4,-11],s:[1.6,.85,.9],m:'wood'},lamp(-26.05,-11,90,2.6),sign(-29,3.0,-16.05,180,'PAZAR',1.6),
+    cr(-9.4,-11.6,1.0),lamp(2.95,-16,-90,2.6),cr(19,-33.2,1.0),lamp(-5.95,-31,90,2.4),lamp(21.95,-30,-90,2.4)
+  ]);
+  for(const [x,z] of [[34,-5.5],[34,-2.5],[34,.5],[31.5,-4],[31.5,-1]]) O.push({t:'spawnT',p:[x,2.0,z],r:[0,90,0]});
+  for(const [x,z] of [[-31,19],[-28,19],[-25,19.5],[-29.5,22],[-26.5,22]]) O.push({t:'spawnCT',p:[x,.4,z],r:[0,-90,0]});
+  O.push({t:'siteA',p:[0,-.4,24],s:[15,3.5,18]}); O.push({t:'siteB',p:[-25,0,-26],s:[19,3.5,17]});
+  return normalizeMap({id:'serap',name:'Serap',builtin:1,settings:{size:37,sky:1,ground:'sand',sunAz:28,sunEl:46,fog:.0046,mode:'bomb',preview:{p:[44,30,36],t:[0,0,0]}},objects:O});
+}
+EXTRA_MAPS.push(()=>toz2Data(), ()=>serapData());
+
+/* ---------- spawn safety + nav checks (test helpers) ---------- */
+function mpWithMap(id,fn){ const B=id==='range'?WORLD.maps.range:ensureMapBuilt(id); if(!B) return null; const save=WORLD.colliders; WORLD.colliders=B.colliders; try{ return fn(B); } finally{ WORLD.colliders=save; } }
+function mpSees(a,b){ const d=b.clone().sub(a), L=d.length(); if(L<.01) return true; d.multiplyScalar(1/L); return !rayWorld(a,d,L-.02); }
+function spawnLOS(id){
+  return mpWithMap(id,B=>{ const T=B.spawns.T, C=B.spawns.CT, vis=[];
+    for(let i=0;i<T.length;i++) for(let j=0;j<C.length;j++){ const a=T[i].pos.clone(), b=C[j].pos.clone(); a.y+=EYE_S; b.y+=EYE_S; if(mpSees(a,b)) vis.push([i,j,+a.distanceTo(b).toFixed(1)]); }
+    return {map:id,pairs:T.length*C.length,visible:vis.length,blocked:T.length*C.length-vis.length,list:vis}; });
+}
+function mpPathSampler(nav,pts,start){ const P=[start.clone(),...(pts||[])], segs=[]; let tot=0;
+  for(let i=1;i<P.length;i++){ const l=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z); segs.push([P[i-1],P[i],tot,l]); tot+=l; }
+  return {len:tot,at(s){ let q=null; for(const sg of segs){ if(s<=sg[2]+sg[3]){ q=sg; break; } } if(!q) q=segs[segs.length-1]; if(!q) return start.clone();
+    const t=q[3]>0?clamp((s-q[2])/q[3],0,1):1, x=q[0].x+(q[1].x-q[0].x)*t, z=q[0].z+(q[1].z-q[0].z)*t, k=navNearest(nav,x,z); return new THREE.Vector3(x,k>=0?nav.floor[k]:0,z); }}; }
+/* both teams run from every spawn along the bot nav path to every bomb site; reports the earliest moment one side can see the other */
+function routeLOS(id,secs,speed,dt){ secs=secs||10; speed=speed||5.8; dt=dt||.25;
+  return mpWithMap(id,B=>{ const nav=B.nav, out=[], routes={T:[],CT:[]};
+    for(const team of ['T','CT']) B.spawns[team].forEach((sp,i)=>B.sites.forEach(s=>{ const g=s.center.clone(); g.y=0; routes[team].push({i,to:s.name,f:mpPathSampler(nav,navPath(nav,sp.pos,g),sp.pos)}); }));
+    let minT=1e9;
+    for(const a of routes.T) for(const b of routes.CT){ for(let t=0;t<=secs+1e-6;t+=dt){ const pa=a.f.at(t*speed), pb=b.f.at(t*speed); pa.y+=EYE_S; pb.y+=EYE_S;
+        if(mpSees(pa,pb)){ out.push({t:+t.toFixed(2),T:a.i+'→'+a.to,CT:b.i+'→'+b.to,tp:[+pa.x.toFixed(1),+pa.z.toFixed(1)],cp:[+pb.x.toFixed(1),+pb.z.toFixed(1)],d:+pa.distanceTo(pb).toFixed(1)}); minT=Math.min(minT,t); break; } } }
+    out.sort((x,y)=>x.t-y.t);
+    return {map:id,secs,speed,routes:routes.T.length*routes.CT.length,contacts:out.length,minT:out.length?+minT.toFixed(2):null,first:out.slice(0,6)}; });
+}
+/* nav connectivity: everything that should be walkable is reachable from the T spawn; lists isolated walkable islands */
+function navCheck(id){
+  return mpWithMap(id,B=>{ const nav=B.nav, W=nav.W, seen=new Int32Array(W*W).fill(-1); let comp=0; const comps=[];
+    for(let s=0;s<W*W;s++){ if(!nav.ok[s]||seen[s]>=0) continue; const q=[s]; seen[s]=comp; let n=0, x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;
+      while(q.length){ const k=q.pop(); n++; const i=k%W, j=(k/W)|0; const p=navPos(nav,k); x0=Math.min(x0,p.x); x1=Math.max(x1,p.x); z0=Math.min(z0,p.z); z1=Math.max(z1,p.z);
+        for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ if(!di&&!dj) continue; const ni=i+di, nj=j+dj; if(ni<0||nj<0||ni>=W||nj>=W) continue; const m=nj*W+ni; if(!nav.ok[m]||seen[m]>=0) continue;
+          if(Math.abs(nav.floor[m]-nav.floor[k])>.56) continue; if(di&&dj&&(!nav.ok[j*W+ni]||!nav.ok[nj*W+i])) continue; seen[m]=comp; q.push(m); } }
+      comps.push({n,box:[+x0.toFixed(1),+z0.toFixed(1),+x1.toFixed(1),+z1.toFixed(1)]}); comp++; }
+    const cOf=p=>{ const k=navNearest(nav,p.x,p.z); return k>=0?seen[k]:-1; }, main=cOf(B.spawns.T[0].pos);
+    const pts={}; B.spawns.T.forEach((s,i)=>pts['T'+i]=cOf(s.pos)===main); B.spawns.CT.forEach((s,i)=>pts['CT'+i]=cOf(s.pos)===main); B.sites.forEach(s=>pts[s.name]=cOf(s.center)===main);
+    const ok=Object.values(pts).every(Boolean);
+    return {map:id,cells:nav.ok.reduce((a,b)=>a+b,0),main:comps[main]?comps[main].n:0,ok,pts,islands:comps.map((c,i)=>Object.assign({i},c)).filter((c,i)=>i!==main&&c.n>=6).sort((a,b)=>b.n-a.n).slice(0,12)}; });
+}
+/* debug top-down image of the nav grid (floor height colour), walls, spawns, sites and optional paths -> PNG data URL */
+function mpTopDown(id,opt){ opt=opt||{};
+  return mpWithMap(id,B=>{ const nav=B.nav, S=nav.S, ppm=opt.ppm||7, sz=Math.ceil(2*S*ppm), cv=document.createElement('canvas'); cv.width=cv.height=sz; const x=cv.getContext('2d'), X=v=>(v+S)*ppm;
+    x.fillStyle='#14171c'; x.fillRect(0,0,sz,sz);
+    for(let k=0;k<nav.W*nav.W;k++){ if(!nav.ok[k]) continue; const p=navPos(nav,k), f=nav.floor[k], t=clamp(f/2.8,0,1); x.fillStyle='hsl('+Math.round(220-t*200)+',55%,'+Math.round(38+t*22)+'%)'; x.fillRect(X(p.x-.5),X(p.z-.5),ppm-.4,ppm-.4); }
+    x.lineWidth=1;
+    for(const c of B.colliders){ const top=c.c.y+c.h.y; if(top<.3) continue; x.save(); x.translate(X(c.c.x),X(c.c.z)); x.rotate(-c.yaw); x.strokeStyle=top>2.9?'rgba(255,255,255,.55)':'rgba(255,220,120,.7)'; x.strokeRect(-c.h.x*ppm,-c.h.z*ppm,2*c.h.x*ppm,2*c.h.z*ppm); x.restore(); }
+    for(const s of B.sites){ const c=s.col; x.strokeStyle=s.name==='A'?'#ff8a3d':'#3dc2ff'; x.lineWidth=2; x.strokeRect(X(c.c.x-c.h.x),X(c.c.z-c.h.z),2*c.h.x*ppm,2*c.h.z*ppm); x.font='900 '+(ppm*4)+'px sans-serif'; x.fillStyle=x.strokeStyle; x.fillText(s.name,X(c.c.x)-ppm,X(c.c.z)+ppm); }
+    const dot=(p,col)=>{ x.fillStyle=col; x.beginPath(); x.arc(X(p.x),X(p.z),ppm*.6,0,TAU); x.fill(); };
+    B.spawns.T.forEach(s=>dot(s.pos,'#ffd23c')); B.spawns.CT.forEach(s=>dot(s.pos,'#5aa8ff'));
+    if(opt.agents&&B===WORLD.active){ for(const a of allAgents()){ if(!a.alive) continue; x.strokeStyle='#000'; dot(a.pos,a.team==='T'?'#ff6a00':'#00e5ff'); x.lineWidth=1; x.stroke(); }
+      const bm=COMP.bomb; if(bm&&(bm.state==='planted'||bm.state==='dropped')){ x.fillStyle=bm.state==='planted'?'#ff2040':'#ffee00'; x.fillRect(X(bm.pos.x)-ppm,X(bm.pos.z)-ppm,2*ppm,2*ppm); } }
+    if(opt.paths){ x.lineWidth=2; for(const team of ['T','CT']) B.spawns[team].slice(0,1).forEach(sp=>B.sites.forEach(s=>{ const pts=navPath(nav,sp.pos,s.center)||[]; x.strokeStyle=team==='T'?'#ffd23c':'#5aa8ff'; x.beginPath(); x.moveTo(X(sp.pos.x),X(sp.pos.z)); for(const p of pts) x.lineTo(X(p.x),X(p.z)); x.stroke(); })); }
+    if(opt.grid){ x.strokeStyle='rgba(255,255,255,.08)'; x.lineWidth=1; x.font=(ppm*1.6)+'px monospace'; x.fillStyle='rgba(255,255,255,.5)'; for(let v=-S+(S%10);v<=S;v+=10){ x.beginPath(); x.moveTo(X(v),0); x.lineTo(X(v),sz); x.stroke(); x.beginPath(); x.moveTo(0,X(v)); x.lineTo(sz,X(v)); x.stroke(); x.fillText(v,X(v)+2,ppm*2); x.fillText(v,2,X(v)-2); } }
+    return cv.toDataURL('image/png'); });
+}
+/* 3D overview: orthographic (top) or perspective camera rendered into a data URL, like the map cards */
+function mpOverview(id,opt){ opt=opt||{}; if(window.__manual===undefined) window.__manual=false;
+  const B=ensureMapBuilt(id); if(!B) return null; const vis={}; for(const k in WORLD.maps){ vis[k]=WORLD.maps[k].group.visible; WORLD.maps[k].group.visible=WORLD.maps[k]===B; }
+  const S=B.bounds+1, W=opt.w||900, H=opt.h||900; let cam;
+  if(opt.p){ cam=new THREE.PerspectiveCamera(opt.fov||55,W/H,.1,1400); cam.position.fromArray(opt.p); cam.lookAt(new THREE.Vector3().fromArray(opt.t||[0,0,0])); }
+  else { cam=new THREE.OrthographicCamera(-S,S,S*H/W,-S*H/W,1,400); cam.position.set(0,150,0); cam.up.set(0,0,-1); cam.lookAt(0,0,0); }
+  cam.updateMatrixWorld(); const sc=sun.shadow.camera, saved=[sc.left,sc.right,sc.top,sc.bottom]; Object.assign(sc,{left:-S-6,right:S+6,top:S+6,bottom:-S-6}); sc.updateProjectionMatrix();
+  const agentVis=MENU.agent&&MENU.agent.root.visible; if(MENU.agent) MENU.agent.root.visible=false; const fog=scene.fog.density; if(!opt.p) scene.fog.density=0;
+  const pr=renderer.getPixelRatio(), dom=renderer.domElement; renderer.setRenderTarget(null); renderer.setScissorTest(true); renderer.setScissor(0,0,W,H); renderer.setViewport(0,0,W,H);
+  const ac=renderer.autoClear; renderer.autoClear=true; renderer.render(scene,cam); renderer.autoClear=ac;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H; cv.getContext('2d').drawImage(dom,0,dom.height-Math.round(H*pr),Math.round(W*pr),Math.round(H*pr),0,0,W,H);
+  renderer.setScissorTest(false); renderer.setViewport(0,0,innerWidth,innerHeight); scene.fog.density=fog;
+  Object.assign(sc,{left:saved[0],right:saved[1],top:saved[2],bottom:saved[3]}); sc.updateProjectionMatrix(); for(const k in WORLD.maps) WORLD.maps[k].group.visible=vis[k]; if(MENU.agent) MENU.agent.root.visible=agentVis;
+  return cv.toDataURL('image/jpeg',.88);
+}
+function mpStats(id){ const m=MAPLIB.byId[id]; if(!m) return null; const by={}; m.objects.forEach(o=>by[o.t]=(by[o.t]||0)+1); const B=WORLD.maps[id]; return {id,objects:m.objects.length,byType:by,colliders:B?B.colliders.length:null,navCells:B&&B.nav?B.nav.ok.reduce((a,b)=>a+b,0):null}; }
+gameExport({spawnLOS,routeLOS,navCheck,mpTopDown,mpOverview,mpStats,toz2Data,serapData,navPath,ensureMapBuilt,get timeScale(){ return timeScale; }});
 
 
 /* @@BLOCK:net — code from the net work goes right below this line */
