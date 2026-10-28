@@ -901,6 +901,14 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 @media (prefers-reduced-motion:reduce){ .mmSpin{animation:none;} }
 
 /* @@CSS:anim — styles from the anim work go right below this line */
+/* AUG-type scope (CS2-like): clear round lens, soft dark edge, thin reticle with a small centre ring + dot, faint lens tint; opacity is driven by anScopeTick */
+#scope.wq.aug .ring{width:min(88vh,88vw);height:min(88vh,88vw);border:0;box-sizing:border-box;background:radial-gradient(circle closest-side,rgba(44,74,66,.07) 0,rgba(30,52,48,.05) 62%,rgba(0,0,0,.3) 84%,rgba(2,3,4,.9) 99.5%);box-shadow:0 0 0 200vmax rgba(2,3,4,.9);}
+#scope.wq.aug .h,#scope.wq.aug .v,#scope.wq.aug .dot{display:none;}
+#scope.wq .lens{display:none;position:absolute;left:50%;top:50%;width:min(88vh,88vw);height:min(88vh,88vw);transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.06),rgba(255,255,255,0) 36%);}
+#scope.wq.aug .lens{display:block;}
+#scope.wq .lens svg{position:absolute;inset:0;width:100%;height:100%;}
+#scope.wq .lens .rt{stroke:#060708;fill:none;vector-effect:non-scaling-stroke;stroke-linecap:butt;}
+#scope.wq .lens .rd{fill:#060708;}
 
 
 /* @@CSS:polish — styles from the polish work go right below this line */
@@ -2087,7 +2095,7 @@ function finalizeParts(P){
 function trigger(mat,o){ return EX('Tetik',[.4,-1.3, 1.1,-1.3, .8,-2.4, 0,-3.3, -.4,-3.1, .3,-2.3],.5,0,mat,Object.assign({role:'trigger'},o||{})); }
 
 function defAK47(){
-  const metal=M('gunmetal','#2b2d30'), dark=M('blued','#1d2024'), wood=M('wood','#a3612f'), dwood=M('darkwood','#4e2c18'), magm=M('parker','#2a2b2c'), P=[];
+  const metal=M('gunmetal','#33363a'), dark=M('blued','#25282c'), wood=M('wood','#a3612f'), dwood=M('darkwood','#4e2c18'), magm=M('parker','#323336'), P=[];
   P.push(EX('Gövde',[-14,-1.2, 18,-1.2, 18,3.2, -14,3.2],3.2,.15,metal));
   P.push(BX('Toz kapağı',3.1,1.7,29,0,3.75,1,.75,dark));
   P.push(BX('Kapak kilidi',1.4,1.0,1.4,0,3.5,-14.3,.3,dark));
@@ -2123,7 +2131,7 @@ function defAK47(){
     anchors:{gripR:{p:[0,-.058,.072],r:[-17,0,0]}, gripL:{p:[0,.009,-.262],r:[90,0,-25]}, muzzle:[0,.022,-.528], eject:[.022,.028,-.1]} });
 }
 function defM4A1S(){
-  const al=M('aluminum','#25282b'), dark=M('blued'), poly=M('polymer'), grip=M('grip'), sil=M('parker','#1f2123'), P=[];
+  const al=M('aluminum','#2e3135'), dark=M('blued','#2a2c30'), poly=M('polymer','#2b2c2f'), grip=M('grip','#262729'), sil=M('parker','#2a2c2e'), P=[];
   P.push(EX('Alt gövde',[-11,1.6, 12,1.6, 12,-1.0, 11.5,-4.6, 3.8,-4.6, 3.8,-1.6, -4.5,-1.6, -7,-.6, -11,-.4],3.0,.35,al));
   P.push(EX('Üst gövde',[-11,1.6, 14,1.6, 14,4.0, 13.5,4.2, -10,4.2, -11,3.6],2.9,.35,al));
   P.push(BX('Ray',2.1,.5,24.5,0,4.45,1.6,.05,al,{id:'m4_rail'}));
@@ -2155,7 +2163,7 @@ function defM4A1S(){
     anchors:{gripR:{p:[0,-.058,.062],r:[-18,0,0]}, gripL:{p:[0,.026,-.24],r:[90,0,-25]}, muzzle:[0,.026,-.552], muzzleU:[0,.026,-.37], eject:[.018,.03,-.036]} });
 }
 function defAWP(){
-  const green=M('paint','#3a4632'), metal=M('gunmetal','#26282b'), blk=M('aluminum','#1b1c1e'), glass=M('glass'), P=[];
+  const green=M('paint','#46543b'), metal=M('gunmetal','#303236'), blk=M('aluminum','#26272a'), glass=M('glass'), P=[];
   P.push(EX('Şasi',[27,1.4, 27,-1.8, 24,-3.0, 6.5,-3.0, 6,-1.6, -3.6,-1.6, -5,-4, -7,-12, -7.6,-13.2, -12,-13.6, -12.8,-11.6, -36,-11.6, -44,-12.6, -46.6,-12.6, -46.6,3.6, -44,4.2, -28,4.2, -20,3.2, -12,2.4, -8,2.2, -8,1.4],
     4.4,.9,green,{holes:[[-12.5,.2, -27,1.4, -34,-.5, -35,-8.4, -33,-9.8, -14,-9.6, -12.4,-8.5, -10.6,-2.8]]}));
   P.push(CY('Mekanizma',1.7,1.7,24,0,3.0,4,[90,0,0],metal,{sides:28}));
@@ -2186,7 +2194,7 @@ function defAWP(){
     anchors:{gripR:{p:[0,-.074,.094],r:[-12,0,0]}, gripL:{p:[0,-.008,-.2],r:[90,0,-25]}, muzzle:[0,.03,-.705], eject:[.02,.034,-.02]} });
 }
 function defDeagle(){
-  const st=M('gunmetal','#3b3e43'), dk=M('blued','#1f2226'), rub=M('grip','#141516'), blk=M('polymer','#070707'), P=[];
+  const st=M('gunmetal','#45484d'), dk=M('blued','#2a2d31'), rub=M('grip','#202123'), blk=M('polymer','#070707'), P=[];
   P.push(EX('Gövde',[-9.2,.6, 12.8,.6, 12.8,-1.0, 6.2,-1.2, 5.8,-4.2, 4.8,-4.9, -.5,-4.9, -1.6,-3.6, -2.2,-1.6, -9.2,-1.6],2.6,.25,st,{holes:[[-1.2,-1.6, 4.6,-1.6, 4.6,-3.6, 3.8,-4.2, -.2,-4.2, -.9,-3.4]]}));
   P.push(BX('Sürgü',2.9,3.2,14.6,0,2.2,-1.3,.3,dk,{role:'slide',id:'de_sl'}));
   for(let i=0;i<7;i++) P.push(BX('Tırtık',3.0,2.2,.25,0,2.3,-7.8+i*.7,.02,blk,{parent:'de_sl'}));
@@ -2206,7 +2214,7 @@ function defDeagle(){
     anchors:{gripR:{p:[0,-.068,.058],r:[-22,0,0]}, gripL:{p:[-.006,-.082,.046],r:[-22,0,-8]}, muzzle:[0,.0215,-.188], eject:[.016,.03,0]} });
 }
 function defUSPS(){
-  const poly=M('polymer','#1e1f22'), sl=M('gunmetal','#2d3034'), grip=M('grip','#1a1b1d'), sil=M('parker','#232527'), blk=M('polymer','#0b0b0c'), tri=M('emissive','#9dff7a'), P=[];
+  const poly=M('polymer','#2a2b2e'), sl=M('gunmetal','#35383c'), grip=M('grip','#252628'), sil=M('parker','#2c2e30'), blk=M('polymer','#0b0b0c'), tri=M('emissive','#9dff7a'), P=[];
   P.push(EX('Gövde',[-6.8,.4, 11.2,.4, 11.2,-.6, 5.6,-.9, 5.2,-3.9, 4.2,-4.5, -.6,-4.5, -1.5,-3.3, -2.2,-1.4, -6.8,-1.2],2.6,.25,poly,{holes:[[-1.3,-1.3, 4.4,-1.3, 4.3,-3.3, 3.6,-3.9, -.2,-3.9, -.9,-3.1]]}));
   P.push(EX('Sürgü',[-7.4,.4, 10.6,.4, 10.6,2.4, 10.1,3.1, -6.6,3.1, -7.4,2.6],2.5,.3,sl,{role:'slide',id:'usp_sl'}));
   for(let i=0;i<5;i++) P.push(BX('Tırtık',2.6,2.0,.22,0,1.85,-6.5+i*.55,.02,blk,{parent:'usp_sl'}));
@@ -2229,7 +2237,7 @@ function defUSPS(){
     anchors:{gripR:{p:[0,-.062,.052],r:[-16,0,0]}, gripL:{p:[-.006,-.076,.04],r:[-16,0,-8]}, muzzle:[0,.019,-.262], muzzleU:[0,.019,-.118], eject:[.014,.026,-.01]} });
 }
 function defGlock(){
-  const poly=M('polymer','#202124'), sl=M('parker','#2a2b2d'), grip=M('grip','#1d1e20'), blk=M('polymer','#0a0a0b'), P=[];
+  const poly=M('polymer','#2c2d30'), sl=M('parker','#333539'), grip=M('grip','#28292c'), blk=M('polymer','#0a0a0b'), P=[];
   P.push(EX('Gövde',[-7,.3, 10.6,.3, 10.6,-.8, 5.4,-1.0, 5.2,-3.8, 4.4,-4.4, -.4,-4.4, -1.4,-3.2, -2.2,-1.2, -7,-1.0],2.6,.3,poly,{holes:[[-1.2,-1.2, 4.3,-1.2, 4.2,-3.4, 3.6,-3.8, -.1,-3.8, -.8,-3.0]]}));
   P.push(BX('Sürgü',2.4,2.7,18.6,0,1.65,1.7,.3,sl,{role:'slide',id:'gl_sl'}));
   for(let i=0;i<6;i++) P.push(BX('Tırtık',2.5,1.9,.2,0,1.6,-6.8+i*.5,.02,blk,{parent:'gl_sl'}));
@@ -2259,7 +2267,7 @@ function defKnife(){
     anchors:{gripR:{p:[0,0,.064],r:[-90,0,0]}, gripL:null, muzzle:[0,0,-.18], eject:[0,0,0]} });
 }
 function defP250(){
-  const poly=M('polymer','#1f2023'), sl=M('gunmetal','#3a3d42'), grip=M('grip','#1c1d1f'), blk=M('polymer','#0b0b0c'), P=[];
+  const poly=M('polymer','#2b2c2f'), sl=M('gunmetal','#3d4045'), grip=M('grip','#27282a'), blk=M('polymer','#0b0b0c'), P=[];
   P.push(EX('Gövde',[-6.6,.3, 10.2,.3, 10.2,-.7, 5.2,-1.0, 5.0,-3.7, 4.2,-4.3, -.5,-4.3, -1.4,-3.1, -2.1,-1.2, -6.6,-1.0],2.5,.3,poly,{holes:[[-1.2,-1.2, 4.2,-1.2, 4.0,-3.3, 3.5,-3.7, -.2,-3.7, -.8,-2.9]]}));
   P.push(EX('Sürgü',[-7.2,.3, 10.4,.3, 10.4,2.2, 9.8,2.8, -6.6,2.8, -7.2,2.2],2.5,.35,sl,{role:'slide',id:'p2_sl'}));
   for(let i=0;i<5;i++) P.push(BX('Tırtık',2.6,1.8,.2,0,1.5,-6.3+i*.5,.02,blk,{parent:'p2_sl'}));
@@ -2275,7 +2283,7 @@ function defP250(){
     anchors:{gripR:{p:[0,-.06,.056],r:[-18,0,0]}, gripL:{p:[-.006,-.074,.042],r:[-18,0,-8]}, muzzle:[0,.017,-.107], eject:[.013,.024,-.01]} });
 }
 function defMAC10(){
-  const body=M('parker','#262729'), poly=M('polymer','#1b1c1e'), grip=M('grip','#18191b'), dk=M('blued','#1d1f22'), P=[];
+  const body=M('parker','#303134'), poly=M('polymer','#28292b'), grip=M('grip','#242527'), dk=M('blued','#282a2e'), P=[];
   P.push(BX('Gövde',3.6,6.2,26,0,2.1,4,.35,body));
   P.push(BX('Üst yarık',.5,.25,12,0,5.25,7,.05,M('polymer','#070707')));
   P.push(SP('Kurma topuzu',.75,0,5.9,10,dk,{role:'bolt'}));
@@ -2295,7 +2303,7 @@ function defMAC10(){
     anchors:{gripR:{p:[0,-.052,.032],r:[-6,0,0]}, gripL:{p:[0,-.012,-.15],r:[90,0,-25]}, muzzle:[0,.033,-.215], eject:[.019,.03,-.07]} });
 }
 function defMP9(){
-  const poly=M('polymer','#1f2124'), grip=M('grip','#1a1b1d'), dk=M('blued','#1e2024'), P=[];
+  const poly=M('polymer','#2b2d30'), grip=M('grip','#252628'), dk=M('blued','#292b2f'), P=[];
   P.push(EX('Gövde',[-11,-1, 16,-1, 16,3.4, 15,4.4, -10,4.4, -11,3.6],3.2,.5,poly));
   P.push(BX('Ray',2.0,.45,20,0,4.65,4,.05,dk,{id:'mp9_rail'}));
   for(let i=0;i<8;i++) P.push(BX('Ray dişi',2.1,.3,.5,0,4.98,-5+i*2.4,.02,dk,{parent:'mp9_rail'}));
@@ -2314,7 +2322,7 @@ function defMP9(){
     anchors:{gripR:{p:[0,-.055,.035],r:[-14,0,0]}, gripL:{p:[0,-.05,-.09],r:[-4,0,8]}, muzzle:[0,.024,-.192], eject:[.017,.025,-.05]} });
 }
 function defNova(){
-  const blk=M('parker','#26282b'), poly=M('polymer','#22231f'), dk=M('blued','#1c1e22'), P=[];
+  const blk=M('parker','#2f3134'), poly=M('polymer','#2b2c29'), dk=M('blued','#282a2e'), P=[];
   P.push(BX('Gövde',3.4,4.6,21,0,1.5,5.5,.4,blk));
   P.push(LA('Namlu',[16,0, 16,1.15, 62,1.05, 62,0],20,dk,{y:2.6}));
   P.push(CY('Şarjör tüpü',1.25,1.25,34,0,-.3,33,[90,0,0],blk,{sides:20}));
@@ -2331,7 +2339,7 @@ function defNova(){
     anchors:{gripR:{p:[0,-.04,.085],r:[-32,0,0]}, gripL:{p:[0,-.005,-.345],r:[90,0,-25]}, muzzle:[0,.026,-.62], eject:[.02,.025,-.08]} });
 }
 function defGalil(){
-  const metal=M('gunmetal','#34373b'), poly=M('polymer','#24261f'), dk=M('blued','#1f2226'), P=[];
+  const metal=M('gunmetal','#3a3d41'), poly=M('polymer','#2d2f29'), dk=M('blued','#2a2d31'), P=[];
   P.push(EX('Gövde',[-14,-1.2, 17,-1.2, 17,3.4, -14,3.4],3.2,.15,metal));
   P.push(BX('Üst kapak',3.0,1.6,28,0,3.9,1.5,.7,dk));
   P.push(BX('Gez',2.2,2.4,3,0,5.0,-11.5,.4,dk));
@@ -2342,10 +2350,10 @@ function defGalil(){
   P.push(LA('Namlu',[17,0, 17,1.0, 47,.85, 47,0],18,dk,{y:2.3}));
   P.push(LA('Alev gizleyici',[46.5,0, 46.5,1.05, 51,1.05, 51,.55, 49.5,.5],18,dk,{y:2.3}));
   for(const a of [0,90]) P.push(BX('Yarık',.35,2.4,2.6,0,2.3,49.5,0,M('polymer','#050505'),{rot:[0,0,a]}));
-  P.push(EX('Tabanca kabzası',[-2.8,-1.2, -6.8,-1.2, -10.4,-11.2, -10,-12.2, -6,-12.4, -5.0,-11.4, -3.0,-3.6],2.9,.6,M('grip','#1d1e1b')));
+  P.push(EX('Tabanca kabzası',[-2.8,-1.2, -6.8,-1.2, -10.4,-11.2, -10,-12.2, -6,-12.4, -5.0,-11.4, -3.0,-3.6],2.9,.6,M('grip','#282926')));
   P.push(EX('Tetik korkuluğu',[-3.2,-1.2, 4.6,-1.2, 4.6,-1.7, 3.6,-4.0, -1.6,-4.3, -3.2,-2.4],.8,0,metal,{holes:[[-2.4,-1.8, 3.6,-1.8, 2.8,-3.4, -1.3,-3.6, -2.4,-2.6]]}));
   P.push(trigger(metal));
-  P.push(EX('Şarjör',[5.4,-.6, 11.6,-.6, 11.9,-4, 12.8,-9, 14.4,-14, 16.4,-19, 16.8,-20, 10.4,-21.6, 10,-20.6, 8.6,-15.6, 7.4,-10.4, 6.2,-5.4],2.6,.3,M('polymer','#2b2c2a'),{role:'mag',id:'gal_mag'}));
+  P.push(EX('Şarjör',[5.4,-.6, 11.6,-.6, 11.9,-4, 12.8,-9, 14.4,-14, 16.4,-19, 16.8,-20, 10.4,-21.6, 10,-20.6, 8.6,-15.6, 7.4,-10.4, 6.2,-5.4],2.6,.3,M('polymer','#333432'),{role:'mag',id:'gal_mag'}));
   P.push(BX('Şarjör tabanı',2.9,.6,6.6,0,-21,13.6,.2,metal,{rot:[14,0,0],parent:'gal_mag'}));
   P.push(BX('Kurma kolu',1.1,2.2,1.2,1.9,4.0,10,.3,dk,{role:'bolt',rot:[0,0,-20]}));
   P.push(CY('Dipçik teli',.4,.4,24,0,2.6,-26,[90,0,0],metal,{sides:10}));
@@ -2357,7 +2365,7 @@ function defGalil(){
     anchors:{gripR:{p:[0,-.058,.072],r:[-17,0,0]}, gripL:{p:[0,.012,-.25],r:[90,0,-25]}, muzzle:[0,.023,-.51], eject:[.022,.028,-.1]} });
 }
 function defFAMAS(){
-  const poly=M('polymer','#2a2c2e'), dk=M('blued','#1d1f23'), grip=M('grip','#1c1d1f'), P=[];
+  const poly=M('polymer','#323437'), dk=M('blued','#282a2e'), grip=M('grip','#27282a'), P=[];
   P.push(EX('Gövde',[-38,-5.6, -36,-6.4, -13,-3.2, -13,-1.6, 14,-1.6, 16,.2, 16,4.2, -30,4.6, -38,3.4],4.2,.8,poly));
   P.push(EX('Taşıma kolu',[-24,4.4, -22,9.2, 12,9.2, 14,7.6, 14,4.4, 11,4.4, 10,7.4, -20,7.4, -21,4.4],2.6,.4,poly));
   P.push(BX('Gez',1.4,1.2,1.4,0,8.0,-17,.15,dk)); P.push(BX('Arpacık',.5,1.4,.8,0,8.3,12.4,.1,dk));
@@ -2378,14 +2386,14 @@ function defFAMAS(){
 }
 function defM4A4(){
   const b=defM4A1S(); const parts=b.parts.filter(p=>!/Susturucu/.test(p.name));
-  const extra=finalizeParts([LA('Uzun namlu',[36.5,0, 36.5,.75, 44,.75, 44,0],16,M('blued'),{y:2.6}), LA('Alev gizleyici',[43.5,0, 43.5,1.05, 47.5,1.05, 47.5,.55, 46,.5],16,M('parker','#1e1f21'),{y:2.6}),
+  const extra=finalizeParts([LA('Uzun namlu',[36.5,0, 36.5,.75, 44,.75, 44,0],16,M('blued','#2a2c30'),{y:2.6}), LA('Alev gizleyici',[43.5,0, 43.5,1.05, 47.5,1.05, 47.5,.55, 46,.5],16,M('parker','#2a2b2d'),{y:2.6}),
     BX('Gizleyici yarığı',2.3,.5,2.4,0,2.6,46,.1,M('polymer','#050505'))]);
   return normalizeDef({ id:'m4a4', name:'M4A4', builtin:1, type:'rifle', slot:'primary', parts:parts.concat(extra),
     stats:{dmg:33,head:4,rpm:666,mag:30,reserve:90,reload:3.1,auto:1,spread:.2,moveSpread:6.5,recoil:.9,pattern:'m4',pellets:1,scope:0,range:300,speed:.9,sound:'rifle',draw:1,price:3100,team:'CT',reward:300},
     view:deepClone(b.view), anchors:Object.assign(deepClone(b.anchors),{muzzle:[0,.026,-.475],muzzleU:undefined}) });
 }
 function defSSG08(){
-  const blk=M('polymer','#222428'), metal=M('gunmetal','#2a2c30'), al=M('aluminum','#1b1c1e'), glass=M('glass'), P=[];
+  const blk=M('polymer','#2e3035'), metal=M('gunmetal','#33363a'), al=M('aluminum','#26272a'), glass=M('glass'), P=[];
   P.push(EX('Şasi',[24,1.2, 24,-1.6, 21,-2.6, 6,-2.6, 5.4,-1.6, -3.6,-1.6, -5,-4, -7,-12, -7.6,-13.2, -12,-13.6, -12.8,-11.6, -34,-10.6, -41,-11.6, -43,-11.6, -43,3.2, -41,3.8, -28,3.6, -20,2.8, -12,2.2, -8,2, -8,1.2],
     3.6,.8,blk,{holes:[[-12.5,.2, -27,1.2, -33,-.4, -34,-7.6, -32,-8.8, -14,-8.6, -12.4,-7.8, -10.6,-2.8]]}));
   P.push(CY('Mekanizma',1.4,1.4,20,0,2.7,4,[90,0,0],metal,{sides:24}));
@@ -2446,7 +2454,7 @@ function defC4(){
 }
 function nw_lerp(a,b,t){ return a+(b-a)*t; }
 function defP90(){
-  const poly=M('polymer','#1c1d20'), dk=M('polymer','#111214'), grip=M('grip','#17181a'), metal=M('parker','#26272a'), blk=M('polymer','#050506'), lens=M('glass','#18232a',{emissive:'#06121a',emi:.4}),
+  const poly=M('polymer','#2a2b2e'), dk=M('polymer','#1e1f21'), grip=M('grip','#242527'), metal=M('parker','#2f3033'), blk=M('polymer','#050506'), lens=M('glass','#18232a',{emissive:'#06121a',emi:.4}),
     smoke=M('glass','#2f2a23',{metal:.1,rough:.34,emissive:'#0e0904',emi:.3,opacity:.78}), brass=M('brass','#9c7636'), P=[];
   // lower frame: butt + pistol grip + front grip + integrated trigger guard (rear thumbhole + finger opening)
   P.push(EX('Gövde',[-25,3.4, -26.6,2.8, -27.2,.6, -27.3,-3, -26.8,-6.5, -25.6,-9.2, -24,-10.6, -21,-11.3, -15,-11.5, -11,-11.8, -9.4,-12.6, -6,-12.9, -4.2,-12.3, -2.6,-11.2, 2,-11.2, 6.6,-11.4, 9,-12, 11.6,-12.7, 12.9,-12.2, 13.1,-10.6, 12.5,-8, 13.3,-4.6, 14.8,-2.2, 16.6,-.8, 17.9,.4, 18.6,2.2, 18,3.4],3.6,.8,poly,
@@ -2459,7 +2467,9 @@ function defP90(){
   P.push(BX('Şarjör mandalı',3.6,1.3,1.1,0,5.5,-26.1,.35,dk));
   // translucent top magazine, rounds lying across the receiver
   P.push(EX('Şarjör',[-24.6,4.9, 9.8,4.9, 10.4,5.6, 10.4,8.0, 9.6,8.7, -23.4,8.7, -25.2,7.8, -25.6,6.0],5.0,.45,smoke,{role:'mag',id:'p90_mag'}));
-  for(let i=0;i<15;i++) P.push(CY('Fişek',.52,.52,3.7,0,6.75,-22.4+i*2.15,[0,0,90],brass,{sides:10,parent:'p90_mag'}));
+  // 50 rounds, two staggered rows; fed at the rear, so the front of the stack empties first (rnd = rounds kept longest; the viewmodel hides by ammo)
+  for(let c=0;c<25;c++) for(let r=0;r<2;r++){ const f=CY('Fişek',.5,.5,3.6,0,6.15+r*1.02,-23.1+c*1.27+r*.635,[0,0,90],brass,{sides:8,parent:'p90_mag'}); f.rnd=c*2+r; P.push(f); }
+  P.push(Object.assign(BX('Besleyici',4.4,2.6,.5,0,6.65,8.9,.15,dk,{parent:'p90_mag'}),{fol:1}));
   P.push(BX('Şarjör başlığı',5.1,3.9,1.5,0,6.8,9.7,.45,dk,{parent:'p90_mag'}));
   P.push(BX('Şarjör sonu',5.1,3.5,.9,0,6.75,-25.0,.4,dk,{parent:'p90_mag'}));
   // ring-sight housing bridging over the magazine front
@@ -2485,7 +2495,7 @@ function defP90(){
       magPath:'top', magHand:{p:[0,-.019,.01],r:[96,-81,6]}, boltHand:[-.03,0,0]} });
 }
 function defTec9(){
-  const st=M('parker','#2a2b2d'), poly=M('polymer','#1b1c1e'), grip=M('grip','#161719'), dk=M('blued','#1c1e21'), blk=M('polymer','#060607'), P=[];
+  const st=M('parker','#36373a'), poly=M('polymer','#28292b'), grip=M('grip','#232426'), dk=M('blued','#282a2d'), blk=M('polymer','#060607'), P=[];
   // stamped angular upper receiver
   P.push(EX('Üst gövde',[-9.2,-.4, 9.8,-.4, 9.8,3.0, 9.0,3.9, -8.2,3.9, -9.2,2.9],2.8,.2,st));
   P.push(BX('Üst sırt',1.6,.45,16.4,0,4.05,.4,.15,st));
@@ -2522,7 +2532,7 @@ function defTec9(){
     anchors:{gripR:{p:[0,-.06,.06],r:[-12,0,0]}, gripL:{p:[0,-.1,-.063],r:[3,-20,8]}, muzzle:[0,.019,-.229], eject:[.016,.024,-.024]} });
 }
 function defAUG(){
-  const grn=M('polymer','#4a5135'), ggrip=M('grip','#434a30'), rec=M('aluminum','#232528'), dk=M('blued','#1b1d20'), blk=M('polymer','#060607'), glass=M('glass','#0e1622',{emissive:'#050a14',emi:.4}),
+  const grn=M('polymer','#4f5638'), ggrip=M('grip','#454c33'), rec=M('aluminum','#2c2e31'), dk=M('blued','#26282b'), blk=M('polymer','#060607'), glass=M('glass','#0e1622',{emissive:'#050a14',emi:.4}),
     clear=M('glass','#3a3d39',{metal:.1,rough:.22,emissive:'#0b0c0a',emi:.25,opacity:.64}), brass=M('brass','#b8893a'), P=[];
   // olive bullpup stock
   P.push(EX('Dipçik',[-40.4,5.5, -42.4,5.0, -43.3,3.6, -43.5,1, -43.5,-4.6, -43.0,-6.0, -41.6,-6.6, -36,-6.3, -24,-5, -12.2,-4.8, -10.2,-3.6, -9.4,-2.0, -2,-2.0, 1,-2.6, 5.6,-2.4, 7.6,-1.0, 8.2,1.4, 7.6,3.8, 6,4.4, -16,4.4, -18.5,5.4],4.6,.9,grn));
@@ -2557,10 +2567,11 @@ function defAUG(){
   P.push(EX('Tetik',[.2,-2.0, .9,-2.0, .7,-3.2, 0,-4.2, -.4,-4.0, .2,-3.1],.6,0,dk,{role:'trigger'}));
   // translucent magazine behind the pistol grip
   P.push(EX('Şarjör',[-20.6,-2.0, -12.8,-2.0, -12.6,-6, -11.8,-11, -10.6,-16, -10.2,-17.4, -17.4,-18.6, -17.8,-17.2, -19.0,-11.6, -20.0,-6.0],2.4,.3,clear,{role:'mag',id:'aug_mag'}));
-  for(let i=0;i<9;i++){ const t=i/8, x=i%2?.32:-.32; P.push(CY('Fişek',.46,.46,5.2,x,-3.0-t*12.8,nw_lerp(-16.4,-13.9,t)+x,[90,0,0],brass,{sides:10,parent:'aug_mag'})); }
+  // 30 rounds, staggered double stack following the curve; the follower pushes them up, so the bottom empties first (rnd 0 = top round)
+  for(let i=0;i<30;i++){ const t=i/29, x=i%2?.38:-.38, f=CY('Fişek',.44,.44,5.0,x,-3.0-t*13.4,nw_lerp(-16.5,-13.7,t),[90,0,0],brass,{sides:8,parent:'aug_mag'}); f.rnd=i; P.push(f); }
   P.push(BX('Şarjör tabanı',2.7,.7,7.6,0,-18.3,-13.8,.25,blk,{rot:[10,0,0],parent:'aug_mag'}));
   return normalizeDef({ id:'aug', name:'AUG', builtin:1, type:'rifle', slot:'primary', parts:finalizeParts(P),
-    stats:{dmg:28,head:4,rpm:666,mag:30,reserve:90,reload:3.8,auto:1,spread:.18,moveSpread:6.5,recoil:.85,pattern:'m4',pellets:1,scope:1,scopeZoom:1.7,scopeType:'aug',range:320,speed:.88,sound:'rifle',draw:1.0,price:3300,team:'CT',reward:300,armorPen:.9},
+    stats:{dmg:28,head:4,rpm:666,mag:30,reserve:90,reload:3.8,auto:1,spread:.18,moveSpread:6.5,recoil:.85,pattern:'m4',pellets:1,scope:1,scopeZoom:2,scopeType:'aug',range:320,speed:.88,sound:'rifle',draw:1.0,price:3300,team:'CT',reward:300,armorPen:.9},
     view:{pos:[.13,-.122,-.40],rot:[0,4,0]},
     anchors:{gripR:{p:[0,-.066,.068],r:[-14,0,0]}, gripL:{p:[0,-.058,-.126],r:[-2,0,8]}, muzzle:[0,.024,-.364], eject:[.026,.02,.22], boltHand:[-.028,0,0]} });
 }
@@ -5434,7 +5445,7 @@ function sndInstallHooks(){
     land(){ sndPlay('land:'+surfAt(player.pos),{bus:'fx',vol:.9}); },
     shell(p){ const t=curDef().type; sndPlay(t==='shotgun'?'shell:shotgun':t==='pistol'?'shell:pistol':'shell:rifle',{pos:p,ref:1.5,bus:'fx',vol:.75}); },
     dry(){ weaponSound(curDef(),'dry'); },
-    draw(){ weaponSound(VM&&VM.def||curDef(),'draw'); },
+    draw(){ if(VM&&(VM.hol||VM.drawT>0)) return; anDrawSnd(VM&&VM.def||curDef()); },   // the deploy already plays its (soft) sound
     magOut(){ weaponSound(curDef(),'clipout'); }, magIn(){ weaponSound(curDef(),'clipin'); },
     boltBack(){ weaponSound(curDef(),'boltback'); }, boltFwd(){ weaponSound(curDef(),'boltfwd'); },
     swing(){ sndPlay('knife:slash',{bus:'weapons'}); }, stab(){ sndPlay('knife:stab',{bus:'weapons'}); },
@@ -6123,7 +6134,7 @@ function vmEquip(R,def,silent,silOn,now){
   R.gunRoot.add(R.w.root); R.gunRoot.add(R.flash); R.flash.position.copy(muzzleOf(R.w));
   R.drawDur=def.stats.draw||.8; R.drawT=silent?0:R.drawDur; R.reloadT=0; R.inspectT=-1; R.knifeT=-1; R.rechamberT=-1; R.throwT=-1; R.cues=[];
   R.armL.group.visible=!!R.w.anchors.gripL; anOnEquip(R);
-  if(!silent&&R.sounds) weaponSound(def,'draw');
+  if(!silent&&R.sounds) anDrawSnd(def);   // soft deploy sound only (no rack clicks)
 }
 function vmFire(R){
   if(R.hol) anHolsterFlush(R);
@@ -6140,7 +6151,7 @@ function vmReload(R,dur,empty){ if(R.hol) anHolsterFlush(R); R.inspectT=-1; R.dr
   if(!R.rlEmpty) cues=cues.filter(c=>c[1]!=='boltback'&&c[1]!=='boltfwd');   // tactical reload: no bolt / slide release
   if(R.sounds&&SFX_LIB&&isPackVer(soundVer(d,'reload'))){ const has=a=>packHas(d.id+':'+a,'any'), k=1/Math.max(.2,dur), co=cues.find(c=>c[1]==='clipout'), ci=cues.find(c=>c[1]==='clipin');   // pack-only cues
     if(has('cliprelease')) cues.push([Math.max(0,co[0]-.05*k),'cliprelease']); if(has('cliphit')) cues.push([Math.min(.99,ci[0]+.12*k),'cliphit']); }
-  R.cues=R.sounds?cues.map(c=>({p:c[0],f:()=>weaponSound(d,c[1])})):[]; }
+  R.cues=R.sounds?cues.map(c=>({p:c[0],f:()=>weaponSound(d,c[1])})):[]; anRlLift(R); }
 function vmInspect(R){ if(R.hol||R.reloadT>0||R.drawT>0||R.knifeT>=0||R.silT>=0||R.sh.ph||R.throwT>=0||R.planting) return; R.inspectDur=AN_INSP_DUR[anCls(R.def)]||3.4; R.inspV=Math.random()<.5?1:0; R.inspectT=0; R.icues=R.sounds?inspectCues(R.def,R.inspectDur):null; }
 // pack inspect files ("<id>_special_lookat_f057"): played at frame/30 s, time-scaled so the last one lands at 90% of the inspect animation
 function inspectCues(d,dur){ if(!SFX_LIB||!d||!pkHas(d.id+':inspect')) return null; const slot=d.id+':inspect'; let L=packList(slot,'P'); if(!L.length) L=packList(slot,'P2'); if(!L.length) return null;
@@ -6356,9 +6367,11 @@ function switchSlot(slot){
   player.last=player.cur; player.cur=slot; equipCurrent();
 }
 function cycleSlot(){ const o=SLOT_ORDER.filter(k=>player.slots[k]); const i=o.indexOf(player.cur); switchSlot(o[(i+1)%o.length]); }
-function setScope(l){ player.scope=l; const st=player.slots[player.cur], s=st&&st.def?st.def.stats:{};
-  const z=l===0?1:(l===1?(s.scopeZoom||2.4):6.5); player.zoom=z; camera.fov=csFovToV(CFG.fov)/z; camera.updateProjectionMatrix(); updateParticleScale();
-  $('scope').classList.toggle('on',l>0); $('scope').classList.toggle('aug',l>0&&s.scopeType==='aug'); VM.rig.visible=l===0; $('crosshair').style.display=l>0?'none':''; }
+function setScope(l){ const prev=player.scope|0; player.scope=l; const st=player.slots[player.cur], s=st&&st.def?st.def.stats:{}, aug=s.scopeType==='aug';
+  // AUG-type sights zoom like CS2: zoomed fov = fov / scopeZoom in CS (4:3 horizontal) terms (AUG 90 -> 45), sensitivity scales by the same ratio
+  const z=l===0?1:aug?(s.scopeZoom||2):(l===1?(s.scopeZoom||2.4):6.5); player.zoom=z;
+  const fov=l>0&&aug?csFovToV(CFG.fov/z):csFovToV(CFG.fov)/z;
+  anScopeSet(l,prev,fov,aug); $('crosshair').style.display=l>0?'none':''; }   // short fov / viewmodel transition for AUG-type sights (anim block)
 // right click / touch scope button: next zoom level + scope sound (AWP level 1 -> 2 counts as zoom in). Automatic unscoping (shot, reload, death) stays silent.
 function cycleScope(d){ const n=(player.scope+1)%((d.stats.scope|0)+1); setScope(n); player.rescope=0; if(SFX_LIB) weaponSound(d,n>0?'zoomin':'zoomout'); else sfx.click(); }
 // removable suppressor: right click / touch (USP-S, M4A1-S or any def with stats.silencer and no scope)
@@ -6562,13 +6575,13 @@ function dealHit(h,def){
 function tryKnife(kind){ const P=player; if(VM.knifeT>=0||!P.alive||!canAct()) return; vmKnife(VM,kind,true); P.pendingKnife={kind,t:kind?.28:.12}; }   // the sound comes with the hit result (doKnifeHit)
 function doKnifeHit(kind){
   const origin=camera.position.clone(), dir=new THREE.Vector3(); camera.getWorldDirection(dir);
-  const range=(curDef().stats.range||1.7)*(kind?.85:1);
-  const wh=rayWorld(origin,dir,range); const ch=rayCharacters(origin,dir,wh?wh.dist:range,opponents());
+  const range=(kind?KN_REACH.stab:KN_REACH.slash)*clamp((curDef().stats.range||1.7)/1.7,.5,3);   // CS2-like reach: slash ~1.6 m, stab ~1.25 m
+  const wh=rayWorld(origin,dir,range); const ch=anKnifeTarget(origin,dir,range,kind,wh?wh.dist:range);   // line trace, then a cone of rays, then a torso capsule (CS2 hull trace)
   if(ch){ const fw=new THREE.Vector3(-Math.sin(ch.char.yaw),0,-Math.cos(ch.char.yaw)); const back=fw.dot(dir)>.4;
     const raw=back?(kind?180:90):(kind?65:curDef().stats.dmg||40); impactFX(ch.point,dir.clone().negate(),'flesh');
     weaponSound(curDef(),kind?'stab':'hit');
     dealHit({char:ch.char,zone:'chest',raw,dist:ch.dist,point:ch.point},Object.assign({},curDef(),{stats:Object.assign({},curDef().stats,{armorPen:.85,head:1})})); }
-  else if(wh){ impactFX(wh.point,wh.normal,wh.surf); weaponSound(curDef(),'hitwall'); }
+  else if(wh){ anKnifeWall(wh,dir,kind); weaponSound(curDef(),'hitwall'); }   // scratch / gash decal + chips
   else weaponSound(curDef(),'slash');   // miss: just the swing
 }
 function tryReload(){
@@ -8073,7 +8086,7 @@ function edGameBar(){
     $('edCanvasWrap').appendChild(b);
     b.addEventListener('click',e=>{ const a=e.target.dataset.ga; const R=edGame.rig; if(!a||!R.def) return; ensureAudio();
       if(a==='fire'){ if(R.def.type==='knife') vmKnife(R,Math.random()<.5?0:1); else { vmFire(R); weaponFire(R.def); } }
-      if(a==='reload'&&R.def.type!=='knife') vmReload(R,R.def.stats.reload); if(a==='inspect') vmInspect(R); if(a==='draw'){ R.drawT=R.drawDur; weaponSound(R.def,'draw'); } }); }
+      if(a==='reload'&&R.def.type!=='knife') vmReload(R,R.def.stats.reload); if(a==='inspect') vmInspect(R); if(a==='draw'){ R.drawT=R.drawDur; anDrawSnd(R.def); } }); }
   b.style.display=ED.view==='game'?'flex':'none';
 }
 function edLoop(now,lid){
@@ -10422,10 +10435,10 @@ gameExport({ get NET(){ return NET; }, get DM(){ return DM; }, NetAgent, netCrea
    ANIMATION — procedural first-person (viewmodel) and third-person (Character) motion
    keyframe tables are module constants (no per-frame allocation); kq() eases per key
    ===================================================================== */
-// key = [t, value, ease]   ease: 0 smoothstep · 1 ease-out · 2 ease-in · 3 linear · 4 back-out (overshoot)
+// key = [t, value, ease]   ease: 0 smoothstep · 1 ease-out · 2 ease-in · 3 linear · 4 back-out (overshoot) · 5 cubic ease-out · 6 sine in-out
 function kq(t,K){ if(t<=K[0][0]) return K[0][1]; const n=K.length;
   for(let i=1;i<n;i++){ const b=K[i]; if(t<=b[0]){ const a=K[i-1]; let u=(t-a[0])/Math.max(1e-6,b[0]-a[0]); const e=b[2]|0;
-      u=e===1?1-(1-u)*(1-u):e===2?u*u:e===3?u:e===4?1+2.70158*(u-1)**3+1.70158*(u-1)**2:u*u*(3-2*u); return a[1]+(b[1]-a[1])*u; } }
+      u=e===1?1-(1-u)*(1-u):e===2?u*u:e===3?u:e===4?1+2.70158*(u-1)**3+1.70158*(u-1)**2:e===5?1-(1-u)**3:e===6?.5-.5*Math.cos(u*Math.PI):u*u*(3-2*u); return a[1]+(b[1]-a[1])*u; } }
   return K[n-1][1]; }
 const AP=[0,0,0,0,0,0];                                   // viewmodel pose accumulator: px py pz rx ry rz
 const TRK=o=>['px','py','pz','rx','ry','rz'].map(k=>o[k]||null);
@@ -10445,23 +10458,27 @@ const anV=(n,out)=>out.fromArray(ANP[n]);
 function anCls(d){ const t=d&&d.type; return t==='smg'?'rifle':(t==='pistol'||t==='sniper'||t==='shotgun'||t==='knife'||t==='grenade'||t==='c4')?t:'rifle'; }
 
 /* ---------- draw (t = 0..1 of drawDur) ---------- */
+// CS2-like deploy: the gun swings up from the lower right on a cubic ease-out (~40-45% of the draw time), then a small, weighted settle; no rack (see AN_DRAWX)
 const AN_DRAW={
-  pistol:TRK({py:[[0,-.2],[.3,.008,1],[.4,0]], rx:[[0,-1.05],[.3,.07,1],[.42,0]], rz:[[0,.45],[.3,-.04,1],[.42,0]], px:[[0,.04],[.3,0,1]], pz:[[0,.06],[.3,0,1]], ry:[[0,-.25],[.3,0,1]]}),
-  rifle:TRK({py:[[0,-.26],[.36,.006,1],[.48,0]], px:[[0,.1],[.36,0,1]], rx:[[0,-.75],[.36,.05,1],[.5,0]], rz:[[0,1.0],[.36,-.06,1],[.5,0]], ry:[[0,-.35],[.36,0,1]], pz:[[0,.08],[.36,0,1]]}),
-  sniper:TRK({py:[[0,-.3],[.42,.01,1],[.55,-.004],[.62,0]], rx:[[0,-.6],[.42,.06,1],[.58,0]], rz:[[0,.8],[.42,-.08,1],[.6,0]], px:[[0,.08],[.42,0,1]], pz:[[0,.1],[.42,0,1]], ry:[[0,-.3],[.42,0,1]]}),
-  shotgun:TRK({py:[[0,-.26],[.38,.008,1],[.5,0]], px:[[0,.09],[.38,0,1]], rx:[[0,-.7],[.38,.06,1],[.5,0]], rz:[[0,.85],[.38,-.06,1],[.5,0]], ry:[[0,-.3],[.38,0,1]], pz:[[0,.08],[.38,0,1]]}),
-  knife:TRK({py:[[0,-.1],[.38,.01,1],[.5,0]], rx:[[0,-.5],[.38,0,1]], rz:[[0,-.5],[.4,0,1]], px:[[0,.05],[.38,0,1]], pz:[[0,.04],[.38,0,1]]}),
+  pistol:TRK({py:[[0,-.2],[.42,.006,5],[.56,-.0015,6],[.68,0,6]], rx:[[0,-1.0],[.42,.045,5],[.58,-.01,6],[.72,0,6]], rz:[[0,.42],[.42,-.03,5],[.6,.006,6],[.72,0,6]], px:[[0,.045],[.44,0,5]], pz:[[0,.06],[.44,0,5]], ry:[[0,-.24],[.46,0,5]]}),
+  rifle:TRK({py:[[0,-.26],[.46,.007,5],[.62,-.002,6],[.76,0,6]], px:[[0,.1],[.48,0,5]], rx:[[0,-.7],[.46,.045,5],[.63,-.01,6],[.78,0,6]], rz:[[0,.9],[.46,-.05,5],[.64,.01,6],[.8,0,6]], ry:[[0,-.32],[.48,0,5]], pz:[[0,.08],[.48,0,5]]}),
+  sniper:TRK({py:[[0,-.3],[.46,.01,5],[.62,-.003,6],[.76,0,6]], rx:[[0,-.6],[.46,.05,5],[.64,-.01,6],[.78,0,6]], rz:[[0,.8],[.46,-.06,5],[.66,.01,6],[.8,0,6]], px:[[0,.08],[.48,0,5]], pz:[[0,.1],[.48,0,5]], ry:[[0,-.3],[.48,0,5]]}),
+  shotgun:TRK({py:[[0,-.26],[.46,.008,5],[.62,-.002,6],[.76,0,6]], px:[[0,.09],[.48,0,5]], rx:[[0,-.68],[.46,.05,5],[.63,-.01,6],[.78,0,6]], rz:[[0,.85],[.46,-.05,5],[.64,.01,6],[.8,0,6]], ry:[[0,-.3],[.48,0,5]], pz:[[0,.08],[.48,0,5]]}),
+  knife:TRK({py:[[0,-.1],[.42,.008,5],[.56,0,6]], rx:[[0,-.5],[.44,0,5]], rz:[[0,-.5],[.46,0,5]], px:[[0,.05],[.44,0,5]], pz:[[0,.04],[.44,0,5]]}),
   grenade:TRK({py:[[0,-.18],[.45,.01,1],[.55,0]], rx:[[0,-.55],[.45,0,1]], rz:[[0,.35],[.45,0,1]], pz:[[0,.05],[.45,0,1]]}),
   c4:TRK({py:[[0,-.22],[.55,.006,1],[.7,0]], rx:[[0,-.6],[.55,.03,1],[.7,0]], rz:[[0,.2],[.55,0,1]]})
 };
-// cant while the support hand works the slide / charging handle / bolt during the draw
+// first draw only (just bought / picked up): cant while the support hand works the slide / charging handle / bolt — after the raise, quiet
 const AN_DRAWX={
-  pistol:TRK({rz:[[.42,0],[.52,.22],[.76,.22],[.88,0]], ry:[[.42,0],[.52,.14],[.76,.14],[.88,0]], rx:[[.42,0],[.52,.08],[.62,.1],[.66,.05],[.76,.06],[.88,0]], pz:[[.6,0],[.66,.01],[.7,-.004],[.76,0]]}),
-  rifle:TRK({rz:[[.44,0],[.54,.3],[.74,.3],[.86,0]], ry:[[.44,0],[.54,.1],[.74,.1],[.86,0]], rx:[[.44,0],[.54,.06],[.64,.08],[.68,.03],[.86,0]], pz:[[.62,0],[.66,.012],[.7,-.004],[.75,0]]}),
+  pistol:TRK({rz:[[.5,0],[.6,.22,6],[.8,.22],[.92,0,6]], ry:[[.5,0],[.6,.14,6],[.8,.14],[.92,0,6]], rx:[[.5,0],[.6,.08,6],[.68,.1],[.72,.05],[.8,.06],[.92,0,6]], pz:[[.66,0],[.71,.01],[.75,-.004],[.8,0]]}),
+  rifle:TRK({rz:[[.5,0],[.6,.3,6],[.8,.3],[.92,0,6]], ry:[[.5,0],[.6,.1,6],[.8,.1],[.92,0,6]], rx:[[.5,0],[.6,.06,6],[.68,.08],[.72,.03],[.92,0,6]], pz:[[.66,0],[.7,.012],[.74,-.004],[.79,0]]}),
   sniper:TRK({rz:[[.55,0],[.62,-.14],[.9,-.14],[1,0]], rx:[[.55,0],[.62,.05],[.9,.05],[1,0]]}),
   shotgun:TRK({rx:[[.5,0],[.6,.06],[.7,.04],[.8,0]], pz:[[.5,0],[.6,.012],[.72,-.004],[.8,0]]})
 };
-const K_DR_HAND=[[.44,0],[.54,1],[.76,1],[.88,0]], K_DR_PULL=[[.56,0],[.64,1,1],[.68,1],[.71,0,1]];      // pistol slide / rifle bolt by the left hand
+const K_DR_HAND=[[.5,0],[.6,1,6],[.8,1],[.92,0,6]], K_DR_PULL=[[.62,0],[.69,1,1],[.72,1],[.75,0,1]];      // pistol slide / rifle bolt by the left hand
+const AN_DRSND={pistol:[.63,.74],rifle:[.63,.74],shotgun:[.52,.67],sniper:[.68,.77]};                       // first-draw rack: quiet back / forward cue times
+const K_DR_LH={pistol:[[0,1],[.18,1],[.44,0,6]], rifle:[[0,1],[.24,1],[.5,0,6]], sniper:[[0,1],[.26,1],[.52,0,6]], shotgun:[[0,1],[.24,1],[.5,0,6]]};   // support hand reaches the gun a beat after it rises
+const ANP_DRL={pistol:[-.045,-.08,.05], rifle:[-.025,-.09,.07], sniper:[-.025,-.09,.07], shotgun:[-.025,-.09,.07]};
 const K_DR_PUMP=[[.5,0],[.6,1],[.66,1],[.76,0]], K_DR_KNIFE=[[0,-TAU],[.55,0,1]];
 const K_DR_TOSS=[[.5,0],[.68,.07,1],[.86,0,2],[.92,-.004],[1,0]], K_DR_TOSSR=[[.5,0],[.86,TAU]], K_DR_TWIRL=[[0,0],[.34,-TAU,1]];
 const K_SG_RX=[[0,0],[.28,0],[.4,.05],[.56,.04],[.7,0]], K_SG_PZ=[[0,0],[.3,0],[.42,.01],[.56,.012],[.68,0]], K_PUMP=[[0,0],[.28,0],[.42,.075],[.55,.075],[.7,0]];
@@ -10528,12 +10545,13 @@ const K_RL_MHR=[[0,0],[.12,1],[.66,1],[.74,0],[1,0]];
 const K_BC_HAND=[[0,0],[.16,1],[.84,1],[1,0]], K_BC_LIFT=[[0,0],[.18,0],[.27,1,1],[.62,1],[.7,0,1]], K_BC_PULL=[[0,0],[.28,0],[.4,1,1],[.48,1],[.6,0,1]];
 const AN_BC=TRK({rz:[[0,0],[.16,.28],[.84,.28],[1,0]], rx:[[0,0],[.16,.06],[.4,.09],[.6,.05],[.84,.06],[1,0]], pz:[[.36,0],[.42,.008],[.56,0],[.62,-.006],[.7,0]], px:[[0,0],[.16,-.035],[.84,-.035],[1,0]], py:[[0,0],[.16,.03],[.84,.03],[1,0]]});
 /* ---------- fire kick per class: back(m) pitch(rad) yaw roll climb climbMax ---------- */
-const AN_KICK={pistol:[.026,.085,.014,.045,.012,.05], rifle:[.016,.032,.011,.02,.007,.05], smg:[.011,.022,.009,.016,.005,.035], sniper:[.05,.11,.02,.06,0,0], shotgun:[.045,.1,.02,.055,0,0]};
+// CS2-like: a firm back-and-up kick with little random yaw / roll (no per-shot jitter), springs well damped so the gun settles with weight
+const AN_KICK={pistol:[.024,.08,.009,.022,.01,.045], rifle:[.015,.03,.006,.01,.006,.045], smg:[.011,.021,.005,.008,.0045,.032], sniper:[.05,.11,.012,.035,0,0], shotgun:[.045,.1,.012,.03,0,0]};
 function anImp(S,peak){ S.v+=peak*Math.sqrt(S.k)/.45; }
 
 /* ---------- rig state ---------- */
 function anInitRig(R){
-  Object.assign(R,{fz:new Spring(380,30),fx:new Spring(300,26),fy:new Spring(260,24),fr:new Spring(260,22),climb:0,sinceFire:9,lock:0,rlEmpty:true,
+  Object.assign(R,{fz:new Spring(300,31),fx:new Spring(240,28),fy:new Spring(220,26),fr:new Spring(220,26),climb:0,sinceFire:9,lock:0,rlEmpty:true,
     spd:0,sprT:0,sprK:0,wasG:true,lastVy:0,ld:new Spring(150,13),air:new Spring(90,12),crK:0,hol:null,holDur:.13,drawV:0,drawX:1,inspV:0,slash:0,lastSlash:-9,throwU:false,
     sh:{ph:0,t:0,dur:1,demo:0,empty:false},plK:0,dfK:0,blK:0,gsOn:false,boltU:-1,boltS:1,typeK:0,ring:null,ringP:new THREE.Vector3(),knob:-1,boreY:0,
     hR:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hL:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hLr:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hRr:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()},
@@ -10549,7 +10567,7 @@ function anInitRig(R){
 }
 function anOnEquip(R){
   const w=R.w, d=R.def, T=d.type; R.lock=0; R.sh.ph=0; R.sh.demo=0; R.boltU=-1; R.hR.k=R.hL.k=R.hLr.k=R.hRr.k=0; R.typeK=0;
-  R.drawV=T==='pistol'&&(d.id==='deagle'||Math.random()<.3)?1:0; R.drawX=1;
+  R.drawV=0; R.drawX=anFirstDraw(R); R.dsnd=0; anRoundsInit(R); R.scopeEye=anScopeEye(R);   // no twirl on deploy; the rack only on a gun's very first draw
   R.ring=null; if(T==='grenade'){ for(const p of d.parts) if(/pim|pin|ring|halka/i.test(p.name)&&w.nodes[p.id]){ R.ring=w.nodes[p.id]; R.ringP.copy(R.ring.position); break; } }
   R.c4keys=null; R.slideTop=null; const sl=w.roles.slide[0];
   if(sl&&sl.node.geometry){ const g=sl.node.geometry; if(!g.boundingBox) g.computeBoundingBox(); const b=g.boundingBox.clone(); _am.copy(sl.node.matrix); let p=sl.node.parent; while(p&&p!==w.root){ _am.premultiply(p.matrix); p=p.parent; } b.applyMatrix4(_am); R.slideTop=new THREE.Vector3((b.min.x+b.max.x)/2,b.max.y,b.max.z); }
@@ -10630,10 +10648,14 @@ function anPose(R,dt,mv,rp){
   for(let i=0;i<6;i++) AP[i]=0;
   const D=R.def, T=D.type, C=anCls(D), w=R.w;
   R.hR.k=0; R.hL.k=0; R.hLr.k=0; R.hRr.k=0; R.boltU=-1; R.hideGun=false; R.armLvis=false; R.gsq.identity(); R.gsp.set(0,0,0); R.gsPiv=false; R.pump=0; R.slideX=0; R.boltX=0; R.magX=0;
+  if(R===VM){ anScopeTick(dt); anGashTick(dt); }
+  anRoundsTick(R,rp);
   anMove(R,dt,mv);
   if(R.hol){ const k=smooth(Math.min(1,R.holT/R.holDur)); AP[1]-=.24*k; AP[3]-=.75*k; AP[5]+=.3*k; AP[0]+=.03*k; }
   // draw
   if(R.drawT>0){ const t=1-R.drawT/R.drawDur; kadd(t,AN_DRAW[C],1);
+    const LH=K_DR_LH[C], G=w.anchors.gripL; if(LH&&G&&rp<0&&t<.6){ const k=kq(t,LH); if(k>0){ R.hL.p.copy(G.p).add(_a4.fromArray(ANP_DRL[C])); R.hL.q.copy(G.q); R.hL.k=Math.max(R.hL.k,k); } }
+    if(R.drawX&&rp<0&&R.sounds){ const c=AN_DRSND[C]; if(c&&(C==='pistol'?!!G:C==='rifle'?!!(G&&w.roles.bolt.length):true)){ if(R.dsnd<1&&t>=c[0]){ R.dsnd=1; anQuietSnd(D,'boltback'); } if(R.dsnd<2&&t>=c[1]){ R.dsnd=2; anQuietSnd(D,'boltfwd'); } } }
     if(R.drawX&&rp<0){ const X=AN_DRAWX[C]; if(X) kadd(t,X,1);
       if(C==='pistol'&&w.anchors.gripL){ const hk=kq(t,K_DR_HAND), pl=kq(t,K_DR_PULL); if(hk>0) anSlideHand(R,hk,pl*(w.roles.slide.length?.024:.04)); }
       else if((C==='rifle')&&w.anchors.gripL&&w.roles.bolt.length){ const hk=kq(t,K_DR_HAND), pl=kq(t,K_DR_PULL); R.boltX=pl*.05; if(hk>0) anBoltHand(R,hk,R.boltX); }
@@ -10656,6 +10678,7 @@ function anPose(R,dt,mv,rp){
   if(R.throwT>=0){ const t=R.throwT/.62; kadd(Math.min(1,t),AN_THROW[R.throwU?1:0],1); R.hideGun=t>.5; anThrowHand(R,t); }
   // reload (non-shell)
   if(rp>=0){ const E=R.rlEmpty, key=(C==='pistol'?'pistol':C==='sniper'?'sniper':'rifle')+(E?'E':'T'); kadd(rp,AN_RL[key],1);
+    if(R.rlLift){ const k=kq(rp,K_RL_LIFT[R.rlLift[2]]); AP[0]+=R.rlLift[0]*k; AP[1]+=R.rlLift[1]*k; AP[2]+=R.rlLift[3]*k; }   // CS2-like: the magwell stays on screen during the swap
     if(C==='sniper'&&E&&rp>.7) anBolt(R,(rp-.7)/.24,1); }
   if(R.sh.ph) anShellPose(R);
   // shotgun pump / sniper bolt after a shot
@@ -10668,6 +10691,7 @@ function anPose(R,dt,mv,rp){
   if(R.dfK>.01) anDefuse(R);
   const fb=R===VM&&player.alive?clamp((player.flashT-.25)/1.1,0,1):0; R.blK=lerp(R.blK,fb,Math.min(1,dt*(fb>R.blK?9:2.5)));
   if(R.blK>.01){ const k=smooth(Math.min(1,R.blK*1.4)); AP[1]-=.05*k; AP[3]-=.22*k; AP[5]+=.18*k; AP[0]+=.01*k; R.hLr.k=Math.max(R.hLr.k,k); anV('cover',R.hLr.p); R.hLr.p.x+=Math.sin(R.time*2.1)*.004*k; R.hLr.p.y+=Math.sin(R.time*1.7)*.003*k; anQ('cover',R.hLr.q); R.armLvis=true; }
+  if(R===VM&&SC.k>0&&R.scopeEye) anScopePose(R);   // AUG-style zoom: the sight comes up to the eye
 }
 function anTrig(R){ const t=R.w.roles.trigger[0]; return t?_a3.copy(t.pos).setY(t.pos.y+.012):_a3.copy(R.w.anchors.gripR.p); }
 function anSlideHand(R,hk,pull){ const w=R.w, sl=w.roles.slide[0]||w.roles.bolt[0];
@@ -10896,7 +10920,115 @@ function anCharDeath(C,dt){
   if(C.gunRoot.parent===C.root&&C.gunRoot.visible){ const G=C.gunRoot; if(G.position.y>.035){ C.gunVy-=9.8*dt; G.position.y=Math.max(.035,G.position.y+C.gunVy*dt); } G.quaternion.slerp(C.gunQ,Math.min(1,dt*5)); }
   if(t>1.6) C.dSet=true;
 }
+/* ---------- reload framing: lift / centre the gun so the magwell is on screen while the magazine is swapped (bullpups, grip mags) ---------- */
+const K_RL_LIFT={E:[[0,0],[.14,1,6],[.64,1],[.82,0,6]],T:[[0,0],[.13,1,6],[.68,1],[.86,0,6]]};
+function anRlLift(R){ R.rlLift=null; const w=R.w, b=w&&w.magBox; if(R!==VM||!b||R.def.anchors.magPath==='top') return;
+  const C=anCls(R.def), K=AN_RL[(C==='pistol'?'pistol':C==='sniper'?'sniper':'rifle')+(R.rlEmpty?'E':'T')], V=R.def.view, O=R.offset, a=i=>K&&K[i]?kq(.5,K[i]):0;
+  _aq3.setFromEuler(_ae.set(V.rot[0]*DEG+a(3),V.rot[1]*DEG+a(4),V.rot[2]*DEG+a(5),'YXZ'));
+  const p=_a5.set((b.min.x+b.max.x)/2,b.max.y,(b.min.z+b.max.z)/2).applyQuaternion(_aq3).add(_a4.set(V.pos[0]+(O?O[0]*.01:0)+a(0),V.pos[1]+(O?O[1]*.01:0)+a(1),V.pos[2]+(O?-O[2]*.01:0)+a(2)));
+  const th=Math.tan(vmCam.fov*DEG/2), as=vmCam.aspect||1.6, ty=C==='pistol'?-.5:-.44;
+  const dz=p.y/(Math.max(.05,-p.z)*th)<-.9?-.08:0; p.z+=dz;   // magwell near the shoulder (bullpups, grip mags): push the gun away a little instead of only lifting it into the face
+  const d=Math.max(.05,-p.z), ny=p.y/(d*th), nx=p.x/(d*th*as), dy=clamp((ty-ny)*d*th,0,.12), dx=clamp((Math.min(nx,.34)-nx)*d*th*as,-.07,0);
+  if(dy>.004||dx<-.004||dz) R.rlLift=[dx,dy,R.rlEmpty?'E':'T',dz]; }
+
+/* ---------- deploy sounds: soft handling only (no charging-handle / slide clicks) ---------- */
+// the procedural 'draw' bank ends in rack clicks, so it is faded out just before them; sound-pack / own files play as they are, a bit softer
+function anDrawSnd(d){ if(!d) return null; const T=d.type; if(!SFX_LIB||T==='knife'||T==='grenade'||T==='c4') return weaponSound(d,'draw');
+  const own=!!SND.custom.get(d.id+':draw'), pk=!own&&CFG.packOn!==0&&isPackVer(soundVer(d,'draw'))&&packHas(d.id+':draw','any');
+  const h=weaponSound(d,'draw',{vol:.8}); if(!h||own||pk||!AUD.ctx) return h;
+  const cut=T==='pistol'?.165:(T==='sniper'||T==='shotgun')?.32:.24, n=AUD.ctx.currentTime;
+  try{ h.g.gain.setTargetAtTime(0,n+cut,.018); h.src.stop(n+cut+.25); }catch(e){} return h; }
+// first draw of a freshly bought / picked-up gun: the rack is barely audible (low-passed, low level)
+function anQuietSnd(d,act){ if(SFX_LIB) weaponSound(d,act,{vol:.14,lp:1300}); }
+function anFirstDraw(R){ if(R!==VM||R.drawT<=0||!player.slots) return 0; const st=slotState(); if(!st||st.def!==R.def||st.drawn) return 0; st.drawn=1; return 1; }
+
+/* ---------- rounds visible in translucent magazines (P90 top mag, AUG): parts tagged rnd (0 = last round left), fol = follower ---------- */
+function anRoundsInit(R){ const w=R.w, d=R.def; R.rnds=null; R.rndFol=null; R.rndShown=-1; const L=[];
+  for(const p of d.parts){ const n=w.nodes[p.id]; if(!n) continue; if(typeof p.rnd==='number') L.push({k:p.rnd,n,z:n.position.z}); if(p.fol){ R.rndFol=n; R.rndFolZ=n.position.z; } }
+  if(L.length){ L.sort((a,b)=>a.k-b.k); R.rnds=L; } }
+function anRoundsTick(R,rp){ const L=R.rnds; if(!L) return; const cap=Math.max(1,R.def.stats.mag|0); let n=cap;
+  if(R===VM&&player.slots){ const st=slotState(); if(st&&st.def===R.def){ n=st.mag; if(rp>=.45) n=player.infAmmo||match.mode==='range'?cap:Math.min(cap,st.mag+Math.max(0,st.res)); } }   // new mag goes in full
+  const v=L.length>=cap?Math.min(L.length,Math.max(0,n)):Math.ceil(clamp(n,0,cap)*L.length/cap); if(v===R.rndShown) return; R.rndShown=v;
+  for(let i=0;i<L.length;i++) L[i].n.visible=i<v;
+  if(R.rndFol){ let z=L[0].z; for(let i=0;i<v;i++) z=Math.min(z,L[i].z); R.rndFol.position.z=Math.max(R.rndFolZ,z-.009); } }   // follower rides just ahead of the stack
+
+/* ---------- AUG-type scope: ~0.14 s fov blend while the sight comes up to the eye, then the lens overlay fades in ---------- */
+const SC={t:1,dur:.14,on:false,f0:0,f1:0,k:0,dom:false};
+const SC_SVG='<svg viewBox="-500 -500 1000 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
+  '<path class="rt" stroke-width="1.4" d="M-490 0H-34M34 0H490M0 -490V-34M0 34V490"/><path class="rt" stroke-width="4.5" d="M-490 0H-300M300 0H490M0 300V490M0 -490V-300"/>'+
+  '<circle class="rt" stroke-width="1.3" r="21"/><circle class="rd" r="3.2"/></svg>';
+function anScopeDom(){ if(SC.dom) return; const el=$('scope'); if(!el) return; SC.dom=true; el.classList.add('wq'); const L=document.createElement('div'); L.className='lens'; L.innerHTML=SC_SVG; el.appendChild(L); }
+function anScopeSet(l,prev,fov,aug){ anScopeDom(); const el=$('scope');
+  if(aug&&VM&&player.alive&&match.state==='live'&&(l>0)!==(prev>0)){ SC.t=0; SC.on=l>0; SC.dur=l>0?.14:.11; SC.f0=camera.fov; SC.f1=fov; el.classList.add('on','aug'); el.style.opacity=l>0?'0':'1'; anScopeTick(0); return; }
+  SC.t=1; SC.on=l>0; SC.k=l>0&&aug?1:0; camera.fov=fov; camera.updateProjectionMatrix(); updateParticleScale();
+  el.style.opacity=''; el.classList.toggle('on',l>0); el.classList.toggle('aug',l>0&&aug); if(VM) VM.rig.visible=l===0; }
+function anScopeTick(dt){ if(SC.t>=1) return; SC.t=Math.min(1,SC.t+dt/SC.dur); const t=SC.t, e=smooth(t), el=$('scope');
+  camera.fov=lerp(SC.f0,SC.f1,e); camera.updateProjectionMatrix(); updateParticleScale();
+  SC.k=SC.on?e:1-e; const op=SC.on?clamp((t-.55)/.4,0,1):1-clamp(t/.32,0,1); el.style.opacity=op.toFixed(3);
+  if(SC.on&&VM) VM.rig.visible=op<1;
+  if(t>=1){ el.style.opacity=''; if(!SC.on){ el.classList.remove('on','aug'); SC.k=0; } } }
+// eye point of the sight (weapon space): the scope body's rear end
+function anScopeEye(R){ const d=R.def; if(d.stats.scopeType!=='aug') return null; const w=R.w; let b=null;
+  for(const p of d.parts) if(/^dürbün$|^scope$/i.test(p.name)&&w.nodes[p.id]&&w.nodes[p.id].geometry){ const n=w.nodes[p.id], g=n.geometry; if(!g.boundingBox) g.computeBoundingBox(); w.root.updateMatrixWorld(true);
+    _am.copy(w.root.matrixWorld).invert().multiply(n.matrixWorld); b=g.boundingBox.clone().applyMatrix4(_am); break; }
+  return b?new THREE.Vector3((b.min.x+b.max.x)/2,(b.min.y+b.max.y)/2,b.max.z):new THREE.Vector3(0,w.anchors.muzzle.y+.07,.12); }
+function anScopePose(R){ const k=smooth(SC.k), V=R.def.view, O=R.offset, E=R.scopeEye; for(let i=0;i<6;i++) AP[i]*=1-.85*k;
+  AP[0]+=k*(-(V.pos[0]+(O?O[0]*.01:0))-E.x); AP[1]+=k*(-(V.pos[1]+(O?O[1]*.01:0))-E.y); AP[2]+=k*(-.085-(V.pos[2]+(O?-O[2]*.01:0))-E.z);
+  AP[3]-=k*V.rot[0]*DEG; AP[4]-=k*V.rot[1]*DEG; AP[5]-=k*V.rot[2]*DEG; }
+
+/* ---------- knife: wider effective hit area + wall gashes ---------- */
+const KN_REACH={slash:1.6,stab:1.25};
+const _kv1=new THREE.Vector3(), _kv2=new THREE.Vector3(), _kv3=new THREE.Vector3(), _kv4=new THREE.Vector3(), _kv5=new THREE.Vector3(), _kv6=new THREE.Vector3();
+// closest points of segments p1+d1*s and p2+d2*t (s,t in 0..1)
+function anSegSeg(p1,d1,p2,d2){ const r=_kv5.subVectors(p1,p2), a=d1.dot(d1), e=Math.max(1e-8,d2.dot(d2)), f=d2.dot(r), c=d1.dot(r), b=d1.dot(d2), den=a*e-b*b;
+  let s=den>1e-8?clamp((b*f-c*e)/den,0,1):0, t=(b*s+f)/e; if(t<0){ t=0; s=clamp(-c/a,0,1); } else if(t>1){ t=1; s=clamp((b-c)/a,0,1); } return [s,t]; }
+// CS2 does a line trace, then a hull trace: here the centre ray, a cone of rays (each stopped by walls), then the torso as a capsule around the view ray
+function anKnifeTarget(o,dir,R,kind,wd){ const L=opponents().filter(c=>c&&c.deathT<0&&c.root.visible); if(!L.length) return null;
+  let best=rayCharacters(o,dir,wd,L); if(best) return best;
+  const rt=_kv1.crossVectors(dir,AX_Y); if(rt.lengthSq()<1e-6) rt.set(1,0,0); rt.normalize(); const up=_kv2.crossVectors(rt,dir).normalize();
+  const H=kind?[-.12,0,.12]:[-.27,-.14,0,.14,.27], V=kind?[-.14,-.07,0,.08]:[-.2,-.1,0,.11];
+  for(const a of H) for(const b of V){ if(!a&&!b) continue; const d=_kv3.copy(dir).addScaledVector(rt,a).addScaledVector(up,b).normalize();
+    const w=rayWorld(o,d,R), h=rayCharacters(o,d,w?w.dist:R,L); if(h&&(!best||h.dist<best.dist)) best=h; }
+  if(best) return best;
+  const rad=kind?.3:.48, d1=_kv4.copy(dir).multiplyScalar(R);   // ~hull half-width + body radius
+  for(const c of L){ if(Math.hypot(c.pos.x-o.x,c.pos.z-o.z)>R+.22) continue;   // reach is to the body surface, not the hull edge
+    const A=_kv6.set(c.pos.x,c.pos.y+.3,c.pos.z), B=new THREE.Vector3(); c.head.getWorldPosition(B); const d2=B.sub(A);
+    const [s,t]=anSegSeg(o,d1,A,d2), P=o.clone().addScaledVector(d1,s), Q=A.clone().addScaledVector(d2,t), dist=P.distanceTo(Q); if(dist>rad) continue;
+    const toQ=Q.clone().sub(o), dq=toQ.length(); toQ.multiplyScalar(1/Math.max(1e-4,dq)); const ww=rayWorld(o,toQ,dq); if(ww&&ww.dist<dq-.2) continue;   // behind a wall
+    const pt=Q.clone().addScaledVector(toQ,-.17); if(!best||s*R<best.dist) best={dist:s*R,point:pt,zone:'chest',char:c}; }
+  return best; }
+// gashes: pooled lit decals, oriented along the swing, tinted per surface, fade after a while
+const KG={list:[],i:0,tex:null,texM:null,geo:null};
+function anGashTex(metal){ const c=document.createElement('canvas'); c.width=256; c.height=64; const x=c.getContext('2d');
+  for(let s=0;s<3;s++){ const y0=32+(s-1)*13+(s===2?2:0), w=s===1?13:7, x0=8+s*10, x1=248-s*16;
+    x.beginPath(); x.moveTo(x0,y0); x.quadraticCurveTo(128,y0-w-5,x1,y0+.5); x.quadraticCurveTo(128,y0-2,x0,y0); x.fillStyle=metal?'rgba(255,255,255,.95)':'rgba(255,255,255,.85)'; x.fill();   // raised / exposed rim
+    x.beginPath(); x.moveTo(x0+6,y0+.8); x.quadraticCurveTo(128,y0-w*.8,x1-8,y0+1.2); x.quadraticCurveTo(128,y0+w*.75,x0+6,y0+.8); x.fillStyle=metal?'rgba(110,116,124,.95)':'rgba(10,8,6,.92)'; x.fill(); }   // groove
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; }
+const KG_TINT={stone:'#c9bba4',wood:'#d9b07a',metal:'#dfe3e8',sand:null,cloth:null};
+function anKnifeWall(wh,dir,kind){ const p=wh.point, n=wh.normal, surf=wh.surf||'stone', c=SURF_COL[surf]||SURF_COL.stone;
+  for(let i=0;i<3;i++) FX.smoke.spawn(_v2.copy(p).addScaledVector(n,.04),_v1.copy(n).multiplyScalar(rand(.3,.9)).add(_v3.set(rand(-.3,.3),rand(0,.4),rand(-.3,.3))),rand(.35,.7),.06,rand(.3,.5),c,surf==='sand'?.6:.4,-.15,2.2);
+  const nS=surf==='metal'?9:surf==='stone'?3:0; for(let i=0;i<nS;i++) FX.sparks.spawn(p,_v1.copy(n).multiplyScalar(rand(1,3)).add(_v3.set(rand(-1.5,1.5),rand(-.3,2),rand(-1.5,1.5))),rand(.12,.3),.02,.01,surf==='metal'?[5,3,1.2]:[2.2,1.5,.9],1,9.8,.5);
+  for(let i=0;i<3;i++) FX.smoke.spawn(p,_v1.copy(n).multiplyScalar(rand(.8,2)).add(_v3.set(rand(-1,1),rand(0,1.8),rand(-1,1))),rand(.3,.6),.02,.016,[c[0]*.5,c[1]*.5,c[2]*.5],1,9.8,.3);
+  const tint=KG_TINT[surf]===undefined?KG_TINT.stone:KG_TINT[surf]; if(!tint) return; anGash(p,n,dir,kind,surf,tint); }
+function anGash(p,n,dir,kind,surf,tint){
+  if(!KG.geo){ KG.geo=new THREE.PlaneGeometry(1,1); KG.tex=anGashTex(false); KG.texM=anGashTex(true);
+    for(let i=0;i<16;i++){ const m=new THREE.Mesh(KG.geo,new THREE.MeshStandardMaterial({map:KG.tex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4,roughness:1,metalness:0}));
+      m.visible=false; m.renderOrder=2; m.matrixAutoUpdate=false; scene.add(m); KG.list.push({m,t:0}); } }
+  const g=KG.list[KG.i]; KG.i=(KG.i+1)%KG.list.length; const metal=surf==='metal', mat=g.m.material;
+  mat.map=mat.emissiveMap=metal?KG.texM:KG.tex; mat.metalness=metal?.6:0; mat.roughness=metal?.4:1; mat.color.set(tint); mat.emissive.set(tint); mat.emissiveIntensity=metal?.35:.22; mat.opacity=1; mat.needsUpdate=true;   // fresh cut edges catch light even in shade
+  // swing direction in the wall plane: slashes cut diagonally across (alternating sides), stabs leave a short vertical gouge
+  const rt=_kv1.set(1,0,0).applyQuaternion(camera.quaternion), up=_kv2.set(0,1,0).applyQuaternion(camera.quaternion), sl=VM&&VM.slash?-1:1;
+  const sw=kind?_kv3.copy(up).addScaledVector(rt,rand(-.25,.25)):_kv3.copy(rt).multiplyScalar(sl).addScaledVector(up,-.32*sl+rand(-.1,.1));
+  const Z=_kv4.copy(n).normalize(), X=sw.addScaledVector(Z,-sw.dot(Z));
+  if(X.lengthSq()<1e-4){ X.copy(rt).addScaledVector(Z,-rt.dot(Z)); if(X.lengthSq()<1e-4) X.set(1,0,0).addScaledVector(Z,-Z.x); }
+  X.normalize(); const Y=_kv5.crossVectors(Z,X);
+  const len=kind?rand(.09,.11):rand(.26,.32), wid=kind?.05:.075;
+  _am.makeBasis(X,Y,Z).scale(_kv6.set(len,wid,1)).setPosition(_kv6.copy(p).addScaledVector(Z,.003)); g.m.matrix.copy(_am); g.m.matrixWorldNeedsUpdate=true; g.m.visible=true; g.t=0; }
+function anGashTick(dt){ if(!KG.list.length) return; const off=match.state==='menu'||match.state==='over';
+  for(const g of KG.list){ if(!g.m.visible) continue; g.t+=dt; if(off||g.t>14){ g.m.visible=false; continue; } if(g.t>10) g.m.material.opacity=1-(g.t-10)/4; } }
+
 gameExport({ ANIM:{kq,AP,ANQ,ANP,AN_DRAW,AN_INSP,AN_KICK,anShellTimes,vmShell,anCls,AN_DEATH,vmKnife},
+  WQ:{SC,KG,anKnifeTarget,anGash,anKnifeWall,anRoundsTick,anDrawSnd,doKnifeHit:k=>doKnifeHit(k),KN_REACH,rayWorld:(o,d,m)=>rayWorld(o,d,m)},
   anInput:(k,v)=>{ if(k==='fire2') firing2=v; else if(k==='fire') firing=v; else keys[k]=v; },   // test helper: simulated buttons
   // test helper: a Character placed in front of the camera (third-person checks)
   anTestChar:(team,id,dist,yaw)=>{ const c=new Character(team||'T','TEST'); c.setWeapon(getWeapon(id||'ak47')); const f=new THREE.Vector3(); camera.getWorldDirection(f); f.y=0; f.normalize();
