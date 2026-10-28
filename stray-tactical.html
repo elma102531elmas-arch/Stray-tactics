@@ -5907,15 +5907,15 @@ function makeArm(left){
   return {group:g,upper,fore,roll,elbow,hand,left};
 }
 const L1=.31, L2=.3;
-const _ik={d:new THREE.Vector3(),sh:new THREE.Vector3(),b:new THREE.Vector3(),e:new THREE.Vector3(),w:new THREE.Vector3(),r:new THREE.Vector3()};
+const _ik={d:new THREE.Vector3(),sh:new THREE.Vector3(),b:new THREE.Vector3(),e:new THREE.Vector3(),w:new THREE.Vector3(),r:new THREE.Vector3(),wl:new THREE.Vector3(),dn:new THREE.Vector3()};
 function poseArm(arm,shoulder,handPos,handQuat,pole){
   arm.hand.position.copy(handPos); arm.hand.quaternion.copy(handQuat);
-  const wl=WRIST_LOCAL.clone(); if(arm.left) wl.x*=-1;
+  const wl=_ik.wl.copy(WRIST_LOCAL); if(arm.left) wl.x*=-1;
   const W=_ik.w.copy(wl).applyQuaternion(handQuat).add(handPos);
   const dir=_ik.d.subVectors(W,shoulder); let d=dir.length(); const maxD=(L1+L2)*.995; const sh=_ik.sh.copy(shoulder);
   if(d>maxD){ sh.addScaledVector(dir,(d-maxD)/d); dir.subVectors(W,sh); d=maxD; }
   if(d<.05){ d=.05; }
-  const dn=dir.clone().multiplyScalar(1/Math.max(1e-5,dir.length()));
+  const dn=_ik.dn.copy(dir).multiplyScalar(1/Math.max(1e-5,dir.length()));
   const a=(L1*L1-L2*L2+d*d)/(2*d), h=Math.sqrt(Math.max(0,L1*L1-a*a));
   const bend=_ik.b.copy(pole).sub(sh); bend.addScaledVector(dn,-bend.dot(dn)); if(bend.lengthSq()<1e-8) bend.set(0,-1,0); else bend.normalize();
   const E=_ik.e.copy(sh).addScaledVector(dn,a).addScaledVector(bend,h);
@@ -5946,39 +5946,43 @@ function createRig(light){
   const sideMat=new THREE.MeshBasicMaterial({map:TEX.flashSide,color:new THREE.Color(6,4,2.2),blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false,transparent:true,side:THREE.DoubleSide});
   for(let i=0;i<3;i++){ const p=new THREE.Mesh(new THREE.PlaneGeometry(.22,.09),sideMat); p.geometry.translate(.11,0,0); p.rotation.set(0,Math.PI/2,0); const h=new THREE.Group(); h.rotation.z=i*Math.PI/3; h.add(p); fm.add(h); }
   fm.visible=false; fm.traverse(o=>{ o.frustumCulled=false; o.renderOrder=10; });
+  anInitRig(R);
   return R;
 }
 let VM=null;
-function vmEquip(R,def,silent,silOn){
-  if(R.w) disposeWeaponObject(R.w);
+function vmEquip(R,def,silent,silOn,now){
+  if(!silent&&!now&&anHolsterStart(R,def,silOn)) return;   // short holster of the old gun first
+  R.hol=null; if(R.w) disposeWeaponObject(R.w);
   R.def=def; R.w=buildWeaponObject(def,{shadows:false});
   R.w.root.traverse(o=>{ o.frustumCulled=false; });
   R.silOn=silOn!==false; setSuppressor(R.w,R.silOn); R.silT=-1; R.silSlot=null; R.silFlip=false;
   R.gunRoot.add(R.w.root); R.gunRoot.add(R.flash); R.flash.position.copy(muzzleOf(R.w));
   R.drawDur=def.stats.draw||.8; R.drawT=silent?0:R.drawDur; R.reloadT=0; R.inspectT=-1; R.knifeT=-1; R.rechamberT=-1; R.throwT=-1; R.cues=[];
-  R.armL.group.visible=!!R.w.anchors.gripL;
+  R.armL.group.visible=!!R.w.anchors.gripL; anOnEquip(R);
   if(!silent&&R.sounds) weaponSound(def,'draw');
 }
 function vmFire(R){
-  const s=R.def.stats, t=R.def.type, r=s.recoil||1;
-  const kb=t==='sniper'?.07:t==='pistol'?.035:t==='shotgun'?.06:.026, ku=t==='sniper'?.16:t==='pistol'?.13:t==='shotgun'?.14:.045;
-  R.kickZ.v+=kb*12*Math.min(2,r+.3); R.kickX.v+=ku*12*Math.min(2.2,r+.3); R.kickY.v+=rand(-1,1)*.4*ku*10; R.kickR.v+=rand(-1,1)*.5*ku*10;
+  if(R.hol) anHolsterFlush(R);
+  const t=R.def.type; anFireKick(R);   // per-class kick, muzzle climb, slide lock
   R.slideT=0; R.hammerT=0; R.flashT=.045; R.inspectT=-1;
   R.flash.visible=true; R.flash.rotation.z=Math.random()*TAU; const sil=isSuppressed(R.def,R);
   R.flashStar.scale.setScalar(sil?.05:rand(.12,.19)); R.flash.children.forEach((c,i)=>{ if(i>0){ c.visible=!sil; c.scale.setScalar(rand(.7,1.3)); } });
   if(t==='sniper'||t==='shotgun') R.rechamberT=0;
 }
-function vmReload(R,dur){ R.reloadT=dur; R.reloadDur=dur; R.inspectT=-1; const T=R.def.type, d=R.def;
-  const cues=T==='pistol'?[[.14,'clipout'],[.6,'clipin'],[.8,'boltback'],[.86,'boltfwd']]:T==='shotgun'?[[.12,'clipout'],[.34,'clipin'],[.56,'clipout'],[.76,'boltback'],[.85,'boltfwd']]:[[.18,'clipout'],[.64,'clipin'],[.76,'boltback'],[.83,'boltfwd']];
+function vmReload(R,dur,empty){ if(R.hol) anHolsterFlush(R); R.inspectT=-1; R.drawX=0; const T=R.def.type, d=R.def; R.rlEmpty=empty!==false; R.lock0=R.lock;
+  if(T==='shotgun'&&!R.w.roles.mag.length){ R.reloadT=0; R.cues=[]; R.sh.demo=Math.min(4,Math.max(1,d.stats.mag|0)); R.sh.empty=R.rlEmpty; vmShell(R,1,anShellTimes(d).start); return; }   // shell by shell
+  R.reloadT=dur; R.reloadDur=dur;
+  let cues=T==='pistol'?[[.14,'clipout'],[.6,'clipin'],[.8,'boltback'],[.86,'boltfwd']]:T==='shotgun'?[[.12,'clipout'],[.34,'clipin'],[.56,'clipout'],[.76,'boltback'],[.85,'boltfwd']]:[[.18,'clipout'],[.64,'clipin'],[.76,'boltback'],[.83,'boltfwd']];
+  if(!R.rlEmpty) cues=cues.filter(c=>c[1]!=='boltback'&&c[1]!=='boltfwd');   // tactical reload: no bolt / slide release
   if(R.sounds&&SFX_LIB&&isPackVer(soundVer(d,'reload'))){ const has=a=>packHas(d.id+':'+a,'any'), k=1/Math.max(.2,dur), co=cues.find(c=>c[1]==='clipout'), ci=cues.find(c=>c[1]==='clipin');   // pack-only cues
     if(has('cliprelease')) cues.push([Math.max(0,co[0]-.05*k),'cliprelease']); if(has('cliphit')) cues.push([Math.min(.99,ci[0]+.12*k),'cliphit']); }
   R.cues=R.sounds?cues.map(c=>({p:c[0],f:()=>weaponSound(d,c[1])})):[]; }
-function vmInspect(R){ if(R.reloadT>0||R.drawT>0||R.knifeT>=0||R.silT>=0) return; R.inspectT=0; R.icues=R.sounds?inspectCues(R.def,R.inspectDur):null; }
+function vmInspect(R){ if(R.hol||R.reloadT>0||R.drawT>0||R.knifeT>=0||R.silT>=0||R.sh.ph||R.throwT>=0||R.planting) return; R.inspectDur=AN_INSP_DUR[anCls(R.def)]||3.4; R.inspV=Math.random()<.5?1:0; R.inspectT=0; R.icues=R.sounds?inspectCues(R.def,R.inspectDur):null; }
 // pack inspect files ("<id>_special_lookat_f057"): played at frame/30 s, time-scaled so the last one lands at 90% of the inspect animation
 function inspectCues(d,dur){ if(!SFX_LIB||!d||!pkHas(d.id+':inspect')) return null; const slot=d.id+':inspect'; let L=packList(slot,'P'); if(!L.length) L=packList(slot,'P2'); if(!L.length) return null;
   const fr=L.map((x,i)=>typeof x.frame==='number'?x.frame:Math.round((i+.5)*dur*30/L.length)), k=.9*dur/(Math.max(1,...fr)/30); packReady(slot,'P');
   return fr.map((f,i)=>({t:f/30*k,i})); }
-function vmKnife(R,kind,quiet){ R.knifeT=0; R.knifeKind=kind; R.inspectT=-1; if(R.sounds&&!quiet) kind?sfx.stab():sfx.swing(); }
+function vmKnife(R,kind,quiet){ if(R.hol) anHolsterFlush(R); if(!kind){ R.slash=R.time-R.lastSlash<.9?1-R.slash:0; R.lastSlash=R.time; } R.drawX=0; R.knifeT=0; R.knifeKind=kind; R.inspectT=-1; if(R.sounds&&!quiet) kind?sfx.stab():sfx.swing(); }
 const _gq=new THREE.Quaternion(), _hq=new THREE.Quaternion(), _hp=new THREE.Vector3(), _sq=new THREE.Quaternion(), _sv=new THREE.Vector3();
 // silencer toggle pose: gun rot/pos offsets (rad / m), where the left hand grabs the suppressor (0 = rear end, 1 = front), hand offset + rotation, pull-off distance, where the suppressor is carried to
 const SIL_POSE={pistol:{rot:[.05,1.0,.1],pos:[-.08,.02,.05],grab:.55,hand:[0,-.002,0],q:[90,0,25],pull:.035,down:[-.02,-.17,.05]},
@@ -5986,34 +5990,23 @@ const SIL_POSE={pistol:{rot:[.05,1.0,.1],pos:[-.08,.02,.05],grab:.55,hand:[0,-.0
 const POLE_R=new THREE.Vector3(.7,-.6,.35), POLE_L=new THREE.Vector3(-.65,-.7,.1);
 function updateRig(R,dt,mv){
   if(!R.w) return;
+  if(R.hol){ R.holT+=dt; if(R.holT>=R.holDur||R.throwT>=0) anHolsterFlush(R); }
   R.time+=dt; const D=R.def, T=D.type, w=R.w;
   if(R.drawT>0) R.drawT=Math.max(0,R.drawT-dt);
   if(R.flashT>0){ R.flashT-=dt; if(R.flashT<=0) R.flash.visible=false; }
-  R.slideT=Math.min(1,R.slideT+dt/.09); R.hammerT=Math.min(1,R.hammerT+dt/.14);
+  R.slideT=Math.min(1,R.slideT+dt/.1); R.hammerT=Math.min(1,R.hammerT+dt/.14);
   if(R.inspectT>=0){ R.inspectT+=dt; if(R.icues) for(let i=R.icues.length-1;i>=0;i--) if(R.inspectT>=R.icues[i].t){ weaponSound(D,'inspect',{v:'P',variant:R.icues[i].i,jit:0}); R.icues.splice(i,1); } if(R.inspectT>R.inspectDur) R.inspectT=-1; }
   if(R.knifeT>=0){ R.knifeT+=dt; if(R.knifeT>(R.knifeKind?.9:.5)) R.knifeT=-1; }
-  if(R.rechamberT>=0){ R.rechamberT+=dt; if(R.rechamberT>1.2) R.rechamberT=-1; if(R.sounds){ if(R.rechamberT>(T==='shotgun'?.3:.35)&&!R.rb){ R.rb=1; weaponSound(D,'boltback'); } if(R.rechamberT>(T==='shotgun'?.55:.7)&&R.rb===1){ R.rb=2; weaponSound(D,'boltfwd'); } } } else R.rb=0;
+  if(R.rechamberT>=0){ R.rechamberT+=dt; if(R.rechamberT>1.2) R.rechamberT=-1; if(R.sounds){ if(R.rechamberT>(T==='shotgun'?.3:.37)&&!R.rb){ R.rb=1; weaponSound(D,'boltback'); } if(R.rechamberT>(T==='shotgun'?.55:.56)&&R.rb===1){ R.rb=2; weaponSound(D,'boltfwd'); } } } else R.rb=0;
+  if(R.throwT===0) R.throwU=R===VM&&firing2&&!firing;
+  if(R.throwT>=0){ R.throwT+=dt; if(R.throwT>=.62) R.throwT=-1; }
   let rp=-1;
-  if(R.reloadT>0){ R.reloadT-=dt; rp=clamp(1-R.reloadT/R.reloadDur,0,1); for(let i=R.cues.length-1;i>=0;i--) if(rp>=R.cues[i].p){ R.cues[i].f(); R.cues.splice(i,1); } if(R.reloadT<=0){ R.reloadT=0; rp=-1; } }
-  const kz=R.kickZ.step(dt), kx=R.kickX.step(dt), ky=R.kickY.step(dt), kr=R.kickR.step(dt);
-  R.sway.lerp(R.swayT,Math.min(1,dt*10)); R.swayT.multiplyScalar(Math.pow(.0005,dt));
-  const sp=Math.min(1,mv.speed), onG=mv.onGround;
-  R.bob+=dt*(sp>.05&&onG?9.2*(.6+sp*.4):0);
-  const bsc=R.bobScale===undefined?1:R.bobScale, bx=Math.sin(R.bob)*.009*sp*bsc, by=-Math.abs(Math.cos(R.bob))*.011*sp*bsc;
-  const breath=Math.sin(R.time*1.7)*.0016;
+  if(R.reloadT>0){ R.reloadT-=dt; rp=clamp(1-R.reloadT/R.reloadDur,0,1); for(let i=R.cues.length-1;i>=0;i--) if(rp>=R.cues[i].p){ R.cues[i].f(); R.cues.splice(i,1); } if(R.reloadT<=0){ R.reloadT=0; rp=-1; } if(rp>.86) R.lock=0; }
+  anShellRig(R,dt);
+  anPose(R,dt,mv,rp);   // draw / inspect / movement / fire kick / knife / throw / reload / plant / defuse / flash (fills AP + hand overrides)
   const V=D.view, O=R.offset;
-  let px=V.pos[0]+bx+R.sway.x*.035+(O?O[0]*.01:0), py=V.pos[1]+by+breath+R.sway.y*.03+clamp(-mv.vy*.0035,-.025,.025)-R.landT*.03+(O?O[1]*.01:0), pz=V.pos[2]+kz*.01+(O?-O[2]*.01:0);
-  let rx=V.rot[0]*DEG+kx*.1+R.sway.y*.08, ry=V.rot[1]*DEG-R.sway.x*.12+ky*.05, rz=V.rot[2]*DEG+R.sway.x*.08-mv.strafe*.06+kr*.05+Math.sin(R.bob)*.012*sp;
-  if(mv.crouch){ py+=.006; rz+=.03; }
-  R.landT=Math.max(0,R.landT-dt*4);
-  if(R.drawT>0){ const k=1-smooth(1-R.drawT/R.drawDur); py-=k*.28; rx-=k*.9; rz+=k*.35; px+=k*.05; }
-  if(R.inspectT>=0){ const t=R.inspectT/R.inspectDur;
-    if(T==='knife'){ rz+=kf(t,[[0,0],[.12,-.6],[.3,-.6],[.42,.9],[.62,.9],[.75,TAU*.5],[.9,TAU],[1,TAU]]); ry+=kf(t,[[0,0],[.12,.5],[.62,.4],[1,0]]); px+=kf(t,[[0,0],[.12,-.04],[.9,-.04],[1,0]]); }
-    else { ry+=kf(t,[[0,0],[.14,.62],[.44,.66],[.56,-.3],[.84,-.34],[1,0]]); rz+=kf(t,[[0,0],[.14,-.5],[.44,-.56],[.56,.32],[.84,.28],[1,0]]); rx+=kf(t,[[0,0],[.14,.18],[.44,.15],[.56,.06],[.84,.08],[1,0]]);
-      px+=kf(t,[[0,0],[.14,-.07],[.44,-.065],[.56,-.03],[.84,-.03],[1,0]]); py+=kf(t,[[0,0],[.14,.045],[.84,.04],[1,0]]); pz+=kf(t,[[0,0],[.14,-.03],[.84,-.03],[1,0]]); }
-  }
-  if(R.knifeT>=0){ if(R.knifeKind===0){ const t=R.knifeT/.5; rz+=kf(t,[[0,0],[.15,.7],[.45,-1.1],[.7,-.9],[1,0]]); ry+=kf(t,[[0,0],[.15,-.3],[.45,.6],[1,0]]); px+=kf(t,[[0,0],[.15,.04],[.45,-.12],[1,0]]); pz+=kf(t,[[0,0],[.45,-.08],[1,0]]); }
-    else { const t=R.knifeT/.9; pz+=kf(t,[[0,0],[.2,.06],[.38,-.22],[.6,-.18],[1,0]]); rx+=kf(t,[[0,0],[.2,.25],[.38,-.35],[1,0]]); px+=kf(t,[[0,0],[.38,-.06],[1,0]]); } }
+  let px=V.pos[0]+(O?O[0]*.01:0)+AP[0], py=V.pos[1]+(O?O[1]*.01:0)+AP[1], pz=V.pos[2]+(O?-O[2]*.01:0)+AP[2];
+  let rx=V.rot[0]*DEG+AP[3], ry=V.rot[1]*DEG+AP[4], rz=V.rot[2]*DEG+AP[5];
   let silHand=null; const supOff=R.so.set(0,0,0);
   if(R.silT>=0){ R.silT+=dt; const t=Math.min(1,R.silT/R.silDur), at=R.silAttach, pis=T==='pistol';
     if(!R.silFlip&&t>=.55){ R.silFlip=true; R.silOn=at; if(R.silSlot) R.silSlot.silOn=at; setSuppressor(w,at); R.flash.position.copy(muzzleOf(w)); }
@@ -6029,65 +6022,45 @@ function updateRig(R,dt,mv){
       const q=G.q.clone().slerp(_sq.setFromEuler(new THREE.Euler(SP.q[0]*DEG,SP.q[1]*DEG,SP.q[2]*DEG)),hk); q.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),tw*.45));
       silHand={p:hp,q}; }
     if(t>=1) R.silT=-1; }
-  (w.roles.suppressor||[]).forEach(r=>{ r.node.position.copy(r.pos).add(supOff); });
-  let hideGun=false;
-  if(R.throwT>=0){ R.throwT+=dt; const t=R.throwT/.62; if(t>=1) R.throwT=-1; else { hideGun=t>.5;
-    py+=kf(t,[[0,0],[.35,.07],[.48,.09],[.62,-.05],[1,-.3]]); pz+=kf(t,[[0,0],[.35,.08],[.48,.1],[.62,-.22],[1,-.1]]);
-    rx+=kf(t,[[0,0],[.35,.6],[.48,.7],[.62,-.9],[1,-1.2]]); px+=kf(t,[[0,0],[.35,.02],[.62,-.06],[1,-.04]]); } }
-  w.root.visible=!hideGun;
-  if(R.planting){ py+=-.045+Math.sin(R.time*15)*.005; rx+=.32; pz-=.02; rz+=Math.sin(R.time*7)*.02; }
+  for(const r of w.roles.suppressor) r.node.position.copy(r.pos).add(supOff);
+  w.root.visible=!R.hideGun;
   const hasMag=w.roles.mag.length>0;
-  if(rp>=0){
-    if(T==='pistol'){ rz+=kf(rp,[[0,0],[.12,.35],[.72,.35],[.9,0],[1,0]]); rx+=kf(rp,[[0,0],[.12,.25],[.72,.2],[.82,.05],[1,0]]); py+=kf(rp,[[0,0],[.12,.02],[.72,.02],[1,0]]); px+=kf(rp,[[0,0],[.12,-.03],[.8,-.03],[1,0]]); }
-    else { rz+=kf(rp,[[0,0],[.12,.45],[.68,.45],[.74,.2],[.86,.25],[.96,0]]); rx+=kf(rp,[[0,0],[.12,.14],[.68,.12],[.86,.05],[1,0]]); ry+=kf(rp,[[0,0],[.12,.18],[.68,.18],[.86,.1],[1,0]]);
-      py+=kf(rp,[[0,0],[.12,-.03],[.68,-.03],[.86,-.02],[1,0]]); px+=kf(rp,[[0,0],[.12,-.04],[.68,-.04],[1,0]]); }
-  }
   R.gunRoot.position.set(px,py,pz); R.gunRoot.rotation.set(rx,ry,rz,'YXZ');
-  const sT=R.slideT<1?Math.sin(R.slideT*Math.PI):0;
-  const pump=T==='shotgun'&&R.rechamberT>=0?kf(R.rechamberT,[[0,0],[.28,0],[.42,.075],[.55,.075],[.7,0],[1.2,0]]):0;
-  w.roles.slide.forEach(r=>{ r.node.position.copy(r.pos); r.node.position.z+=T==='shotgun'?pump:sT*(T==='pistol'?.028:.02); });
-  let boltOff=T==='sniper'?0:sT*.045;
-  if(R.rechamberT>=0) boltOff=kf(R.rechamberT,[[0,0],[.3,0],[.5,.075],[.7,.075],[.9,0],[1.2,0]]);
-  if(rp>=0) boltOff=Math.max(boltOff,kf(rp,[[0,0],[.72,0],[.78,.06],[.82,.06],[.86,0],[1,0]]));
-  w.roles.bolt.forEach(r=>{ r.node.position.copy(r.pos); r.node.position.z+=boltOff; });
-  if(rp>=0&&T==='pistol'){ const so=kf(rp,[[0,0],[.74,0],[.8,.03],[.84,.03],[.88,0],[1,0]]); w.roles.slide.forEach(r=>{ r.node.position.z+=so; }); }
-  w.roles.hammer.forEach(r=>{ r.node.rotation.copy(r.rot); r.node.rotation.x+=(R.hammerT<1?Math.sin(R.hammerT*Math.PI)*.6:0); });
+  if(R.gsPiv){ w.root.quaternion.copy(R.gsq); w.root.position.copy(R.gsPv).sub(_a1.copy(R.gsPv).applyQuaternion(R.gsq)).add(R.gsp); }   // gun-only twirl / flip / toss
+  else if(R.gsOn){ w.root.position.set(0,0,0); w.root.quaternion.identity(); R.gsOn=false; }
+  const sT=R.slideT<1?(R.slideT<.28?R.slideT/.28:1-smooth((R.slideT-.28)/.72)):0;   // snaps back, eases home
+  const pump=Math.max(R.pump,T==='shotgun'&&R.rechamberT>=0?kq(R.rechamberT,K_PUMP):0);
+  let slideOff=Math.max(sT*(T==='pistol'?.028:.02),R.slideX,T==='pistol'&&R.lock?.028:0);
+  if(rp>=0&&T==='pistol'&&R.rlEmpty) slideOff=Math.max(R.slideX,kq(rp,R.lock0?K_RL_SLIDE_L:K_RL_SLIDE_U));
+  for(const r of w.roles.slide){ r.node.position.copy(r.pos); r.node.position.z+=T==='shotgun'?pump:slideOff; }
+  let boltOff=Math.max(T==='sniper'?0:sT*.045,R.boltX);
+  if(rp>=0&&R.rlEmpty&&T!=='sniper') boltOff=Math.max(boltOff,kq(rp,K_RL_BOLT));
+  if(T==='sniper'&&R.boltU>=0) anBoltParts(R); else for(const r of w.roles.bolt){ r.node.position.copy(r.pos); r.node.position.z+=boltOff; if(T==='sniper') r.node.rotation.copy(r.rot); }
+  for(const r of w.roles.hammer){ r.node.rotation.copy(r.rot); r.node.rotation.x+=(R.hammerT<1?Math.sin(R.hammerT*Math.PI)*.6:0); }
   R.trigHeld=lerp(R.trigHeld,R.fireHeld?1:0,Math.min(1,dt*25));
-  w.roles.trigger.forEach(r=>{ r.node.rotation.copy(r.rot); r.node.rotation.x+=R.trigHeld*.25; });
+  for(const r of w.roles.trigger){ r.node.rotation.copy(r.rot); r.node.rotation.x+=R.trigHeld*.25; }
   const magOff=R.mo.set(0,0,0); let magRot=0, magVis=true; const MT=D.anchors.magPath==='top';
-  if(rp>=0&&hasMag&&MT){
-    magOff.set(kf(rp,[[0,0],[.3,0],[.42,-.1],[.46,-.1],[.58,-.01],[.64,0],[1,0]]),
-               kf(rp,[[0,0],[.14,0],[.24,.022],[.3,.05],[.42,.3],[.46,.3],[.58,.035],[.64,.008],[.68,0],[1,0]]),
-               kf(rp,[[0,0],[.14,0],[.24,.03],[.3,.045],[.42,.08],[.46,.08],[.58,.01],[.64,0],[1,0]]));
-    magRot=kf(rp,[[0,0],[.14,0],[.24,-.09],[.3,-.12],[.42,-.25],[.46,-.25],[.58,-.08],[.64,-.02],[.68,0],[1,0]]);
-    magVis=!(rp>.38&&rp<.48);
-  } else if(rp>=0&&hasMag){
-    magOff.set(kf(rp,[[0,0],[.28,0],[.42,-.05],[.46,-.05],[.58,0],[1,0]]),
-               kf(rp,[[0,0],[.12,0],[.28,-.13],[.42,-.42],[.46,-.42],[.58,-.12],[.68,0],[1,0]]),
-               kf(rp,[[0,0],[.12,0],[.28,-.02],[.42,.06],[.46,.06],[.58,-.02],[.68,0],[1,0]]));
-    magRot=T==='rifle'?kf(rp,[[0,0],[.12,0],[.22,.22],[.28,.25],[.58,.25],[.64,.12],[.68,0],[1,0]]):0;
-    magVis=!(rp>.38&&rp<.48);
-  }
-  w.roles.mag.forEach(r=>{ r.node.position.copy(r.pos).add(magOff); r.node.rotation.copy(r.rot); r.node.rotation.x+=magRot; r.node.visible=magVis; });
+  if(rp>=0&&hasMag&&MT){ magOff.set(kq(rp,K_MT_X),kq(rp,K_MT_Y),kq(rp,K_MT_Z)); magRot=kq(rp,K_MT_R); magVis=!(rp>.38&&rp<.48); }
+  else if(rp>=0&&hasMag){ magOff.set(kq(rp,K_MB_X),kq(rp,K_MB_Y),kq(rp,K_MB_Z)); magRot=T==='rifle'?kq(rp,K_MB_R):0; magVis=!(rp>.38&&rp<.48); }
+  else if(R.magX) magOff.y=-R.magX;
+  for(const r of w.roles.mag){ r.node.position.copy(r.pos).add(magOff); r.node.rotation.copy(r.rot); r.node.rotation.x+=magRot; r.node.visible=magVis; }
   R.gunRoot.updateMatrix(); _gq.copy(R.gunRoot.quaternion);
   const A=w.anchors;
-  _hp.copy(A.gripR.p).applyMatrix4(R.gunRoot.matrix); _hq.copy(_gq).multiply(A.gripR.q);
+  // right hand: grip anchor, optionally blended to a gun-local target (bolt, keypad) and/or a rig-space target (defuse)
+  if(R.hR.k>0){ _a1.copy(A.gripR.p).lerp(R.hR.p,R.hR.k); _aq.copy(A.gripR.q).slerp(R.hR.q,R.hR.k); } else { _a1.copy(A.gripR.p); _aq.copy(A.gripR.q); }
+  _hp.copy(_a1).applyMatrix4(R.gunRoot.matrix); _hq.copy(_gq).multiply(_aq);
+  if(R.hRr.k>0){ _hp.lerp(R.hRr.p,R.hRr.k); _hq.slerp(R.hRr.q,R.hRr.k); }
   poseArm(R.armR,SH_R,_hp,_hq,POLE_R);
-  if(A.gripL){
-    const lp=A.gripL.p.clone(), DA=D.anchors, MH=DA.magHand; let lq=A.gripL.q; if(pump) lp.z+=pump;
-    if(rp>=0){
-      const mbx=w.magBox, mb=MT&&mbx?new THREE.Vector3((mbx.min.x+mbx.max.x)/2,mbx.max.y,(mbx.min.z+mbx.max.z)/2).add(magOff):w.magBottom.clone().add(magOff).add(new THREE.Vector3(0,-.025,0));
-      if(MH&&MH.p) mb.add(new THREE.Vector3().fromArray(MH.p));
-      const boltP=w.roles.bolt.length?w.roles.bolt[0].pos.clone().add(new THREE.Vector3().fromArray(DA.boltHand||[.03,0,0])):A.eject.clone().add(new THREE.Vector3(.02,0,0));
-      const away=A.gripL.p.clone().add(new THREE.Vector3(-.06,-.34,.12));
-      const pts=[[0,A.gripL.p],[.12,mb],[.28,mb],[.42,mb],[.46,mb],[.58,mb],[.68,mb],[.74,boltP],[.82,boltP.clone().add(new THREE.Vector3(0,0,.05))],[.92,A.gripL.p],[1,A.gripL.p]];
-      if(T==='pistol') pts.splice(7,2,[.76,A.gripL.p],[.82,A.gripL.p]);
-      if(!hasMag) pts.splice(1,6,[.3,away],[.6,away]);
-      if(MT&&hasMag) pts.splice(1,0,[.06,A.gripL.p.clone().add(new THREE.Vector3(-.07,.06,.02))]);
-      if(MH&&MH.r&&hasMag){ const k=kf(rp,[[0,0],[.12,1],[.66,1],[.74,0],[1,0]]); if(k>0) lq=A.gripL.q.clone().slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(MH.r[0]*DEG,MH.r[1]*DEG,MH.r[2]*DEG)),k); }
-      for(let i=1;i<pts.length;i++){ if(rp<=pts[i][0]){ const a=pts[i-1],b=pts[i]; const k=smooth((rp-a[0])/Math.max(1e-6,b[0]-a[0])); lp.copy(a[1]).lerp(b[1],k); break; } }
-    } else if(silHand){ lp.copy(silHand.p); lq=silHand.q; }
-    _hp.copy(lp).applyMatrix4(R.gunRoot.matrix); _hq.copy(_gq).multiply(lq);
+  R.pointer.visible=R.typeK>.3; R.pliers.visible=R.hRr.k>.5&&R.dfK>.5&&R===VM&&!!player.kit;
+  // left hand: support grip / reload path / suppressor / overrides
+  const showL=!!A.gripL||R.armLvis||R.hL.k>.01; R.armL.group.visible=showL;
+  if(showL){
+    if(A.gripL){ _a2.copy(A.gripL.p); let lq=A.gripL.q; if(pump) _a2.z+=pump;
+      if(rp>=0) lq=anReloadHand(R,rp,_a2,_aq2); else if(silHand){ _a2.copy(silHand.p); lq=silHand.q; }
+      if(R.hL.k>0){ _a2.lerp(R.hL.p,R.hL.k); _aq.copy(lq).slerp(R.hL.q,R.hL.k); lq=_aq; }
+      _hp.copy(_a2).applyMatrix4(R.gunRoot.matrix); _hq.copy(_gq).multiply(lq); }
+    else { anV('restL',_hp); anQ('rest',_hq); if(R.hL.k>0){ _a2.copy(R.hL.p).applyMatrix4(R.gunRoot.matrix); _aq.copy(_gq).multiply(R.hL.q); _hp.lerp(_a2,R.hL.k); _hq.slerp(_aq,R.hL.k); } }
+    if(R.hLr.k>0){ _hp.lerp(R.hLr.p,R.hLr.k); _hq.slerp(R.hLr.q,R.hLr.k); }
     poseArm(R.armL,SH_L,_hp,_hq,POLE_L);
   }
   if(R.light){ R.flash.getWorldPosition(_v2); R.light.position.copy(_v2); R.light.intensity=R.flashT>0&&!isSuppressed(D,R)?2.2:0; }
@@ -6119,7 +6092,8 @@ class Character{
     const M=teamMats(team); this.team=team; this.name=name||'';
     const root=new THREE.Group(); this.root=root;
     const add=(par,geo,mat,x,y,z,rx)=>{ applyBoxUV(geo,IDENT); const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); if(rx) m.rotation.x=rx; m.castShadow=true; m.receiveShadow=true; par.add(m); return m; };
-    this.hips=new THREE.Group(); this.hips.position.y=.93; root.add(this.hips);
+    this.body=new THREE.Group(); root.add(this.body);   // death / fall pivot (at the feet)
+    this.hips=new THREE.Group(); this.hips.position.y=.93; this.body.add(this.hips);
     add(this.hips,new RoundedBoxGeometry(.34,.2,.22,2,.06),M.pants,0,0,0);
     add(this.hips,new RoundedBoxGeometry(.36,.05,.24,1,.015),M.pouch,0,.1,0);
     this.legs=[];
@@ -6154,33 +6128,19 @@ class Character{
     [this.armR,this.armL].forEach(a=>a.group.traverse(o=>{ if(o.isMesh){ o.castShadow=true; } }));
     this.gunRoot=new THREE.Group(); this.spine.add(this.gunRoot);
     this.w=null; this.def=null; this.phase=0; this.crouchK=0; this.deathT=-1; this.flashT=0;
-    this.pos=new THREE.Vector3(); this.yaw=0; this.pitch=0; this.speed=0;
+    this.pos=new THREE.Vector3(); this.yaw=0; this.pitch=0; this.speed=0; anCharInit(this);
     scene.add(root);
   }
   setWeapon(def){
-    if(this.def===def&&this.w) return; if(this.w) disposeWeaponObject(this.w);
+    if(this.def===def&&this.w) return; const had=!!this.w; if(this.w) disposeWeaponObject(this.w);
     this.def=def; this.w=buildWeaponObject(def,{shadows:true}); this.gunRoot.add(this.w.root);
-    const t=def.type; if(t==='pistol') this.gunRoot.position.set(.03,.37,-.44); else if(t==='knife') this.gunRoot.position.set(.2,.08,-.3); else this.gunRoot.position.set(.12,.39,-.27);
-    this.gunRoot.rotation.set(t==='knife'?-.4:0,0,0); this.armL.group.visible=true;
+    anCharWeapon(this,def,had); this.armL.group.visible=true;
   }
   muzzleWorld(out){ if(!this.w) return out.copy(this.pos).setY(1.4); return out.copy(muzzleOf(this.w)).applyMatrix4(this.w.root.matrixWorld); }
-  update(dt){
-    const r=this.root; r.position.copy(this.pos); r.rotation.y=this.yaw;
-    if(this.deathT>=0){ this.deathT+=dt; const k=Math.min(1,this.deathT/.5); r.rotation.order='YXZ'; r.rotation.x=k*k*1.45; this.hips.position.y=lerp(.93,.25,k*k); return; }
-    r.rotation.x=0;
-    this.phase+=dt*this.speed*2.1; const sw=Math.sin(this.phase)*Math.min(1,this.speed/3)*.55;
-    const ck=this.crouchK;
-    this.hips.position.y=lerp(.93,.6,ck);
-    this.legs.forEach((L,i)=>{ const p=i?sw:-sw; L.th.rotation.x=p-ck*1.1; L.kn.rotation.x=Math.max(0,-p)*.9+ck*1.9+ (Math.sin(this.phase+(i?0:Math.PI))>0?.25*Math.min(1,this.speed/3):0); });
-    this.spine.rotation.x=-this.pitch*.55+ck*.15; this.head.rotation.x=-this.pitch*.35;
-    this.spine.updateMatrixWorld(true);
-    if(this.w){ this.gunRoot.updateMatrix(); const A=this.w.anchors, gq=this.gunRoot.quaternion;
-      const hp=A.gripR.p.clone().applyMatrix4(this.gunRoot.matrix), hq=gq.clone().multiply(A.gripR.q);
-      poseArm(this.armR,new THREE.Vector3(.2,.43,.02),hp,hq,this.poleR||CHAR_POLE_R);
-      if(A.gripL){ const lp=A.gripL.p.clone().applyMatrix4(this.gunRoot.matrix), lq=gq.clone().multiply(A.gripL.q); poseArm(this.armL,new THREE.Vector3(-.2,.43,.02),lp,lq,this.poleL||CHAR_POLE_L); }
-      else poseArm(this.armL,new THREE.Vector3(-.2,.43,.02),new THREE.Vector3(-.26,.0,-.05),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,Math.PI)),new THREE.Vector3(-.5,.2,.4)); }
-  }
-  setDead(d){ this.deathT=d?0:-1; if(!d){ this.root.rotation.x=0; } }
+  update(dt){ anCharUpdate(this,dt); }   // walk / run / strafe / crouch / jump, aim, recoil, reload, flinch, kneel, flash, deaths
+  setHold(p,r){ this.hold.p.fromArray(p); this.hold.r.set(r[0],r[1],r[2]); }
+  onFire(){ anCharFire(this); } onHit(from,zone){ anCharHit(this,from,zone); } onThrow(under){ this.throwT=0; this.throwU=!!under; }
+  setDead(d,info){ anCharSetDead(this,d,info); }
   setTag(txt,col){ if(this.tag){ this.tag.material.map.dispose(); this.root.remove(this.tag); }
     const t=drawTex(256,(x,S)=>{ x.font='700 '+Math.round(S*.17)+'px Barlow,Arial,sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.lineWidth=7; x.strokeStyle='rgba(0,0,0,.85)'; x.strokeText(txt,S/2,S/2); x.fillStyle=col; x.fillText(txt,S/2,S/2); });
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true,fog:false,sizeAttenuation:false})); sp.scale.set(.17,.17,1); sp.position.y=2.12; sp.renderOrder=30; sp.visible=false; this.root.add(sp); this.tag=sp; }
@@ -6345,7 +6305,7 @@ function updatePlayer(dt){
   moveState.speed=hs/MAXSPD; moveState.onGround=P.onGround; moveState.vy=P.vel.y; moveState.crouch=P.h===CROUCH_H; moveState.strafe=lerp(moveState.strafe,mx*Math.min(1,hs/3),Math.min(1,dt*6));
   if(P.fireCd>0) P.fireCd-=dt;
   if(P.rescope&&P.fireCd<=0&&!P.reloading&&P.alive){ setScope(P.rescope); P.rescope=0; }
-  if(P.reloading){ P.reloadT-=dt; if(P.reloadT<=0) finishReload(); }
+  if(P.shell) anShellTick(P,dt); else if(P.reloading){ P.reloadT-=dt; if(P.reloadT<=0) finishReload(); }
   if(P.pendingKnife){ P.pendingKnife.t-=dt; if(P.pendingKnife.t<=0){ doKnifeHit(P.pendingKnife.kind); P.pendingKnife=null; } }
   if(P.pendingThrow){ P.pendingThrow.t-=dt; if(P.pendingThrow.t<=0){ releaseNade(); } }
   if(match.mode==='comp') updateUse(dt);
@@ -6385,7 +6345,7 @@ function opponents(){ const L=[];
   if(match.mode==='range') RANGE.dummies.forEach(d=>L.push(d.char)); return L; }
 function tryFire(click){
   const P=player, st=slotState(), def=st.def, s=def.stats;
-  if(!canAct()||P.reloading||P.planting||P.defusing) return;
+  if(!canAct()||(P.shell&&anShellFire(P,click))||P.reloading||P.planting||P.defusing) return;
   if(def.type==='knife'){ tryKnife(0); return; }
   if(def.type==='grenade'){ if(click) startThrow(); return; }
   if(def.type==='c4'){ return; }
@@ -6450,7 +6410,7 @@ function doKnifeHit(kind){
 function tryReload(){
   const st=slotState(), s=st.def.stats, P=player;
   if(P.reloading||VM.silT>=0||['knife','grenade','c4'].includes(st.def.type)||st.mag>=s.mag||(!P.infAmmo&&match.mode!=='range'&&st.res<=0)||!P.alive) return;
-  P.reloading=true; P.reloadT=s.reload; vmReload(VM,s.reload); if(P.scope>0) setScope(0); P.rescope=0;
+  P.reloading=true; P.reloadT=s.reload; vmReload(VM,s.reload,st.mag<=0); if(VM.sh.ph) anShellStart(P,st); if(P.scope>0) setScope(0); P.rescope=0;
   $('reloadTxt').style.visibility='visible';
 }
 function finishReload(){
@@ -6475,14 +6435,14 @@ function damageAgent(v,raw,zone,def,att){
   if(att&&att.team===v.team&&att!==v) return;
   const hp0=v.hp, dmg=applyDamage(v,raw,zone,def.stats.armorPen||.775,def.stats.head); v.hp-=dmg; if(att){ v.dmgBy[att.id]=(v.dmgBy[att.id]||0)+dmg; att.dmgDealt=(att.dmgDealt||0)+Math.min(dmg,hp0); } if(v.netPeer) netDmgOut(v,dmg,zone,att);
   if(att===player&&match.mode!=='comp') spawnDmgNum(v.pos.clone().setY(v.pos.y+1.9),dmg,zone==='head');
-  if(v.hp<=0) agentDied(v,att,def,zone==='head'); else if(att) v.alert(att.pos);
+  if(v.hp<=0) agentDied(v,att,def,zone==='head'); else { if(v.char) v.char.onHit(att&&att.pos,zone); if(att) v.alert(att.pos); }
 }
 function agentById(id){ return id==='p'?player:bots.find(b=>b.id===id); }
 function killReward(def){ const s=def&&def.stats; if(!s) return 300; if(s.reward) return s.reward; return {knife:1500,smg:600,shotgun:900,sniper:300,grenade:300}[def.type]||300; }
 function agentDied(v,killer,def,hs){
   if(NET.host) netKillOut(v,killer,def,hs);
   v.alive=false; v.hp=0; v.deaths++; v.planting=false; v.defusing=false;
-  if(v.isBot){ v.char.setDead(true); if(SFX_LIB) sndPlay('death',{pos:v.pos.clone().setY(v.pos.y+.5),ref:4,bus:'fx'}); }
+  if(v.isBot){ v.char.setDead(true,anDeathInfo(v,killer,hs)); if(SFX_LIB) sndPlay('death',{pos:v.pos.clone().setY(v.pos.y+.5),ref:4,bus:'fx'}); }
   const kn=killer&&killer!==v?killer.name:'';
   addKillFeed(kn,def?def.name:'',v.name,hs,killer===player||v===player,killer?killer.team:null,v.team);
   if(killer&&killer!==v&&killer.team!==v.team){ killer.kills++; killer.roundKills=(killer.roundKills|0)+1; if(hs) killer.hsKills=(killer.hsKills|0)+1; if(match.mode==='comp') addMoney(killer,killReward(def)); if(killer===player){ sfx.kill(); if(match.mode==='comp') moneyNote('+$'+killReward(def)+': Rakip etkisiz hale getirildi'); } }
@@ -6589,7 +6549,7 @@ class TeamBot{
       const rt=new THREE.Vector3(Math.cos(this.yaw),0,-Math.sin(this.yaw));
       const knife=this.w.def.type==='knife';
       const shooting=!knife&&this.seeT>this.react+dist*.006&&Math.abs(dy)<.12&&this.w.mag>0&&this.reloadT<=0;
-      if(knife){ moveDir.set(to.x,0,to.z).normalize(); if(dist<1.8){ this.fireCd-=dt; if(this.fireCd<=0){ this.fireCd=.6; damageAgent(T,40,'chest',this.w.def,this); sndPlay('knife:hit',{pos:this.pos.clone().setY(this.pos.y+1.2),ref:3,bus:'weapons'}); } } }
+      if(knife){ moveDir.set(to.x,0,to.z).normalize(); if(dist<1.8){ this.fireCd-=dt; if(this.fireCd<=0){ this.fireCd=.6; this.char.onFire(); damageAgent(T,40,'chest',this.w.def,this); sndPlay('knife:hit',{pos:this.pos.clone().setY(this.pos.y+1.2),ref:3,bus:'weapons'}); } } }
       else if(!shooting||this.diff>=1) moveDir.addScaledVector(rt,this.strafeDir*(shooting&&this.diff<2?0:1));
       if(shooting&&this.diff<2) maxs*=.2;
       this.fireCd-=dt;
@@ -6612,7 +6572,7 @@ class TeamBot{
     if(moveDir.lengthSq()>0&&this.onGround){ moveDir.normalize(); const cur=v.x*moveDir.x+v.z*moveDir.z, add=maxs-cur; if(add>0){ const a=Math.min(add,5.5*maxs*dt*1.6); v.x+=moveDir.x*a; v.z+=moveDir.z*a; } }
     v.y-=GRAV*dt; moveBody(this,dt);
     const hs=Math.hypot(v.x,v.z); this.stepAcc+=hs*dt; if(hs>2.6&&this.stepAcc>2.1){ this.stepAcc=0; sfx.step(this.pos.clone().setY(this.pos.y+.1),false); this.noise=1; } else if(hs<1) this.noise=0;
-    C.yaw=this.yaw; C.pitch=this.pitch; C.speed=hs; C.crouchK=lerp(C.crouchK,this.defusing?1:0,Math.min(1,dt*8)); C.update(dt);
+    C.yaw=this.yaw; C.pitch=this.pitch; C.speed=hs; anBotFeed(this,C); C.update(dt);
   }
   objectiveAction(dt){
     const bomb=COMP.bomb; if(!bomb) return false;
@@ -6629,7 +6589,7 @@ class TeamBot{
     this.fireCd=60/Math.max(30,s.rpm)*(longR&&s.auto?2.4:1)+(this.burst>=(longR?2:5)?rand(.25,.5):0); if(this.burst>=(longR?2:5)) this.burst=0; this.burst++;
     this.w.mag--; const e=agentEye(this,new THREE.Vector3()); const tgt=agentChest(T,new THREE.Vector3()); if(T!==player) tgt.y+=rand(-.3,.45);
     const pellets=Math.max(1,s.pellets|0);
-    const m=this.char.muzzleWorld(new THREE.Vector3()); weaponFire(this.w.def,m,m.distanceTo(camera.position)); worldMuzzleFlash(m,isSuppressed(this.w.def,null));
+    const m=this.char.muzzleWorld(new THREE.Vector3()); weaponFire(this.w.def,m,m.distanceTo(camera.position)); worldMuzzleFlash(m,isSuppressed(this.w.def,null)); this.char.onFire();
     const moving=Math.hypot(this.vel.x,this.vel.z)>1.5;
     for(let k=0;k<pellets;k++){
       const dir=tgt.clone().sub(e).normalize();
@@ -6673,7 +6633,8 @@ function showRangeTargets(v){ RANGE.dummies.forEach(d=>d.char.root.visible=v); }
 function rangeHit(d,dmg,zone,dist,point){
   RANGE.stats.hits++; RANGE.stats.last={dmg,zone,dist}; RANGE.stats.dmgWin.push([performance.now(),dmg]);
   spawnDmgNum(point,dmg,zone==='head');
-  if(d.hp<=0&&d.deadT<=0){ d.deadT=2; d.char.setDead(true); sfx.kill(); addKillFeed(CFG.name||'SEN',curDef().name,'HEDEF',zone==='head',true); }
+  if(d.hp>0) d.char.onHit(player.pos,zone);
+  if(d.hp<=0&&d.deadT<=0){ d.deadT=2; d.char.setDead(true,{from:player.pos,hs:zone==='head'}); sfx.kill(); addKillFeed(CFG.name||'SEN',curDef().name,'HEDEF',zone==='head',true); }
 }
 function rangePlateCheck(o,dir,maxD){
   raycaster.set(o,dir); raycaster.far=maxD+.2; const hits=raycaster.intersectObjects(RANGE.plates.map(p=>p.plate),false);
@@ -7055,6 +7016,7 @@ function releaseNade(){
 }
 function throwNade(def,pos,vel,owner){
   const w=buildWeaponObject(def,{shadows:true}); const g=new THREE.Group(); g.add(w.root); g.position.copy(pos); scene.add(g);
+  if(owner&&owner.char) owner.char.onThrow();
   NADES.push({kind:def.stats.nade||'he',def,g,w,vel:vel.clone(),t:0,owner,rest:false,spin:new THREE.Vector3(rand(-9,9),rand(-9,9),rand(-9,9))});
   if(NET.host) netNadeOut(NADES[NADES.length-1]);
 }
@@ -7397,12 +7359,11 @@ function menuTick(dt){
   const d=getWeapon(CFG.loadout.primary,'primary'); if(MENU.agentDef!==d){ MENU.agentDef=d; MENU.agent.setWeapon(d); }
   MENU.t+=dt; const P=MENU_POSE, A=MENU.agent, home=curScreen==='mainMenu', t=MENU.t;
   const ax=P.agent[0], az=P.agent[2], sa=Math.sin(P.az), ca=Math.cos(P.az);
-  A.root.visible=home; A.pos.fromArray(P.agent); A.yaw=P.az+Math.PI+P.yawOff+Math.sin(t*.37)*.035; A.pitch=-.05+Math.sin(t*.83)*.02; A.speed=0; A.crouchK=0;
+  A.root.visible=home; A.pos.fromArray(P.agent); A.yaw=P.az+Math.PI+P.yawOff+Math.sin(t*.37)*.035; A.pitch=.05-Math.sin(t*.83)*.02; A.speed=0; A.crouchK=0; A.idleFx=1;
   // relaxed "low ready" hold instead of aiming at the camera
   const L=A.def&&A.def.type!=='knife'?(A.def.type==='pistol'?P.low.pistol:P.low.rifle):null;
-  if(L){ A.gunRoot.position.fromArray(L.p); A.gunRoot.position.y+=Math.sin(t*1.6)*.004; A.gunRoot.rotation.set(L.r[0]+Math.sin(t*.9)*.012,L.r[1],L.r[2]); }
-  A.update(dt);
-  A.hips.position.y+=Math.sin(t*1.6)*.006; A.spine.rotation.z=Math.sin(t*.6)*.015;
+  if(L) A.setHold(L.p,L.r);
+  A.update(dt);   // idle: breathing, weight shift, look-around, weapon adjust (Character, idleFx)
   camera.position.set(ax+sa*P.dist+Math.sin(t*.21)*.06,P.camH+Math.sin(t*.31)*.03,az+ca*P.dist);
   camera.lookAt(ax-ca*P.side,P.lookH,az+sa*P.side);
   if(camera.fov!==P.fov){ camera.fov=P.fov; camera.updateProjectionMatrix(); MENU.fov=1; }
@@ -9840,7 +9801,491 @@ gameExport({ get NET(){ return NET; }, get DM(){ return DM; }, NetAgent, netCrea
   netPlace:(x,z,yaw)=>{ player.pos.set(x,supportAt(x,z,8,.2),z); player.vel.set(0,0,0); if(yaw!==undefined) player.yaw=yaw; return netV(player.pos); } });
 
 /* @@BLOCK:anim — code from the anim work goes right below this line */
+/* =====================================================================
+   ANIMATION — procedural first-person (viewmodel) and third-person (Character) motion
+   keyframe tables are module constants (no per-frame allocation); kq() eases per key
+   ===================================================================== */
+// key = [t, value, ease]   ease: 0 smoothstep · 1 ease-out · 2 ease-in · 3 linear · 4 back-out (overshoot)
+function kq(t,K){ if(t<=K[0][0]) return K[0][1]; const n=K.length;
+  for(let i=1;i<n;i++){ const b=K[i]; if(t<=b[0]){ const a=K[i-1]; let u=(t-a[0])/Math.max(1e-6,b[0]-a[0]); const e=b[2]|0;
+      u=e===1?1-(1-u)*(1-u):e===2?u*u:e===3?u:e===4?1+2.70158*(u-1)**3+1.70158*(u-1)**2:u*u*(3-2*u); return a[1]+(b[1]-a[1])*u; } }
+  return K[n-1][1]; }
+const AP=[0,0,0,0,0,0];                                   // viewmodel pose accumulator: px py pz rx ry rz
+const TRK=o=>['px','py','pz','rx','ry','rz'].map(k=>o[k]||null);
+function kadd(t,TR,s){ for(let i=0;i<6;i++){ const K=TR[i]; if(K) AP[i]+=kq(t,K)*s; } }
+const _a1=new THREE.Vector3(), _a2=new THREE.Vector3(), _a3=new THREE.Vector3(), _a4=new THREE.Vector3(), _a5=new THREE.Vector3(), _aq=new THREE.Quaternion(), _aq2=new THREE.Quaternion(), _aq3=new THREE.Quaternion(), _ae=new THREE.Euler(), _am=new THREE.Matrix4();
+const AX_X=new THREE.Vector3(1,0,0), AX_Y=new THREE.Vector3(0,1,0), AX_Z=new THREE.Vector3(0,0,1);
+// hand orientations (deg, gun-local unless noted) and positions — kept in tables so they are easy to tune
+// hand frame: y = fist axis (the held rod), z = towards the wrist; the left hand's back is -x (mirrored glove)
+const ANQ={ slide:{y:[0,0,1],z:[-.85,-.15,.5]}, slideL:{y:[0,.3,1],z:[-.9,-.3,.3]}, knob:{y:[.75,-.55,0],z:[.25,-.25,.95]}, type:{y:[-.85,.1,.5],z:[.45,.5,.75]}, shell:{y:[0,.55,-.85],z:[-.25,-.75,.45]},
+  cover:{y:[.85,-.5,0],z:[-.5,-.85,-.1]}, pin:{y:[0,0,-1],z:[-.9,-.25,.4]}, point:{y:[.2,1,.3],z:[-.3,-.45,.85]}, dfL:{y:[1,-.2,0],z:[-.2,.45,.85]}, dfR:{y:[-.3,-.45,-.85],z:[.3,.4,.85]}, rest:{y:[0,1,0],z:[0,0,1]} };
+const _qb1=new THREE.Vector3(), _qb2=new THREE.Vector3(), _qb3=new THREE.Vector3(), _qbm=new THREE.Matrix4();
+function anQ(n,out){ const e=ANQ[n]; if(Array.isArray(e)) return out.setFromEuler(_ae.set(e[0]*DEG,e[1]*DEG,e[2]*DEG));
+  const Z=_qb1.fromArray(e.z).normalize(), X=_qb3.crossVectors(_qb2.fromArray(e.y),Z).normalize(), Y=_qb2.crossVectors(Z,X); return out.setFromRotationMatrix(_qbm.makeBasis(X,Y,Z)); }
+const ANP={ slide:[0,-.01,-.012], knob:[.01,.005,.0], tip:[.03,.031,-.075], port:[0,-.05,-.08], below:[-.06,-.13,.0], cover:[-.035,.015,-.165], restL:[-.22,-.62,.05],
+  dfL:[-.085,-.165,-.42], dfR:[.075,-.175,-.39], pin:[.0,.012,.0] };
+const anV=(n,out)=>out.fromArray(ANP[n]);
+function anCls(d){ const t=d&&d.type; return t==='smg'?'rifle':(t==='pistol'||t==='sniper'||t==='shotgun'||t==='knife'||t==='grenade'||t==='c4')?t:'rifle'; }
 
+/* ---------- draw (t = 0..1 of drawDur) ---------- */
+const AN_DRAW={
+  pistol:TRK({py:[[0,-.2],[.3,.008,1],[.4,0]], rx:[[0,-1.05],[.3,.07,1],[.42,0]], rz:[[0,.45],[.3,-.04,1],[.42,0]], px:[[0,.04],[.3,0,1]], pz:[[0,.06],[.3,0,1]], ry:[[0,-.25],[.3,0,1]]}),
+  rifle:TRK({py:[[0,-.26],[.36,.006,1],[.48,0]], px:[[0,.1],[.36,0,1]], rx:[[0,-.75],[.36,.05,1],[.5,0]], rz:[[0,1.0],[.36,-.06,1],[.5,0]], ry:[[0,-.35],[.36,0,1]], pz:[[0,.08],[.36,0,1]]}),
+  sniper:TRK({py:[[0,-.3],[.42,.01,1],[.55,-.004],[.62,0]], rx:[[0,-.6],[.42,.06,1],[.58,0]], rz:[[0,.8],[.42,-.08,1],[.6,0]], px:[[0,.08],[.42,0,1]], pz:[[0,.1],[.42,0,1]], ry:[[0,-.3],[.42,0,1]]}),
+  shotgun:TRK({py:[[0,-.26],[.38,.008,1],[.5,0]], px:[[0,.09],[.38,0,1]], rx:[[0,-.7],[.38,.06,1],[.5,0]], rz:[[0,.85],[.38,-.06,1],[.5,0]], ry:[[0,-.3],[.38,0,1]], pz:[[0,.08],[.38,0,1]]}),
+  knife:TRK({py:[[0,-.1],[.38,.01,1],[.5,0]], rx:[[0,-.5],[.38,0,1]], rz:[[0,-.5],[.4,0,1]], px:[[0,.05],[.38,0,1]], pz:[[0,.04],[.38,0,1]]}),
+  grenade:TRK({py:[[0,-.18],[.45,.01,1],[.55,0]], rx:[[0,-.55],[.45,0,1]], rz:[[0,.35],[.45,0,1]], pz:[[0,.05],[.45,0,1]]}),
+  c4:TRK({py:[[0,-.22],[.55,.006,1],[.7,0]], rx:[[0,-.6],[.55,.03,1],[.7,0]], rz:[[0,.2],[.55,0,1]]})
+};
+// cant while the support hand works the slide / charging handle / bolt during the draw
+const AN_DRAWX={
+  pistol:TRK({rz:[[.42,0],[.52,.22],[.76,.22],[.88,0]], ry:[[.42,0],[.52,.14],[.76,.14],[.88,0]], rx:[[.42,0],[.52,.08],[.62,.1],[.66,.05],[.76,.06],[.88,0]], pz:[[.6,0],[.66,.01],[.7,-.004],[.76,0]]}),
+  rifle:TRK({rz:[[.44,0],[.54,.3],[.74,.3],[.86,0]], ry:[[.44,0],[.54,.1],[.74,.1],[.86,0]], rx:[[.44,0],[.54,.06],[.64,.08],[.68,.03],[.86,0]], pz:[[.62,0],[.66,.012],[.7,-.004],[.75,0]]}),
+  sniper:TRK({rz:[[.55,0],[.62,-.14],[.9,-.14],[1,0]], rx:[[.55,0],[.62,.05],[.9,.05],[1,0]]}),
+  shotgun:TRK({rx:[[.5,0],[.6,.06],[.7,.04],[.8,0]], pz:[[.5,0],[.6,.012],[.72,-.004],[.8,0]]})
+};
+const K_DR_HAND=[[.44,0],[.54,1],[.76,1],[.88,0]], K_DR_PULL=[[.56,0],[.64,1,1],[.68,1],[.71,0,1]];      // pistol slide / rifle bolt by the left hand
+const K_DR_PUMP=[[.5,0],[.6,1],[.66,1],[.76,0]], K_DR_KNIFE=[[0,-TAU],[.55,0,1]];
+const K_DR_TOSS=[[.5,0],[.68,.07,1],[.86,0,2],[.92,-.004],[1,0]], K_DR_TOSSR=[[.5,0],[.86,TAU]], K_DR_TWIRL=[[0,0],[.34,-TAU,1]];
+const K_SG_RX=[[0,0],[.28,0],[.4,.05],[.56,.04],[.7,0]], K_SG_PZ=[[0,0],[.3,0],[.42,.01],[.56,.012],[.68,0]], K_PUMP=[[0,0],[.28,0],[.42,.075],[.55,.075],[.7,0]];
+const K_TH_PULL=[[.1,0],[.24,1,1]], K_TH_PT=[[.3,0],[.42,1],[.8,1],[1,0]], K_TH_DROP=[[.5,0],[1,-.3]], K_SH_J=[[.5,0],[.62,1,1],[.75,0]], K_SH_P=[[0,0],[.42,1],[.62,2],[.78,2],[1,0]];
+const K_RL_BOLT=[[0,0],[.72,0],[.78,.06],[.82,.06],[.86,0],[1,0]], K_RL_SLIDE_L=[[0,.028],[.76,.028],[.8,.034],[.84,.034],[.86,0,1]], K_RL_SLIDE_U=[[0,0],[.76,0],[.8,.034],[.84,.034],[.86,0,1]];
+const K_MT_X=[[0,0],[.3,0],[.42,-.1],[.46,-.1],[.58,-.01],[.64,0],[1,0]], K_MT_Y=[[0,0],[.14,0],[.24,.022],[.3,.05],[.42,.3],[.46,.3],[.58,.035],[.64,.008],[.68,0],[1,0]], K_MT_Z=[[0,0],[.14,0],[.24,.03],[.3,.045],[.42,.08],[.46,.08],[.58,.01],[.64,0],[1,0]], K_MT_R=[[0,0],[.14,0],[.24,-.09],[.3,-.12],[.42,-.25],[.46,-.25],[.58,-.08],[.64,-.02],[.68,0],[1,0]];
+const K_MB_X=[[0,0],[.28,0],[.42,-.05],[.46,-.05],[.58,0],[1,0]], K_MB_Y=[[0,0],[.12,0],[.28,-.13],[.42,-.42],[.46,-.42],[.58,-.12],[.68,0],[1,0]], K_MB_Z=[[0,0],[.12,0],[.28,-.02],[.42,.06],[.46,.06],[.58,-.02],[.68,0],[1,0]], K_MB_R=[[0,0],[.12,0],[.22,.22],[.28,.25],[.58,.25],[.64,.12],[.68,0],[1,0]];
+const AN_C4SEQ=[4,0,8,2,6,1,7,3,5];
+/* ---------- inspect (t = 0..1 of inspectDur) ---------- */
+const AN_INSP_DUR={rifle:4.2,pistol:3.8,sniper:4.4,shotgun:4,knife:3.6,grenade:2.8,c4:2.6};
+const AN_INSP={
+  rifle:TRK({ry:[[0,0],[.12,.6],[.4,.66,3],[.52,-.5],[.8,-.56,3],[.93,.02],[1,0]], rz:[[0,0],[.12,-.52],[.4,-.58,3],[.52,.95],[.8,.88,3],[.93,-.02],[1,0]],
+    rx:[[0,0],[.12,.16],[.4,.12,3],[.52,.22],[.66,.3],[.8,.22],[1,0]], px:[[0,0],[.12,-.075],[.4,-.07],[.52,0],[.8,0],[1,0]],
+    py:[[0,0],[.12,.045],[.4,.04],[.52,.03],[.8,.035],[1,0]], pz:[[0,0],[.12,-.03],[.8,-.03],[1,0]]}),
+  pistol:TRK({ry:[[0,0],[.12,.55],[.3,.6,3],[.42,-.25],[.55,-.3,3],[.62,.18],[.82,.2],[.93,0]], rz:[[0,0],[.12,-.6],[.3,-.66,3],[.42,.55],[.55,.5,3],[.62,.2],[.82,.2],[.93,0]],
+    rx:[[0,0],[.12,.25],[.3,.2],[.42,.1],[.55,.12],[.62,.1],[.82,.12],[.93,0]], px:[[0,0],[.12,-.06],[.55,-.05],[.62,-.035],[.82,-.035],[.93,0]],
+    py:[[0,0],[.12,.05],[.55,.045],[.62,.03],[.82,.03],[.93,0]], pz:[[0,0],[.12,-.04],[.58,-.04],[.64,-.07],[.8,-.07],[.93,0]]}),
+  sniper:TRK({py:[[0,0],[.15,.06],[.45,.065],[.58,.05],[.82,.05],[1,0]], pz:[[0,0],[.15,-.03],[.45,-.035],[.82,-.025],[1,0]], px:[[0,0],[.15,-.09],[.45,-.09],[.58,-.06],[.82,-.06],[1,0]],
+    ry:[[0,0],[.15,.5],[.45,.56,3],[.58,.22],[.82,.18,3],[1,0]], rz:[[0,0],[.15,-.35],[.45,-.4,3],[.58,.62],[.82,.58,3],[1,0]], rx:[[0,0],[.15,.05],[.45,.02],[.58,.26],[.82,.24],[1,0]]}),
+  shotgun:TRK({ry:[[0,0],[.13,.55],[.42,.6,3],[.54,-.5],[.82,-.55,3],[1,0]], rz:[[0,0],[.13,-.45],[.42,-.5,3],[.54,.9],[.82,.84,3],[1,0]], rx:[[0,0],[.13,.14],[.42,.1],[.54,.22],[.82,.26],[1,0]],
+    px:[[0,0],[.13,-.07],[.42,-.065],[.54,0],[.82,0],[1,0]], py:[[0,0],[.13,.04],[.82,.035],[1,0]], pz:[[0,0],[.13,-.03],[.82,-.03],[1,0]]}),
+  knife:TRK({rz:[[0,0],[.1,-.75],[.25,-.75],[.45,-.75],[.55,.55],[.7,.55],[.9,.1],[1,0]], ry:[[0,0],[.1,.5],[.45,.5],[.55,.3],[.9,.1],[1,0]], rx:[[0,0],[.1,.25],[.45,.25],[.55,.15],[.9,.1],[1,0]],
+    px:[[0,0],[.1,-.05],[.45,-.05],[.55,-.015],[.9,-.02],[1,0]], py:[[0,0],[.1,.03],[.25,.03],[.35,.05],[.45,.03],[.9,.02],[1,0]], pz:[[0,0],[.1,-.03],[.9,-.02],[1,0]]}),
+  grenade:TRK({ry:[[0,0],[.12,.5],[.55,.5],[.7,-.3],[.9,-.3],[1,0]], rz:[[0,0],[.12,-.3],[.55,-.3],[.7,.3],[.9,.3],[1,0]], rx:[[0,0],[.12,.2],[.9,.2],[1,0]], px:[[0,0],[.12,-.06],[.9,-.06],[1,0]], py:[[0,0],[.12,.04],[.9,.04],[1,0]]}),
+  c4:TRK({rx:[[0,0],[.15,.35],[.8,.32],[1,0]], py:[[0,0],[.15,.05],[.8,.05],[1,0]], rz:[[0,0],[.15,-.15],[.45,-.18],[.6,.12],[.8,.1],[1,0]], ry:[[0,0],[.15,.15],[.45,.18],[.6,-.1],[.8,-.1],[1,0]], px:[[0,0],[.15,-.05],[.8,-.05],[1,0]]})
+};
+const K_IN_SLIDEH=[[.62,0],[.67,1],[.78,1],[.84,0]], K_IN_SLIDE=[[.68,0],[.72,.55],[.75,.55],[.77,0,1]];
+const K_IN_TWIRL=[[.42,0],[.56,-TAU,1]], K_IN_KFLIP=[[.25,0],[.45,TAU]], K_IN_KSPIN=[[.72,0],[.9,TAU]], K_IN_PUMP=[[.6,0],[.66,.5],[.7,.5],[.75,0]];
+const K_IN_TOSS=[[.3,0],[.4,.09,1],[.5,0,2],[.53,-.004],[.58,0]], K_IN_TOSSR=[[.3,0],[.5,TAU]];
+const K_IN_MAGH=[[.56,0],[.62,1],[.82,1],[.88,0]], K_IN_MAG=[[.62,0],[.66,1],[.76,1],[.8,0,2]];
+/* ---------- knife (t = 0..1) ---------- */
+const AN_SLASH=[
+  TRK({rz:[[0,0],[.18,.75,1],[.42,-1.15,1],[.6,-.95],[1,0]], ry:[[0,0],[.18,-.4],[.42,.65,1],[1,0]], px:[[0,0],[.18,.05],[.42,-.14,1],[1,0]], py:[[0,0],[.18,.04],[.42,-.02],[1,0]], pz:[[0,0],[.18,.02],[.42,-.09,1],[1,0]], rx:[[0,0],[.18,.15],[.42,-.1],[1,0]]}),
+  TRK({rz:[[0,0],[.18,-.9,1],[.42,.5,1],[.6,.4],[1,0]], ry:[[0,0],[.18,.55],[.42,-.45,1],[1,0]], px:[[0,0],[.18,-.12],[.42,.06,1],[1,0]], py:[[0,0],[.18,.06],[.42,-.04],[1,0]], pz:[[0,0],[.18,-.02],[.42,-.08,1],[1,0]], rx:[[0,0],[.18,.25],[.42,-.15],[1,0]]})];
+const AN_STAB=TRK({pz:[[0,0],[.2,.08],[.33,-.25,1],[.55,-.21],[1,0]], rx:[[0,0],[.2,.38],[.33,-.28,1],[.55,-.22],[1,0]], py:[[0,0],[.2,.05],[.33,-.03,1],[1,0]], px:[[0,0],[.2,.025],[.33,-.07,1],[1,0]], rz:[[0,0],[.2,.4],[.33,.55],[1,0]]});
+/* ---------- grenade throw (t = 0..1 over .62 s, release at .5) ---------- */
+const AN_THROW=[
+  TRK({py:[[0,0],[.16,.02],[.45,.1],[.52,-.02,1],[1,-.32,2]], pz:[[0,0],[.16,0],[.45,.1],[.52,-.2,1],[1,-.1]], rx:[[0,0],[.16,.1],[.45,.75],[.52,-.7,1],[1,-1.2]], px:[[0,0],[.16,-.03],[.45,.04],[.52,-.04,1],[1,-.05]], rz:[[0,0],[.16,.15],[.45,-.1],[.52,.1],[1,.2]]}),
+  TRK({py:[[0,0],[.16,0],[.45,-.12],[.52,-.04,1],[1,-.2]], pz:[[0,0],[.45,.08],[.52,-.18,1],[1,-.06]], rx:[[0,0],[.16,.1],[.45,-.6],[.52,.25,1],[1,.3]], px:[[0,0],[.45,.02],[.52,-.05,1],[1,-.04]], rz:[[0,0],[.45,.2],[.52,0],[1,0]]})];
+const K_TH_HK=[[0,0],[.1,1],[.85,1],[1,0]];
+/* ---------- reload: gun pose by class, empty vs tactical (t = 0..1) ---------- */
+const AN_RL={
+  rifleE:TRK({rz:[[0,0],[.12,.45],[.3,.5],[.34,.44],[.62,.45],[.66,.4],[.7,.46],[.74,.25],[.8,.32],[.84,.24],[.96,0]], rx:[[0,0],[.12,.14],[.62,.12],[.66,.17],[.7,.12],[.86,.05],[1,0]],
+    ry:[[0,0],[.12,.18],[.68,.18],[.86,.1],[1,0]], py:[[0,0],[.12,-.03],[.62,-.03],[.65,-.018],[.69,-.032],[.86,-.02],[1,0]], px:[[0,0],[.12,-.04],[.68,-.04],[1,0]], pz:[[0,0],[.78,0],[.82,.012],[.86,-.004],[.9,0]]}),
+  rifleT:TRK({rz:[[0,0],[.12,.45],[.3,.5],[.34,.44],[.62,.45],[.66,.38],[.7,.48],[.74,.42],[.88,0]], rx:[[0,0],[.12,.14],[.62,.12],[.66,.18],[.7,.11],[.9,0]],
+    ry:[[0,0],[.12,.18],[.72,.18],[.9,0]], py:[[0,0],[.12,-.03],[.62,-.03],[.66,-.016],[.7,-.036],[.74,-.026],[.9,0]], px:[[0,0],[.12,-.04],[.72,-.04],[.9,0]]}),
+  pistolE:TRK({rz:[[0,0],[.12,.35],[.6,.35],[.64,.3],[.68,.36],[.76,.15],[.86,.12],[.94,0]], rx:[[0,0],[.12,.25],[.6,.2],[.64,.27],[.68,.2],[.76,.1],[.86,.1],[1,0]],
+    py:[[0,0],[.12,.02],[.72,.02],[1,0]], px:[[0,0],[.12,-.03],[.8,-.03],[1,0]], pz:[[0,0],[.8,0],[.84,.014],[.88,-.004],[.92,0]]}),
+  pistolT:TRK({rz:[[0,0],[.12,.35],[.6,.35],[.64,.42],[.68,.33],[.8,0]], rx:[[0,0],[.12,.25],[.6,.2],[.64,.28],[.68,.2],[.82,0]],
+    py:[[0,0],[.12,.02],[.6,.02],[.64,.032],[.68,.018],[.82,0]], px:[[0,0],[.12,-.03],[.7,-.03],[.84,0]]}),
+  sniperE:TRK({rz:[[0,0],[.12,.42],[.62,.42],[.66,.36],[.7,.3],[.74,-.12],[.92,-.12],[1,0]], rx:[[0,0],[.12,.12],[.62,.1],[.66,.16],[.7,.06],[.92,.06],[1,0]],
+    ry:[[0,0],[.12,.16],[.68,.16],[.74,0]], py:[[0,0],[.12,-.03],[.62,-.03],[.66,-.018],[.72,-.01],[1,0]], px:[[0,0],[.12,-.04],[.7,-.04],[.76,0]]}),
+  sniperT:TRK({rz:[[0,0],[.12,.42],[.62,.42],[.66,.36],[.7,.44],[.86,0]], rx:[[0,0],[.12,.12],[.62,.1],[.66,.17],[.7,.1],[.86,0]],
+    ry:[[0,0],[.12,.16],[.7,.16],[.86,0]], py:[[0,0],[.12,-.03],[.62,-.03],[.66,-.016],[.7,-.034],[.86,0]], px:[[0,0],[.12,-.04],[.7,-.04],[.86,0]]})
+};
+// left-hand reload paths: point ids  0 grip · 1 mag bottom · 2 bolt · 3 bolt pulled · 4 away · 5 top-mag pre · 6 slap (below the mag) · 7 slide rear · 8 slide pulled
+const AN_LP={
+  rifleE:[[0,0],[.12,1],[.68,1],[.74,2],[.82,3],[.92,0],[1,0]], rifleT:[[0,0],[.12,1],[.64,1],[.68,6],[.71,1],[.84,0],[1,0]],
+  pistolE:[[0,0],[.12,1],[.66,1],[.74,7],[.8,8],[.84,8],[.92,0],[1,0]], pistolT:[[0,0],[.12,1],[.6,1],[.63,6],[.66,1],[.78,0],[1,0]],
+  sniperE:[[0,0],[.12,1],[.68,1],[.8,0],[1,0]], sniperT:[[0,0],[.12,1],[.64,1],[.68,6],[.71,1],[.84,0],[1,0]],
+  noMag:[[0,0],[.3,4],[.6,4],[.92,0],[1,0]] };
+const K_RL_MHR=[[0,0],[.12,1],[.66,1],[.74,0],[1,0]];
+/* ---------- sniper bolt cycle by the right hand (u = 0..1) ---------- */
+const K_BC_HAND=[[0,0],[.16,1],[.84,1],[1,0]], K_BC_LIFT=[[0,0],[.18,0],[.27,1,1],[.62,1],[.7,0,1]], K_BC_PULL=[[0,0],[.28,0],[.4,1,1],[.48,1],[.6,0,1]];
+const AN_BC=TRK({rz:[[0,0],[.16,.28],[.84,.28],[1,0]], rx:[[0,0],[.16,.06],[.4,.09],[.6,.05],[.84,.06],[1,0]], pz:[[.36,0],[.42,.008],[.56,0],[.62,-.006],[.7,0]], px:[[0,0],[.16,-.035],[.84,-.035],[1,0]], py:[[0,0],[.16,.03],[.84,.03],[1,0]]});
+/* ---------- fire kick per class: back(m) pitch(rad) yaw roll climb climbMax ---------- */
+const AN_KICK={pistol:[.026,.085,.014,.045,.012,.05], rifle:[.016,.032,.011,.02,.007,.05], smg:[.011,.022,.009,.016,.005,.035], sniper:[.05,.11,.02,.06,0,0], shotgun:[.045,.1,.02,.055,0,0]};
+function anImp(S,peak){ S.v+=peak*Math.sqrt(S.k)/.45; }
+
+/* ---------- rig state ---------- */
+function anInitRig(R){
+  Object.assign(R,{fz:new Spring(380,30),fx:new Spring(300,26),fy:new Spring(260,24),fr:new Spring(260,22),climb:0,sinceFire:9,lock:0,rlEmpty:true,
+    spd:0,sprT:0,sprK:0,wasG:true,lastVy:0,ld:new Spring(150,13),air:new Spring(90,12),crK:0,hol:null,holDur:.13,drawV:0,drawX:1,inspV:0,slash:0,lastSlash:-9,throwU:false,
+    sh:{ph:0,t:0,dur:1,demo:0,empty:false},plK:0,dfK:0,blK:0,gsOn:false,boltU:-1,boltS:1,typeK:0,ring:null,ringP:new THREE.Vector3(),knob:-1,boreY:0,
+    hR:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hL:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hLr:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hRr:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()},
+    lp:[], gsq:new THREE.Quaternion(), gsp:new THREE.Vector3(), gsPv:new THREE.Vector3(), gsPiv:false, slideTop:null, c4keys:null});
+  for(let i=0;i<9;i++) R.lp.push(new THREE.Vector3());
+  const gm=armMats().glove;
+  const pt=new THREE.Mesh(capsuleBetween(new THREE.Vector3(.03,.031,.004),new THREE.Vector3(.03,.031,-.072),.0094),gm); pt.visible=false; pt.frustumCulled=false; R.armR.hand.add(pt); R.pointer=pt;
+  const sh=new THREE.Group(), sb=new THREE.Mesh(new THREE.CylinderGeometry(.0098,.0098,.052,12),makeMaterial({preset:'polymer',color:'#a3231b',rough:.5})), sm=new THREE.Mesh(new THREE.CylinderGeometry(.0102,.0102,.016,12),makeMaterial({preset:'brass',color:'#c8a050'}));
+  sb.position.y=.034; sm.position.y=.004; sh.add(sb,sm); sh.visible=false; sh.traverse(o=>{ o.frustumCulled=false; }); R.armL.hand.add(sh); R.shellM=sh;
+  const pl=new THREE.Group(), red=makeMaterial({preset:'polymer',color:'#b3261e',rough:.45}), met=makeMaterial({preset:'gunmetal',color:'#5a5e63'});
+  for(const s of [-1,1]){ const h=new THREE.Mesh(new THREE.BoxGeometry(.008,.075,.01),red); h.position.set(s*.006,-.01,0); h.rotation.z=s*.06; pl.add(h); }
+  const j=new THREE.Mesh(new THREE.BoxGeometry(.012,.04,.008),met); j.position.y=.05; pl.add(j); pl.visible=false; pl.traverse(o=>{ o.frustumCulled=false; }); R.armR.hand.add(pl); R.pliers=pl;
+}
+function anOnEquip(R){
+  const w=R.w, d=R.def, T=d.type; R.lock=0; R.sh.ph=0; R.sh.demo=0; R.boltU=-1; R.hR.k=R.hL.k=R.hLr.k=R.hRr.k=0; R.typeK=0;
+  R.drawV=T==='pistol'&&(d.id==='deagle'||Math.random()<.3)?1:0; R.drawX=1;
+  R.ring=null; if(T==='grenade'){ for(const p of d.parts) if(/pim|pin|ring|halka/i.test(p.name)&&w.nodes[p.id]){ R.ring=w.nodes[p.id]; R.ringP.copy(R.ring.position); break; } }
+  R.c4keys=null; R.slideTop=null; const sl=w.roles.slide[0];
+  if(sl&&sl.node.geometry){ const g=sl.node.geometry; if(!g.boundingBox) g.computeBoundingBox(); const b=g.boundingBox.clone(); _am.copy(sl.node.matrix); let p=sl.node.parent; while(p&&p!==w.root){ _am.premultiply(p.matrix); p=p.parent; } b.applyMatrix4(_am); R.slideTop=new THREE.Vector3((b.min.x+b.max.x)/2,b.max.y,b.max.z); }
+  R.knob=-1; let mx=-1; w.roles.bolt.forEach((r,i)=>{ if(r.pos.x>mx){ mx=r.pos.x; R.knob=i; } }); R.boreY=w.anchors.muzzle.y;
+  if(R.gsOn){ w.root.position.set(0,0,0); w.root.quaternion.identity(); R.gsOn=false; }
+  if(R.pointer) R.pointer.visible=false; if(R.shellM) R.shellM.visible=false; if(R.pliers) R.pliers.visible=false;
+}
+/* ---------- weapon switch: short holster of the old gun before the new one is drawn ---------- */
+function anHolsterStart(R,def,silOn){ if(!R.w||!R.def||R.def===def||R.throwT>=0||!R.rig.visible) return false; if(!R.hol) R.holT=0; R.hol={def,silOn}; R.inspectT=-1; R.drawX=0; return true; }
+function anHolsterFlush(R){ const h=R.hol; if(!h) return; R.hol=null; const th=R.throwT; vmEquip(R,h.def,false,h.silOn,true); if(th>=0) R.throwT=th; }
+/* ---------- shotgun: shell-by-shell (gameplay drives the phases for the player, the editor runs a demo) ---------- */
+function vmShell(R,ph,dur){ R.sh.ph=ph; R.sh.t=0; R.sh.dur=Math.max(.05,dur); }
+function anShellTimes(d){ const s=d.stats, n=Math.max(1,s.mag|0); return {start:.3,end:.3,shell:clamp(((s.reload||3)-.6)/n,.28,.6),pump:.62}; }
+function anShellRig(R,dt){ const S=R.sh; if(!S.ph) return; S.t=Math.min(S.dur,S.t+dt);
+  if(S.demo&&S.t>=S.dur){ const tm=anShellTimes(R.def);
+    if(S.ph===1||S.ph===2&&S.demo>1){ if(S.ph===2) S.demo--; vmShell(R,2,tm.shell); }
+    else if(S.ph===2){ vmShell(R,3,tm.end); } else if(S.ph===3&&S.empty){ S.empty=false; S.ph=0; R.rechamberT=0; S.demo=0; } else { S.ph=0; S.demo=0; } }
+  if(S.demo&&S.ph===2&&R.sounds&&S.t>=S.dur*.62&&!S.snd){ S.snd=1; weaponSound(R.def,'clipin'); } if(S.t<S.dur*.62) S.snd=0; }
+function anShellStart(P,st){ const tm=anShellTimes(st.def); P.reloadT=1e9; P.shell={st,ph:1,t:0,tm,empty:st.mag<=0,stop:false,fireQ:false,snd:false}; VM.sh.demo=0; VM.sh.empty=false; vmShell(VM,1,tm.start); }
+function anShellTick(P,dt){ const S=P.shell, st=S.st;
+  if(!P.alive||!P.reloading||slotState()!==st||VM.def!==st.def){ P.shell=null; if(VM.def===st.def) VM.sh.ph=0; return; }
+  S.t+=dt; const tm=S.tm, s=st.def.stats;
+  if(S.ph===1){ if(S.t>=tm.start){ S.ph=2; S.t=0; S.snd=false; vmShell(VM,2,tm.shell); } }
+  else if(S.ph===2){
+    if(!S.snd&&S.t>=tm.shell*.62){ S.snd=true; st.mag++; if(!(P.infAmmo||match.mode==='range')) st.res--; weaponSound(st.def,'clipin'); updateHUD(); }
+    if(S.t>=tm.shell){ S.t=0; S.snd=false; if(S.stop||!(st.mag<s.mag&&(P.infAmmo||match.mode==='range'||st.res>0))){ S.ph=3; vmShell(VM,3,tm.end); } else vmShell(VM,2,tm.shell); } }
+  else if(S.ph===3){ if(S.t>=tm.end){ if(S.empty){ S.ph=4; S.t=0; VM.sh.ph=0; VM.rechamberT=0; } else S.ph=5; } }
+  else if(S.ph===4){ if(S.t>=tm.pump) S.ph=5; }
+  if(S.ph===5){ P.shell=null; P.reloading=false; P.reloadT=0; VM.sh.ph=0; $('reloadTxt').style.visibility='hidden'; updateHUD(); if(S.fireQ&&firing&&st.mag>0){ P.fireCd=0; tryFire(true); } }
+}
+// fire pressed during a shell reload: finish the shell in hand, then stop (and shoot if the trigger is still held)
+function anShellFire(P,click){ const S=P.shell; if(!S) return false; if(click&&S.ph<=2&&S.st.mag>0){ S.stop=true; S.fireQ=true; if(S.ph===1){ S.ph=3; S.t=0; vmShell(VM,3,S.tm.end*.7); S.tm={...S.tm,end:S.tm.end*.7}; } } return true; }
+
+/* ---------- viewmodel per-frame pose (fills AP, hand overrides, gun-only spin) ---------- */
+function anGunSpin(R,ax,ang,pv,ty){ // gun-only rotation about pivot pv (gun-local) — the hands stay on the grip anchors
+  R.gsOn=true; R.gsPiv=true; R.gsPv.copy(pv); _aq3.setFromAxisAngle(ax,ang); R.gsq.premultiply(_aq3); R.gsp.y+=ty||0; }
+function anMove(R,dt,mv){
+  const D=R.def, bsc=R.bobScale===undefined?1:R.bobScale, sp=Math.min(1.25,mv.speed||0), onG=mv.onGround!==false, vy=mv.vy||0;
+  R.spd=lerp(R.spd,sp,Math.min(1,dt*8)); const s=Math.min(1,R.spd);
+  if(onG&&s>.03) R.bob+=dt*(6.4+4.2*s);
+  const A=s*bsc, sb=Math.sin(R.bob), ab=Math.abs(Math.cos(R.bob));
+  AP[0]+=sb*.011*A; AP[1]+=(.0065-ab*.013)*A; AP[3]+=(ab-.5)*.02*A; AP[4]+=sb*.012*A; AP[5]+=sb*.016*A;
+  // near full weapon speed for a moment: carry the gun lower and canted (any shot snaps it back up)
+  const ws=D.stats.speed||1, full=onG&&!mv.crouch&&sp/ws>.9; R.sprT=full?R.sprT+dt:0;
+  const sk=R.sprT>.3&&R.sinceFire>.45&&R.reloadT<=0&&R.inspectT<0&&R.knifeT<0&&R.throwT<0&&!R.sh.ph?1:0;
+  R.sprK=lerp(R.sprK,sk,Math.min(1,dt*(sk?4.5:14))); const k=R.sprK*Math.min(1,bsc+.3);
+  AP[0]-=.014*k; AP[1]-=.032*k; AP[2]+=.016*k; AP[3]-=.2*k; AP[4]+=.13*k; AP[5]+=.17*k;
+  const st=mv.strafe||0; AP[5]-=st*.09; AP[0]-=st*.008; AP[4]+=st*.022;
+  AP[0]+=R.sway.x*.035; AP[1]+=R.sway.y*.03; AP[3]+=R.sway.y*.08; AP[4]-=R.sway.x*.12; AP[5]+=R.sway.x*.08;
+  if(R.wasG&&!onG&&vy>1) R.air.v-=.45;
+  if(!R.wasG&&onG) R.ld.v-=clamp(-R.lastVy,0,16)*.05;
+  R.wasG=onG; R.lastVy=vy; R.landT=0;
+  const air=R.air.step(dt,onG?0:clamp(-vy*.0035,-.025,.025)+.006), ld=R.ld.step(dt,0);
+  AP[1]+=air+ld; AP[3]+=air*1.4+ld*2.2; AP[2]-=ld*.3; AP[5]+=ld*.6;
+  const pk=R.crK; R.crK=lerp(R.crK,mv.crouch?1:0,Math.min(1,dt*10)); const cv=clamp((R.crK-pk)/Math.max(dt,1e-4),-6,6);
+  AP[1]+=R.crK*.006+cv*.004; AP[3]+=cv*.012; AP[5]+=R.crK*.04; AP[0]-=R.crK*.005;
+  const t=R.time, idle=1-Math.min(1,s*2);
+  AP[1]+=Math.sin(t*1.6)*.0017; AP[3]+=Math.sin(t*1.6+.7)*.006*(.5+idle*.5); AP[0]+=Math.sin(t*.53)*.0012*idle; AP[4]+=Math.sin(t*.41)*.005*idle; AP[5]+=Math.sin(t*.67)*.005*idle;
+  R.sinceFire+=dt; if(R.sinceFire>.09) R.climb*=Math.exp(-dt*6.5);
+  const fz=R.fz.step(dt,0), fx=R.fx.step(dt,0), fy=R.fy.step(dt,0), fr=R.fr.step(dt,0);
+  AP[2]+=fz; AP[3]+=fx+R.climb; AP[4]+=fy; AP[5]+=fr; AP[1]+=fx*.04+R.climb*.03;
+}
+function anFireKick(R){ const d=R.def, T=d.type, K=AN_KICK[T]; R.sinceFire=0; R.sprK*=.3; R.drawX=0; if(!K) return;
+  const rs=Math.pow(clamp(d.stats.recoil||1,.4,2.6),.5), um=R===VM?unsupMul(d,slotState()):null, uk=um?1.12:1;
+  anImp(R.fz,K[0]*rs*uk); anImp(R.fx,K[1]*rs*uk); anImp(R.fy,rand(-1,1)*K[2]*rs); anImp(R.fr,rand(-1,1)*K[3]*rs);
+  R.climb=Math.min(K[5]*rs,R.climb+K[4]*rs);
+  if(T==='pistol'&&R===VM&&R.def===curDef()&&slotState().mag<=0) R.lock=1; }
+// right-hand bolt cycle on bolt-action rifles (u 0..1, s = pull scale)
+function anBolt(R,u,s){ const w=R.w; if(R.knob<0||u<0||u>1) return; R.boltU=u; R.boltS=s;
+  const hk=kq(u,K_BC_HAND); kadd(u,AN_BC,1); const kb=w.roles.bolt[R.knob];
+  const lift=kq(u,K_BC_LIFT), pull=kq(u,K_BC_PULL)*.075*s;
+  _aq3.setFromAxisAngle(AX_Z,lift*1.05); _a5.set(kb.pos.x,kb.pos.y-R.boreY,kb.pos.z).applyQuaternion(_aq3); _a5.y+=R.boreY; _a5.z+=pull;
+  R.hR.k=Math.max(R.hR.k,hk); R.hR.p.copy(_a5).add(anV('knob',_a4)); anQ('knob',R.hR.q); R.hR.q.premultiply(_aq3); }
+function anBoltParts(R){ const w=R.w; if(R.boltU<0||R.knob<0) return; const u=R.boltU, lift=kq(u,K_BC_LIFT), pull=kq(u,K_BC_PULL)*.075*R.boltS;
+  _aq3.setFromAxisAngle(AX_Z,lift*1.05);
+  for(const r of w.roles.bolt){ r.node.position.set(r.pos.x,r.pos.y-R.boreY,r.pos.z).applyQuaternion(_aq3); r.node.position.y+=R.boreY; r.node.position.z+=pull; r.node.quaternion.setFromEuler(r.rot).premultiply(_aq3); } }
+function anPose(R,dt,mv,rp){
+  for(let i=0;i<6;i++) AP[i]=0;
+  const D=R.def, T=D.type, C=anCls(D), w=R.w;
+  R.hR.k=0; R.hL.k=0; R.hLr.k=0; R.hRr.k=0; R.boltU=-1; R.hideGun=false; R.armLvis=false; R.gsq.identity(); R.gsp.set(0,0,0); R.gsPiv=false; R.pump=0; R.slideX=0; R.boltX=0; R.magX=0;
+  anMove(R,dt,mv);
+  if(R.hol){ const k=smooth(Math.min(1,R.holT/R.holDur)); AP[1]-=.24*k; AP[3]-=.75*k; AP[5]+=.3*k; AP[0]+=.03*k; }
+  // draw
+  if(R.drawT>0){ const t=1-R.drawT/R.drawDur; kadd(t,AN_DRAW[C],1);
+    if(R.drawX&&rp<0){ const X=AN_DRAWX[C]; if(X) kadd(t,X,1);
+      if(C==='pistol'&&w.anchors.gripL){ const hk=kq(t,K_DR_HAND), pl=kq(t,K_DR_PULL); if(hk>0) anSlideHand(R,hk,pl*(w.roles.slide.length?.024:.04)); }
+      else if((C==='rifle')&&w.anchors.gripL&&w.roles.bolt.length){ const hk=kq(t,K_DR_HAND), pl=kq(t,K_DR_PULL); R.boltX=pl*.05; if(hk>0) anBoltHand(R,hk,R.boltX); }
+      else if(C==='shotgun') R.pump=kq(t,K_DR_PUMP)*.075;
+      else if(C==='sniper'&&t>.55) anBolt(R,(t-.55)/.42,.45); }
+    if(C==='knife') anGunSpin(R,AX_X,kq(t,K_DR_KNIFE),w.anchors.gripR.p,0);
+    if(C==='grenade') anGunSpin(R,AX_X,kq(t,K_DR_TOSSR),w.anchors.gripR.p,kq(t,K_DR_TOSS));
+    if(C==='pistol'&&R.drawV&&t<.42) anGunSpin(R,AX_X,kq(t,K_DR_TWIRL),anTrig(R),0); }
+  // inspect
+  if(R.inspectT>=0){ const t=Math.min(1,R.inspectT/R.inspectDur); kadd(t,AN_INSP[C],1);
+    if(C==='pistol'){ if(R.inspV||D.id==='deagle') anGunSpin(R,AX_X,kq(t,K_IN_TWIRL),anTrig(R),0);
+      if(w.anchors.gripL){ const hk=kq(t,K_IN_SLIDEH), pl=kq(t,K_IN_SLIDE); if(hk>0) anSlideHand(R,hk,pl*.03); } }
+    else if(C==='knife'){ anGunSpin(R,AX_Z,kq(t,K_IN_KSPIN),w.anchors.gripR.p,0); anGunSpin(R,AX_X,kq(t,K_IN_KFLIP),w.anchors.gripR.p,0); }
+    else if(C==='shotgun') R.pump=kq(t,K_IN_PUMP)*.075;
+    else if(C==='grenade') anGunSpin(R,AX_X,kq(t,K_IN_TOSSR),w.anchors.gripR.p,kq(t,K_IN_TOSS));
+    else if(C==='rifle'&&R.inspV&&w.roles.mag.length&&D.anchors.magPath!=='top'&&w.anchors.gripL){ const hk=kq(t,K_IN_MAGH); R.magX=kq(t,K_IN_MAG)*.035; if(hk>0) anMagHand(R,hk); } }
+  // knife attacks
+  if(R.knifeT>=0){ if(R.knifeKind===0) kadd(R.knifeT/.5,AN_SLASH[R.slash],1); else kadd(R.knifeT/.9,AN_STAB,1); }
+  // grenade throw: pin pull by the left hand, overhand (left click) or underhand (right click)
+  if(R.throwT>=0){ const t=R.throwT/.62; kadd(Math.min(1,t),AN_THROW[R.throwU?1:0],1); R.hideGun=t>.5; anThrowHand(R,t); }
+  // reload (non-shell)
+  if(rp>=0){ const E=R.rlEmpty, key=(C==='pistol'?'pistol':C==='sniper'?'sniper':'rifle')+(E?'E':'T'); kadd(rp,AN_RL[key],1);
+    if(C==='sniper'&&E&&rp>.7) anBolt(R,(rp-.7)/.24,1); }
+  if(R.sh.ph) anShellPose(R);
+  // shotgun pump / sniper bolt after a shot
+  if(R.rechamberT>=0){ if(T==='sniper') anBolt(R,(R.rechamberT-.12)/.86,1);
+    else if(T==='shotgun'){ const u=R.rechamberT; AP[3]+=kq(u,K_SG_RX); AP[2]+=kq(u,K_SG_PZ); } }
+  // C4 plant: keypad typing / defuse: weapon away, hands on the bomb / flash: arm over the eyes
+  const pl=R.planting&&!(R===VM&&player.defusing)&&T==='c4', df=R.planting&&R===VM&&player.defusing;
+  R.plK=lerp(R.plK,pl?1:0,Math.min(1,dt*7)); R.dfK=lerp(R.dfK,df?1:0,Math.min(1,dt*(df?5:7)));
+  if(R.plK>.01) anPlant(R);
+  if(R.dfK>.01) anDefuse(R);
+  const fb=R===VM&&player.alive?clamp((player.flashT-.25)/1.1,0,1):0; R.blK=lerp(R.blK,fb,Math.min(1,dt*(fb>R.blK?9:2.5)));
+  if(R.blK>.01){ const k=smooth(Math.min(1,R.blK*1.4)); AP[1]-=.05*k; AP[3]-=.22*k; AP[5]+=.18*k; AP[0]+=.01*k; R.hLr.k=Math.max(R.hLr.k,k); anV('cover',R.hLr.p); R.hLr.p.x+=Math.sin(R.time*2.1)*.004*k; R.hLr.p.y+=Math.sin(R.time*1.7)*.003*k; anQ('cover',R.hLr.q); R.armLvis=true; }
+}
+function anTrig(R){ const t=R.w.roles.trigger[0]; return t?_a3.copy(t.pos).setY(t.pos.y+.012):_a3.copy(R.w.anchors.gripR.p); }
+function anSlideHand(R,hk,pull){ const w=R.w, sl=w.roles.slide[0]||w.roles.bolt[0];
+  if(sl&&w.roles.slide.length) R.slideX=Math.max(R.slideX,pull); else R.boltX=Math.max(R.boltX,pull);
+  const p=R.hL.p; if(sl&&w.roles.slide.length&&R.slideTop){ p.copy(R.slideTop).add(anV('slide',_a4)); anQ('slide',R.hL.q); }
+  else if(sl){ p.copy(sl.pos).add(_a4.set(-.03,0,.0)); anQ('slideL',R.hL.q); } else return;
+  p.z+=pull; R.hL.k=Math.max(R.hL.k,hk); }
+function anBoltHand(R,hk,pull){ const w=R.w, DA=R.def.anchors; const b=w.roles.bolt[0]; if(!b) return;
+  R.hL.p.copy(b.pos).add(_a4.fromArray(DA.boltHand||[.03,0,0])); R.hL.p.z+=pull; R.hL.q.copy(w.anchors.gripL.q); R.hL.k=Math.max(R.hL.k,hk); }
+function anMagHand(R,hk){ const w=R.w; R.hL.p.copy(w.magBottom).add(_a4.set(0,-.025-R.magX,0)); const MH=R.def.anchors.magHand; if(MH&&MH.p) R.hL.p.add(_a4.fromArray(MH.p)); R.hL.q.copy(w.anchors.gripL.q); R.hL.k=Math.max(R.hL.k,hk); }
+function anThrowHand(R,t){ const w=R.w; R.armLvis=t<.95; const hk=kq(t,K_TH_HK);
+  const rg=R.ring?R.ringP:_a5.set(.016,.044,0);
+  if(t<.3){ R.hL.k=hk; R.hL.p.copy(rg).add(anV('pin',_a4)); const pull=kq(t,K_TH_PULL); R.hL.p.x+=pull*.05; R.hL.p.y+=pull*.07; R.hL.p.z+=pull*.03; anQ('pin',R.hL.q);
+    if(R.ring){ R.ring.position.copy(R.ringP); R.ring.position.x+=pull*.05; R.ring.position.y+=pull*.07; R.ring.position.z+=pull*.03; R.ring.visible=true; } }
+  else { if(R.ring) R.ring.visible=false; const k=kq(t,K_TH_PT); R.hLr.k=k; R.hLr.p.set(R.throwU?-.17:-.13,(R.throwU?-.3:-.08)+kq(t,K_TH_DROP),-.42); anQ('point',R.hLr.q);
+    R.hL.k=hk; R.hL.p.copy(rg).add(anV('pin',_a4)); R.hL.p.x+=.05; R.hL.p.y+=.07; R.hL.p.z+=.03; anQ('pin',R.hL.q); } }
+function anShellPose(R){ const S=R.sh, u=S.t/S.dur, w=R.w; let k=1;
+  if(S.ph===1) k=smooth(u); else if(S.ph===3) k=1-smooth(u);
+  AP[5]-=.8*k; AP[3]+=.14*k; AP[4]+=.16*k; AP[1]+=.04*k; AP[0]-=.045*k; AP[2]-=.02*k;
+  if(S.ph===2){ const j=kq(u,K_SH_J); AP[2]+=.007*j; AP[3]+=.025*j; }
+  const port=anV('port',_a4), below=anV('below',_a5); const H=R.hL; H.k=1; R.armLvis=true;
+  const G=w.anchors.gripL; if(!G) return;
+  if(S.ph===1||S.ph===3){ const a=S.ph===1?u:1-u, e=smooth(a); H.p.copy(G.p).lerp(below,e); H.q.copy(G.q).slerp(anQ('shell',_aq3),e); R.shellM.visible=S.ph===1?u>.6:u<.4; }
+  else if(S.ph===2){ const pts=kq(u,K_SH_P); if(pts<=1) H.p.copy(below).lerp(_a3.copy(port).setZ(port.z+.06),pts); else H.p.copy(port).setZ(port.z+.06).lerp(port,pts-1);
+    anQ('shell',H.q); R.shellM.visible=u<.66; } }
+function anPlant(R){ const k=smooth(R.plK), t=R===VM?player.useT:R.time%3.2, w=R.w;
+  AP[0]-=.055*k; AP[1]+=.065*k; AP[3]+=.3*k; AP[5]-=.05*k; AP[1]+=Math.sin(R.time*15)*.002*k;
+  if(t>2.75) AP[1]-=.16*smooth(Math.min(1,(t-2.75)/.4))*k;
+  const keys=R.c4keys||(R.c4keys=R.def.parts.filter(p=>/tuş|key/i.test(p.name)&&!/takım|pad/i.test(p.name)).map(p=>new THREE.Vector3().fromArray(p.pos)));
+  if(!keys.length) return; const seq=AN_C4SEQ;
+  const f=(t-.22)/.38, i=clamp(Math.round(f),0,6), d=t-(.22+.38*i), i2=clamp(d>0?i+1:i-1,0,6);
+  const press=Math.exp(-(d*d)/(.05*.05)), mv=smooth(clamp(Math.abs(d)/.19,0,1))*.5;
+  const kA=keys[seq[i]%keys.length], kB=keys[seq[i2]%keys.length];
+  _a1.copy(kA).lerp(kB,mv); _a1.y+=.004+(1-press)*.022;
+  anQ('type',R.hR.q); _a2.fromArray(ANP.tip).applyQuaternion(R.hR.q); R.hR.p.copy(_a1).sub(_a2);
+  const tk=k*smooth(clamp((t-.05)/.15,0,1))*(t<2.7?1:1-smooth(Math.min(1,(t-2.7)/.2))); R.hR.k=tk; R.typeK=tk; }
+function anDefuse(R){ const k=smooth(R.dfK), t=R.time;
+  AP[1]-=.32*k; AP[3]-=.9*k; AP[5]+=.4*k; AP[0]+=.04*k; R.hideGun=R.hideGun||k>.55;
+  const hk=smooth(clamp((R.dfK-.45)/.55,0,1)); if(hk<=0) return; R.armLvis=true;
+  anV('dfL',R.hLr.p); R.hLr.p.x+=Math.sin(t*3.1)*.008; R.hLr.p.y+=Math.sin(t*4.3)*.006; anQ('dfL',R.hLr.q); R.hLr.k=hk;
+  anV('dfR',R.hRr.p); const c=Math.max(0,Math.sin(t*5.5)); R.hRr.p.x+=Math.sin(t*2.3)*.012-c*.01; R.hRr.p.y+=c*.012; R.hRr.p.z+=Math.sin(t*1.7)*.01; anQ('dfR',R.hRr.q);
+  _aq3.setFromAxisAngle(AX_Z,c*.25); R.hRr.q.multiply(_aq3); R.hRr.k=hk; }
+// left-hand reload path (gun-local); writes lp/lq
+function anReloadHand(R,rp,lp,lqOut){ const w=R.w, A=w.anchors, D=R.def, DA=D.anchors, MH=DA.magHand, MT=DA.magPath==='top', T=D.type, C=anCls(D), hasMag=w.roles.mag.length>0, P=R.lp;
+  const mbx=w.magBox; if(MT&&mbx) P[1].set((mbx.min.x+mbx.max.x)/2,mbx.max.y,(mbx.min.z+mbx.max.z)/2).add(R.mo); else P[1].copy(w.magBottom).add(R.mo).add(_a4.set(0,-.025,0));
+  if(MH&&MH.p) P[1].add(_a4.fromArray(MH.p));
+  P[0].copy(A.gripL.p);
+  if(w.roles.bolt.length) P[2].copy(w.roles.bolt[0].pos).add(_a4.fromArray(DA.boltHand||[.03,0,0])); else P[2].copy(A.eject).add(_a4.set(.02,0,0));
+  P[3].copy(P[2]).add(_a4.set(0,0,.05)); P[4].copy(A.gripL.p).add(_a4.set(-.06,-.34,.12)); P[5].copy(A.gripL.p).add(_a4.set(-.07,.06,.02));
+  P[6].copy(P[1]).add(_a4.set(0,-.045,0));
+  const sl=w.roles.slide[0]&&R.slideTop; if(sl) P[7].copy(R.slideTop).add(anV('slide',_a4)); else P[7].copy(P[2]);
+  P[8].copy(P[7]).add(_a4.set(0,0,.024));
+  let L=!hasMag?AN_LP.noMag:AN_LP[(C==='pistol'?'pistol':C==='sniper'?'sniper':'rifle')+(R.rlEmpty?'E':'T')];
+  if(T==='pistol'&&!sl&&R.rlEmpty) L=AN_LP.rifleE;   // Tec-9: the support hand pulls the bolt
+  let i=1; while(i<L.length-1&&rp>L[i][0]) i++;
+  const a=L[i-1], b=L[i], k=smooth(clamp((rp-a[0])/Math.max(1e-6,b[0]-a[0]),0,1));
+  const pa=MT&&hasMag&&a[1]===0&&b[1]===1?P[5]:P[a[1]];
+  lp.copy(pa).lerp(P[b[1]],k);
+  if(MT&&hasMag&&a[1]===0&&b[1]===1){ const k2=smooth(clamp(rp/.06,0,1)); lp.copy(P[0]).lerp(P[5],k2); if(rp>.06) lp.copy(P[5]).lerp(P[1],smooth(clamp((rp-.06)/.06,0,1))); }
+  let lq=A.gripL.q;
+  if(MH&&MH.r&&hasMag){ const k3=kq(rp,K_RL_MHR); if(k3>0){ lqOut.copy(A.gripL.q).slerp(_aq3.setFromEuler(_ae.set(MH.r[0]*DEG,MH.r[1]*DEG,MH.r[2]*DEG)),k3); return lqOut; } }
+  if((a[1]===7||b[1]===7||a[1]===8)&&sl){ const k4=a[1]===7||a[1]===8?1:k; lqOut.copy(A.gripL.q).slerp(anQ('slide',_aq3),k4); return lqOut; }
+  return lq; }
+
+/* ---------- third person: Character animation ---------- */
+const _c1=new THREE.Vector3(), _c2=new THREE.Vector3(), _c3=new THREE.Vector3(), _c4=new THREE.Vector3(), _cq=new THREE.Quaternion(), _cq2=new THREE.Quaternion(), _cm=new THREE.Matrix4(), _ce=new THREE.Euler();
+const CH_SHR=new THREE.Vector3(.2,.43,.02), CH_SHL=new THREE.Vector3(-.2,.43,.02), CH_PIV=new THREE.Vector3(.05,.43,-.05), CH_POUCH=new THREE.Vector3(-.13,.17,-.18);
+const CH_HQ_L=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,Math.PI)), CH_HQ_R=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,-.2));
+const K_CR_RL=[[0,0],[.12,1],[.85,1],[1,0]], K_CS_RY=[[0,0],[.25,-.9,1],[.6,.8,1],[1,0]], K_CS_GX=[[0,0],[.25,.06],[.6,-.18,1],[1,0]], K_CS_GZ=[[0,0],[.25,.05],[.6,-.12],[1,0]], K_CS_RX=[[0,0],[.25,.3],[.6,-.2],[1,0]];
+const K_CT_Y=[[[0,.3],[.3,.82],[.5,.62],[1,.1]],[[0,.15],[.3,.05],[.5,.4],[1,.1]]], K_CT_Z=[[[0,-.2],[.3,.22],[.5,-.42],[1,0]],[[0,0],[.3,.25],[.5,-.42],[1,0]]], K_CT_K=[[0,0],[.12,1],[.8,1],[1,0]], K_CT_KL=[[0,0],[.12,1],[.55,1],[.8,0]];
+const K_CR_K1=[[0,0],[.15,1],[.3,1],[.45,0],[.6,0],[.75,1],[.9,0]], K_CR_K2=[[.3,0],[.45,1],[.6,1],[.75,0]], K_CR_MO=[[.2,0],[.32,-.12],[.62,-.12],[.75,0]];
+const CH_COVER_Q=new THREE.Quaternion().setFromEuler(new THREE.Euler(-.2*Math.PI,.5*Math.PI,.15));
+function anCharInit(C){
+  Object.assign(C,{hold:{p:new THREE.Vector3(.12,.39,-.27),r:new THREE.Euler()},vx:0,vy:0,vz:0,_lp:new THREE.Vector3(),_lpOk:false,mvK:0,hipYaw:0,back:0,alpha:0,lat:0,sag:1,ph:0,
+    rk:new Spring(300,26),rp:new Spring(240,20),fx:new Spring(110,9),fz:new Spring(110,9),fh:new Spring(170,11),fd:new Spring(130,11),
+    rl:-1,throwT:-1,throwU:false,slashT:-1,drawT:0,kneel:false,kneelK:0,blind:false,blindK:0,air:null,airK:0,crK:0,
+    idleFx:0,t:Math.random()*20,lookT:rand(1.5,4),lkY:0,lkP:0,lkTY:0,lkTP:0,adj:-1,adjT:rand(4,8),wsT:rand(3,7),ws:0,wsK:0,
+    dType:0,dSide:1,dT:0,dSet:false,gunVy:0,gunQ:new THREE.Quaternion(),dhL:new THREE.Vector3(),dhR:new THREE.Vector3(),dqL:new THREE.Quaternion(),dqR:new THREE.Quaternion()});
+  C.hips.rotation.order='YXZ'; C.spine.rotation.order='YXZ'; C.head.rotation.order='YXZ';
+}
+function anCharWeapon(C,def,had){ const t=def.type;
+  if(t==='pistol') C.hold.p.set(.03,.37,-.44); else if(t==='knife') C.hold.p.set(.2,.08,-.3); else C.hold.p.set(.12,.39,-.27);
+  C.hold.r.set(t==='knife'?-.4:0,0,0); if(had&&C.deathT<0) C.drawT=.4; }
+function anCharFire(C){ if(C.deathT>=0||!C.def) return; const T=C.def.type;
+  if(T==='knife'){ C.slashT=0; return; } if(T==='grenade'||T==='c4') return;
+  const K=T==='pistol'?[.03,.2]:T==='sniper'?[.06,.22]:T==='shotgun'?[.06,.2]:T==='smg'?[.016,.05]:[.024,.07];
+  anImp(C.rk,K[0]); anImp(C.rp,K[1]); C.fx.v+=K[1]*2; }
+function anCharHit(C,from,zone){ if(C.deathT>=0) return; let f=1, s=0;
+  if(from){ const dx=from.x-C.pos.x, dz=from.z-C.pos.z, L=Math.hypot(dx,dz)||1; f=(-dx*Math.sin(C.yaw)-dz*Math.cos(C.yaw))/L; s=(dx*Math.cos(C.yaw)-dz*Math.sin(C.yaw))/L; }
+  const m=zone==='head'?1.3:zone==='legs'?.5:1;
+  C.fx.v+=f*2.6*m; C.fz.v+=s*2.2*m; if(zone==='head') C.fh.v+=7*(f>=0?1:-1); if(zone==='legs') C.fd.v+=1.6; else C.fd.v+=.35; }
+function anBotFeed(b,C){ C.air=!b.onGround; C.kneel=!!(b.planting||b.defusing); C.blind=(b.blindT||0)>.25; C.rl=b.reloadT>0&&b.w?clamp(1-b.reloadT/(b.w.def.stats.reload||2),0,1):-1; C.crouchK=lerp(C.crouchK,0,.2); }
+function anDeathInfo(v,killer,hs){ const ds=v.slots&&(v.slots.primary||(v.slots.secondary&&v.slots.secondary.def.stats.price>200)); return {from:killer&&killer!==v&&killer.pos?killer.pos:null,hs:!!hs,drop:match.mode==='comp'&&!!ds}; }
+// spine-local point -> IK; t-space helpers
+function anToSpine(C,p,out){ // character-root-space point -> spine-local
+  C.spine.updateWorldMatrix(true,false); _cm.copy(C.spine.matrixWorld).invert(); return out.copy(p).applyMatrix4(C.root.matrixWorld).applyMatrix4(_cm); }
+function anCharUpdate(C,dt){ const r=C.root; r.position.copy(C.pos); r.rotation.y=C.yaw;
+  if(!C._lpOk){ C._lp.copy(C.pos); C._lpOk=true; }
+  if(dt>1e-4){ let ix=(C.pos.x-C._lp.x)/dt, iy=(C.pos.y-C._lp.y)/dt, iz=(C.pos.z-C._lp.z)/dt; if(ix*ix+iz*iz>900||Math.abs(iy)>40){ ix=0; iy=0; iz=0; } const k=Math.min(1,dt*12); C.vx+=(ix-C.vx)*k; C.vy+=(iy-C.vy)*k; C.vz+=(iz-C.vz)*k; }
+  C._lp.copy(C.pos);
+  if(C.deathT>=0){ C.deathT+=dt; anCharDeath(C,dt); return; }
+  anCharLive(C,dt); }
+function anCharLive(C,dt){
+  const sp=C.speed||0, cy=Math.cos(C.yaw), sy=Math.sin(C.yaw), w=C.w, def=C.def;
+  const vf=-C.vx*sy-C.vz*cy, vs=C.vx*cy-C.vz*sy, vh=Math.hypot(vf,vs);
+  if(vh>.3) C.alpha=Math.atan2(vs,vf);
+  const back=Math.abs(C.alpha)>1.95, a2=back?C.alpha-Math.sign(C.alpha)*Math.PI:C.alpha;
+  C.back=lerp(C.back,back?1:0,Math.min(1,dt*8));
+  const mk=(C.mvK=lerp(C.mvK,clamp(sp/1.4,0,1),Math.min(1,dt*7)));
+  C.hipYaw=lerp(C.hipYaw,clamp(a2,-.8,.8)*.7*mk,Math.min(1,dt*7));
+  const beta=a2*mk-C.hipYaw; C.lat=lerp(C.lat,Math.sin(beta),Math.min(1,dt*8)); C.sag=lerp(C.sag,Math.cos(beta),Math.min(1,dt*8));
+  const s6=Math.min(sp,6.5); if(mk>.02) C.ph+=dt*Math.PI*(1.55+.3*s6)*(back?-1:1);
+  C.crK=lerp(C.crK,C.crouchK||0,Math.min(1,dt*10)); const ck=C.crK;
+  const airT=C.air===true||(C.air===null&&Math.abs(C.vy)>2.6)?1:0; C.airK=lerp(C.airK,airT,Math.min(1,dt*(airT?10:14)));
+  C.kneelK=lerp(C.kneelK,C.kneel?1:0,Math.min(1,dt*5)); const kk=smooth(C.kneelK);
+  C.blindK=lerp(C.blindK,C.blind?1:0,Math.min(1,dt*(C.blind?8:2.5))); const bk=smooth(C.blindK);
+  C.t+=dt; const t=C.t;
+  // idle: breathing, weight shift, (menu) look-around + weapon adjust
+  const still=1-mk;
+  C.wsT-=dt; if(C.wsT<=0){ C.wsT=rand(4,9); C.ws=C.ws?-C.ws:(Math.random()<.5?-1:1); } C.wsK=lerp(C.wsK,C.ws*still*(1-kk),Math.min(1,dt*1.6));
+  if(C.idleFx){ C.lookT-=dt; if(C.lookT<=0){ C.lookT=rand(2.2,5.5); const c=Math.random()<.35; C.lkTY=c?0:rand(-.55,.5); C.lkTP=c?0:rand(-.12,.12); }
+    C.lkY=lerp(C.lkY,C.lkTY,Math.min(1,dt*2.2)); C.lkP=lerp(C.lkP,C.lkTP,Math.min(1,dt*2.2));
+    C.adjT-=dt; if(C.adjT<=0&&C.adj<0){ C.adj=0; C.adjT=rand(6,11); } } else { C.lkY=lerp(C.lkY,0,Math.min(1,dt*4)); C.lkP=lerp(C.lkP,0,Math.min(1,dt*4)); }
+  if(C.adj>=0){ C.adj+=dt; if(C.adj>1.4) C.adj=-1; }
+  const br=Math.sin(t*1.7);
+  // legs
+  const A=Math.min(.62,.1+.085*s6)*(1-.45*ck)*mk, B=(.3+.13*s6)*mk;
+  let drop=0;
+  for(let i=0;i<2;i++){ const L=C.legs[i], ph=C.ph+(i?Math.PI:0), sw=Math.sin(ph)*A, side=L.s;
+    let tx=sw*C.sag, tz=sw*C.lat*.7+side*.035*mk*Math.abs(C.lat), kn=-(Math.max(0,Math.cos(ph+(back?-.4:.4)))*B+.06*mk);
+    tx+=ck*1.0; kn-=ck*1.85;
+    const wsi=C.wsK*side; tx+=Math.max(0,-wsi)*.1; kn-=Math.max(0,-wsi)*.18; tz+=C.wsK*.03;
+    if(C.airK>.01){ const up=C.vy>.5; const atx=i?(up?.18:.06):(up?.6:.25), akn=i?(up?-.5:-.25):(up?-1.05:-.4); tx=lerp(tx,atx,C.airK); kn=lerp(kn,akn,C.airK); tz*=1-C.airK; }
+    if(kk>.001){ const ktx=i?-.12:1.5, kkn=i?-1.62:-1.48; tx=lerp(tx,ktx,kk); kn=lerp(kn,kkn,kk); tz*=1-kk; }
+    tx-=C.fd.x*.5; kn-=C.fd.x*1.1;
+    L.th.rotation.set(tx,0,tz); L.kn.rotation.set(kn,0,0);
+    drop=Math.max(drop,.95*(1-Math.cos(Math.abs(sw)))); }
+  let hy=lerp(.93-drop*.9-.012*mk*Math.min(1,s6/4)*(1+Math.cos(2*C.ph)),.6,ck);
+  hy=lerp(hy,.55,kk); hy-=C.fd.x*.08; hy+=br*.004*still; hy-=Math.abs(C.wsK)*.012;
+  C.hips.position.set(C.wsK*.035,hy,0);
+  C.hips.rotation.set(0,-C.hipYaw+Math.sin(C.ph)*.1*mk,Math.sin(C.ph)*.04*mk-C.wsK*.045);
+  // torso: aim pitch, counter twist, lean
+  const lean=-.11*mk*Math.min(1,s6/5)-.2*ck-.38*kk;
+  C.spine.rotation.set(C.pitch*.5*(1-kk)+lean+C.fx.step(dt,0)*.18+br*.012*still-bk*.15, C.hipYaw-Math.sin(C.ph)*.085*mk+C.lkY*.3, -C.hips.rotation.z*.8+C.fz.step(dt,0)*.16);
+  const fh=C.fh.step(dt,0); C.fd.step(dt,0);
+  C.head.rotation.set(C.pitch*.32*(1-kk)+C.lkP-.25*kk-.32*bk+fh*.12+br*.01*still, C.lkY*.7+bk*.35, 0);
+  // gun
+  const G=C.gunRoot, hp=C.hold.p, hr=C.hold.r;
+  const ap=C.idleFx?0:C.pitch*.45*(1-kk);
+  _c1.copy(hp).sub(CH_PIV); _cq.setFromAxisAngle(AX_X,ap); _c1.applyQuaternion(_cq).add(CH_PIV);
+  const rk=C.rk.step(dt,0), rpk=C.rp.step(dt,0), run=mk*Math.min(1,s6/5);
+  let gx=_c1.x+Math.sin(C.ph)*.008*mk, gy=_c1.y+.01*mk*Math.cos(2*C.ph)+br*.003*still, gz=_c1.z+rk, rx=hr.x+ap+rpk-.08*run, ry=hr.y, rz=hr.z+Math.sin(C.ph)*.04*mk;
+  if(C.adj>=0){ const a=Math.sin(Math.min(1,C.adj/1.4)*Math.PI); rz+=.14*a; rx+=.07*a; gy+=.018*a; gz-=.01*a; }
+  if(C.drawT>0){ C.drawT=Math.max(0,C.drawT-dt); const k=smooth(C.drawT/.4); rx-=.9*k; gy-=.14*k; }
+  let rlk=0; if(C.rl>=0&&w){ rlk=kq(C.rl,K_CR_RL); rz+=.5*rlk; rx-=.22*rlk; gx-=.05*rlk; gy-=.04*rlk; }
+  if(C.slashT>=0){ C.slashT+=dt; const u=C.slashT/.4; if(u>=1) C.slashT=-1; else { ry+=kq(u,K_CS_RY); gx+=kq(u,K_CS_GX); gz+=kq(u,K_CS_GZ); rx+=kq(u,K_CS_RX); } }
+  rx-=.75*bk; gy-=.1*bk; gx-=.03*bk;
+  G.position.set(gx,gy,gz); G.rotation.set(rx,ry,rz);
+  let thr=-1; if(C.throwT>=0){ C.throwT+=dt; thr=C.throwT/.9; if(thr>=1){ C.throwT=-1; thr=-1; } }
+  G.visible=!(kk>.5||(thr>=.05&&thr<.78));
+  // arms
+  const wA=w&&w.anchors; G.updateMatrix();
+  // right arm
+  if(wA&&G.visible){ _c2.copy(wA.gripR.p).applyMatrix4(G.matrix); _cq2.copy(G.quaternion).multiply(wA.gripR.q); }
+  else { _c2.set(.27,.02,-.02); _cq2.copy(CH_HQ_R); }
+  if(thr>=0){ const u=thr, U=C.throwU; _c3.set(.27,kq(u,K_CT_Y[U?1:0]),kq(u,K_CT_Z[U?1:0]));
+    const k=kq(u,K_CT_K); _c2.lerp(_c3,k); }
+  if(kk>.01){ _c3.set(.1+Math.sin(t*5)*.02,.14+Math.max(0,Math.sin(t*6.3))*.03,-.52); anToSpine(C,_c3,_c4); _c2.lerp(_c4,kk); _cq2.slerp(CH_HQ_R,kk); }
+  poseArm(C.armR,CH_SHR,_c2,_cq2,C.poleR||CHAR_POLE_R);
+  // left arm
+  const hasL=wA&&wA.gripL&&G.visible;
+  if(hasL){ _c2.copy(wA.gripL.p).applyMatrix4(G.matrix); _cq2.copy(G.quaternion).multiply(wA.gripL.q);
+    if(rlk>0&&w.roles.mag.length){ const u=C.rl; _c3.copy(w.magBottom).applyMatrix4(G.matrix);
+      const k1=kq(u,K_CR_K1), k2=kq(u,K_CR_K2);
+      _c4.copy(_c2).lerp(_c3,k1).lerp(CH_POUCH,k2); _c2.copy(_c4);
+      const mo=kq(u,K_CR_MO); w.roles.mag.forEach(r=>{ r.node.position.copy(r.pos); r.node.position.y+=mo; r.node.visible=!(u>.32&&u<.62); }); } }
+  else { const sw=Math.sin(C.ph+Math.PI)*.16*mk; _c2.set(-.27-.02*mk,.02+Math.abs(sw)*.12,-.03-sw); _cq2.copy(CH_HQ_L); }
+  if(thr>=0){ const k=kq(thr,K_CT_KL); _c2.lerp(_c3.set(-.2,.55,-.42),k); }
+  if(bk>.01){ _c3.set(-.03,.68,-.17); _c2.lerp(_c3,bk); _cq2.slerp(CH_COVER_Q,bk); }
+  if(kk>.01){ _c3.set(-.12+Math.sin(t*3.3)*.015,.13,-.5+Math.sin(t*2.1)*.02); anToSpine(C,_c3,_c4); _c2.lerp(_c4,kk); _cq2.slerp(CH_HQ_L,kk); }
+  poseArm(C.armL,CH_SHL,_c2,_cq2,C.poleL||CHAR_POLE_L);
+}
+/* deaths: 0 fall back · 1 fall forward · 2 sideways · 3 headshot snap · 4 knees buckle; each ends with a short settle */
+const AN_DEATH=[
+  {bx:[[0,0],[.15,.12,1],[.62,1.42,2],[.74,1.3,1],[.9,1.46],[1.05,1.43]], hy:[[0,.93],[.15,.88],[.62,.64],[.9,.62]], tL:[[0,0],[.15,.2],[.62,.55],[.9,.3]], tR:[[0,0],[.15,.1],[.62,.42],[.9,.16]],
+    kL:[[0,0],[.15,-.5],[.62,-1.0],[.9,-.6]], kR:[[0,0],[.15,-.3],[.62,-.8],[.9,-.35]], sx:[[0,0],[.12,.3,1],[.62,.1],[.9,0]], hx:[[0,0],[.1,.35,1],[.62,.2],[.9,.1]], hz:[[0,0],[.62,0],[.9,.45]], arms:0},
+  {bx:[[0,0],[.12,-.1,1],[.35,-.25],[.72,-1.45,2],[.84,-1.36,1],[1.0,-1.48],[1.12,-1.45]], hy:[[0,.93],[.35,.7],[.72,.64],[1,.62]], tL:[[0,0],[.35,.7],[.72,.3],[1,.1]], tR:[[0,0],[.35,.5],[.72,.15],[1,.05]],
+    kL:[[0,0],[.35,-1.3],[.72,-.5],[1,-.3]], kR:[[0,0],[.35,-1.1],[.72,-.4],[1,-.2]], sx:[[0,0],[.12,-.35,1],[.72,-.2],[1,-.08]], hx:[[0,0],[.35,-.3],[1,-.1]], hz:[[0,0],[.72,0],[1,.9]], arms:1},
+  {bz:[[0,0],[.12,.1,1],[.65,1.4,2],[.78,1.29,1],[.95,1.44],[1.1,1.42]], hy:[[0,.93],[.3,.8],[.65,.68],[1,.66]], tL:[[0,0],[.3,.4],[1,.5]], tR:[[0,0],[1,.1]],
+    kL:[[0,0],[.3,-.8],[.65,-.5],[1,-.65]], kR:[[0,0],[.3,-.2],[1,-.15]], sz:[[0,0],[.12,-.25],[.65,.1],[1,0]], hz:[[0,0],[.12,-.3],[.65,.3],[1,.4]], hx:[[0,0],[.65,.1]], arms:2},
+  {hx:[[0,0],[.05,.75,1],[.25,.45],[.6,.3],[.9,.25]], bx:[[0,0],[.08,.15,1],[.46,1.42,2],[.57,1.31,1],[.7,1.46],[.85,1.43]], hy:[[0,.93],[.46,.76],[.7,.72]],
+    tL:[[0,0],[.46,.3],[.7,.22]], tR:[[0,0],[.46,.25],[.7,.15]], kL:[[0,0],[.46,-.3],[.7,-.2]], kR:[[0,0],[.46,-.25],[.7,-.15]], sx:[[0,0],[.08,.25,1],[.46,.05]], hz:[[0,0],[.5,0],[.8,-.4]], arms:3},
+  {hy:[[0,.93],[.38,.56,2],[.48,.5],[.6,.52]], tL:[[0,0],[.38,.25],[.6,.3],[1.2,.5]], tR:[[0,0],[.38,.2],[.6,.25],[1.2,.3]], kL:[[0,0],[.38,-1.6],[.6,-1.7],[1.2,-1.2]], kR:[[0,0],[.38,-1.62],[.6,-1.72],[1.2,-.9]],
+    sx:[[0,0],[.38,-.4],[.6,-.5],[1.2,-.2]], hx:[[0,0],[.38,-.45],[1.2,-.1]], bz:[[0,0],[.55,0],[1.0,1.3,2],[1.1,1.18,1],[1.25,1.36],[1.4,1.33]], hz:[[0,0],[1,.4]], arms:4}];
+// spine-local hand targets [L mid, R mid, L end, R end]; sideways falls are authored for sd=+1 (down side = left) and mirrored
+const AN_DARMS=[[[-.45,.85,.12],[.45,.85,.12],[-.55,.3,.05],[.55,.3,.05]], [[-.28,.25,-.4],[.28,.25,-.4],[-.32,.1,-.15],[.3,.12,-.2]], [[-.2,.5,-.35],[.35,.3,-.15],[-.15,.55,-.4],[.28,.22,-.3]],
+  [[-.5,.9,.1],[.5,.9,.1],[-.6,.55,.05],[.6,.55,.05]], [[-.3,.05,-.05],[.3,.05,-.05],[-.15,.45,-.35],[.3,.15,-.25]]];
+const K_DARM=[[0,0],[.15,.6],[.55,1],[.75,1]], K_DARM2=[[.55,0],[1,1]];
+const CH_DPTS=[['head',0,0,0,.125],['spine',0,.3,.15,.03],['spine',0,.3,-.16,.03],['spine',.21,.3,0,.03],['spine',-.21,.3,0,.03],['spine',0,.55,.0,.08],['hips',.17,0,0,.04],['hips',-.17,0,0,.04],['hips',0,0,.12,.02],['hips',0,0,-.12,.02]];
+function anCharSetDead(C,d,info){
+  if(!d){ C.deathT=-1; C._lpOk=false; C.root.rotation.x=0; C.body.rotation.set(0,0,0); C.body.position.set(0,0,0); if(C.gunRoot.parent!==C.spine) C.spine.add(C.gunRoot); C.gunRoot.visible=true; C.dSet=false;
+    if(C.w) C.w.roles.mag.forEach(r=>{ r.node.position.copy(r.pos); r.node.visible=r.vis!==false; }); return; }
+  if(C.deathT>=0) return; C.deathT=0; C.dSet=false; info=info||{};
+  let f=1, s=rand(-1,1); if(info.from){ const dx=info.from.x-C.pos.x, dz=info.from.z-C.pos.z, L=Math.hypot(dx,dz)||1; f=(-dx*Math.sin(C.yaw)-dz*Math.cos(C.yaw))/L; s=(dx*Math.cos(C.yaw)-dz*Math.sin(C.yaw))/L; }
+  C.dSide=s>=0?1:-1;   // pushed away from the shooter: shot from the right -> falls to the left (+z roll)
+  C.dType=info.hs?3:(info.from?(f<-.45?1:Math.abs(s)>.75?2:(Math.random()<.35?4:0)):[0,4,2][Math.floor(Math.random()*3)]);
+  if(info.type!==undefined) C.dType=info.type;
+  C.dhL.copy(C.armL.hand.position); C.dhR.copy(C.armR.hand.position); C.dqL.copy(C.armL.hand.quaternion); C.dqR.copy(C.armR.hand.quaternion);
+  if(C.w){ if(info.drop) C.gunRoot.visible=false; else { C.root.attach(C.gunRoot); C.gunVy=0; C.gunQ.setFromEuler(_ce.set(0,rand(-1,1),C.dSide*1.5)); C.gunQ.premultiply(_cq.setFromAxisAngle(AX_Y,C.gunRoot.rotation.y)); } }
+}
+function anCharDeath(C,dt){
+  if(C.dSet) return; const t=C.deathT, D=AN_DEATH[C.dType], sd=C.dSide, g=(k,v)=>D[k]?kq(t,D[k]):v;
+  C.body.rotation.set(g('bx',0),0,g('bz',0)*sd); C.body.position.set(0,0,0);
+  C.hips.position.set(0,g('hy',.93),0); C.hips.rotation.set(0,0,0);
+  C.legs[0].th.rotation.set(g('tL',0),0,0); C.legs[0].kn.rotation.set(g('kL',0),0,0); C.legs[1].th.rotation.set(g('tR',0),0,0); C.legs[1].kn.rotation.set(g('kR',0),0,0);
+  C.spine.rotation.set(g('sx',0),0,g('sz',0)*sd); C.head.rotation.set(g('hx',0),g('hz',0)*sd,0);
+  const AR=AN_DARMS[D.arms], k1=kq(t,K_DARM), k2=kq(t,K_DARM2), mir=sd<0&&(D.bz!==undefined), iL=mir?1:0, iR=mir?0:1, mx=mir?-1:1;
+  _c3.fromArray(AR[iL]); _c3.x*=mx; _c4.fromArray(AR[iL+2]); _c4.x*=mx; _c1.copy(C.dhL).lerp(_c3,k1).lerp(_c4,k2); poseArm(C.armL,CH_SHL,_c1,C.dqL,C.poleL||CHAR_POLE_L);
+  _c3.fromArray(AR[iR]); _c3.x*=mx; _c4.fromArray(AR[iR+2]); _c4.x*=mx; _c1.copy(C.dhR).lerp(_c3,k1).lerp(_c4,k2); poseArm(C.armR,CH_SHR,_c1,C.dqR,C.poleR||CHAR_POLE_R);
+  // keep every body part above the floor (lift the whole body by the deepest penetration)
+  C.body.updateMatrixWorld(true); let mn=1e9; const base=C.pos.y;
+  for(const P of CH_DPTS){ _c1.set(P[1],P[2],P[3]).applyMatrix4(C[P[0]].matrixWorld); mn=Math.min(mn,_c1.y-base-P[4]); }
+  for(const L of C.legs){ _c1.set(0,0,-.07).applyMatrix4(L.kn.matrixWorld); mn=Math.min(mn,_c1.y-base-.04); _c1.set(0,-.46,-.05).applyMatrix4(L.kn.matrixWorld); mn=Math.min(mn,_c1.y-base-.06); _c1.set(0,-.22,0).applyMatrix4(L.th.matrixWorld); mn=Math.min(mn,_c1.y-base-.085); }
+  for(const a of [C.armL,C.armR]){ _c1.copy(a.hand.position).applyMatrix4(C.spine.matrixWorld); mn=Math.min(mn,_c1.y-base-.04); _c1.copy(a.elbow.position).applyMatrix4(C.spine.matrixWorld); mn=Math.min(mn,_c1.y-base-.05); }
+  if(mn<0) C.body.position.y=-mn;
+  if(C.gunRoot.parent===C.root&&C.gunRoot.visible){ const G=C.gunRoot; if(G.position.y>.035){ C.gunVy-=9.8*dt; G.position.y=Math.max(.035,G.position.y+C.gunVy*dt); } G.quaternion.slerp(C.gunQ,Math.min(1,dt*5)); }
+  if(t>1.6) C.dSet=true;
+}
+gameExport({ ANIM:{kq,AP,ANQ,ANP,AN_DRAW,AN_INSP,AN_KICK,anShellTimes,vmShell,anCls,AN_DEATH,vmKnife},
+  anInput:(k,v)=>{ if(k==='fire2') firing2=v; else if(k==='fire') firing=v; else keys[k]=v; },   // test helper: simulated buttons
+  // test helper: a Character placed in front of the camera (third-person checks)
+  anTestChar:(team,id,dist,yaw)=>{ const c=new Character(team||'T','TEST'); c.setWeapon(getWeapon(id||'ak47')); const f=new THREE.Vector3(); camera.getWorldDirection(f); f.y=0; f.normalize();
+    c.pos.copy(camera.position).addScaledVector(f,dist||3); c.pos.y=supportAt(c.pos.x,c.pos.z,camera.position.y,.2); c.yaw=Math.atan2(f.x,f.z)+(yaw||0); c._lpOk=false; c.update(1/60); return c; },
+  // test helper: n game ticks, also updating extra characters / callbacks (only the last tick renders)
+  anStep:(n,dt,list)=>{ window.__manual=true; dt=dt||1/60; for(let i=0;i<n;i++){ if(list) for(const c of list){ if(typeof c==='function') c(dt); else c.update(dt); } tick(dt,i===n-1); } } });
 
 /* @@BLOCK:polish — code from the polish work goes right below this line */
 /* =====================================================================
