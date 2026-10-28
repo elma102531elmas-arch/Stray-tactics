@@ -8678,7 +8678,7 @@ const _a1=new THREE.Vector3(), _a2=new THREE.Vector3(), _a3=new THREE.Vector3(),
 const AX_X=new THREE.Vector3(1,0,0), AX_Y=new THREE.Vector3(0,1,0), AX_Z=new THREE.Vector3(0,0,1);
 // hand orientations (deg, gun-local unless noted) and positions — kept in tables so they are easy to tune
 // hand frame: y = fist axis (the held rod), z = towards the wrist; the left hand's back is -x (mirrored glove)
-const ANQ={ slide:{y:[0,0,1],z:[-.85,-.15,.5]}, slideL:{y:[0,.3,1],z:[-.9,-.3,.3]}, knob:{y:[.75,-.55,0],z:[.25,-.25,.95]}, type:{y:[1,0,-.2],z:[0,1,.35]}, shell:{y:[0,.55,-.85],z:[-.25,-.75,.45]},
+const ANQ={ slide:{y:[0,0,1],z:[-.85,-.15,.5]}, slideL:{y:[0,.3,1],z:[-.9,-.3,.3]}, knob:{y:[.75,-.55,0],z:[.25,-.25,.95]}, type:{y:[-.85,.1,.5],z:[.45,.5,.75]}, shell:{y:[0,.55,-.85],z:[-.25,-.75,.45]},
   cover:{y:[.85,-.5,0],z:[-.5,-.85,-.1]}, pin:{y:[0,0,-1],z:[-.9,-.25,.4]}, point:{y:[.2,1,.3],z:[-.3,-.45,.85]}, dfL:{y:[1,-.2,0],z:[-.2,.45,.85]}, dfR:{y:[-.3,-.45,-.85],z:[.3,.4,.85]}, rest:{y:[0,1,0],z:[0,0,1]} };
 const _qb1=new THREE.Vector3(), _qb2=new THREE.Vector3(), _qb3=new THREE.Vector3(), _qbm=new THREE.Matrix4();
 function anQ(n,out){ const e=ANQ[n]; if(Array.isArray(e)) return out.setFromEuler(_ae.set(e[0]*DEG,e[1]*DEG,e[2]*DEG));
@@ -9106,8 +9106,9 @@ const AN_DEATH=[
     tL:[[0,0],[.46,.3],[.7,.22]], tR:[[0,0],[.46,.25],[.7,.15]], kL:[[0,0],[.46,-.3],[.7,-.2]], kR:[[0,0],[.46,-.25],[.7,-.15]], sx:[[0,0],[.08,.25,1],[.46,.05]], hz:[[0,0],[.5,0],[.8,-.4]], arms:3},
   {hy:[[0,.93],[.38,.56,2],[.48,.5],[.6,.52]], tL:[[0,0],[.38,.25],[.6,.3],[1.2,.5]], tR:[[0,0],[.38,.2],[.6,.25],[1.2,.3]], kL:[[0,0],[.38,-1.6],[.6,-1.7],[1.2,-1.2]], kR:[[0,0],[.38,-1.62],[.6,-1.72],[1.2,-.9]],
     sx:[[0,0],[.38,-.4],[.6,-.5],[1.2,-.2]], hx:[[0,0],[.38,-.45],[1.2,-.1]], bz:[[0,0],[.55,0],[1.0,1.3,2],[1.1,1.18,1],[1.25,1.36],[1.4,1.33]], hz:[[0,0],[1,.4]], arms:4}];
-const AN_DARMS=[[[-.45,.85,.12],[.45,.85,.12],[-.55,.3,.05],[.55,.3,.05]], [[-.28,.25,-.4],[.28,.25,-.4],[-.32,.1,-.15],[.3,.12,-.2]], [[-.55,.35,0],[.5,.2,.05],[-.5,.3,.05],[.45,.15,.1]],
-  [[-.5,.9,.1],[.5,.9,.1],[-.6,.55,.05],[.6,.55,.05]], [[-.3,.05,-.05],[.3,.05,-.05],[-.32,.0,-.2],[.32,.05,-.1]]];
+// spine-local hand targets [L mid, R mid, L end, R end]; sideways falls are authored for sd=+1 (down side = left) and mirrored
+const AN_DARMS=[[[-.45,.85,.12],[.45,.85,.12],[-.55,.3,.05],[.55,.3,.05]], [[-.28,.25,-.4],[.28,.25,-.4],[-.32,.1,-.15],[.3,.12,-.2]], [[-.2,.5,-.35],[.35,.3,-.15],[-.15,.55,-.4],[.28,.22,-.3]],
+  [[-.5,.9,.1],[.5,.9,.1],[-.6,.55,.05],[.6,.55,.05]], [[-.3,.05,-.05],[.3,.05,-.05],[-.15,.45,-.35],[.3,.15,-.25]]];
 const K_DARM=[[0,0],[.15,.6],[.55,1],[.75,1]], K_DARM2=[[.55,0],[1,1]];
 const CH_DPTS=[['head',0,0,0,.125],['spine',0,.3,.15,.03],['spine',0,.3,-.16,.03],['spine',.21,.3,0,.03],['spine',-.21,.3,0,.03],['spine',0,.55,.0,.08],['hips',.17,0,0,.04],['hips',-.17,0,0,.04],['hips',0,0,.12,.02],['hips',0,0,-.12,.02]];
 function anCharSetDead(C,d,info){
@@ -9127,9 +9128,9 @@ function anCharDeath(C,dt){
   C.hips.position.set(0,g('hy',.93),0); C.hips.rotation.set(0,0,0);
   C.legs[0].th.rotation.set(g('tL',0),0,0); C.legs[0].kn.rotation.set(g('kL',0),0,0); C.legs[1].th.rotation.set(g('tR',0),0,0); C.legs[1].kn.rotation.set(g('kR',0),0,0);
   C.spine.rotation.set(g('sx',0),0,g('sz',0)*sd); C.head.rotation.set(g('hx',0),g('hz',0)*sd,0);
-  const AR=AN_DARMS[D.arms], k1=kq(t,K_DARM), k2=kq(t,K_DARM2);
-  _c1.copy(C.dhL).lerp(_c3.fromArray(AR[0]),k1).lerp(_c4.fromArray(AR[2]),k2); poseArm(C.armL,CH_SHL,_c1,C.dqL,C.poleL||CHAR_POLE_L);
-  _c1.copy(C.dhR).lerp(_c3.fromArray(AR[1]),k1).lerp(_c4.fromArray(AR[3]),k2); poseArm(C.armR,CH_SHR,_c1,C.dqR,C.poleR||CHAR_POLE_R);
+  const AR=AN_DARMS[D.arms], k1=kq(t,K_DARM), k2=kq(t,K_DARM2), mir=sd<0&&(D.bz!==undefined), iL=mir?1:0, iR=mir?0:1, mx=mir?-1:1;
+  _c3.fromArray(AR[iL]); _c3.x*=mx; _c4.fromArray(AR[iL+2]); _c4.x*=mx; _c1.copy(C.dhL).lerp(_c3,k1).lerp(_c4,k2); poseArm(C.armL,CH_SHL,_c1,C.dqL,C.poleL||CHAR_POLE_L);
+  _c3.fromArray(AR[iR]); _c3.x*=mx; _c4.fromArray(AR[iR+2]); _c4.x*=mx; _c1.copy(C.dhR).lerp(_c3,k1).lerp(_c4,k2); poseArm(C.armR,CH_SHR,_c1,C.dqR,C.poleR||CHAR_POLE_R);
   // keep every body part above the floor (lift the whole body by the deepest penetration)
   C.body.updateMatrixWorld(true); let mn=1e9; const base=C.pos.y;
   for(const P of CH_DPTS){ _c1.set(P[1],P[2],P[3]).applyMatrix4(C[P[0]].matrixWorld); mn=Math.min(mn,_c1.y-base-P[4]); }
