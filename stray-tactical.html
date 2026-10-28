@@ -947,6 +947,169 @@ body.touchEditing #touch{z-index:31;}
 body.touchEditing #touch .tbtn,body.touchEditing #touch .stick{pointer-events:auto;cursor:move;outline:1px dashed rgba(255,255,255,.35);outline-offset:2px;}
 body.touchEditing #touch .teSel{outline:2px solid var(--amber);outline-offset:3px;}
 body.touchEditing #lookZone,body.touchEditing #moveZone{pointer-events:none;}
+/* sq-menu:begin */
+/* ---- clean CS2-like menus (polish v2): one panel style, calmer nav, consistent type, soft hover / clear focus ---- */
+:root{--sq-r:4px;--sq-pan:rgba(12,15,20,.76);--sq-pan2:rgba(18,22,28,.92);--sq-ln:rgba(255,255,255,.075);--sq-ln2:rgba(255,255,255,.18);--sq-hv:rgba(255,255,255,.055);--sq-t:.14s ease;--sq-lab:var(--m-mut);}
+/* top nav */
+#topNav{background:linear-gradient(180deg,rgba(5,7,10,.96),rgba(9,11,15,.9));border-bottom:1px solid rgba(255,255,255,.06);box-shadow:0 10px 28px rgba(0,0,0,.28);}
+.tnBrand{padding:0 18px 0 10px;margin-right:6px;border-right-color:rgba(255,255,255,.07);transition:opacity var(--sq-t);}
+.tnBrand:hover{opacity:.86;}
+.tnItem{font-size:16px;letter-spacing:.13em;padding:0 17px;transition:color var(--sq-t),background var(--sq-t);}
+.tnItem::after{content:'';position:absolute;left:17px;right:17px;bottom:0;height:2px;background:#fff;transform:scaleX(0);opacity:0;}
+.tnItem:hover{background:rgba(255,255,255,.035);}
+.tnItem:hover::after{transform:scaleX(.45);opacity:.35;transition:transform .18s ease,opacity .18s ease;}
+.tnItem.on{background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.055));}
+.tnItem.on::after{left:17px;right:17px;height:2px;transform:scaleX(1);opacity:1;}
+.tnItem.play svg{width:11px;height:11px;}
+.tnItem.dev{color:rgba(240,166,58,.78);} .tnItem.dev:hover,.tnItem.dev.on{color:var(--m-acc);}
+.tnChip{gap:9px;padding:0 16px;border-left-color:rgba(255,255,255,.07);transition:background var(--sq-t);}
+.tnChip b{font-size:15px;} .tnChip small{font-size:10px;letter-spacing:.16em;}
+.tnIcon{width:50px;border-left-color:rgba(255,255,255,.07);transition:color var(--sq-t),background var(--sq-t);}
+.tnIcon svg{width:20px;height:20px;transition:transform .3s ease;} .tnIcon:hover svg{transform:rotate(30deg);}
+#topNav button:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:-3px;}
+/* shared controls */
+.cBtn{border-radius:3px;border-color:var(--sq-ln2);background:rgba(255,255,255,.08);transition:background var(--sq-t),border-color var(--sq-t),color var(--sq-t);}
+.cBtn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);}
+.cBtn.ghost{border-color:rgba(255,255,255,.14);} .cBtn.ghost:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.3);}
+.goBtn{border-radius:3px;transition:filter var(--sq-t),box-shadow var(--sq-t),transform .08s ease;}
+.goBtn:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 10px 30px rgba(90,180,64,.32);}
+.goBtn:active:not(:disabled){transform:translateY(1px);filter:brightness(.96);}
+.seg{gap:3px;}
+.seg button{border-radius:3px;border-color:transparent;background:rgba(255,255,255,.055);transition:background var(--sq-t),color var(--sq-t);}
+.seg button.on{border-color:#e9edf2;}
+.txtIn,.sCtl input[type=text]:not(.num),.sCtl select,.sCtl .num,.keyBtn{border-radius:3px;}
+.popup{border-radius:6px;border-color:var(--sq-ln2);}
+/* home: featured quick play + one tidy news list on the left, friends + stats on the right, the agent in the middle */
+#mainMenu{gap:20px;padding-top:calc(72px + env(safe-area-inset-top));}
+.homeLeft{width:min(100%,360px);gap:12px;}
+.homeFeat{border-radius:6px;border-color:rgba(255,255,255,.1);background:var(--sq-pan2);box-shadow:0 14px 34px rgba(0,0,0,.38);transition:border-color var(--sq-t),transform var(--sq-t),box-shadow var(--sq-t);}
+.homeFeat:hover{border-color:rgba(255,255,255,.26);transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.48);}
+.homeFeat:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.homeFeat img{transition:transform .5s ease;} .homeFeat:hover img{transform:scale(1.025);}
+.hfBadge{left:12px;top:12px;font-size:11px;letter-spacing:.22em;padding:4px 9px;border-radius:2px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);}
+.hfTxt{position:relative;padding:12px 14px 14px;gap:2px;background:var(--sq-pan2);}
+.hfTxt .k{font-size:12px;letter-spacing:.2em;}
+.hfTxt .t{font-size:28px;}
+.hfTxt .d{font-size:11px;letter-spacing:.1em;color:var(--m-mut);}
+.hfGo{right:14px;bottom:16px;border-radius:3px;font-size:17px;padding:6px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28);}
+.homeNews{gap:0;background:var(--sq-pan);border:1px solid var(--sq-ln);border-radius:6px;overflow:hidden;backdrop-filter:blur(8px);}
+.homeNews::before{content:'YENİLİKLER';display:block;padding:10px 14px 9px;font-family:var(--f-cs);font-weight:700;font-size:12px;letter-spacing:.24em;color:var(--sq-lab);border-bottom:1px solid var(--sq-ln);}
+.newsItem{background:transparent;border:none;border-bottom:1px solid var(--sq-ln);padding:10px 14px;gap:12px;transition:background var(--sq-t);}
+.newsItem:last-child{border-bottom:none;}
+.newsItem:hover{background:var(--sq-hv);border-color:var(--sq-ln);}
+.newsItem:focus-visible{outline:2px solid #fff;outline-offset:-2px;}
+.newsItem b,.newsItem b.new{order:2;margin-left:auto;align-self:flex-start;background:none;padding:2px 0 0;color:var(--m-mut);font-size:10px;letter-spacing:.2em;}
+.newsItem b.new{color:var(--m-acc);}
+.newsItem span{font-size:12px;color:var(--m-mut);line-height:1.4;}
+.newsItem strong{font-size:16px;letter-spacing:.04em;color:var(--m-txt);transition:color var(--sq-t);}
+.newsItem:hover strong{color:#fff;}
+.homeRight{width:264px;gap:12px;}
+.frPanel{border-radius:6px;background:var(--sq-pan);border-color:var(--sq-ln);backdrop-filter:blur(8px);padding:14px 16px 16px;gap:10px;}
+.frPanel h4{font-size:12px;letter-spacing:.24em;color:var(--sq-lab);}
+.frPanel p{color:var(--m-txt2);}
+.frPanel .cBtn{height:40px;font-size:16px;}
+#homeStats{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
+#homeStats h4{grid-column:1/-1;display:flex;align-items:center;gap:6px;color:#fff;font-size:15px;letter-spacing:.08em;padding-bottom:10px;border-bottom:1px solid var(--sq-ln);}
+#homeStats .hsRow{flex-direction:column;justify-content:flex-start;gap:1px;font-family:var(--f-cs);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sq-lab);}
+#homeStats .hsRow b{font-size:22px;line-height:1.05;letter-spacing:.02em;}
+.homeFoot{font-size:10px;letter-spacing:.14em;opacity:.7;}
+/* play */
+.pTabs{background:rgba(0,0,0,.24);border-bottom-color:var(--sq-ln);}
+.pTab{font-size:16px;letter-spacing:.13em;transition:color var(--sq-t);}
+.pTab::after{content:'';position:absolute;left:18px;right:18px;bottom:0;height:2px;background:#fff;transform:scaleX(0);}
+.pTab:hover::after{transform:scaleX(.4);opacity:.35;transition:transform .18s ease,opacity .18s ease;}
+.pTab.on::after{left:18px;right:18px;height:2px;transform:scaleX(1);opacity:1;}
+.pSub{gap:6px;padding-top:10px;padding-bottom:10px;border-bottom-color:var(--sq-ln);}
+.pSubB{border-radius:3px;border-color:transparent;background:rgba(255,255,255,.055);transition:background var(--sq-t),color var(--sq-t);}
+.pSubB.on{border-color:#e9edf2;}
+.pMaps{gap:14px;padding-top:18px;}
+.mapTile{border-radius:6px;overflow:hidden;outline:none;border:1px solid var(--sq-ln);transition:transform var(--sq-t),border-color var(--sq-t),box-shadow var(--sq-t);}
+.mapTile:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.28);box-shadow:0 12px 26px rgba(0,0,0,.38);}
+.mapTile.sel{border-color:#fff;box-shadow:0 0 0 1px #fff,0 12px 26px rgba(0,0,0,.38);}
+.mapTile:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.mapTile img{transition:transform .5s ease;} .mapTile:hover img{transform:scale(1.03);}
+.mapTile .mt{padding:28px 12px 10px;font-size:21px;}
+.mapTile .ck{width:22px;height:22px;border-width:1.5px;border-radius:50%;}
+.mapTile .bdg{border-radius:2px;}
+.pSide{background:rgba(0,0,0,.2);border-left-color:var(--sq-ln);padding:18px;}
+.pSide h4{font-size:22px;}
+.opt{padding:12px 0;border-top-color:var(--sq-ln);}
+.opt>label{font-size:12px;letter-spacing:.22em;}
+.pFoot{background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.48));border-top-color:var(--sq-ln);}
+.pSummary{font-size:17px;}
+/* settings */
+.sTabs .cBtn{margin-left:10px;}
+.sList{padding-left:max(20px,env(safe-area-inset-left));padding-right:20px;}
+.sSec{font-size:12px;letter-spacing:.26em;margin:24px 0 8px;padding-left:2px;color:var(--sq-lab);}
+.sRow,.sRow:nth-child(odd){background:rgba(255,255,255,.025);border-bottom:1px solid var(--sq-ln);min-height:48px;padding:6px 16px;transition:background var(--sq-t);}
+.sRow:hover,.sRow.hl{background:var(--sq-hv);}
+.sRow>label{font-size:14px;letter-spacing:.01em;color:var(--m-txt);}
+.sInfo{padding:24px;background:rgba(0,0,0,.22);border-left-color:var(--sq-ln);}
+.sInfo h4{font-size:22px;}
+.sClose{border-radius:3px;transition:background var(--sq-t),color var(--sq-t);}
+/* inventory */
+.invCats{padding:14px 10px;border-right-color:var(--sq-ln);}
+.invCats button{border-radius:3px;font-size:16px;letter-spacing:.1em;transition:background var(--sq-t),color var(--sq-t);}
+.invCats button.on{box-shadow:inset 2px 0 0 #fff;background:rgba(255,255,255,.08);}
+.invGrid{gap:12px;padding:16px;}
+.invTile{border-radius:6px;overflow:hidden;outline:none;border:1px solid var(--sq-ln);background:linear-gradient(180deg,#242a32,#161a20);transition:transform var(--sq-t),border-color var(--sq-t),box-shadow var(--sq-t);}
+.invTile:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.26);background:linear-gradient(180deg,#2b323c,#1a1f26);box-shadow:0 12px 26px rgba(0,0,0,.35);}
+.invTile.sel{outline:none;border-color:#fff;box-shadow:0 0 0 1px #fff;}
+.invTile:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.invTile .nm{font-size:16px;letter-spacing:.02em;}
+.invTile .ty{letter-spacing:.1em;}
+.invTile .rar{height:3px;opacity:.9;}
+.invTile .eq{border-radius:2px;top:8px;left:8px;letter-spacing:.14em;}
+.invSide{border-left-color:var(--sq-ln);}
+.invInfo{padding:18px;gap:10px;border-top-color:var(--sq-ln);}
+.invInfo .nm{font-size:28px;}
+/* profile */
+.profWrap{gap:12px;padding-top:22px;}
+.profCard{border-radius:6px;background:var(--sq-pan2);border-color:var(--sq-ln);padding:20px;}
+.profAv{border-radius:6px;}
+.xpBar{border-radius:3px;overflow:hidden;}
+.statGrid{gap:10px;}
+.stat{border-radius:6px;background:var(--sq-pan);border-color:var(--sq-ln);padding:12px 16px;transition:border-color var(--sq-t);}
+.stat:hover{border-color:var(--sq-ln2);}
+.stat small{font-size:11px;letter-spacing:.22em;}
+.stat b{font-size:28px;}
+.hist{border-radius:6px;overflow:hidden;border-color:var(--sq-ln);}
+.hist h4{font-size:12px;letter-spacing:.24em;color:var(--sq-lab);}
+.hist tr{transition:background var(--sq-t);} .hist tbody tr:hover{background:var(--sq-hv);}
+/* DEV hub */
+.devHead{margin-bottom:18px;}
+.devTitle{font-size:48px;}
+.devSub{color:var(--m-mut);}
+#devScreen .devGrid{gap:14px;}
+.devCard{border-radius:6px;border-color:var(--sq-ln);transition:border-color var(--sq-t),transform var(--sq-t),box-shadow var(--sq-t);}
+.devCard:hover,.devCard:focus-visible{transform:translateY(-2px);box-shadow:0 16px 36px rgba(0,0,0,.42);}
+.devCard:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+.devCard .k{letter-spacing:.2em;opacity:.9;}
+.devCard .t{font-size:28px;letter-spacing:.02em;}
+/* big screens: a touch larger side panels */
+@media (min-width:1600px) and (min-height:860px){
+  .homeLeft{width:420px;} .homeRight{width:300px;} #mainMenu{padding-left:28px;padding-right:28px;} .hfTxt .t{font-size:32px;}
+  .tnItem{font-size:17px;padding:0 20px;} .tnItem::after,.tnItem.on::after{left:20px;right:20px;}
+  .pMaps{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));} .pSide{width:360px;} .invGrid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));} .invTile img,.invTile .ph{height:116px;}
+}
+/* small / landscape phones */
+@media (max-width:860px){ .tnItem{padding:0 11px;font-size:15px;} .tnItem::after,.tnItem.on::after{left:11px;right:11px;} .pTab{padding:0 12px;font-size:15px;} .pTab::after,.pTab.on::after{left:12px;right:12px;} }
+@media (max-height:520px) and (orientation:landscape){
+  #mainMenu{gap:12px;padding-top:calc(62px + env(safe-area-inset-top));}
+  .homeLeft{gap:8px;} .homeNews::before{display:none;} .newsItem{padding:7px 12px;}
+  .frPanel{padding:10px 12px;gap:6px;} .frPanel .cBtn{height:34px;font-size:14px;} #homeStats{gap:6px 10px;} #homeStats h4{padding-bottom:6px;font-size:14px;} #homeStats .hsRow b{font-size:18px;}
+  .hfTxt{padding:8px 12px 10px;} .hfTxt .t{font-size:22px;} .hfGo{bottom:12px;font-size:15px;padding:5px 14px;}
+  .pMaps{padding-top:12px;gap:10px;} .sSec{margin-top:16px;}
+}
+/* landscape phones: maps and match options side by side, so the options are visible without scrolling */
+@media (max-height:520px) and (orientation:landscape) and (min-width:640px){
+  .pBody{flex-direction:row;overflow:hidden;} .pMaps{flex:1;overflow:auto;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:10px 12px;}
+  .pSide{width:min(36%,290px);border-left:1px solid var(--sq-ln);border-top:none;overflow:auto;padding:12px 14px;} .pSide h4{font-size:18px;} .pSide .pd{margin-bottom:4px;}
+  .opt{padding:8px 0;gap:5px;} .opt .seg button{height:28px;min-width:40px;padding:0 9px;font-size:13px;}
+  .mapTile .mt{font-size:17px;padding:20px 8px 6px;}
+}
+@media (prefers-reduced-motion:reduce){ .homeFeat,.homeFeat img,.mapTile,.mapTile img,.invTile,.devCard,.tnItem::after,.pTab::after,.tnIcon svg{transition:none;} }
+/* sq-menu:end */
 
 
 </style>
@@ -3251,16 +3414,16 @@ function updateListener(){
      far:    RMS of the first 100 ms = -23 dBFS + ld, peak <= 0.6 x lvl (supersonic rifles: faint crack 45-80 ms before the boom)
      handling: clipout 0.48 (pistol 0.45), clipin 0.52 (pistol 0.50), boltback 0.50 (pistol 0.45),
                boltfwd 0.55 (pistol 0.52), sniper bolt 0.55, shotgun pump 0.55, shotgun shell load 0.45,
-               draw 0.40, dry fire 0.40
-     knife:  slash 0.50, stab 0.55, hit 0.60, hitwall 0.60, draw 0.45
+               draw 0.22 (soft cloth / grip / muffled metal, no clicks), dry fire 0.40
+     knife:  slash 0.50, stab 0.55, hit 0.60, hitwall 0.60, draw 0.42
      scope / suppressor: zoom in / out 0.35 | sil on / off 0.45
-     nades:  draw 0.40, pin 0.45, throw 0.45, bounce 0.50, HE 0.98, HE far 0.60, flash 0.95, smoke 0.70,
+     nades:  draw 0.26, pin 0.45, throw 0.45, bounce 0.50, HE 0.98, HE far 0.60, flash 0.95, smoke 0.70,
              molotov 0.85, fire loop 0.50, extinguish 0.60, decoy fizz loop 0.30, decoy pop 0.60
-     C4:     draw 0.40, key 0.35, planted 0.45, initiate 0.45, beep 0.55, defusestart 0.45, defusing loop 0.35,
+     C4:     draw 0.28, key 0.35, planted 0.45, initiate 0.45, beep 0.55, defusestart 0.45, defusing loop 0.35,
              defused 0.45, explode 0.98
      hits:   helmet 0.65, head 0.60, body 0.55, kevlar 0.55, self 0.60 | impacts 0.45 | whiz 0.50 | death 0.50
      moves:  steps 0.33-0.38 (sand 0.33, metal 0.38), landings 0.45, jump 0.25 | shells 0.22
-     UI:     0.25 (hover 0.12, tab 0.18, pickup 0.30) | radio 0.30 | ring (tinnitus) 0.35 | music 0.50
+     UI:     0.25 (hover 0.09, tab 0.11, click 0.16, back 0.18, buy 0.22, deny 0.16, equip 0.15, pickup 0.30) | radio 0.30 | ring (tinnitus) 0.35 | music 0.50
    Versions: weapons get clearly different layer balance / EQ / tails / resonator tuning per version;
    other ids get a subtle tint. Music ignores version/variant and is cached after the first render.
    ===================================================================== */
@@ -3558,10 +3721,10 @@ const CK_T = [0.022, 0.019, 0.015, 0.013, 0.010, 0.008, 0.007, 0.0056, 0.0045];
 function addClick(out, at, o, R) {
   const g = o.g === undefined ? 0.5 : o.g, f0 = o.f || 1200, ring = o.ring || 1, br = o.br === undefined ? 0.5 : o.br;
   const nm = o.n || 6, poly = o.poly || 0, len = o.len || 0.0012;
-  mix(out, burst({ len, tau: len * 0.3, seed: R.seed(), f: [['hp', o.hp || 1500, 0.7]] }), at, g * (o.ex === undefined ? 0.9 : o.ex));
+  mix(out, burst({ len, tau: len * 0.3, seed: R.seed(), f: [['hp', o.hp || 1500, 0.7], ['lp', o.lp || 11000, 0.7]] }), at, g * (o.ex === undefined ? 0.9 : o.ex));
   const modes = [];
   for (let k = 0; k < nm && k < CK_R.length; k++) {
-    const f = f0 * CK_R[k] * R.j(1, 0.05); if (f > 17000) break;
+    const f = f0 * CK_R[k] * R.j(1, 0.05); if (f > (o.fmax || 12000)) break;
     const tilt = nm > 1 ? k / (nm - 1) : 0;
     const a = R.r(0.35, 1) * ((1 - br) * (1 - 0.6 * tilt) + br * (0.4 + tilt)) * (1 - poly * 0.6);
     const tau = CK_T[k] * ring * R.j(1, 0.3) * (1 - poly * 0.75);
@@ -3618,12 +3781,12 @@ function addThud(out, at, o, R) {
   addSweep(out, at, { f0: o.f0 || f * 1.8, f1: f, gl: o.gl || 0.006, tau, amp: g, att: o.att || 0.0008 });
   addBurst(out, at, g * (o.nz === undefined ? 1.6 : o.nz), { att: o.att || 0.0005, tau: tau * 0.5, seed: R.seed(), f: [['lp', o.lp || f * 4, 0.8]] });
 }
-/** cloth / gear rustle: overlapping low-Q noise grains under a bell density envelope. o: {dur, n, f:[lo,hi], amp, maxLen, shape} */
+/** cloth / gear rustle: overlapping low-Q noise grains under a bell density envelope. o: {dur, n, f:[lo,hi], amp, minLen, maxLen, shape} */
 function addCloth(out, at, o, R) {
   const dur = o.dur || 0.3, n = o.n || Math.round(dur * 120), fl = Math.log(o.f ? o.f[0] : 900), fh = Math.log(o.f ? o.f[1] : 5000);
   const tmp = new Float32Array(Math.max(1, Math.min(out.length - at, ns(dur + (o.maxLen || 0.03) * 3))));
   for (let k = 0; k < n; k++) {
-    const t = dur * (o.shape ? Math.pow(R.u(), o.shape) : R.u()), len = R.r(0.004, o.maxLen || 0.03);
+    const t = dur * (o.shape ? Math.pow(R.u(), o.shape) : R.u()), len = R.r(o.minLen || 0.004, o.maxLen || 0.03);
     const env = Math.sin(Math.PI * clamp(t / dur, 0, 1));
     addBurst(tmp, ns(t), R.r(0.3, 1) * (0.3 + 0.7 * env),
       { att: len * 0.4, tau: len * 0.35, seed: R.seed(), f: [['bp', Math.exp(R.r(fl, fh)), R.r(0.7, 1.6)]] });
@@ -3764,7 +3927,7 @@ function loopWrap(x, N, X) {
 function eqMono(x, v, amt) {
   amt = amt === undefined ? 1 : amt; if (!amt) return x;
   if (v === 2) { filt(x, 'ls', 120, 0.7, 2 * amt); filt(x, 'pk', 280, 0.9, 1.5 * amt); filt(x, 'hs', 4500, 0.7, -2.5 * amt); }
-  else if (v === 3) { filt(x, 'ls', 130, 0.7, -1.5 * amt); filt(x, 'pk', 2800, 0.9, 2 * amt); filt(x, 'hs', 5500, 0.7, 2.5 * amt); }
+  else if (v === 3) { filt(x, 'ls', 130, 0.7, -1.5 * amt); filt(x, 'pk', 2600, 0.9, 1.6 * amt); filt(x, 'hs', 6000, 0.7, 1.8 * amt); }
   return x;
 }
 function eqVer(Lc, Rc, v, amt) { eqMono(Lc, v, amt); eqMono(Rc, v, amt); }
@@ -3958,8 +4121,8 @@ function gunVer(B, v, R) {
     G.bk[0] *= 0.86; G.bk[2] *= 1.2; G.bk[4] *= 0.86; G.bk[5] *= 0.8; G.cr[2] *= 0.7; G.cr[0] *= 0.85; G.nw[1] *= 0.8;
     G.rs = G.rs.map((m) => [m[0] * 0.9, m[1] * 1.3, m[2]]);
     mapMc((m) => [m[0] * 1.06, m[1] * 0.87, m[2] * 1.05, m[3] * 1.3, (m[4] || 0) * 1.5 + 0.1, m[5] * 0.8]);
-    G.tl = Object.assign({}, G.tl, { len: G.tl.len * 1.25, g: G.tl.g * 1.12, lp0: G.tl.lp0 * 0.82, lp1: G.tl.lp1 * 0.85, erg: G.tl.erg * 1.12, t1: G.tl.t1 * 1.15 });
-    G.dr *= 1.15; G.far = Object.assign({}, G.far, { len: G.far.len * 1.2, lp: G.far.lp * 0.85 });
+    G.tl = Object.assign({}, G.tl, { len: G.tl.len * 1.15, g: G.tl.g * 1.1, lp0: G.tl.lp0 * 0.82, lp1: G.tl.lp1 * 0.85, erg: G.tl.erg * 1.12, t1: G.tl.t1 * 1.15 });
+    G.dr *= 1.15; G.far = Object.assign({}, G.far, { len: G.far.len * 1.1, lp: G.far.lp * 0.85 });
   } else if (v === 3) {                       // Keskin: shorter harder blast, louder crack + HF, tighter body, brighter shorter tail
     G.bl[0] *= 0.82; G.bl[2] *= 0.7;
     G.bd[0] *= 1.07; G.bd[3] *= 0.8; G.bd[4] *= 0.82; G.lo[3] *= 0.85;
@@ -4054,25 +4217,26 @@ function gunFire(G, R, v) {
   if (!sup) { const hs = burst({ att: 0.0002, hold: 0.001, tau: G.bk[2] * 0.55, seed: R.seed(), f: [['hp', 2300, 0.7], ['lp', 11000, 0.7]] }); normRms(hs, G.bk[3] * GM.air * (0.5 + G.cr[2]), ns(G.bk[2] * 0.6 + 0.001)); mix(dry, hs, pre); }
   if (G.nw[1] > 0) addNWave(dry, pre, G.nw[0], G.nw[1]);
   // 6) barrel / frame ring
-  addModes(dry, pre, G.rs, 1, R, 0.0006);
+  addModes(dry, pre, G.rs.map((m) => [m[0], Math.min(m[1], 0.034) * 0.8, m[2] * 0.7]), 1, R, 0.0006);
   // 7) action: bolt / slide / hammer, buffer spring, brass ping
-  for (const m of G.mc) addClick(dry, pre + ns(m[0]), { f: m[1], g: m[2], ring: m[3], thud: m[4], thudF: 170, br: m[5], n: 7 }, R);
-  if (G.sp) addSpring(dry, pre + ns(G.sp[0]), { f0: G.sp[1], f1: G.sp[2], dur: G.sp[3], g: G.sp[4], bp: 2600 }, R);
-  if (G.br) addModes(dry, pre + ns(G.br[0] * R.j(1, 0.15)), [[G.br[1] * R.j(1, 0.03), 0.03, 1], [G.br[1] * 1.41, 0.022, 0.6], [G.br[1] * 1.93, 0.016, 0.4]], G.br[2], R, 0.0003);
+  for (const m of G.mc) addClick(dry, pre + ns(m[0]), { f: m[1], g: m[2], ring: Math.min(m[3], 1.1) * 0.85, thud: m[4], thudF: 170, br: Math.min(m[5], 0.7), n: 6, ex: 0.6, lp: 9000, fmax: 9000 }, R);
+  if (G.sp) addSpring(dry, pre + ns(G.sp[0]), { f0: G.sp[1], f1: G.sp[2], dur: G.sp[3] * 0.8, g: G.sp[4] * 0.6, bp: 2200, fb: 0.7 }, R);
+  if (G.br) { const bf = Math.min(G.br[1], 5600) * R.j(1, 0.03); addModes(dry, pre + ns(G.br[0] * R.j(1, 0.15)), [[bf, 0.018, 1], [bf * 1.41, 0.012, 0.45]], G.br[2] * 0.55, R, 0.0003); }
   // 8) ground reflection (comb colouring of a real close perspective)
   if (G.gr) { const d = ns(G.gr[0] * 1e-3 * R.j(1, 0.12)), y = dry.slice(0, Math.min(nd - d, ns(0.25))); lp1(y, 3800); mix(dry, y, d, G.gr[1]); }
   // 9) recording-chain saturation (density, lower crest factor) + version tint
   satur(dry, G.dr * GM.drive, G.as || 0);
+  filt(dry, 'lp', 16000, 0.6);
   eqMono(dry, v);
   { const f = ns(0.04); for (let i = 0; i < f; i++) dry[nd - 1 - i] *= i / f; }
   // 10) stereo space: centred dry, early reflections, slapback, long rolling outdoor tail
-  const N = ns(Math.max(ndSec, T.len + 0.1) + 0.05), Lc = new Float32Array(N), Rc = new Float32Array(N);
+  const N = ns(Math.max(ndSec, Math.min(T.len, 2.6) + 0.1) + 0.05), Lc = new Float32Array(N), Rc = new Float32Array(N);
   mix(Lc, dry, 0); mix(Rc, dry, 0);
   const sl = Math.min(nd, ns(0.12)), src = dry.slice(0, sl), fo = ns(0.02);
   for (let i = 0; i < fo; i++) src[sl - 1 - i] *= i / fo;
   if (T.er) addEchoes(Lc, Rc, src, 0, { n: T.er, t0: T.t0, t1: T.t1, g: T.erg * GM.er, decay: 0.76, lp0: T.lp0 * 1.1, lpMul: 0.8, smear: 0.008, hp: 70, w: 0.85 }, R);
   if (T.sl) addEchoes(Lc, Rc, src, 0, { n: 2, t0: T.sl[0], t1: T.sl[0] * 1.45, g: T.sl[1], decay: 0.6, lp0: T.lp0 * 0.6, lpMul: 0.7, smear: 0.014, hp: 90, w: 0.6 }, R);
-  addTail(Lc, Rc, ns(0.008), { rise: 0.03, len: T.len, g: T.g * GM.tail, lp0: T.lp0, lp1: T.lp1, hp: 45, roll: T.roll, rollHz: 2.6, emph: [G.lo[0] * 1.2, 0.7, 3], hump: T.hump }, R);
+  addTail(Lc, Rc, ns(0.008), { rise: 0.03, len: Math.min(T.len, 2.6), g: T.g * GM.tail, lp0: T.lp0, lp1: T.lp1, hp: 45, roll: T.roll, rollHz: 2.6, emph: [G.lo[0] * 1.2, 0.7, 3], hump: T.hump }, R);
   return gunFinish(Lc, Rc, G, false);
 }
 
@@ -4090,7 +4254,7 @@ function gunFar(G, R, v) {
   filt(dry, 'lp', F.lp * 1.15, 0.6); filt(dry, 'lp', F.lp * 2.6, 0.6); filt(dry, 'hp', 110, 0.6);  // air absorption + lost ground coupling
   satur(dry, 1.6, 0.04);
   eqMono(dry, v, 0.6);
-  const FL = F.len * 1.2, N = ns(FL + 0.7), Lc = new Float32Array(N), Rc = new Float32Array(N);
+  const FL = Math.min(F.len * 1.05, 3.2), N = ns(FL + 0.7), Lc = new Float32Array(N), Rc = new Float32Array(N);
   mix(Lc, dry, 0, 0.8); mix(Rc, dry, 0, 0.8);
   const sl = ns(0.22), src = dry.slice(0, sl), fo = ns(0.03);
   for (let i = 0; i < fo; i++) src[sl - 1 - i] *= i / fo;
@@ -4134,7 +4298,7 @@ function gunHandle(kind, G, R, v) {
   const fam = cls === 'sniper' ? 'sniper' : cls === 'shotgun' ? 'shotgun' : (cls === 'pistol' || cls === 'spistol') ? 'pistol' : 'rifle';
   const out = new Float32Array(ns({ dry: 0.3, draw: fam === 'sniper' || fam === 'shotgun' ? 0.95 : 0.75, clipout: 0.5, clipin: 0.5, boltback: 0.45, boltfwd: 0.75 }[kind]));
   const T = (t) => ns(t * R.j(1, 0.04));
-  const ck = (t, f, g, ring, thud, o) => addClick(out, T(t), Object.assign({ f: f * s, g: g * H.g, ring: (ring || 1) * H.ring, br: H.br,
+  const ck = (t, f, g, ring, thud, o) => addClick(out, T(t), Object.assign({ f: f * s, g: g * H.g, ring: Math.min(1.15, (ring || 1) * H.ring * 0.85), br: H.br,
     thud: (thud || 0) * H.heavy, thudF: 150 * s, n: 7 }, o || {}), R);
   const metal = (f) => [[f * 1.8 * s, 20, 1], [f * 3.05 * s, 26, 0.6]];
   const magModes = (f) => (H.poly > 0.3 ? [[f * 1.6 * s, 6, 1]] : metal(f));
@@ -4144,17 +4308,15 @@ function gunHandle(kind, G, R, v) {
     ck(0.004, fam === 'pistol' ? 3000 : 2600, 0.45, 0.5, 0, { n: 6 });
     ck(0.013, fam === 'pistol' ? 2000 : 1600, 0.75, 0.8, 0.3, { n: 8 });
     addRattle(out, T(0.03), { n: 2, t: 0.03, f: 3200 * s, g: 0.05 }, R);
-  } else if (kind === 'draw') {
-    lvl = 0.4;
-    const big = fam === 'sniper' || fam === 'shotgun' ? 1.3 : fam === 'pistol' ? 0.7 : 1;
-    addCloth(out, 0, { dur: 0.42 * big, n: Math.round(28 * big), amp: 0.07, f: [600, 5000], maxLen: 0.025 }, R);
-    addThud(out, T(0.05), { f: 170, tau: 0.02, g: 0.22 * H.heavy }, R);
-    addRattle(out, T(0.1), { n: 4, t: 0.16, f: 2300 * s, g: 0.12 }, R);
-    ck(0.3 * big, 1300, 0.32, 0.8, 0.25);
-    if (fam === 'rifle') { ck(0.42, 2000, 0.22, 0.6, 0); ck(0.47, 1500, 0.3, 0.8, 0.15); }
-    else if (fam === 'pistol') ck(0.24, 2600, 0.25, 0.6, 0);
-    else if (fam === 'sniper') { ck(0.5, 1100, 0.3, 1.0, 0.3); addScrape(out, T(0.53), { dur: 0.06, f0: 2800 * s, f1: 3300 * s, g: 0.18, rate: 900, imp: 0.6 }, R); }
-    else ck(0.48, 1000, 0.3, 0.9, 0.3, { poly: 0.4 });
+  } else if (kind === 'draw') {                           // soft handling only: gear rustle, hand on the grip, a muffled brush of metal, the gun settling
+    lvl = 0.22;
+    const big = fam === 'sniper' || fam === 'shotgun' ? 1.25 : fam === 'pistol' ? 0.7 : 1;
+    addCloth(out, 0, { dur: 0.4 * big, n: Math.round(34 * big), amp: 0.085, f: [380, 2800], minLen: 0.012, maxLen: 0.04, shape: 0.9 }, R);
+    addThud(out, T(0.045), { f: 135 * (fam === 'pistol' ? 1.25 : 1), tau: 0.018, g: 0.2 * Math.sqrt(H.heavy), lp: 480, nz: 1.0, att: 0.002 }, R);
+    addScrape(out, T(0.1 * big), { dur: 0.13 * big, f0: 1000 * s, f1: 1450 * s, q: 0.9, g: 0.1, grit: 0.25, att: 0.35, rel: 0.5, lp: 3200 }, R);
+    addClick(out, T(0.27 * big), { f: 820 * s, g: 0.1, ring: 0.35, br: 0.15, n: 4, poly: 0.85, ex: 0.1, lp: 2200, fmax: 3500, thud: 0.75 * H.heavy, thudF: 150 }, R);
+    if (fam === 'rifle' || fam === 'sniper') addThud(out, T(0.36 * big), { f: 110, tau: 0.022, g: 0.12, lp: 400, nz: 0.8, att: 0.003 }, R);
+    filt(out, 'lp', 6500, 0.6);
   } else if (fam === 'shotgun') {
     if (kind === 'clipout' || kind === 'clipin') {          // shell into the tube: thumb push, "click-thunk"
       lvl = 0.45; const k = kind === 'clipin' ? 1.06 : 1;
@@ -4228,7 +4390,7 @@ function gunHandle(kind, G, R, v) {
       ck(0.012, 1300, 1.0, 1.3, 0.5, { n: 9 });
       ck(0.017, 2700, 0.3, 0.6, 0);
       addSpring(out, T(0.012), { f0: 900 * s, f1: 600 * s, dur: 0.06, g: 0.06, bp: 2400 }, R);
-      addModes(out, T(0.012), [[1850 * s, 0.045 * H.ring, 0.05], [1862 * s, 0.035 * H.ring, 0.025], [2950 * s, 0.035 * H.ring, 0.04], [4400 * s, 0.03 * H.ring, 0.035]], H.g, R);
+      addModes(out, T(0.012), [[1850 * s, 0.03 * H.ring, 0.045], [1862 * s, 0.024 * H.ring, 0.022], [2950 * s, 0.024 * H.ring, 0.035], [4400 * s, 0.02 * H.ring, 0.03]], H.g, R);
     }
   } else {                                                   // rifles, SMGs, suppressed rifle
     if (kind === 'clipout') {
@@ -4256,7 +4418,7 @@ function gunHandle(kind, G, R, v) {
       ck(0.001, 2500, 0.2, 0.5, 0, { n: 5 });
       addScrape(out, T(0.004), { dur: 0.022, f0: 2600 * s, f1: 1800 * s, q: 1.5, g: 0.32, rate: 1500, imp: 1, att: 0.1, rel: 0.2 }, R);
       ck(0.028, 900, 1.0, 1.8, 0.9, { n: 9 });
-      addModes(out, T(0.028), [[1850 * s, 0.05 * H.ring, 0.06], [1863 * s, 0.04 * H.ring, 0.03], [2950 * s, 0.04 * H.ring, 0.05], [4400 * s, 0.03 * H.ring, 0.04]], H.g, R);
+      addModes(out, T(0.028), [[1850 * s, 0.032 * H.ring, 0.055], [1863 * s, 0.026 * H.ring, 0.028], [2950 * s, 0.026 * H.ring, 0.045], [4400 * s, 0.02 * H.ring, 0.035]], H.g, R);
       ck(0.035, 2000, 0.35, 0.7, 0);
       addThud(out, T(0.028), { f: 95, tau: 0.04, g: 0.35 * H.heavy }, R);
       addRattle(out, T(0.06), { n: 3, t: 0.08, f: 2800 * s, g: 0.06 }, R);
@@ -4298,12 +4460,11 @@ function knifeSnd(kind, R, v) {
     return foley(out, 0.6, v, R, { room: 0.2, tail: 0.25, tailG: 0.05 });
   }
   // draw: leather rustle, 'shing' scrape rising, exit click, long blade ring
-  addCloth(out, 0, { dur: 0.12, n: 10, amp: 0.05, f: [600, 3000] }, R);
-  addScrape(out, ns(0.03), { dur: 0.25, f0: 2500, f1: 5500 * (1 + 0.1 * sh - 0.1 * hv), q: 2.5, g: 0.4, rate: 2000, rate1: 3000, imp: 0.9, grit: 0.3, att: 0.2, rel: 0.15,
-    modes: [[3300, 40, 1], [5100, 50, 0.8], [7400, 60, 0.6]] }, R);
-  addClick(out, ns(0.27), { f: 2800, g: 0.35, ring: 0.8, n: 6, br: 0.7 }, R);
-  addModes(out, ns(0.27), [[3150, 0.2, 0.12], [4870, 0.16, 0.09], [6620, 0.12, 0.07], [8930, 0.08, 0.05]].map((m) => [m[0] * (1 - 0.06 * hv + 0.06 * sh), m[1] * (1 + 0.3 * hv), m[2]]), 1, R, 0.002);
-  return foley(out, 0.45, v, R, { room: 0.12 });
+  addCloth(out, 0, { dur: 0.2, n: 18, amp: 0.07, f: [500, 3000], minLen: 0.01, maxLen: 0.03 }, R);
+  addScrape(out, ns(0.05), { dur: 0.22, f0: 2200, f1: 4200 * (1 + 0.1 * sh - 0.1 * hv), q: 1.6, g: 0.22, grit: 0.15, att: 0.45, rel: 0.4, lp: 7000 }, R);
+  addThud(out, ns(0.25), { f: 150, tau: 0.016, g: 0.12, lp: 500, nz: 0.8, att: 0.002 }, R);
+  addModes(out, ns(0.24), [[3150, 0.05, 0.05], [4870, 0.04, 0.035], [6620, 0.03, 0.02]].map((m) => [m[0] * (1 - 0.06 * hv + 0.06 * sh), m[1] * (1 + 0.3 * hv), m[2]]), 1, R, 0.01);
+  return foley(out, 0.42, v, R, { room: 0.12 });
 }
 
 /* ------------------------------ explosions ------------------------------ */
@@ -4367,11 +4528,11 @@ function nadeSnd(kind, R, v, k) {
   const N = ns(kind === 'smoke' ? 3.4 : 2.0);
   const out = new Float32Array(ns(1.2));
   if (kind === 'draw') {
-    addCloth(out, 0, { dur: 0.35, n: 30, amp: 0.07, f: [700, 4500] }, R);
-    addThud(out, ns(0.04), { f: 200, tau: 0.015, g: 0.18 }, R);
-    addClick(out, ns(0.12), { f: 2600 * (1 + 0.1 * sh - 0.1 * hv), g: 0.3, ring: 0.6, n: 6, br: 0.6 }, R);
-    addRattle(out, ns(0.15), { n: 3, t: 0.08, f: 3200, g: 0.08 }, R);
-    return foley(out, 0.4, v, R, { room: 0.12 });
+    addCloth(out, 0, { dur: 0.35, n: 30, amp: 0.08, f: [450, 3000], minLen: 0.012, maxLen: 0.04 }, R);
+    addThud(out, ns(0.06), { f: 180, tau: 0.016, g: 0.18, lp: 600, nz: 1.0, att: 0.002 }, R);
+    addClick(out, ns(0.14), { f: 1900 * (1 + 0.1 * sh - 0.1 * hv), g: 0.1, ring: 0.4, n: 4, br: 0.3, ex: 0.2, lp: 5000, fmax: 6000 }, R);
+    filt(out, 'lp', 7000, 0.6);
+    return foley(out, 0.26, v, R, { room: 0.12 });
   }
   if (kind === 'pin') {
     addScrape(out, ns(0.02), { dur: 0.08, f0: 3000, f1: 4500, q: 2, g: 0.3, rate: 1500, imp: 0.8, grit: 0.4, modes: [[4200, 30, 1], [6800, 40, 0.6]] }, R);
@@ -4527,11 +4688,11 @@ function c4Snd(kind, R, v, k) {
     return foley(out, 0.45, v, R, { room: 0.1, eq: 0.3 });
   }
   if (kind === 'draw') {
-    addCloth(out, 0, { dur: 0.4, n: 30, amp: 0.06, f: [600, 4000] }, R);
-    addClick(out, ns(0.1), { f: 1200, g: 0.4, ring: 0.5, n: 6, poly: 0.8, thud: 0.3, thudF: 180 }, R);
-    addRattle(out, ns(0.2), { n: 3, t: 0.1, f: 2600, g: 0.06 }, R);
-    addThud(out, ns(0.32), { f: 160, tau: 0.02, g: 0.2 + 0.1 * hv }, R);
-    return foley(out, 0.4, v, R, { room: 0.12 });
+    addCloth(out, 0, { dur: 0.42, n: 34, amp: 0.08, f: [450, 3200], minLen: 0.012, maxLen: 0.04 }, R);
+    addClick(out, ns(0.1), { f: 1100, g: 0.18, ring: 0.35, n: 4, poly: 0.9, ex: 0.2, lp: 3500, fmax: 4000, thud: 0.4, thudF: 170 }, R);
+    addThud(out, ns(0.32), { f: 150, tau: 0.02, g: 0.18 + 0.08 * hv, lp: 500, nz: 1.0, att: 0.002 }, R);
+    filt(out, 'lp', 7000, 0.6);
+    return foley(out, 0.28, v, R, { room: 0.12 });
   }
   if (kind === 'defusestart') {               // kit latch snap, case opening, tools rattle
     addClick(out, ns(0.03), { f: 1500, g: 0.6, ring: 0.5, n: 6, poly: 0.7, thud: 0.3, thudF: 250 }, R);
@@ -4725,14 +4886,15 @@ function stepSnd(surf, R, v, k, land) {
     if (surf === 'sand') addGrains(out, pre + ns(0.03), { n: 60, t0: 0, t1: 0.2, shape: 1.8, f: [1500, 7000], Q: [1, 3], len: [0.0003, 0.0015], amp: 0.12, decay: 2 }, R);
     return foley(out, 0.45, v, R, { room: surf === 'metal' ? 0.26 : 0.18, tail: 0.18, tailG: 0.025 });
   }
-  const dt = R.r(0.04, 0.07);                 // heel strike, then the toe rolls down
-  stepHit(out, pre, surf, 1, R, v);
-  stepHit(out, pre + ns(dt), surf, R.r(0.35, 0.5), R, v);
+  const dt = R.r(0.035, 0.075), wt = [1, 0.86, 1.08, 0.93, 1.03, 0.9][k % 6];   // heel strike, then the toe rolls down; per-variant weight
+  stepHit(out, pre, surf, wt, R, v);
+  stepHit(out, pre + ns(dt), surf, wt * R.r(0.3, 0.55), R, v);
   if (surf === 'stone' || surf === 'wood') addScrape(out, pre + ns(dt * 0.6), { dur: R.r(0.025, 0.045), f0: 3200, f1: 2600, q: 0.9, g: 0.08, grit: 0.85, att: 0.2, rel: 0.6 }, R);   // sole scuff
   if (surf === 'sand') addGrains(out, pre + ns(dt), { n: 30, t0: 0, t1: 0.07, shape: 1.4, f: [1500, 7000], Q: [1, 3], len: [0.0003, 0.0015], amp: 0.08, decay: 1.5 }, R);
   if (surf === 'wood' && k === 3) addScrape(out, pre + ns(0.02), { dur: 0.09, f0: 600, f1: 520, q: 6, g: 0.08, rate: 200, imp: 0.6, grit: 0.3, modes: [[600, 10, 1]] }, R);   // plank creak
-  if (k === 1 || k === 2) addRattle(out, pre + ns(R.r(0.01, 0.04)), { n: 2, t: 0.05, f: R.r(2600, 3600), g: 0.025 }, R);   // gear jingle
-  return foley(out, surf === 'metal' ? 0.38 : surf === 'sand' ? 0.33 : 0.35, v, R, { room: surf === 'metal' ? 0.22 : 0.16, eq: 0.3 });
+  if (k === 1 || k === 4) addRattle(out, pre + ns(R.r(0.01, 0.04)), { n: 2, t: 0.05, f: R.r(2400, 3200), g: 0.015 }, R);   // faint gear jingle
+  if (surf !== 'metal') filt(out, 'lp', 10000, 0.6);   // no tick / fizz on top
+  return foley(out, (surf === 'metal' ? 0.38 : surf === 'sand' ? 0.33 : 0.35) * (0.94 + 0.06 * wt), v, R, { room: surf === 'metal' ? 0.22 : 0.16, eq: 0.3, pan: (k % 2 ? -1 : 1) * 0.06 });
 }
 function jumpSnd(R, v) {
   const out = new Float32Array(ns(0.5));
@@ -4771,40 +4933,42 @@ function uiSnd(kind, R, v) {
   const out = new Float32Array(ns(0.8)), sh = v === 3 ? 1 : 0, hv = v === 2 ? 1 : 0, pre = 20;
   let lvl = 0.25;
   if (kind === 'hover') {
-    lvl = 0.12;
-    addBurst(out, pre, 0.4, { tau: 0.0008, seed: R.seed(), f: [['hp', 2500, 0.7]] });
-    addModes(out, pre, [[4000 * (1 + 0.1 * sh - 0.1 * hv), 0.004, 0.6]], 1, null);
+    lvl = 0.09;
+    addBurst(out, pre, 0.25, { att: 0.0004, tau: 0.0012, seed: R.seed(), f: [['bp', 2600, 0.9], ['lp', 6000, 0.7]] });
+    addModes(out, pre, [[2600 * (1 + 0.1 * sh - 0.1 * hv), 0.006, 0.6]], 1, null, 0.0008);
   } else if (kind === 'click') {
-    addClick(out, pre, { f: 2000, g: 0.7, ring: 0.3, n: 5, poly: 0.6, br: 0.6 }, R);
-    addClick(out, pre + ns(0.008), { f: 2600, g: 0.4, ring: 0.25, n: 5, poly: 0.6, br: 0.7 }, R);
-    addNote(out, pre, 1760 * (1 - 0.05 * hv + 0.05 * sh), 0.02, 0.15);
+    lvl = 0.16;
+    addClick(out, pre, { f: 1700, g: 0.55, ring: 0.3, n: 4, poly: 0.7, br: 0.4, ex: 0.4, lp: 7000, fmax: 7000 }, R);
+    addNote(out, pre + ns(0.002), 1568 * (1 - 0.05 * hv + 0.05 * sh), 0.018, 0.07);
   } else if (kind === 'back') {
-    addClick(out, pre, { f: 1500, g: 0.6, ring: 0.3, n: 5, poly: 0.6 }, R);
+    lvl = 0.18;
+    addClick(out, pre, { f: 1300, g: 0.5, ring: 0.3, n: 4, poly: 0.7, br: 0.35, ex: 0.4, lp: 6000, fmax: 6000 }, R);
     const n = ns(0.07), at = pre + ns(0.006); let ph = 0;
     for (let i = 0; i < n; i++) { const u = i / n; ph += TAU * (900 - 300 * u) * INV_SR; out[at + i] += 0.3 * Math.sin(ph) * Math.min(1, i / 60) * (1 - u) * (1 - u); }
   } else if (kind === 'buy') {
-    addClick(out, pre, { f: 1700, g: 0.5, ring: 0.4, n: 6, poly: 0.4 }, R);
-    addNote(out, pre + ns(0.01), 1319, 0.06, 0.35); addNote(out, pre + ns(0.075), 1976, 0.09, 0.35);
-    addRattle(out, pre + ns(0.02), { n: 3, t: 0.08, f: 2800, g: 0.07 }, R);
+    lvl = 0.22;
+    addClick(out, pre, { f: 1500, g: 0.4, ring: 0.35, n: 4, poly: 0.6, ex: 0.4, lp: 7000, fmax: 7000 }, R);
+    addNote(out, pre + ns(0.01), 1319, 0.05, 0.32); addNote(out, pre + ns(0.07), 1976, 0.07, 0.3);
   } else if (kind === 'deny') {
+    lvl = 0.16;
     for (let j = 0; j < 2; j++) {
       const t = new Float32Array(ns(0.09));
       addBeep(t, 0, 185 - 25 * j, 0.075, 0.5, { harm: [1, 0.45, 0.25, 0.15, 0.1, 0.06], att: 0.003, rel: 0.01, pz: 0 });
       filt(t, 'lp', 2500, 0.7); mix(out, t, pre + ns(j * 0.105));
     }
   } else if (kind === 'equip') {
-    addClick(out, pre, { f: 1500, g: 0.5, ring: 0.6, n: 6, thud: 0.2, thudF: 220 }, R);
-    addRattle(out, pre + ns(0.015), { n: 3, t: 0.06, f: 2600, g: 0.1 }, R);
+    lvl = 0.15;
+    addCloth(out, 0, { dur: 0.12, n: 12, amp: 0.06, f: [500, 3000] }, R);
+    addClick(out, pre + ns(0.03), { f: 1000, g: 0.35, ring: 0.35, n: 4, poly: 0.8, br: 0.25, ex: 0.25, lp: 4000, fmax: 4500, thud: 0.4, thudF: 200 }, R);
   } else if (kind === 'pickup') {
     lvl = 0.3;
-    addCloth(out, 0, { dur: 0.25, n: 18, amp: 0.05 }, R);
-    addClick(out, pre + ns(0.04), { f: 1100, g: 0.7, ring: 1.2, n: 8, thud: 0.4, thudF: 160 }, R);
-    addRattle(out, pre + ns(0.06), { n: 4, t: 0.12, f: 2400, g: 0.12 }, R);
-    addClick(out, pre + ns(0.2), { f: 1800, g: 0.3, ring: 0.6, n: 6 }, R);
+    addCloth(out, 0, { dur: 0.25, n: 22, amp: 0.06, f: [450, 3500] }, R);
+    addClick(out, pre + ns(0.04), { f: 1000, g: 0.45, ring: 0.6, n: 6, br: 0.35, ex: 0.4, lp: 6000, fmax: 7000, thud: 0.5, thudF: 160 }, R);
+    addRattle(out, pre + ns(0.06), { n: 2, t: 0.08, f: 2400, g: 0.06 }, R);
   } else {                                    // tab: soft swish + tick
-    lvl = 0.18;
-    addBurst(out, pre, 0.3, { att: 0.012, tau: 0.015, seed: R.seed(), f: [['bp', 3000 * (1 + 0.1 * sh), 0.8]] });
-    addBurst(out, pre + ns(0.02), 0.4, { tau: 0.0008, seed: R.seed(), f: [['hp', 2500, 0.7]] });
+    lvl = 0.11;
+    addBurst(out, pre, 0.3, { att: 0.012, tau: 0.015, seed: R.seed(), f: [['bp', 2400 * (1 + 0.1 * sh), 0.8], ['lp', 6000, 0.7]] });
+    addBurst(out, pre + ns(0.02), 0.3, { att: 0.0004, tau: 0.001, seed: R.seed(), f: [['bp', 2800, 1.0], ['lp', 6500, 0.7]] });
   }
   return foley(out, lvl, v, R, { room: 0, eq: 0.3 });
 }
@@ -5104,7 +5268,7 @@ for (const k of ['stone', 'sand', 'metal', 'wood', 'flesh']) def('impact:' + k, 
 def('whiz', (R, v, n) => whizSnd(R, v, n), { vars: 4 });
 def('death', (R, v) => deathSnd(R, v), { vars: 2 });
 for (const k of ['stone', 'sand', 'metal', 'wood']) {
-  def('step:' + k, (R, v, n) => stepSnd(k, R, v, n, false), { vars: 4 });
+  def('step:' + k, (R, v, n) => stepSnd(k, R, v, n, false), { vars: 6 });
   def('land:' + k, (R, v, n) => stepSnd(k, R, v, n, true), { vars: 2 });
 }
 def('jump', (R, v) => jumpSnd(R, v), { vars: 2 });
@@ -5266,7 +5430,7 @@ function whizSound(p){ if(SFX_LIB) sndPlay('whiz',{pos:p,ref:1.5,roll:1,bus:'fx'
 function sndInstallHooks(){
   if(!SFX_LIB) return;
   Object.assign(sfx,{
-    step(p,soft){ const at=p||player.pos; sndPlay('step:'+surfAt(at),{pos:p||null,ref:4,roll:1.05,bus:'fx',vol:soft?.55:1}); },
+    step(p,soft){ const at=p||player.pos; sndPlay('step:'+surfAt(at),{pos:p||null,ref:4,roll:1.05,bus:'fx',jit:.07,vol:(soft?.55:1)*(.88+Math.random()*.24)}); },
     land(){ sndPlay('land:'+surfAt(player.pos),{bus:'fx',vol:.9}); },
     shell(p){ const t=curDef().type; sndPlay(t==='shotgun'?'shell:shotgun':t==='pistol'?'shell:pistol':'shell:rifle',{pos:p,ref:1.5,bus:'fx',vol:.75}); },
     dry(){ weaponSound(curDef(),'dry'); },
