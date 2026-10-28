@@ -2752,7 +2752,7 @@ function addDirt(mat,amount,height){
 function getMapMat(key){
   if(mapMatCache[key]) return mapMatCache[key];
   const D=MAPMAT[key]; const m=new THREE.MeshStandardMaterial({roughness:D.rough!==undefined?D.rough:1,metalness:D.metal||0});
-  if(D.tex){ const T=TEX[D.tex]; const rep=D.uv==='face'?1:1/D.tile;
+  if(D.tex){ const T=TEX[D.tex]||mqTex(D.tex); const rep=D.uv==='face'?1:1/D.tile;
     m.map=texWithRepeat(T.map,rep); m.normalMap=texWithRepeat(T.normalMap,rep); if(T.roughnessMap) m.roughnessMap=texWithRepeat(T.roughnessMap,rep);
     m.normalScale.set(1,1); }
   if(D.color) m.color.set(D.color);
@@ -3054,7 +3054,7 @@ function kumVadisiData(){
 const EXTRA_MAPS=[]; // built-in map data factories registered by later blocks: EXTRA_MAPS.push(()=>normalizeMap({...}))
 async function loadMapLibrary(){
   const custom=(await Store.allMaps()).map(m=>{ try{ return normalizeMap(m); }catch(e){ return null; } }).filter(Boolean);
-  const built=[avluData(),kumVadisiData(),...EXTRA_MAPS.map(f=>f())], bid=new Set(built.map(m=>m.id));
+  const built=[mqRestyle(avluData()),mqRestyle(kumVadisiData()),...EXTRA_MAPS.map(f=>f())], bid=new Set(built.map(m=>m.id));
   MAPLIB.list=[...built,...custom.filter(m=>!bid.has(m.id))];
   rebuildMapIndex();
   for(const m of custom) for(const o of m.objects) if(o.t==='model'&&o.key) await loadGLBIntoCache(o.key);
@@ -8945,7 +8945,7 @@ function mpCompile(L){
   // walls (solid mass) + facade windows
   const walls=[];
   mpGreedy(N,(i,j)=>K[j*N+i]===0?wallKey(i-S,j-S):null,(key,i,j,w,d)=>{ const [h,m]=key.split('|'); const x0=i-S, z0=j-S;
-    O.push({t:'block',p:[x0+w/2,0,z0+d/2],s:[w,+h,d],m,cap:1}); walls.push([x0,z0,w,d,+h]); },L.maxW||14);
+    O.push({t:'block',p:[x0+w/2,0,z0+d/2],s:[w,+h,d],m,cap:1,capM:L.capM}); walls.push([x0,z0,w,d,+h,m]); },L.maxW||14);
   const walk=(x,z)=>{ if(x<-S||z<-S||x>=S||z>=S) return null; const k=ix(x,z); return K[k]===1||K[k]===2?H[k]:null; };
   const fac=L.facade||{};
   for(const [x0,z0,w,d,h] of walls){
@@ -8957,7 +8957,10 @@ function mpCompile(L){
             O.push({t:'block',p:[px+ox,y,pz+oz],s:[ww,1.35,dd],m:'darkmetal',c:0});
             const [sw2,sd2]=sw(1.35,.22); O.push({t:'block',p:[px+nx*.1,y-.12,pz+nz*.1],s:[sw2,.12,sd2],m:'trim',c:0});
             if(R()<(fac.sh||.45)){ const shm=fac.shm?fac.shm[Math.floor(R()*fac.shm.length)]:'wood'; for(const s of [-1,1]){ const [a,b]=sw(.5,.07); O.push({t:'block',p:[px+ox*1.6+(nz?s*.8:0),y,pz+oz*1.6+(nx?s*.8:0)],s:[a,1.4,b],m:shm,c:0}); } }
-            if(fac.door&&R()<fac.door&&fh<.1+99){ const [dw,dd2]=sw(1.4,.1); O.push({t:'block',p:[px+nx*.05,fh,pz+nz*.05],s:[dw,2.3,dd2],m:fac.doorM||'door',c:0}); } } }
+            if(fac.door&&R()<fac.door&&fh<.1+99){ const [dw,dd2]=sw(1.4,.1); O.push({t:'block',p:[px+nx*.05,fh,pz+nz*.05],s:[dw,2.3,dd2],m:fac.doorM||'door',c:0}); }
+            if(fac.pot&&R()<fac.pot) O.push({t:'pot',kind:'box',p:[px+nx*.2,y,pz+nz*.2],r:[0,rot,0],s:[1.1,.26,.26],c:0}); }
+          if(fac.vine){ const nv=Math.max(1,Math.floor(run.length/6)); for(let q=0;q<nv;q++){ if(R()>fac.vine) continue; const e2=run[Math.floor(R()*run.length)], [vx,vz]=pos(e2[0]), vh=Math.min(h-e2[1]-.4,2.6+R()*3.6);
+            if(vh>1.5) O.push({t:'vines',p:[vx+nx*.02,e2[1],vz+nz*.02],r:[0,rot,0],s:[1.6+R()*2.4,vh,.1],c:0}); } } }
         run=[]; };
       for(let t=0;t<len;t++){ const [cx,cz]=cell(t); const f=walk(cx,cz); if(f===null) flush(); else run.push([t,f]); } flush(); } }
   // raised platforms + floor plates (merged per height / material)
@@ -8975,7 +8978,7 @@ function mpCompile(L){
     O.push({t:'block',p:[cx,0,cz],s:[x1-x0,sill,z1-z0],m,cap:0}); O.push({t:'block',p:[cx,sill-.06,cz],s:[x1-x0+.1,.12,z1-z0+.1],m:'wood',c:0});
     O.push({t:'block',p:[cx,top,cz],s:[x1-x0,hh-top,z1-z0],m,cap:1}); O.push({t:'block',p:[cx,top,cz],s:[x1-x0+.1,.14,z1-z0+.1],m:'wood',c:0}); }
   for(const b of L.blocks||[]){ const [x0,y0,z0,x1,y1,z1,m,cap]=b; O.push({t:'block',p:[(x0+x1)/2,y0,(z0+z1)/2],s:[Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0)],m:m||'concrete',cap:cap?1:0}); }
-  return {O,K,H,S,N,walk};
+  return {O,K,H,S,N,walk,walls};
 }
 /* height of the walkable floor at a world point (for placing decor on ramps / platforms) */
 function mpFloor(G,x,z){ const f=G.walk(Math.floor(x),Math.floor(z)); return f===null?0:+f.toFixed(3); }
@@ -9044,6 +9047,7 @@ function toz2Data(){
   blk(27.6,2.4,-24,28,3.35,-19,'sandstone',1); // low wall: A short landing over long
   blk(20,2.4,-19.4,24,3.3,-19,'sandstone',1);  // low wall at the A short stairs
   const G=mpCompile(L), O=G.O;
+  mqPaintCompiled(O,['sandstone','sandstone','plaster','stuccoO','stuccoW','brickD','sandstone'],(x,z,m)=>m==='concrete'?'conc2':m==='slabs'&&x>-9&&x<7&&z>-20&&z<5?'cobble':m==='slabs'&&x<-20&&z<-23?'flag':m==='slabs'&&x>5&&x<16&&z<-24?'ceramic':null);
   const cr=(x,z,s,y)=>({t:'crate',p:y===undefined?[x,z]:[x,y,z],s:[s,s,s]}), ba=(x,z)=>({t:'barrel',p:[x,z],s:[.7,1,.7]});
   const lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]}), sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#3a3026'});
   mpDecor(O,G,[
@@ -9084,7 +9088,7 @@ function toz2Data(){
 
 /* ---------- built-in map: SERAP (the classic A ramp / palace / window / apartments layout) ---------- */
 function serapData(){
-  const L={S:37,seed:977,areas:[],ramps:[],wins:[],solids:[],blocks:[],platM:'terracotta',facade:{p:.8,sh:.6,shm:['blueP','greenP','wood'],door:.15},
+  const L={S:37,seed:977,areas:[],ramps:[],wins:[],solids:[],blocks:[],platM:'terracotta',facade:{p:.8,sh:.6,shm:['blueP','greenP','wood'],door:.15,vine:.1},
     wall:(x,z,e)=>{ if(e) return [9.5,'plaster']; const q=Math.floor((x+37)/7)*29+Math.floor((z+37)/7)*13, v=(q*2654435761>>>0)%6; return [[6.8,7.6,6.4,8.4,7.2,6.8][v],['plasterW','ochre','plaster','plasterW','terracotta','ochre'][v]]; }};
   const A=(x0,z0,x1,z1,h,fm)=>L.areas.push([x0,z0,x1,z1,h,fm===undefined?'tiles':fm]);
   const Rp=(x0,z0,x1,z1,h0,h1,dir,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,m:m||'tiles'});
@@ -9156,6 +9160,7 @@ function serapData(){
   blk(-13,1.0,13.7,-7,1.85,14,'plasterW',1); // jungle rail
   blk(-14,2.4,-34.3,-9,3.3,-34,'plasterW',1); // apartments stairs rail
   const G=mpCompile(L), O=G.O;
+  mqPaintCompiled(O,['plasterW','ochre','stuccoR','stuccoB','stuccoW','terracotta','brickD','plasterW','ochre'],(x,z,m)=>m==='wood'?'planks':m==='concrete'?'conc2':m!=='tiles'?null:x>-12&&x<9&&z>-6&&z<2?'cobble':x>-8&&x<8&&z>14?'flag':x>8&&x<24&&z>22?'ceramic':x<-20&&z>8?'cobble':x<-14&&z<-16?'ceramic':null);
   const cr=(x,z,s,y)=>({t:'crate',p:y===undefined?[x,z]:[x,y,z],s:[s,s,s]}), ba=(x,z)=>({t:'barrel',p:[x,z],s:[.7,1,.7]});
   const lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]}), sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#2c3a44'});
   mpDecor(O,G,[
@@ -9258,6 +9263,454 @@ function mpOverview(id,opt){ opt=opt||{}; if(window.__manual===undefined) window
 }
 function mpStats(id){ const m=MAPLIB.byId[id]; if(!m) return null; const by={}; m.objects.forEach(o=>by[o.t]=(by[o.t]||0)+1); const B=WORLD.maps[id]; return {id,objects:m.objects.length,byType:by,colliders:B?B.colliders.length:null,navCells:B&&B.nav?B.nav.ok.reduce((a,b)=>a+b,0):null}; }
 gameExport({spawnLOS,routeLOS,navCheck,mpTopDown,mpOverview,mpStats,toz2Data,serapData,navPath,ensureMapBuilt,get timeScale(){ return timeScale; }});
+
+
+/* ---------- mq: more procedural world textures (generated lazily the first time a material needs one; shared 256² noise fields) ---------- */
+const MQT={fields:null,ms:0,made:[]}, MQW={d1:0,d2:0,id:0};
+const mqH=(a,b)=>NZ.h(a&255,b&255), mqH2=(a,b)=>NZ2.h(a&255,b&255);
+function mqFields(){ if(MQT.fields) return MQT.fields; const n=256, N=n*n, A=new Float32Array(N), Bf=new Float32Array(N), C=new Float32Array(N), D=new Float32Array(N);
+  for(let y=0;y<n;y++){ const v=y/n; for(let x=0;x<n;x++){ const u=x/n, i=y*n+x;
+    A[i]=NZ.fbm(u*8,v*8,4,8,8); Bf[i]=NZ2.fbm(u*3+7,v*3+3,4,3,3); C[i]=NZ.fbm(u*32+5,v*32,2,32,32); D[i]=NZ2.fbm(u*24,v*2+9,3,24,2); } }
+  return MQT.fields={A,B:Bf,C,D}; }
+/* bilinear, wrapping lookup into a 256² field (u,v any real; integer scales keep textures tileable) */
+function mqL(a,u,v){ const x=u*256-.5, y=v*256-.5, ix=Math.floor(x), iy=Math.floor(y), fx=x-ix, fy=y-iy, x0=ix&255, x1=(ix+1)&255, y0=(iy&255)<<8, y1=((iy+1)&255)<<8;
+  return (a[y0+x0]*(1-fx)+a[y0+x1]*fx)*(1-fy)+(a[y1+x0]*(1-fx)+a[y1+x1]*fx)*fy; }
+/* tileable cellular noise: nearest / second nearest feature point on an n×n jittered grid */
+function mqWorley(u,v,n,jit,seed){ const gx=u*n, gy=v*n, ix=Math.floor(gx), iy=Math.floor(gy); let d1=9,d2=9,id=0;
+  for(let j=-1;j<=1;j++) for(let i=-1;i<=1;i++){ const cx=ix+i, cy=iy+j, wx=((cx%n)+n)%n, wy=((cy%n)+n)%n;
+    const px=cx+.5+(mqH(wx+seed,wy)-.5)*jit, py=cy+.5+(mqH2(wx,wy+seed)-.5)*jit, dx=gx-px, dy=gy-py, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<d1){ d2=d1; d1=d; id=wy*n+wx; } else if(d<d2) d2=d; }
+  MQW.d1=d1; MQW.d2=d2; MQW.id=id; }
+/* one pass: fn(u,v,o,x,y) writes o=[height,r,g,b,rough] -> {map,normalMap,roughnessMap} */
+function mqBuild(S,fn,ns){ const N=S*S, H=new Float32Array(N), C=new Uint8ClampedArray(N*4), Nm=new Uint8ClampedArray(N*4), Rg=new Uint8ClampedArray(N*4), o=new Float32Array(5);
+  for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const i=y*S+x, j=i*4; fn(x/S,y/S,o,x,y); H[i]=o[0]; C[j]=o[1]; C[j+1]=o[2]; C[j+2]=o[3]; C[j+3]=255; Rg[j]=Rg[j+1]=Rg[j+2]=o[4]*255; Rg[j+3]=255; }
+  const s=ns*S/256;
+  for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const i=y*S+x, j=i*4, nx=-(H[y*S+((x+1)%S)]-H[y*S+((x-1+S)%S)])*s, ny=(H[((y+1)%S)*S+x]-H[((y-1+S)%S)*S+x])*s, l=Math.hypot(nx,ny,1);
+    Nm[j]=(nx/l*.5+.5)*255; Nm[j+1]=(ny/l*.5+.5)*255; Nm[j+2]=(1/l*.5+.5)*255; Nm[j+3]=255; }
+  return {map:texFromRGBA(S,C,true),normalMap:texFromRGBA(S,Nm,false),roughnessMap:texFromRGBA(S,Rg,false)}; }
+const MQ_GEN={
+  // red brick, running bond (tile 1.2 m: 5 bricks x 16 courses)
+  brick:F=>(u,v,o,x,y)=>{ const row=Math.floor(v*16), rv=v*16-row, bu=u*5+(row&1)*.5+(mqH(row,3)-.5)*.12, col=Math.floor(bu), cu=bu-col;
+    const e=Math.min(Math.min(cu,1-cu)*.24,Math.min(rv,1-rv)*.075), face=smooth(clamp((e-.004)/.005,0,1)), id=mqH(((col%5)+5)%5*7+row*3,row+11), a=mqL(F.A,u*2,v*2), g=mqH2(x,y), ch=clamp((mqL(F.C,u*2,v*2)-.62)*6,0,1)*face;
+    o[0]=.2+face*(.62+a*.16-ch*.3)+g*.03;
+    let r,gg,b; if(id<.12){ r=98; gg=48; b=38; } else if(id>.92){ r=188; gg=128; b=98; } else { r=150+id*40; gg=66+id*30; b=46+id*20; }
+    const k=(.82+a*.36)*(.94+g*.12), m=1-face, km=.8+a*.3; o[1]=r*k*face+170*km*m; o[2]=gg*k*face+160*km*m; o[3]=b*k*face+146*km*m; o[4]=.86+m*.1; },
+  // cobblestones (tile 2.2 m, 8x8 cells)
+  cobble:F=>(u,v,o,x,y)=>{ mqWorley(u,v,8,.85,17); const e=MQW.d2-MQW.d1, id=MQW.id, a=mqL(F.A,u*2,v*2), g=mqH2(x,y);
+    const dome=Math.sqrt(clamp((e-.05)/.32,0,1)), gap=1-smooth(clamp((e-.03)/.05,0,1)), t=mqH(id,id>>3), w=mqH2(id+5,9);
+    o[0]=dome*(.8+a*.2)+g*.04; const k=(.72+.34*dome)*(.9+a*.2);
+    o[1]=(104+t*50+w*14)*k*(1-gap)+68*gap; o[2]=(98+t*44)*k*(1-gap)+60*gap; o[3]=(90+t*34)*k*(1-gap)+48*gap; o[4]=.58+(1-dome)*.3+gap*.1; },
+  // irregular flagstones with moss in the joints (tile 3 m)
+  flag:F=>(u,v,o,x,y)=>{ mqWorley(u,v,4,.7,29); const e=MQW.d2-MQW.d1, id=MQW.id, a=mqL(F.A,u*3,v*3), bb=mqL(F.B,u,v), g=mqH2(x,y);
+    const face=smooth(clamp((e-.025)/.05,0,1)), moss=clamp((1-face)*1.2+(bb-.58)*3*(1-face*.6),0,1), t=mqH(id*3,id+1), k=(.8+a*.3)*(.94+g*.1);
+    o[0]=face*(.75+a*.25)+g*.03-clamp((mqL(F.C,u*3,v*3)-.6)*3,0,1)*.15;
+    const r=(128+t*36)*k, gg=(124+t*30)*k, b=(110+t*22)*k; o[1]=r+(58+a*34-r)*moss; o[2]=gg+(80+a*30-gg)*moss; o[3]=b+(36+a*14-b)*moss; o[4]=.78+moss*.18; },
+  // terracotta barrel roof tiles (tile 1.6 m)
+  rooftile:F=>(u,v,o,x,y)=>{ const cu=u*9, col=Math.floor(cu), fu=cu-col, rw=v*7, row=Math.floor(rw), fv=rw-row, p=Math.pow(Math.sin(Math.PI*fu),.45)*(fv>.9?.55:1), id=mqH(col+row*9,row+5), a=mqL(F.A,u*2,v*2), g=mqH2(x,y);
+    const lich=clamp((mqL(F.B,u,v)-.6)*4,0,1)*(g>.55?1:.3); o[0]=p*.55+fv*.4+a*.05;
+    let r=176+id*34, gg=84+id*26, b=50+id*16; if(id<.15){ r=128; gg=74; b=56; } const k=(.35+.65*p)*(.72+.38*fv)*(.9+a*.2); r*=k; gg*=k; b*=k;
+    o[1]=r+(168-r)*lich*.7; o[2]=gg+(158-gg)*lich*.7; o[3]=b+(112-b)*lich*.7; o[4]=.74+lich*.15; },
+  // mossy jungle stone blocks, uneven courses (tile 3 m)
+  jstone:F=>(u,v,o,x,y)=>{ const rw=v*4, row=Math.floor(rw), fv=rw-row, nb=2+Math.floor(mqH(row,5)*2.99), bu=u*nb+mqH(row,9), col=Math.floor(bu), cu=bu-col, id=mqH(((col%nb)+nb)%nb+row*5,row+21);
+    const e=Math.min(Math.min(cu,1-cu)*3/nb,Math.min(fv,1-fv)*.75), face=smooth(clamp((e-.012)/.06,0,1)), a=mqL(F.A,u*3,v*3), bb=mqL(F.B,u,v), pit=clamp((mqL(F.C,u*2,v*2)-.62)*5,0,1), g=mqH2(x,y);
+    o[0]=face*(.7+a*.3)-pit*.25+g*.04;
+    const moss=clamp((1-face)*.9+(bb-.5)*2.2+(fv<.22?(.22-fv)*3:0)*face+pit*.4-.15,0,1), k=(.75+a*.35)*(.92+g*.14)*(.7+.3*face);
+    const r=(112+id*34)*k, gg=(112+id*28)*k, b=(98+id*20)*k; o[1]=r+(54+a*40-r)*moss; o[2]=gg+(76+a*38-gg)*moss; o[3]=b+(34+a*16-b)*moss; o[4]=.86+moss*.1; },
+  // carved temple stone: framed panels with relief glyphs (tile 2 m)
+  carved:F=>(u,v,o,x,y)=>{ const pu=(u*2)%1, pv=(v*2)%1, pid=mqH(Math.floor(u*2)+4,Math.floor(v*2)+8), fr=Math.min(pu,1-pu,pv,1-pv), a=mqL(F.A,u*2,v*2), bb=mqL(F.B,u,v), g=mqH2(x,y);
+    let h; if(fr<.025) h=.05; else if(fr<.09) h=.9; else { const cx=pu-.5, cy=pv-.5;
+      if(pid<.34) h=.4+.32*(Math.floor(Math.max(Math.abs(cx),Math.abs(cy))*16)&1);
+      else if(pid<.67){ const r=Math.hypot(cx,cy); h=r<.3?.4+.32*(Math.floor(r*18)&1):.55+.2*(Math.floor((cy+.5)*10)&1)*(Math.abs(cx)>.33?1:0); }
+      else h=.4+.32*(Math.floor(cy*9+Math.abs(cx)*9+10)&1); }
+    const er=clamp((mqL(F.C,u*2,v*2)-.6)*4,0,1); h=h*(1-er*.35)+a*.06+g*.03; o[0]=h;
+    const moss=clamp(clamp((.6-h)*2,0,1)*.5+(bb-.55)*2.5,0,1)*.9, k=(.78+.3*h)*(.94+g*.1), r=(150+a*26)*k, gg=(142+a*22)*k, b=(118+a*16)*k;
+    o[1]=r+(70-r)*moss; o[2]=gg+(90-gg)*moss; o[3]=b+(50-b)*moss; o[4]=.88; },
+  // weathered wood planks (tile 2 m, 8 boards)
+  planks:F=>(u,v,o,x,y)=>{ const rw=v*8, row=Math.floor(rw), fv=rw-row, j=mqH(row,3), su=(u-j+1)%1, jd=Math.min(su,1-su)*2, ey=Math.min(fv,1-fv)*.25, gr=mqL(F.D,v*2+row*.31,u*2), a=mqL(F.A,u*2,v*2), g=mqH2(x,y), tone=mqH(row,17);
+    const gap=ey<.007||jd<.005, nail=jd<.05&&jd>.02&&Math.abs(fv-.5)>.18&&Math.abs(fv-.5)<.3;
+    o[0]=gap?.05:.62+gr*.22+a*.08-(nail?.2:0);
+    let r=126+tone*34, gg=108+tone*34, b=88+tone*40; const k=(.72+gr*.45)*(.9+g*.12); r*=k; gg*=k; b*=k; if(tone>.8){ r*=.85; gg*=.9; b*=.82; }
+    if(gap){ r=40; gg=34; b=28; } else if(nail){ r=60; gg=50; b=44; } o[1]=r; o[2]=gg; o[3]=b; o[4]=gap?.95:.82+g*.06; },
+  // light painted plaster with rain streaks and peeled patches showing brick (tile 3 m; tinted per material)
+  stucco:F=>(u,v,o,x,y)=>{ const a=mqL(F.A,u*2,v*2), bb=mqL(F.B,u,v), st=mqL(F.D,u,v), g=mqH2(x,y), peel=smooth(clamp((bb*.7+mqL(F.C,u,v)*.5-.83)*9,0,1)), rim=peel>.02&&peel<.6; let h,r,gg,b;
+    if(peel>.5){ const row=Math.floor(v*40), rv=v*40-row, bu=u*12+(row&1)*.5, cu=bu-Math.floor(bu), face=Math.min(Math.min(cu,1-cu)*.25,Math.min(rv,1-rv)*.075)>.006, id=mqH(Math.floor(bu)%12+row*3,row);
+      h=.22+(face?.14:0); r=face?150+id*40:168; gg=face?80+id*24:158; b=face?60+id*16:140; }
+    else { h=.72+a*.1+g*.02+(rim?.08:0); const k=(.9+a*.14)*(.97+g*.05); r=236*k; gg=230*k; b=218*k; }
+    const s=clamp((st-.5)*2.4,0,1)*.32*(1-peel*.5); r+=(140-r)*s; gg+=(128-gg)*s; b+=(110-b)*s; if(rim){ r*=.82; gg*=.8; b*=.78; }
+    o[0]=h; o[1]=r; o[2]=gg; o[3]=b; o[4]=.9; },
+  // painted steel panels with rivets and rust (tile 2 m)
+  rust:F=>(u,v,o,x,y)=>{ const pu=(u*2)%1, pv=(v*2)%1, ex=Math.min(pu,1-pu), ey=Math.min(pv,1-pv), a=mqL(F.A,u*2,v*2), bb=mqL(F.B,u,v), st=mqL(F.D,u*2,v), g=mqH2(x,y);
+    let riv=0; const d1x=Math.abs(ex-.035), d1y=Math.abs((pv*10)%1-.5)*.1, d2x=Math.abs(ey-.035), d2y=Math.abs((pu*10)%1-.5)*.1;
+    if(d1x<.012&&d1y<.012) riv=1-Math.hypot(d1x,d1y)/.012; if(d2x<.012&&d2y<.012) riv=Math.max(riv,1-Math.hypot(d2x,d2y)/.012);
+    const seam=Math.min(ex,ey)<.005, rs=clamp((bb*1.3+st*.7-1.05)*3.2+(riv>0?.5:0),0,1), dk=clamp((mqL(F.C,u*2,v*2)-.62)*5,0,1)*rs, kp=.9+a*.15;
+    o[0]=seam?.15:.55+a*.08+riv*.35+rs*g*.06;
+    let r=150*kp, gg=158*kp, b=150*kp; r+=(126+a*40-r)*rs; gg+=(66+a*30-gg)*rs; b+=(36+a*14-b)*rs; r*=1-dk*.4; gg*=1-dk*.45; b*=1-dk*.4; if(seam){ r*=.5; gg*=.5; b*=.5; }
+    o[1]=r; o[2]=gg; o[3]=b; o[4]=.48+rs*.44; },
+  // cast concrete: form panels, tie holes, rain streaks, damp patches (tile 2.4 m)
+  conc2:F=>(u,v,o,x,y)=>{ const pu=(u*2)%1, pv=(v*2)%1, e=Math.min(pu,1-pu,pv,1-pv)*1.2, a=mqL(F.A,u*3,v*3), bb=mqL(F.B,u,v), st=mqL(F.D,u*2,v), g=mqH2(x,y);
+    let tie=0; for(const tx of [.2,.8]) for(const ty of [.2,.8]){ const d=Math.hypot(pu-tx,pv-ty)*1.2; if(d<.02) tie=Math.max(tie,1-d/.02); }
+    const seam=e<.004, s=clamp((st-.48)*2.2,0,1)*.4, wet=clamp((bb-.6)*4,0,1)*.25, k=.92+g*.1;
+    o[0]=seam?.2:.6+a*.12+g*.05-tie*.5;
+    let r=(150+a*16)*k, gg=(148+a*16)*k, b=(142+a*16)*k; r+=(100-r)*s; gg+=(98-gg)*s; b+=(92-b)*s; r+=(112-r)*wet; gg+=(118-gg)*wet; b+=(108-b)*wet;
+    if(seam||tie>0){ const q=seam?.6:1-tie*.6; r*=q; gg*=q; b*=q; } o[1]=r; o[2]=gg; o[3]=b; o[4]=.9; },
+  // glazed ceramic floor tiles, terracotta / cream checker with a few painted tiles (tile 1.2 m)
+  ceramic:F=>(u,v,o,x,y)=>{ const ti=Math.floor(u*6), tj=Math.floor(v*6), tu=u*6-ti, tv=v*6-tj, e=Math.min(tu,1-tu,tv,1-tv)*.2, a=mqL(F.A,u*2,v*2), bb=mqL(F.B,u,v), g=mqH2(x,y), id=mqH(ti*7+tj,tj+3);
+    const grout=e<.0035, bev=smooth(clamp((e-.0035)/.006,0,1)), wear=clamp((bb-.55)*2.5,0,1);
+    o[0]=grout?.1:.55+bev*.2+g*.015;
+    let r,gg,b; if(((ti+tj)&1)===0){ r=178; gg=92; b=60; } else { r=214; gg=196; b=162; }
+    if(id>.86){ const d=Math.abs(tu-.5)+Math.abs(tv-.5); if(d<.28){ r=64; gg=92; b=136; } else if(d<.34){ r=226; gg=210; b=176; } }
+    const k=(.9+a*.15)*(.96+g*.06)*(1-wear*.12); r*=k; gg*=k; b*=k; if(grout){ r=150; gg=140; b=124; }
+    o[1]=r; o[2]=gg; o[3]=b; o[4]=grout?.92:.32+wear*.4; },
+  // jungle floor: dark soil, grass patches, leaf litter (tile 6 m)
+  jground:F=>(u,v,o,x,y)=>{ const a=mqL(F.A,u*2,v*2), bb=mqL(F.B,u*2,v*2), c=mqL(F.C,u*2,v*2), g=mqH2(x,y), g2=mqH(x,y), gr=clamp((bb*1.3+a*.5-1.0)*3,0,1), leaf=g2>.965, peb=g>.985;
+    o[0]=a*.45+c*.3+gr*g*.25+(peb?.3:0); const ks=.75+a*.4;
+    let r=88*ks, gg=72*ks, b=54*ks; r+=(60+g*30-r)*gr; gg+=(88+g*34-gg)*gr; b+=(36+g*12-b)*gr;
+    if(leaf){ const t=mqH2(x+7,y); r=110+t*40; gg=80+t*30; b=36; } if(peb){ r=gg=b=120; }
+    o[1]=r; o[2]=gg; o[3]=b; o[4]=.95; },
+  // still water (normal ripples, glossy)
+  water:F=>(u,v,o)=>{ const a=mqL(F.A,u*2,v*2), c=mqL(F.C,u,v), k=.85+a*.3; o[0]=a*.6+c*.4; o[1]=34*k; o[2]=62*k; o[3]=58*k; o[4]=.08; }
+};
+const MQ_NS={brick:2,cobble:2.6,flag:2,rooftile:2.4,jstone:2.4,carved:2.2,planks:1.6,stucco:1.4,rust:1.6,conc2:1.2,ceramic:1.4,jground:1.4,water:1.2};
+function mqTex(name){ if(TEX[name]) return TEX[name]; const G=MQ_GEN[name]; if(!G) return undefined; const t0=performance.now(), F=mqFields();
+  TEX[name]=mqBuild(TEX_SIZE(),G(F),MQ_NS[name]||1.6); const ms=performance.now()-t0; MQT.ms+=ms; MQT.made.push(name+':'+Math.round(ms)); return TEX[name]; }
+/* ivy: alpha leaf cluster texture (denser at the bottom) */
+function mqIvyTex(){ if(TEX.ivy) return TEX.ivy; const R=mulberry(91);
+  TEX.ivy=drawTex(256,(x,s)=>{ x.clearRect(0,0,s,s); x.strokeStyle='rgba(70,56,36,.9)'; x.lineWidth=2;
+    for(let i=0;i<9;i++){ let px=R()*s, py=s; x.beginPath(); x.moveTo(px,py); for(let k=0;k<12;k++){ px+=(R()-.5)*30; py-=s/12*(.6+R()*.5); x.lineTo(px,py); } x.stroke(); }
+    for(let i=0;i<1100;i++){ const py=s*Math.pow(R(),.55), px=8+R()*(s-16); x.fillStyle='hsl('+Math.round(88+R()*30)+','+Math.round(32+R()*26)+'%,'+Math.round(15+R()*20)+'%)';
+      x.save(); x.translate(px,py); x.rotate(R()*TAU); x.beginPath(); x.ellipse(0,0,3.5+R()*4,2.5+R()*3,0,0,TAU); x.fill(); x.restore(); } });
+  return TEX.ivy; }
+/* materials that need alpha testing are pre-seeded into the map material cache */
+function mqSpecialMat(key){ if(mapMatCache[key]) return; const leaf=key==='frond';
+  mapMatCache[key]=new THREE.MeshStandardMaterial({map:leaf?TEX.leaf:mqIvyTex(),alphaTest:leaf?.45:.5,side:THREE.DoubleSide,roughness:.85,color:leaf?0x9ab07a:0xffffff}); mapMatCache[key].envMapIntensity=.4; }
+gameExport({mqTex,get mqTexStats(){ return {ms:+MQT.ms.toFixed(1),made:MQT.made.slice()}; },mqGenAll:()=>{ const t0=performance.now(); for(const k in MQ_GEN) mqTex(k); return +(performance.now()-t0).toFixed(1); }});
+
+Object.assign(MAPMAT,{
+  brick:{tex:'brick',tile:1.2,surf:'stone',dirt:.3}, brickD:{tex:'brick',tile:1.2,surf:'stone',dirt:.3,tint:'#c4ad9c'},
+  cobble:{tex:'cobble',tile:2.2,surf:'stone'}, flag:{tex:'flag',tile:3,surf:'stone'}, roof:{tex:'rooftile',tile:1.6,surf:'stone'},
+  ashlar:{tex:'sandstone',tile:2.4,surf:'stone',dirt:.35,tint:'#ded8cc'},
+  jstone:{tex:'jstone',tile:3,surf:'stone',dirt:.3}, jstoneM:{tex:'jstone',tile:2.6,surf:'stone',dirt:.3,tint:'#c6d2ae'}, carved:{tex:'carved',tile:2,surf:'stone',dirt:.25},
+  planks:{tex:'planks',tile:2,surf:'wood'}, planksD:{tex:'planks',tile:2,surf:'wood',tint:'#9c8a78'}, bark:{tex:'planks',tile:1.2,surf:'wood',tint:'#7d6a58'},
+  stuccoW:{tex:'stucco',tile:3,surf:'stone',dirt:.35,tint:'#fffaf0'}, stuccoY:{tex:'stucco',tile:3,surf:'stone',dirt:.35,tint:'#f4d68a'},
+  stuccoO:{tex:'stucco',tile:3,surf:'stone',dirt:.35,tint:'#e9b07a'}, stuccoR:{tex:'stucco',tile:3,surf:'stone',dirt:.35,tint:'#eba58e'},
+  stuccoB:{tex:'stucco',tile:3,surf:'stone',dirt:.35,tint:'#c2d6dc'}, stuccoG:{tex:'stucco',tile:3,surf:'stone',dirt:.35,tint:'#cdd6ae'},
+  rust:{tex:'rust',tile:2,surf:'metal',metal:.35}, rustG:{tex:'rust',tile:2,surf:'metal',metal:.3,tint:'#a9c4aa'},
+  conc2:{tex:'conc2',tile:2.4,surf:'stone',dirt:.3}, ceramic:{tex:'ceramic',tile:1.2,surf:'stone'}, jground:{tex:'jground',tile:6,surf:'sand'},
+  water:{tex:'water',tile:4,surf:'sand',metal:.1},
+  leafG:{color:'#41682c',surf:'cloth',rough:.85}, leafD:{color:'#2e4a22',surf:'cloth',rough:.9}, canopy:{color:'#3a5a27',surf:'cloth',rough:.92}, cypressG:{color:'#2b4420',surf:'cloth',rough:.95},
+  flR:{color:'#c8283e',surf:'cloth',rough:.7}, flP:{color:'#e46aa0',surf:'cloth',rough:.7}, flW:{color:'#f0ece2',surf:'cloth',rough:.7}, flY:{color:'#eab01e',surf:'cloth',rough:.7},
+  ivy:{uv:'face',surf:'cloth'}, frond:{uv:'face',surf:'cloth'}
+});
+Object.assign(MATKEYS,{brick:'Kırmızı tuğla',brickD:'Eski tuğla',cobble:'Arnavut kaldırımı',flag:'Yosunlu taş döşeme',roof:'Kiremit çatı',ashlar:'Kesme taş',jstone:'Orman taşı',jstoneM:'Yosunlu taş',carved:'Oymalı taş',
+  planks:'Eski tahta',planksD:'Koyu tahta',bark:'Ağaç kabuğu',stuccoW:'Beyaz sıva',stuccoY:'Sarı sıva',stuccoO:'Turuncu sıva',stuccoR:'Pembe sıva',stuccoB:'Mavi sıva',stuccoG:'Yeşil sıva',
+  rust:'Paslı metal',rustG:'Yeşil paslı metal',conc2:'Lekeli beton',ceramic:'Seramik karo',jground:'Orman toprağı',water:'Su'});
+for(const k of ['brick','brickD','cobble','flag','roof','ashlar','jstone','jstoneM','carved','planks','planksD','stuccoW','stuccoY','stuccoO','stuccoR','stuccoB','stuccoG','rust','rustG','conc2','ceramic','jground','water','plasterW','ochre','terracotta','tiles']) ME_SURF_MATS[k]=1;
+Object.assign(ME_HAS_MAT,{stairway:1,roof:1,fountain:1,rock:1});
+
+/* ---------- mq: map objects (roof, ivy, flower pot, fountain, trees, ferns, rocks, idol) ---------- */
+/* block with an optional cap material (capM); identical geometry + colliders to the original block */
+MOBJ.block.build=function(o,B){ const [w,h,d]=o.s; B.box(o.m||'sandstone',0,h/2,0,w,h,d,{collide:o.c!==0});
+  if(o.cap) B.box(o.capM&&MAPMAT[o.capM]?o.capM:'trim',0,h+.13,0,w+.18,.26,d+.18,{collide:o.c!==0,ao:false}); };
+const mqSeed=o=>((o.p[0]*73.1+o.p[2]*31.7+o.p[1]*7)|0)+101;
+/* gable roof: span along local X, ridge along local Z; gable ends in the wall material (gm) */
+MOBJ.roof={label:'Çatı (kiremit, beşik)',cat:'Yapı',def:{s:[6,1.8,8],m:'roof',gm:'stuccoY',c:0},build(o,B){ const [w,h,d]=o.s, m=o.m||'roof', gm=MAPMAT[o.gm]?o.gm:'stuccoY', ov=.4, th=.16, ang=Math.atan2(h,w/2), L=Math.hypot(w/2,h)+ov;
+  const sh=new THREE.Shape(); sh.moveTo(-w/2,0); sh.lineTo(w/2,0); sh.lineTo(0,h); sh.closePath(); const g=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:false}); g.translate(0,0,-d/2); B.mesh(gm,g);
+  for(const s of [-1,1]){ const dx=s*Math.cos(ang), dy=-Math.sin(ang), nx=s*Math.sin(ang), ny=Math.cos(ang), sg=new THREE.BoxGeometry(L,th,d+ov*2); sg.rotateZ(-s*ang); sg.translate(dx*(L/2-.02)+nx*th/2,h+dy*(L/2-.02)+ny*th/2,0); B.mesh(m,sg); }
+  const rg=new THREE.CylinderGeometry(.13,.13,d+ov*2,8); rg.rotateX(Math.PI/2); rg.translate(0,h+th*.8,0); B.mesh(m,rg);
+  if(o.c===1) B.col('box',0,h/2,0,w/2,h/2,d/2,'stone'); }};
+/* ivy patch on a wall (alpha-tested plane facing +Z) */
+MOBJ.vines={label:'Sarmaşık',cat:'Dekor',def:{s:[3,3.5,.1],c:0},build(o,B){ mqSpecialMat('ivy'); const [w,h]=o.s, g=new THREE.PlaneGeometry(w,h); g.translate(0,h/2,.02); B.mesh('ivy',g,{keepUV:true}); }};
+/* flower pot (round) or window box (kind:'box'); leaves + flowers batched per colour */
+MOBJ.pot={label:'Saksı / çiçeklik',cat:'Dekor',def:{s:[.6,.5,.6],kind:'pot',fl:'',c:0},build(o,B){ const [w,h,d]=o.s, R=mulberry(mqSeed(o)), box=o.kind==='box', fl=MAPMAT[o.fl]?o.fl:['flR','flP','flW','flY','flR'][Math.floor(R()*5)];
+  if(box) B.box('terracotta',0,h/2,0,w,h,d,{collide:false,ao:false});
+  else { const g=new THREE.LatheGeometry([[0,0],[w*.36,0],[w*.5,h*.9],[w*.54,h],[w*.46,h],[w*.4,h*.8],[0,h*.8]].map(p=>new THREE.Vector2(p[0],p[1])),12); B.mesh('terracotta',g); }
+  const n=box?Math.max(3,Math.round(w/.2)):5;
+  for(let i=0;i<n;i++){ const s=(box?.13:.16)+R()*.09, px=box?-w/2+(i+.5)*w/n:(R()-.5)*w*.45, pz=(R()-.5)*d*.4, py=h+s*.45, lg=new THREE.IcosahedronGeometry(s,0); lg.scale(1,.8,1); lg.translate(px,py,pz); B.mesh(i%3?'leafG':'leafD',lg);
+    if(R()<.8){ const fg=new THREE.IcosahedronGeometry(s*.42,0); fg.translate(px+(R()-.5)*s,py+s*.55,pz+(R()-.5)*s); B.mesh(fl,fg); } }
+  if(o.c===1) B.col('box',0,h/2,0,w/2,h/2,d/2,'stone'); }};
+/* octagonal fountain: basin, rim, water, column with bowl (Inferno B) */
+MOBJ.fountain={label:'Çeşme',cat:'Yapı',def:{s:[4,.8,4],m:'ashlar'},build(o,B){ const [w,h]=o.s, r=w/2, m=o.m||'ashlar';
+  const bg=new THREE.CylinderGeometry(r,r*1.04,h,8); bg.rotateY(Math.PI/8); bg.translate(0,h/2,0); B.mesh(m,bg);
+  const rim=new THREE.TorusGeometry(r*.93,.17,4,8); rim.rotateX(Math.PI/2); rim.rotateY(Math.PI/8); rim.translate(0,h+.02,0); B.mesh(m,rim);
+  const wg=new THREE.CylinderGeometry(r*.88,r*.88,.04,8); wg.rotateY(Math.PI/8); wg.translate(0,h+.01,0); B.mesh('water',wg);
+  const cg=new THREE.CylinderGeometry(.2,.3,1.3,8); cg.translate(0,h+.65,0); B.mesh(m,cg); const bw=new THREE.CylinderGeometry(.75,.28,.3,8); bw.translate(0,h+1.4,0); B.mesh(m,bw);
+  const ww=new THREE.CylinderGeometry(.62,.62,.03,8); ww.translate(0,h+1.54,0); B.mesh('water',ww); const fn=new THREE.SphereGeometry(.16,8,6); fn.translate(0,h+1.7,0); B.mesh(m,fn);
+  if(o.c!==0){ B.col('box',0,h/2,0,r*.9,h/2,r*.9,'stone'); B.col('box',0,h+.8,0,.3,.8,.3,'stone'); } B.aoRect(0,0,r,r,.5); }};
+/* Italian cypress */
+MOBJ.cypress={label:'Servi ağacı',cat:'Dekor',def:{s:[1.4,8,1.4]},build(o,B){ const [w,h]=o.s, R=mulberry(mqSeed(o)); const tg=new THREE.CylinderGeometry(.12,.18,h*.25,6); tg.translate(0,h*.125,0); B.mesh('bark',tg);
+  const pts=[]; for(let i=0;i<=10;i++){ const t=i/10; pts.push(new THREE.Vector2(Math.max(.02,w/2*Math.sin(Math.PI*Math.pow(t,.75))*(1-t*.25)*(.9+R()*.2)),h*.12+t*h*.88)); }
+  const cg=new THREE.LatheGeometry(pts,9); const p=cg.attributes.position; for(let i=0;i<p.count;i++){ const k=1+(mqH(i*7,i)-.5)*.18; p.setX(i,p.getX(i)*k); p.setZ(i,p.getZ(i)*k); } cg.computeVertexNormals(); B.mesh('cypressG',cg);
+  if(o.c!==0) B.col('box',0,h*.3,0,.2,h*.3,.2,'wood'); B.aoRect(0,0,w*.4,w*.4,.4); }};
+/* jungle tree: leaning trunk, canopy blobs + fronds */
+MOBJ.tree={label:'Orman ağacı',cat:'Dekor',def:{s:[1,7,1],lean:.8},build(o,B){ const h=o.s[1], R=mulberry(mqSeed(o)), lean=o.lean??.8, a0=R()*TAU, pts=[];
+  for(let i=0;i<=6;i++){ const t=i/6; pts.push(new THREE.Vector3(Math.cos(a0)*Math.sin(t*1.2)*lean,t*h,Math.sin(a0)*Math.sin(t*1.2)*lean)); }
+  const cv=new THREE.CatmullRomCurve3(pts), tg=new THREE.TubeGeometry(cv,10,.28*o.s[0],7); B.mesh('bark',tg); const top=cv.getPointAt(1);
+  for(let i=0;i<5;i++){ const s=(1.4+R()*1.2)*o.s[0], g=new THREE.IcosahedronGeometry(s,1); const p=g.attributes.position; for(let j=0;j<p.count;j++){ const k=1+(mqH(j*5+i,j)-.5)*.35; p.setXYZ(j,p.getX(j)*k,p.getY(j)*k*.62,p.getZ(j)*k); } g.computeVertexNormals();
+    const a=i/5*TAU+R(); g.translate(top.x+Math.cos(a)*s*.9*(i?1:0),top.y-.4+R()*1.2,top.z+Math.sin(a)*s*.9*(i?1:0)); B.mesh(i%2?'canopy':'leafD',g); }
+  mqSpecialMat('frond'); for(let i=0;i<8;i++){ const L=2+R()*1.2, g=new THREE.PlaneGeometry(1,L,1,4); g.translate(0,-L/2,0); g.rotateX(Math.PI/2+.5); g.rotateY(i/8*TAU+R()*.4); g.translate(top.x,top.y-.6,top.z); B.mesh('frond',g,{keepUV:true}); }
+  if(o.c!==0) B.col('box',0,h*.35,0,.3,h*.35,.3,'wood'); }};
+/* fern / undergrowth clump (no collision) */
+MOBJ.fern={label:'Eğrelti / çalı',cat:'Dekor',def:{s:[1.4,1,1.4],c:0},build(o,B){ mqSpecialMat('frond'); const R=mulberry(mqSeed(o)), n=7+Math.floor(R()*4), sc=o.s[0];
+  for(let i=0;i<n;i++){ const L=(.8+R()*.6)*sc, g=new THREE.PlaneGeometry(.55*sc,L,1,4); g.translate(0,L/2,0); const p=g.attributes.position; for(let j=0;j<p.count;j++){ const y=p.getY(j)/L; p.setZ(j,y*y*.5*sc); }
+    g.rotateX(-(.35+R()*.5)); g.rotateY(i/n*TAU+R()*.5); B.mesh('frond',g,{keepUV:true}); }
+  if(o.c===1) B.col('box',0,.4,0,.4*sc,.4,.4*sc,'cloth'); }};
+/* boulder */
+MOBJ.rock={label:'Kaya',cat:'Yapı',def:{s:[2,1.4,1.8],m:'jstone'},build(o,B){ const [w,h,d]=o.s, g=new THREE.IcosahedronGeometry(1,1), p=g.attributes.position, sd=mqSeed(o);
+  for(let i=0;i<p.count;i++){ const k=.78+mqH(i*3+sd,sd)*.4; p.setXYZ(i,p.getX(i)*k*w/2,Math.max(-.1,p.getY(i))*k*h,p.getZ(i)*k*d/2); } g.computeVertexNormals(); B.mesh(o.m||'jstone',g);
+  if(o.c!==0) B.col('box',0,h*.42,0,w*.38,h*.42,d*.38,'stone'); B.aoRect(0,0,w*.45,d*.45,.5); }};
+/* carved stone idol head on a plinth (Ancient) */
+MOBJ.idol={label:'Taş put (baş)',cat:'Yapı',def:{s:[1.8,3,1.4]},build(o,B){ const [w,h,d]=o.s, b=h*.3;
+  B.box('carved',0,b/2,0,w,b,d); B.box('jstoneM',0,b+(h-b)*.4,0,w*.86,(h-b)*.8,d*.86,{collide:false,ao:false}); B.box('carved',0,h-(h-b)*.1,0,w*1.05,(h-b)*.2,d*1.05,{collide:false,ao:false});
+  for(const s of [-1,1]) B.box('darkmetal',s*w*.2,b+(h-b)*.58,d*.43+.01,w*.18,(h-b)*.1,.04,{collide:false,ao:false});
+  B.box('jstoneM',0,b+(h-b)*.42,d*.46,w*.14,(h-b)*.22,.16,{collide:false,ao:false}); B.box('darkmetal',0,b+(h-b)*.2,d*.43+.01,w*.4,(h-b)*.06,.04,{collide:false,ao:false});
+  if(o.c!==0) B.col('box',0,h/2,0,w/2,h/2,d/2,'stone'); }};
+/* distant skyline ring (decor only): 'village' = plastered houses with tiled roofs, cypresses, a bell tower; 'jungle' = giant trees + stepped pyramids */
+MOBJ.skyline={label:'Uzak siluet (köy / orman)',cat:'Dekor',def:{style:'village',s:[60,1,90],c:0},build(o,B){ if(B.editor) return; const R=mulberry(o.seed||77), r0=o.s[0], r1=o.s[2], n=Math.round(52*r1/88), jungle=o.style==='jungle';
+  const at=(x,y,z,a)=>{ B.M.makeRotationY(a).setPosition(x,y,z); B.T.makeTranslation(x,y,z); };
+  const walls=['stuccoY','stuccoO','stuccoR','stuccoW','brick','stuccoY','ashlar'];
+  for(let i=0;i<n;i++){ const a=i/n*TAU+R()*.05, r=r0+R()*(r1-r0), x=Math.cos(a)*r, z=Math.sin(a)*r;
+    if(jungle){ const sc=2+R()*1.4; at(x,-.5,z,-a); MOBJ.tree.build({p:[x,0,z],s:[sc,10+R()*9,1],lean:1+R()*2,c:0},B);
+      if(R()<.5){ const s=4+R()*5, g=new THREE.IcosahedronGeometry(s,1); g.scale(1.3,.7,1.3); at(x*1.04,0,z*1.04,0); g.translate(0,s*.3,0); B.mesh('leafD',g); } continue; }
+    const w=6+R()*8, d=6+R()*8, h=7+R()*9, gm=walls[Math.floor(R()*walls.length)];
+    at(x,0,z,-a); B.box(gm,0,h/2,0,w,h,d,{collide:false,ao:false}); at(x,h,z,-a); MOBJ.roof.build({s:[w+.5,Math.min(3.4,w*.32),d+.5],m:'roof',gm,c:0},B);
+    if(R()<.35){ const ca=a+.5/n*TAU, cr2=r-6-R()*4; at(Math.cos(ca)*cr2,0,Math.sin(ca)*cr2,0); MOBJ.cypress.build({p:[i,0,r],s:[2,9+R()*5,2],c:0},B); } }
+  if(jungle){ for(const [a,r,s] of [[.8,r1+12,26],[3.6,r1+18,34]]){ for(let k=0;k<5;k++){ const w=s*(1-k*.18), h=s*.16; at(Math.cos(a)*r,k*h,Math.sin(a)*r,-a); B.box(k%2?'jstoneM':'jstone',0,h/2,0,w,h,w,{collide:false,ao:false}); }
+      at(Math.cos(a)*r,5*s*.16,Math.sin(a)*r,-a); B.box('carved',0,s*.12,0,s*.2,s*.24,s*.2,{collide:false,ao:false}); } }
+  else { const a=2.2, r=r0+8; at(Math.cos(a)*r,0,Math.sin(a)*r,-a); B.box('ashlar',0,13,0,4.4,26,4.4,{collide:false,ao:false}); B.box('brick',0,23.5,0,4.8,3,4.8,{collide:false,ao:false});
+    const sp=new THREE.ConeGeometry(3.6,5.5,4); sp.rotateY(Math.PI/4); sp.translate(0,28.2,0); B.mesh('roof',sp); }
+  B.begin(o); }};
+/* vehicle: add a flatbed truck variant (cab + bed + tarp) to the existing car / van */
+{ const vb=MOBJ.vehicle.build; MOBJ.vehicle.build=function(o,B){ if(o.kind!=='truck') return vb.call(this,o,B); const [w,h,d]=o.s, m=o.m||'paintR', wr=.42, base=wr*.75, cab=d*.3;
+  B.box(m,0,base+(h-base)*.35,d/2-cab/2,w,(h-base)*.7,cab,{collide:false,ao:false}); B.box('glass',0,base+(h-base)*.62,d/2-.02,w*.86,(h-base)*.24,.06,{collide:false,ao:false});
+  B.box(m,0,base+(h-base)*.82,d/2-cab*.55,w*.96,(h-base)*.3,cab*.85,{collide:false,ao:false});
+  B.box('planksD',0,base+.25,-cab/2,w,.18,d-cab,{collide:false,ao:false}); for(const s of [-1,1]) B.box('planksD',s*(w/2-.04),base+.6,-cab/2,.08,.6,d-cab,{collide:false,ao:false});
+  B.box('greenP',0,base+.95,-cab/2-.1,w*.94,.8,(d-cab)*.8,{collide:false,ao:false});
+  for(const sz of [d*.32,-d*.12,-d*.36]) for(const sx of [-1,1]){ const g=new THREE.CylinderGeometry(wr,wr,.3,14); g.rotateZ(Math.PI/2); g.translate(sx*(w/2-.12),wr,sz); B.mesh('rubber',g); }
+  if(o.c!==0) B.col('box',0,h/2,0,w/2,h/2,d/2,'metal'); B.aoRect(0,0,w/2,d/2,.55); }; }
+
+/* ---------- mq helpers shared by the new maps ---------- */
+const mqHash=(a,b)=>((Math.imul((a|0)*73856093^(b|0)*19349663,2654435761)>>>0)%10007)/10007;
+/* gable roofs on top of interior wall masses */
+function mqRoofs(O,G,p,skip){ for(const [x0,z0,w,d,h,m] of G.walls){ if(w<3||d<3||h>9.6||mqHash(x0*3+1,z0*5+2)>p||(skip&&skip(x0,z0,w,d))) continue; const al=w>d, sp=al?d:w, ln=al?w:d;
+  O.push({t:'roof',p:[x0+w/2,h+.26,z0+d/2],r:[0,al?90:0,0],s:[sp+.5,Math.min(3.2,sp*.36),ln+.5],m:'roof',gm:m,c:0}); } }
+/* jungle canopy on top of wall masses + ferns along wall bases */
+function mqJungle(O,G,pTree,pFern,S){ for(const [x0,z0,w,d,h] of G.walls){ if(w<3||d<3||h>9.6||mqHash(x0*7+3,z0*11+5)>pTree) continue; O.push({t:'tree',p:[x0+w/2,h+.26,z0+d/2],s:[.8+mqHash(x0,z0)*.5,4+mqHash(z0,x0)*4,1],lean:.6,c:0}); }
+  for(let z=-S+1;z<S-1;z++) for(let x=-S+1;x<S-1;x++){ const f=G.walk(x,z); if(f===null||mqHash(x*13+7,z*17+3)>pFern) continue; let wx=0,wz=0; for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]) if(G.walk(x+dx,z+dz)===null){ wx+=dx; wz+=dz; }
+    if(!wx&&!wz) continue; O.push({t:'fern',p:[x+.5+wx*.25,f,z+.5+wz*.25],r:[0,mqHash(x,z)*360,0],s:[1+mqHash(z,x)*.6,1,1],c:0}); } }
+
+/* ---------- built-in map: ALEV (Inferno layout: banana, B fountain, mid / top mid, apartments + balcony, A site, library, arch, pit) ---------- */
+function alevData(){
+  const L={S:44,seed:353,areas:[],ramps:[],wins:[],solids:[],blocks:[],platM:'ashlar',capM:'ashlar',facade:{p:.85,sh:.75,shm:['greenP','greenP','wood','greenP'],door:.16,doorM:'door',pot:.4,vine:.16},
+    wall:(x,z,e)=>{ if(e) return [10,'stuccoO']; const q=Math.floor((x+44)/7)*29+Math.floor((z+44)/7)*13, v=(q*2654435761>>>0)%7; return [[6.6,7.4,6.2,8.2,7.0,6.8,7.8][v],['stuccoY','brick','stuccoO','stuccoW','stuccoR','stuccoY','ashlar'][v]]; }};
+  const A=(x0,z0,x1,z1,h,fm)=>L.areas.push([x0,z0,x1,z1,h,fm===undefined?'cobble':fm]);
+  const Rp=(x0,z0,x1,z1,h0,h1,dir,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,m:m||'cobble'});
+  const St=(x0,z0,x1,z1,h0,h1,dir,n,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,st:1,n,m:m||'ashlar'});
+  const blk=(x0,y0,z0,x1,y1,z1,m,cap)=>L.blocks.push([x0,y0,z0,x1,y1,z1,m,cap]);
+  // --- T side ---
+  A(-41,22,-16,41,0);                    // T spawn (village square)
+  L.solids.push([-41,35,-35,41],[-22,22,-16,27]); // corner houses
+  Rp(-41,12,-34,22,0,1.2,'n');           // T ramp (up to bottom banana)
+  A(-41,2,-26,12,1.2);                   // bottom banana
+  Rp(-31,-14,-24,2,1.2,2.0,'n','jground'); // banana
+  A(-32,-24,-22,-14,2.0,'jground');      // top banana
+  // --- B ---
+  A(-31,-42,-4,-24,2.0);                 // B site
+  A(-4,-35,8,-26,2.0,'planks');          // construction
+  L.solids.push([-4,-35,0,-31]);         // construction pile (breaks the CT -> B sightline)
+  Rp(8,-40,18,-31,1.6,2.0,'w');          // CT -> construction
+  // --- CT ---
+  A(18,-40,40,-20,1.6,'flag');           // CT spawn
+  A(30,-20,36,-9,1.6);                   // CT -> library
+  A(26,-9,38,-1,1.6,'ceramic');          // library
+  A(29,-1,32,0,1.6,'ceramic'); A(35,-1,37,0,1.6,'ceramic'); // library doors onto A
+  A(8,-24,18,-14,1.6);                   // arch side
+  A(8,-14,14,-4,1.6);                    // arch passage
+  A(14,-9,26,-5,1.6,'ceramic');          // library hall (arch -> library)
+  Rp(8,-4,14,2,.8,1.6,'n');              // arch steps down to top mid
+  // --- mid ---
+  A(-24,8,-16,22,0);                     // second mid
+  Rp(-16,6,-12,14,0,.4,'e');             // mid entrance slope
+  A(-12,6,4,14,.4);                      // mid
+  Rp(2,4,6,12,.4,.8,'e');                // mid -> top mid
+  A(4,0,14,10,.8);                       // top mid
+  St(14,2,18,8,.8,1.6,'e',3);            // short A stairs
+  // --- A ---
+  A(18,0,38,18,1.6,'flag');              // A site
+  A(26,18,32,24,1.6,'jground');          // graveyard
+  St(32,18,38,22,.4,1.6,'n',4);          // pit stairs
+  A(32,22,40,34,.4);                     // pit
+  // --- apartments ---
+  A(-22,30,-6,38,0);                     // T apartments alley
+  St(-6,30,0,36,0,2.6,'e',10);           // apartment stairs
+  A(0,28,16,38,2.6,'planks');            // apartments, upper floor
+  L.solids.push([6,28,7,32],[6,34,7,38]); // room partition (door in the middle)
+  A(10,22,16,28,2.6,'planks');           // bedroom / boiler hall
+  L.solids.push([10,25,13,28]);          // dog-leg: no sightline from A through the balcony into the apartments
+  A(12,18,20,24,2.6,'ceramic');          // balcony
+  St(20,18,26,22,1.6,2.6,'w',4);         // balcony stairs down to the graveyard
+  // roofs, lintels, overhangs
+  blk(-7,5.6,27,17,6.1,39,'conc2');      // apartments roof
+  blk(9,5.6,21,17,6.1,28,'conc2');       // boiler hall roof
+  blk(25,5.0,-10,39,5.5,0,'conc2');      // library roof
+  blk(14,5.0,-10,26,5.5,-4,'conc2');     // library hall roof
+  blk(29,4.2,-1,32,6.6,0,'ashlar',1); blk(35,4.2,-1,37,6.6,0,'ashlar',1); // library door lintels
+  blk(-31,4.8,-42,-21,5.25,-36,'planksD'); // "dark" overhang
+  blk(-4,5.0,-35,5,5.3,-29,'planksD');   // construction scaffold deck
+  blk(18,2.6,18,20,3.45,18.25,'rustG');  // balcony rail over A
+  blk(-14.6,3.8,6,-13.6,6.8,14,'stuccoY',1); // mid entrance lintel
+  const G=mpCompile(L), O=G.O;
+  mqRoofs(O,G,.72);
+  const cr=(x,z,s,y)=>({t:'crate',p:y===undefined?[x,z]:[x,y,z],s:[s,s,s]}), ba=(x,z)=>({t:'barrel',p:[x,z],s:[.7,1,.7]});
+  const lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]}), sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#3a2c22'});
+  const pot=(x,z,s)=>({t:'pot',p:[x,z],s:[s||.6,(s||.6)*.8,s||.6]}), cyp=(x,z,h)=>({t:'cypress',p:[x,z],s:[1.5,h||8,1.5]}), vine=(x,y,z,r,w,h)=>({t:'vines',p:[x,y,z],r:[0,r,0],s:[w,h,.1],c:0});
+  const stone=(x,z,r)=>({t:'block',p:[x,z],r:[0,r||0,0],s:[.7,1.05,.2],m:'carved',cap:0});
+  mpDecor(O,G,[
+    // T spawn
+    cr(-39.6,23.6,1.6),cr(-39.7,23.7,1,1.6),ba(-36,34),ba(-35.2,34.3),pot(-34.4,33.6),pot(-21.3,28.4,.7),pot(-17,28.4),cyp(-40,31,8.5),cyp(-17,39.5,7.5),
+    {t:'fountain',p:[-28,27],s:[3.2,.7,3.2],m:'ashlar'},lamp(-40.95,26,90),lamp(-16.05,39.5,-90),{t:'awning',p:[-38,34.95],r:[0,180,0],s:[4.5,3.4,2.2]},
+    {t:'cable',p:[-41,5.6,30],e:[25,-.4,0],sag:.9},sign(-33.97,2.6,17,-90,'MUZ',1.6),
+    // bottom banana / banana
+    cr(-40.2,3.4,1.4),ba(-26.8,10.9),{t:'vehicle',p:[-38.5,8.2],r:[0,10,0],s:[1.9,1.5,4.3],kind:'car',m:'blueP'},
+    {t:'block',p:[-30.2,-6],s:[1.2,.8,3.2],m:'bark',cap:0},{t:'block',p:[-30.2,2.4,-6.4],s:[1,.6,2.4],m:'bark',cap:0},  // logs
+    {t:'sandbag',p:[-24.9,-10],r:[0,90,0],s:[3,.9,.8]},{t:'sandbag',p:[-27,-21.6],s:[3.2,.9,.8]},cr(-31,-23,1.4),
+    // B site
+    {t:'fountain',p:[-14,-35],s:[4,.8,4],m:'ashlar'},cr(-9.5,-28.5,1.8),cr(-9.6,-28.6,1.1,3.8),                          // fountain + new box
+    {t:'block',p:[-7,-40.9],s:[2.2,.9,1],m:'carved',cap:1,capM:'ashlar'},{t:'block',p:[-9.6,-40.9],s:[2.2,.9,1],m:'carved',cap:1,capM:'ashlar'}, // coffins
+    cr(-29.6,-40.2,1.6),cr(-27.8,-40.4,1.2),ba(-30.2,-37.4),ba(-29.4,-37.2),cr(-24.2,-26,1.4),ba(-26.3,-25),ba(-25.6,-24.7),  // dark, 1st/2nd orange
+    {t:'vehicle',p:[-20,-26.4],r:[0,90,0],s:[1.9,1.5,4.3],kind:'car',m:'paintW'},sign(-17,4.8,-41.95,0,'B',3.2,'#2b2722'),cyp(-4.8,-24.8,7),
+    // construction / CT -> B
+    {t:'block',p:[-1,2.0,-27.5],s:[.15,3,.15],m:'darkmetal',c:0,cap:0},{t:'block',p:[4,2.0,-27.5],s:[.15,3,.15],m:'darkmetal',c:0,cap:0},{t:'block',p:[4,2.0,-34.5],s:[.15,3,.15],m:'darkmetal',c:0,cap:0},
+    ba(7,-26.8),{t:'barrel',p:[6.2,-27],s:[.7,1,.7]},cr(1.5,-26.9,1.2),sign(4,3.6,-34.95,0,'İNŞAAT',1.6),
+    cr(16.8,-38.8,1.4),lamp(16,-39.95,0),
+    // CT spawn
+    cr(38.6,-38.6,1.6),cr(38.7,-38.7,1,1.6),cr(20,-38.8,1.4),cyp(39.3,-21.5,8),cyp(19.2,-38.6,7.5),pot(36.6,-20.5),pot(29.4,-20.5),lamp(39.95,-30,-90),
+    // library / arch
+    {t:'arch',p:[11,1.6,-13.5],s:[6,4.6,1],m:'ashlar',aw:3.4,ah:3.2,cap:1},
+    {t:'block',p:[37.6,-5],s:[.6,2.4,6.4],m:'planksD',cap:0},{t:'block',p:[26.4,-2.6],s:[.6,2.4,2.4],m:'planksD',cap:0},{t:'block',p:[32,-5],s:[2.4,.85,1.2],m:'planksD',cap:0},sign(37.95,3.4,-5,-90,'KÜTÜPHANE',1.6),
+    lamp(17,-5.05,180,3.2),
+    // A site, truck, graveyard, pit
+    {t:'vehicle',p:[29,9],r:[0,10,0],s:[2.4,2.6,6.2],kind:'truck',m:'paintR'},cr(22,14.6,1.6),cr(22.1,14.5,1,1.6),cr(36.4,1.6,1.6),ba(37.3,4),ba(36.6,4.6),
+    {t:'sandbag',p:[24,3.6],s:[3,.9,.8]},sign(37.95,4.4,9,-90,'A',3.2,'#2b2722'),cyp(37.2,13,7.5),pot(18.6,.6),pot(25.4,.6),
+    stone(27.6,20,0),stone(29.4,20.2,8),stone(27.4,22.6,-6),stone(30.4,22.4,4),sign(29,3.2,23.95,180,'MEZARLIK',1.4),
+    cr(39,32.6,1.4),cr(33.2,32.8,1.2),ba(39.2,23.4),sign(39.95,2.6,28,-90,'ÇUKUR',1.4),
+    // apartments, balcony, boiler
+    {t:'block',p:[2,2.6,37.3],s:[2.6,.55,1.2],m:'paintW',cap:0},{t:'block',p:[13.6,2.6,37.4],s:[2.4,.5,1],m:'paintW',cap:0},{t:'block',p:[10.7,2.6,22.8],s:[1.2,2.2,1.2],m:'rustG',cap:0},
+    {t:'barrel',p:[11,2.6,24.4],s:[.8,1.3,.8]},pot(19.4,23.4,.5),pot(12.6,18.6,.5),sign(-9,2.6,30.05,0,'APT',1.4),lamp(-12,30.05,0,3.6),
+    {t:'cable',p:[-22,6,30],e:[16,-.5,0],sag:.8},{t:'awning',p:[-14,30.05],s:[4,3.3,2]},
+    // mid / top mid
+    cr(-11.2,13.2,1.4),{t:'awning',p:[-6,6.05],s:[4,3.3,2]},{t:'awning',p:[-1,13.95],r:[0,180,0],s:[4,3.3,2]},lamp(5.5,.05,0),lamp(-23.95,16,90),
+    {t:'cable',p:[-12,6,6],e:[0,0,8],sag:.6},{t:'cable',p:[4,6.4,0],e:[10,-.4,10],sag:.9},cr(12.8,1.4,1.4),pot(5,.6),pot(13.4,9.4),sign(4.03,2.6,3,90,'ORTA',1.4),
+    vine(-23.96,0,11,90,3,4.5),vine(18,1.6,-5.03,180,4,3.2)
+  ]);
+  for(const [x,z] of [[-33,32],[-30,32],[-27,32],[-31.5,35],[-28.5,35]]) O.push({t:'spawnT',p:[x,0,z],r:[0,-35,0]});
+  for(const [x,z] of [[26,-30],[29,-30],[32,-30],[27.5,-27],[30.5,-27]]) O.push({t:'spawnCT',p:[x,1.6,z],r:[0,135,0]});
+  O.push({t:'skyline',style:'village',seed:353,s:[58,1,88],c:0});
+  O.push({t:'siteA',p:[28,1.2,9],s:[20,3.5,18]}); O.push({t:'siteB',p:[-17.5,1.6,-33],s:[27,3.5,18]});
+  return normalizeMap({id:'alev',name:'Alev',builtin:1,settings:{size:44,sky:0,ground:'cobble',sunAz:-28,sunEl:44,fog:.0042,mode:'bomb',preview:{p:[-40,30,46],t:[2,0,-4]}},objects:O});
+}
+
+/* ---------- built-in map: KADİM (Ancient layout: A main + elbow, temple A site, donut, water mid with T caves, cave to B, B ramp / main) ---------- */
+function kadimData(){
+  const L={S:42,seed:419,areas:[],ramps:[],wins:[],solids:[],blocks:[],platM:'jstone',capM:'jstoneM',facade:{p:.001,vine:.55},
+    wall:(x,z,e)=>{ if(e) return [10,'jstone']; const q=Math.floor((x+42)/6)*31+Math.floor((z+42)/6)*17, v=(q*2654435761>>>0)%6; return [[6.4,7.2,6.0,7.8,6.8,7.4][v],['jstone','jstoneM','carved','jstone','jstoneM','jstone'][v]]; }};
+  const A=(x0,z0,x1,z1,h,fm)=>L.areas.push([x0,z0,x1,z1,h,fm===undefined?'flag':fm]);
+  const Rp=(x0,z0,x1,z1,h0,h1,dir,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,m:m||'flag'});
+  const St=(x0,z0,x1,z1,h0,h1,dir,n,m)=>L.ramps.push({r:[x0,z0,x1,z1],h0,h1,dir,st:1,n,m:m||'carved'});
+  const blk=(x0,y0,z0,x1,y1,z1,m,cap)=>L.blocks.push([x0,y0,z0,x1,y1,z1,m,cap]);
+  // --- T side ---
+  A(-10,28,12,40,.4,'jground');          // T spawn
+  A(-30,30,-10,38,.4,'jground');         // T -> A main
+  A(-36,16,-28,38,.4,'jground');         // A main (lower)
+  Rp(-36,6,-28,16,.4,1.2,'n');           // A main slope
+  A(-36,-12,-28,6,1.2);                  // A main (upper)
+  A(-28,-12,-22,-4,1.2);                 // elbow
+  Rp(-28,-16,-22,-12,1.2,1.6,'n');       // elbow -> A site
+  // --- A ---
+  A(-38,-36,-12,-16,1.6);                // A site
+  A(-36,-36,-24,-31,2.4,'carved');       // temple platform
+  St(-33,-31,-27,-28,1.6,2.4,'n',3);     // temple stairs
+  A(-12,-36,-4,-26,1.6);                 // A home
+  // --- CT ---
+  A(-4,-40,14,-28,1.6);                  // CT spawn
+  A(14,-38,20,-30,1.6);                  // CT -> B
+  Rp(4,-28,10,-22,1.0,1.6,'n');          // CT mid steps
+  A(-4,-22,10,-16,1.0);                  // CT mid (dog-leg)
+  A(-4,-16,2,-12,1.0);                   // CT mid -> top mid
+  // --- mid ---
+  A(-6,-12,6,2,1.0);                     // top mid
+  Rp(-5,2,5,8,0,1.0,'n');                // steps up out of the water
+  A(-6,8,6,22,0,'jground');              // water (shallow pool)
+  Rp(-3,22,3,28,0,.4,'s','jground');     // T caves (tunnel from T spawn)
+  A(-20,-10,-8,4,1.0);                   // donut
+  L.solids.push([-16,-6,-12,0]);         // donut core
+  A(-8,-6,-6,0,1.0);                     // donut <-> mid
+  Rp(-17,-16,-12,-10,1.0,1.6,'n');       // donut -> A site
+  // --- B ---
+  A(12,30,38,38,.4,'jground');           // T -> B
+  Rp(30,12,38,30,.4,1.6,'n','jground');  // B ramp
+  A(22,4,38,12,1.6);                     // B main (turn)
+  A(22,-6,30,4,1.6);                     // B main
+  A(18,-30,38,-6,1.6);                   // B site
+  A(6,-2,12,4,1.0);                      // cave mouth (from mid)
+  A(12,-16,18,4,1.0);                    // the cave
+  Rp(18,-16,22,-10,1.0,1.6,'e');         // cave -> B site
+  // roofs
+  blk(-4,3.3,21,4,3.8,29,'jstone');      // T caves roof
+  blk(5,4.2,-17,23,4.7,5,'jstone');      // cave roof
+  blk(-5,4.4,-17,3,4.9,-11,'jstone');    // CT mid tunnel roof
+  blk(-21,4.2,-11,-7,4.7,5,'jstone');    // donut roof
+  blk(-36,4.6,-32.2,-24,5.0,-31,'carved',1); // temple lintel over the front columns
+  const G=mpCompile(L), O=G.O;
+  mqJungle(O,G,.42,.045,42);
+  const cr=(x,z,s,y)=>({t:'crate',p:y===undefined?[x,z]:[x,y,z],s:[s,s,s]}), lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]});
+  const sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#e8e0c8'}), pil=(x,z,h,y)=>({t:'pillar',p:y===undefined?[x,z]:[x,y,z],s:[.9,h||3.6,.9],m:'carved'});
+  const rock=(x,z,w,h,d,r)=>({t:'rock',p:[x,z],r:[0,r||0,0],s:[w,h,d],m:'jstoneM'}), ruin=(x,z,w,h,d,m)=>({t:'block',p:[x,z],s:[w,h,d],m:m||'carved',cap:1,capM:'jstoneM'});
+  mpDecor(O,G,[
+    // T spawn
+    {t:'idol',p:[-8.4,38.6],s:[1.8,3,1.4]},{t:'idol',p:[10.4,38.6],s:[1.8,3,1.4]},cr(10.8,29.6,1.4),cr(10.9,29.5,.9,1.4),rock(8,39,1.8,1.2,1.6),{t:'tree',p:[1,39.3],s:[1,8,1],lean:1},
+    lamp(-6,39.95,180),sign(5.5,2.6,28.05,0,'MAĞARA',1.4),
+    // A main / elbow
+    rock(-34.8,24,1.6,1.1,1.6),rock(-29,10,1.4,1,1.2,30),ruin(-34.6,-2,1.6,1.1,2.2),{t:'tree',p:[-35,36.8],s:[1,7,1],lean:.9},sign(-25,3,-4.05,180,'DİRSEK',1.4),
+    // A site: temple ruins, A home
+    pil(-35.3,-31.6,2.2,2.4),pil(-33.6,-31.6,2.2,2.4),pil(-26.4,-31.6,2.2,2.4),pil(-24.7,-31.6,2.2,2.4),
+    {t:'idol',p:[-30,-35.1],s:[2.2,3.2,1.6]},ruin(-20,-22,2.2,1.3,3),ruin(-33.6,-20.6,3,1.1,1.6),ruin(-15.6,-33.4,1.6,1.6,1.6),pil(-22,-30,2.2),pil(-22.4,-18.8,1.4),
+    rock(-37,-18,1.6,1.2,1.4),cr(-8.8,-34.6,1.4),cr(-8.9,-34.7,.9,1.4),sign(-37.95,4.2,-24,90,'A',3,'#e8e0c8'),sign(-27,4.4,-35.95,0,'TAPINAK',1.4),
+    // donut / mid / water
+    rock(-19,3,1.3,.9,1.2),{t:'block',p:[2.5,-9],s:[1.6,.9,1.6],m:'carved',cap:1,capM:'jstoneM'},rock(4.5,20.6,1.5,.6,1.4),rock(-4.6,9.6,1.6,.6,1.2,40),
+    {t:'floor',p:[0,.2,15],s:[12,.02,14],m:'water',c:0},sign(-5.95,2.8,-9,90,'SİMİT',1.4),sign(4.5,2,21.95,180,'SU',1.4),lamp(-5.95,-8,90),
+    // cave / B
+    rock(13,-14.6,1.4,1,1.2),cr(16.6,2.8,1.2),sign(9,3,-1.95,0,'MAĞARA',1.4),lamp(12.05,-6,90,3),
+    ruin(30,-24,2.4,1.2,2.4),ruin(25,-14.5,1.6,1.6,1.6),pil(34,-12,2.6),pil(34,-8.5,1.6),cr(36.6,-28.6,1.6),cr(36.7,-28.7,1,1.6),{t:'idol',p:[36.7,-18],r:[0,-90,0],s:[1.8,3,1.4]},
+    rock(24.4,-28.4,1.8,1.2,1.4),sign(28,4.2,-29.95,0,'B',3,'#e8e0c8'),rock(37,10,1.6,1,1.4),rock(23,-4,1.2,.9,1.2),
+    // CT
+    cr(12.6,-38.6,1.4),cr(-2.6,-38.6,1.6),cr(-2.7,-38.7,1,1.6),lamp(13,-39.95,0),{t:'tree',p:[13,-29.2],s:[1,6,1],lean:.7}
+  ]);
+  for(const [x,z] of [[-4,34],[0,34],[4,34],[-2,37],[2,37]]) O.push({t:'spawnT',p:[x,.4,z],r:[0,0,0]});
+  for(const [x,z] of [[0,-35],[3,-35],[6,-35],[1.5,-32],[4.5,-32]]) O.push({t:'spawnCT',p:[x,1.6,z],r:[0,180,0]});
+  O.push({t:'skyline',style:'jungle',seed:419,s:[54,1,84],c:0});
+  O.push({t:'siteA',p:[-25,1.2,-26],s:[26,3.5,20]}); O.push({t:'siteB',p:[28,1.2,-18],s:[20,3.5,24]});
+  return normalizeMap({id:'kadim',name:'Kadim',builtin:1,settings:{size:42,sky:0,ground:'jground',sunAz:34,sunEl:52,fog:.0062,mode:'bomb',preview:{p:[34,32,46],t:[-2,0,-4]}},objects:O});
+}
+EXTRA_MAPS.push(()=>alevData(), ()=>kadimData());
+
+/* ---------- material refresh for the older built-in maps (geometry, colliders and spawns untouched) ---------- */
+function mqRestyle(m){
+  if(m.id==='avlu') for(const o of m.objects){ const z=o.p[2], T=z>.9, C=z<-.9;
+    if(o.t==='block'){ const [w,h,d]=o.s; if(o.m==='plaster') o.m=T?'stuccoO':C?'stuccoB':'stuccoW';
+      else if(o.m==='sandstone'&&Math.max(w,d)<40&&h<=1.2) o.m='ashlar'; else if(o.m==='sandstone'&&Math.max(w,d)<40&&h<=4.65) o.m=T?'brick':'brickD'; }
+    else if(o.t==='floor'&&o.m==='slabs') o.m=o.p[1]>.5?(C?'ceramic':'flag'):'cobble'; }
+  if(m.id==='kumvadisi') for(const o of m.objects){ const [x,,z]=o.p;
+    if(o.t==='block'&&o.cap&&o.p[1]===0&&o.s[1]<8.4&&(o.m==='sandstone'||o.m==='plaster')){ const pal=x<-6?['stuccoW','stuccoB','plaster','brick','sandstone','stuccoW']:x>6?['sandstone','stuccoO','stuccoR','plaster','brickD','sandstone']:['sandstone','plaster','stuccoO','brickD'];
+      o.m=pal[Math.floor(mqHash(Math.round(x*3),Math.round(z*3))*pal.length)]; }
+    else if(o.t==='block'&&o.m==='concrete') o.m='conc2';
+    else if(o.t==='floor'&&o.m==='slabs') o.m=x>10?'ceramic':x<-10?'flag':z>0?'cobble':'slabs'; }
+  return m;
+}
+/* recolour wall masses + floor plates of a compiled layout by position (toz2 / serap) */
+function mqPaintCompiled(O,pal,floorFn){ for(const o of O){ const [x,y,z]=o.p;
+  if(o.t==='block'&&o.cap===1&&y===0&&o.s[1]<9) o.m=pal[Math.floor(mqHash(Math.round(x*2)+7,Math.round(z*2)+3)*pal.length)];
+  else if(o.t==='floor'&&floorFn){ const nm=floorFn(x,z,o.m); if(nm) o.m=nm; } } }
+gameExport({alevData,kadimData,mqRestyle});
 
 
 /* @@BLOCK:net — code from the net work goes right below this line */
