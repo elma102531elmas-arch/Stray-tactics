@@ -1120,6 +1120,9 @@ body.touchEditing #lookZone,body.touchEditing #moveZone{pointer-events:none;}
 /* sq-menu:end */
 
 
+/* @@CSS:test — styles for TEST-only features */
+
+
 </style>
 </head>
 <body>
@@ -1598,6 +1601,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const TEST_BUILD=false; // true only in the STRIKE POINT TEST build (strike-point-test.html)
 const __EXT={}; function gameExport(o){ Object.defineProperties(__EXT,Object.getOwnPropertyDescriptors(o)); } // extra window.__game entries (getters preserved)
 
 const $=id=>document.getElementById(id);
@@ -11352,6 +11356,9 @@ function polishTick(){ acuTick(); touchTick(); }
 if('speechSynthesis' in window){ try{ speechSynthesis.addEventListener('voiceschanged',()=>{ if(sTab==='audio'&&!$('settingsScreen').classList.contains('hidden')) renderSettings(); }); }catch(e){} }
 touchInit(); teInit();
 gameExport({ ACU, acuProbe, acuAt, acuOcc, acuAirLP, VOICE, voiceList, pickVoice, openTouchEditor, closeTouchEditor, touchApplyLayout, touchSetMode, TOUCH_DEF, get touchState(){ return touchState; }, TE });
+
+
+/* @@BLOCK:test — STRIKE POINT TEST-only features (zombies, skins, extra knives); everything here must check TEST_BUILD */
 
 
 /* =====================================================================
