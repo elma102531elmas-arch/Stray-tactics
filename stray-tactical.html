@@ -1120,6 +1120,12 @@ body.touchEditing #lookZone,body.touchEditing #moveZone{pointer-events:none;}
 /* sq-menu:end */
 
 
+/* @@CSS:loadout — styles from the loadout work go right below this line */
+
+
+/* @@CSS:onboard — styles from the onboard work go right below this line */
+
+
 /* @@CSS:test — styles for TEST-only features */
 
 
@@ -11388,6 +11394,12 @@ function polishTick(){ acuTick(); touchTick(); }
 if('speechSynthesis' in window){ try{ speechSynthesis.addEventListener('voiceschanged',()=>{ if(sTab==='audio'&&!$('settingsScreen').classList.contains('hidden')) renderSettings(); }); }catch(e){} }
 touchInit(); teInit();
 gameExport({ ACU, acuProbe, acuAt, acuOcc, acuAirLP, VOICE, voiceList, pickVoice, openTouchEditor, closeTouchEditor, touchApplyLayout, touchSetMode, TOUCH_DEF, get touchState(){ return touchState; }, TE });
+
+
+/* @@BLOCK:loadout — code from the loadout work (inventory CT/T, deathmatch gun menu, equipment) goes right below this line */
+
+
+/* @@BLOCK:onboard — code from the onboard work (tutorial, mobile fire buttons, AUG scope) goes right below this line */
 
 
 /* @@BLOCK:test — STRIKE POINT TEST-only features (zombies, skins, extra knives); everything here must check TEST_BUILD */
