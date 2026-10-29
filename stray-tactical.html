@@ -7381,9 +7381,13 @@ $('bmClose').addEventListener('click',()=>toggleBuy(false));
    ===================================================================== */
 const keys={}; let pointerLocked=false;
 const touchState={active:false,mx:0,mz:0,jump:false,crouch:false,use:false};
-function lockPointer(){ if(CFG.isTouch) return; try{ const r=renderer.domElement.requestPointerLock&&renderer.domElement.requestPointerLock(); if(r&&r.catch) r.catch(()=>{}); }catch(e){} }
+// raw (unadjusted) mouse input avoids the browser's sudden huge movementX spikes; falls back to a plain lock where unsupported
+function lockPointer(){ if(CFG.isTouch) return; const el=renderer.domElement; if(!el.requestPointerLock) return;
+  const plain=()=>{ try{ const r=el.requestPointerLock(); if(r&&r.catch) r.catch(()=>{}); }catch(e){} };
+  try{ const r=el.requestPointerLock({unadjustedMovement:true}); if(r&&r.catch) r.catch(()=>{ if(!document.pointerLockElement) plain(); }); else if(!r&&!document.pointerLockElement) setTimeout(()=>{ if(!document.pointerLockElement) plain(); },60); }catch(e){ plain(); } }
 function unlockPointer(){ if(document.pointerLockElement) try{ document.exitPointerLock(); }catch(e){} }
-document.addEventListener('pointerlockchange',()=>{ const was=pointerLocked; pointerLocked=document.pointerLockElement===renderer.domElement;
+let mlLockT=0, mlAvg=0; // mouse-look spike filter state
+document.addEventListener('pointerlockchange',()=>{ const was=pointerLocked; pointerLocked=document.pointerLockElement===renderer.domElement; if(pointerLocked&&!was){ mlLockT=performance.now(); mlAvg=0; }
   if(was&&!pointerLocked&&match.state==='live'&&!conOpen&&!buyOpen) togglePause(true); });
 renderer.domElement.addEventListener('click',()=>{ ensureAudio(); if(match.state==='live'&&!pointerLocked&&!CFG.isTouch) lockPointer(); });
 function gameInput(){ return match.state==='live'&&!conOpen&&(pointerLocked||CFG.isTouch); }
@@ -7413,6 +7417,9 @@ function isTyping(e){ const t=e.target; return t&&(t.tagName==='INPUT'||t.tagNam
 addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; firing=false; firing2=false; });
 addEventListener('mousemove',e=>{
   if(!pointerLocked||!gameInput()) return;
+  // ignore the jump right after locking and single-event spikes far above recent motion (browser pointer-lock bug)
+  if(performance.now()-mlLockT<120) return;
+  const mm=Math.hypot(e.movementX,e.movementY); if(mm>220&&mm>Math.max(60,mlAvg*7)) return; mlAvg=mlAvg*.85+mm*.15;
   const zs=player.scope?(1/(player.zoom||2.4))*CFG.zoomSens:1, k=.0022*CFG.sens*zs;
   player.yaw-=e.movementX*k; player.pitch=clamp(player.pitch-e.movementY*k*(CFG.invertY?-1:1),-1.5,1.5);
   VM.swayT.x=clamp(VM.swayT.x-e.movementX*.004,-1,1); VM.swayT.y=clamp(VM.swayT.y+e.movementY*.004,-1,1);
