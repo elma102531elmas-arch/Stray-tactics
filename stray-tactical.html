@@ -1124,6 +1124,73 @@ body.touchEditing #lookZone,body.touchEditing #moveZone{pointer-events:none;}
 
 
 /* @@CSS:onboard — styles from the onboard work go right below this line */
+/* AUG-type scope is drawn in 3D by the onboard block (obScopeRender): the old flat overlay stays off */
+body.obsc #scope.aug{display:none!important;}
+/* tutorial panel */
+#obTut{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:40;width:min(560px,calc(100vw - 32px));box-sizing:border-box;pointer-events:none;
+  font-family:var(--f-ui);color:#fff;background:linear-gradient(180deg,rgba(11,15,21,.88),rgba(11,15,21,.76));border:1px solid rgba(255,255,255,.13);border-top:3px solid var(--amber);
+  padding:8px 14px 10px;box-shadow:0 6px 22px rgba(0,0,0,.45);transition:border-color .2s;}
+#obTut.hidden{display:none;}
+#obTut.done{border-top-color:#7ee08a;}
+#obTut .obHd{display:flex;justify-content:space-between;font-family:var(--f-display);font-size:11px;letter-spacing:.16em;color:var(--amber);}
+#obTut .obHd span{color:#9aa6b4;}
+#obTut .obTi{font-family:var(--f-display);font-size:21px;font-weight:700;letter-spacing:.04em;margin:1px 0 3px;}
+#obTut .obTi small{font-size:15px;color:var(--amber);margin-left:6px;letter-spacing:.02em;}
+#obTut .obTi .ok{color:#7ee08a;font-style:normal;}
+#obTut .obTx{font-size:13.5px;line-height:1.45;color:#dfe5ec;}
+#obTut .obEx{margin-top:6px;font-size:12.5px;color:#c9d1dc;}
+#obTut .obEx.hidden,#obTut .obSk.hidden{display:none;}
+#obTut kbd,#obModal kbd{display:inline-block;min-width:18px;padding:0 5px;margin:0 2px;border:1px solid rgba(255,255,255,.4);border-bottom-width:2px;border-radius:3px;
+  font-family:var(--f-mono);font-size:11.5px;line-height:17px;text-align:center;background:rgba(255,255,255,.08);color:#fff;}
+#obTut .obBar{height:3px;background:rgba(255,255,255,.12);margin-top:8px;}
+#obTut .obBar i{display:block;height:100%;width:0;background:var(--amber);transition:width .35s;}
+#obTut.done .obBar i{background:#7ee08a;}
+#obTut .obSk{margin-top:6px;font-size:12px;color:#aeb8c4;}
+#obTut button{pointer-events:auto;all:unset;pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;padding:0 10px;
+  margin:0 2px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;font-weight:700;font-size:13px;}
+.obStep{display:inline-flex;align-items:center;gap:6px;}
+.obStep b{min-width:38px;text-align:center;}
+body.touch #obTut{top:max(4px,env(safe-area-inset-top));width:min(430px,calc(100vw - 230px));padding:5px 10px 7px;}
+body.touch #obTut .obTi{font-size:16px;}
+body.touch #obTut .obTx{font-size:12px;line-height:1.35;}
+body.touch #obTut .obEx{margin-top:3px;}
+body.touch #obTut .obBar{margin-top:5px;}
+/* highlighted touch button for the current step */
+#touch .tbtn.obHi,#touch #moveStick.obHi{animation:obPulse 1.1s ease-in-out infinite;}
+@keyframes obPulse{0%,100%{box-shadow:0 0 0 3px rgba(255,182,72,.95),0 0 16px 4px rgba(255,160,40,.5);}50%{box-shadow:0 0 0 6px rgba(255,182,72,.45),0 0 28px 10px rgba(255,160,40,.3);}}
+/* big fire button in hold-to-scope mode */
+#touch .tbtn.tFire.obSc{border-color:rgba(255,200,110,.95);}
+#touch .tbtn.tFire.obSc .tl{font-size:calc(var(--bs,50px)*.13);}
+/* touch layout editor: name both fire buttons */
+body.touchEditing #fireBtn::after,body.touchEditing #fireBtnL::after{content:attr(data-obtag);position:absolute;white-space:nowrap;
+  font:700 10px/1.2 var(--f-ui);color:#ffd08a;background:rgba(0,0,0,.78);padding:2px 6px;pointer-events:none;letter-spacing:.02em;}
+body.touchEditing #fireBtn::after{bottom:100%;right:0;margin-bottom:4px;}
+body.touchEditing #fireBtnL::after{top:100%;left:0;margin-top:4px;}
+#obTeBig{border-color:rgba(255,182,72,.6)!important;color:#ffd08a!important;}
+/* intro / preferences / finish cards */
+#obModal{position:fixed;inset:0;z-index:88;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 45%,rgba(10,14,20,.5),rgba(5,7,10,.86));}
+#obModal.hidden{display:none;}
+#obModal .obCard{width:min(580px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:linear-gradient(180deg,#1a212b,#10151c);border:1px solid rgba(255,255,255,.12);
+  border-top:3px solid var(--amber);padding:20px 22px 18px;color:#e6ebf1;font-family:var(--f-ui);box-shadow:0 20px 60px rgba(0,0,0,.6);}
+#obModal .obBig{font-family:var(--f-display);font-size:32px;font-weight:700;letter-spacing:.07em;color:#fff;line-height:1.1;}
+#obModal .obBig.ok{color:#7ee08a;}
+#obModal p{font-size:14px;line-height:1.5;color:#c9d1dc;margin:8px 0 12px;}
+#obModal p.obSm{font-size:12.5px;color:#9aa6b4;margin:4px 0 0;}
+#obModal .obRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 0;font-size:13px;font-weight:600;color:#c9d1dc;flex-wrap:wrap;letter-spacing:.03em;}
+#obModal .obQ{font-weight:700;margin:6px 0 8px;font-size:14px;}
+#obModal .obChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+#obModal .obChoice button{all:unset;cursor:pointer;box-sizing:border-box;text-align:left;padding:11px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);color:#fff;display:flex;flex-direction:column;gap:5px;}
+#obModal .obChoice button:hover{background:rgba(255,255,255,.09);}
+#obModal .obChoice button.on{border-color:var(--amber);background:rgba(255,182,72,.15);box-shadow:inset 0 0 0 1px var(--amber);}
+#obModal .obChoice b{font-size:13.5px;letter-spacing:.02em;}
+#obModal .obChoice small{font-size:12px;color:#aeb8c4;line-height:1.35;}
+#obModal .obStep button{all:unset;cursor:pointer;width:32px;height:30px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);font-size:18px;}
+#obModal .obBtns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;}
+#obModal .cBtn.pri{background:var(--amber);border-color:var(--amber);color:#14110b;font-weight:700;letter-spacing:.06em;}
+#obModal .cBtn.pri:hover{background:#ffc86e;}
+@media (max-width:520px){ #obModal .obChoice{grid-template-columns:1fr;} }
+@media (max-width:620px),(max-height:430px){ #obModal{padding:8px;} #obModal .obCard{padding:10px 14px 12px;max-height:calc(100vh - 16px);} #obModal .obBig{font-size:22px;} #obModal p{font-size:12.5px;margin:4px 0 6px;}
+  #obModal .obRow{margin:5px 0;} #obModal .obChoice button{padding:7px 9px;} #obModal .obChoice small{font-size:11px;} #obModal .obBtns{margin-top:8px;} #obModal .seg button{height:28px;} }
 
 
 /* @@CSS:test — styles for TEST-only features */
@@ -6542,6 +6609,7 @@ const _sp=new THREE.Vector3(), _mz=new THREE.Vector3(), _ej=new THREE.Vector3();
 function enemyBots(team){ return bots.filter(b=>b.alive&&b.team!==team); }
 function opponents(){ const L=[];
   if(match.mode==='duel'||match.mode==='comp') for(const b of enemyBots(player.team)) L.push(b.char);
+  if(match.mode==='walk') for(const b of bots) L.push(b.char);   // tutorial targets / bots (onboard block); plain walk mode has no bots
   if(match.mode==='range') RANGE.dummies.forEach(d=>L.push(d.char)); return L; }
 function tryFire(click){
   const P=player, st=slotState(), def=st.def, s=def.stats;
@@ -6593,6 +6661,7 @@ function dealHit(h,def){
   const vict=bots.find(b=>b.char===h.char)||RANGE.dummies.find(x=>x.char===h.char)||{armor:100,helmet:true}; hitSound(vict,h.zone,h.point); flashHM(isHead);
   if(NET.client){ netHitClaim(h,def); }
   else if(match.mode==='duel'||match.mode==='comp'){ const b=bots.find(x=>x.char===h.char); if(b) damageAgent(b,h.raw,h.zone,def,player); }
+  else if(match.mode==='walk'){ const b=bots.find(x=>x.char===h.char); if(b) damageAgent(b,h.raw,h.zone,def,player); }   // tutorial (onboard block)
   else if(match.mode==='range'){ const d=RANGE.dummies.find(x=>x.char===h.char); if(d){ const dmg=applyDamage(d,h.raw,h.zone,s.armorPen,s.head); d.hp-=dmg; rangeHit(d,dmg,h.zone,h.dist,h.point); } }
 }
 function tryKnife(kind){ const P=player; if(VM.knifeT>=0||!P.alive||!canAct()) return; vmKnife(VM,kind,true); P.pendingKnife={kind,t:kind?.28:.12}; }   // the sound comes with the hit result (doKnifeHit)
@@ -7660,6 +7729,7 @@ function sDefs(tab){
     R('Konum Z','Silahı ileri / geri kaydırır (cm).',()=>CFG.vmOff[2],v=>{ CFG.vmOff[2]=v; CFG.vmPreset='custom'; },-5,5,.1,v=>v.toFixed(1)),
     TG('Sol el','Silahı sol elinde tutarsın.',()=>CFG.leftHand,v=>{ CFG.leftHand=v; applyHand(); }),
     R('Yürürken sallanma','Koşarken silahın sallanma miktarı.',()=>CFG.vmBob,v=>CFG.vmBob=v,0,1.5,.05,v=>Math.round(v*100)+'%'),
+    ...obGameRows(),
     {sec:'GELİŞTİRİCİ'},
     TG('FPS göster','Sol üstte kare hızını gösterir.',()=>CFG.showFps,v=>CFG.showFps=v),
     {t:'btns',l:'Geliştirici konsolu',d:'~ ya da " tuşuyla da açılır. help yazınca tüm komutlar listelenir.',btns:[['KONSOLU AÇ',()=>{ toggleConsole(); conPrint('help yazarak komutları gör.','o'); }]]}
@@ -8928,6 +8998,7 @@ function tick(raw,doRender){
   if(live){ updateNades(dt); updateDrops(dt); }
   if(match.mode==='range'&&match.state!=='paused'){ updateRange(dt); updateRangePanel(); }
   netTick(dt);
+  obTick(dt);   // touch big-fire release shots + tutorial (onboard block)
   if(!inMenu&&document.body.classList.contains('radar')){ radarT-=raw; if(radarT<=0){ radarT=.2; if(match.mode==='comp') radarSpot(); } drawRadar(); }
   FX.sparks.update(dt); FX.smoke.update(dt); FX.cloud.update(dt); updateTracers(dt); updateShells(dt); updateWorldFlashes(dt);
   worldFlash.intensity=Math.max(0,worldFlash.intensity-raw*320);
@@ -8941,6 +9012,7 @@ function tick(raw,doRender){
   fpsN++; fpsT+=raw; if(fpsT>=.5){ fpsV=Math.round(fpsN/fpsT); fpsN=0; fpsT=0; if(CFG.showFps&&!inMenu) $('netPing').textContent=fpsV+' FPS'+(NET.ping?' · PING '+NET.ping+' ms':''); }
 }
 function renderMain(raw){
+  if(obScopeRender()) return;   // AUG-type sight up: drawn through the gun's own optic (onboard block)
   if(composer) composer.render(raw);
   else { renderer.autoClear=true; renderer.render(scene,camera); renderer.autoClear=false; renderer.clearDepth(); renderer.render(vmScene,vmCam); renderer.autoClear=true; }
 }
@@ -10354,6 +10426,7 @@ function renderPlay(){
         opt('BOT SAYISI',segHTML('dmbots',[[3,'3'],[5,'5'],[7,'7'],[9,'9']],D.bots))+opt('HEDEF',segHTML('dmtarget',[[20,'20 LEŞ'],[30,'30 LEŞ'],[50,'50 LEŞ']],D.target))+
         opt('SÜRE',segHTML('dmtime',[[5,'5 DK'],[10,'10 DK'],[15,'15 DK']],D.time))+opt('SİLAHLAR',segHTML('dmw',[['loadout','ENVANTER'],['random','RASTGELE']],D.weapons))+opt('BOT ZORLUĞU',segHTML('diff',[[0,'KOLAY'],[1,'NORMAL'],[2,'ZOR']],CFG.botDiff))+note;
       summary='<b>'+esc(MAPLIB.byId[D.map].name.toUpperCase())+'</b> · ÖLÜM MAÇI · '+D.bots+' BOT · '+D.time+' DK / '+D.target+' LEŞ'; }
+    else if(pm==='tut') summary=obPlayPane(M,S);   // ÖĞRENME ALANI (onboard block)
     else if(pm==='range'){ M.classList.add('one'); tile('range','TEST ALANI','HEDEFLER · DPS · SPREY',true,()=>{});
       S.innerHTML='<h4>Test alanı</h4><p class="pd">Hedefler, hareketli mankenler, çelik plakalar ve sprey duvarı. Sınırsız mermi, hasar sayıları, DPS ölçümü.</p>'+note; summary='<b>TEST ALANI</b> · SINIRSIZ MERMİ'; }
     else { if(!MAPLIB.byId[CFG.practice]) CFG.practice=MAPLIB.list[0].id;
@@ -10390,6 +10463,7 @@ function netPlayGo(){
   else if(pm==='duel'){ match.target=CFG.duelTarget||5; startMatch('duel',{map:CFG.duelMap}); }
   else if(pm==='dm') dmStartOffline();
   else if(pm==='range') startMatch('range');
+  else if(pm==='tut') obTutStart();
   else startMatch('walk',{map:MAPLIB.byId[CFG.practice]?CFG.practice:MAPLIB.list[0].id}); }
 document.querySelectorAll('#pTabs [data-ptab]').forEach(b=>b.addEventListener('click',()=>{ uiSound('tab'); CFG.net.tab=b.dataset.ptab; saveCfg(); renderPlay(); }));
 $('btnGo').addEventListener('click',netPlayGo);
@@ -11386,6 +11460,7 @@ function polishTouchRows(SEG,R,TG){
     R('Buton opaklığı','Dokunmatik butonların görünürlüğü.',()=>CFG.touch.alpha,v=>{ CFG.touch.alpha=v; touchApplyLayout(); },.2,1,.01,v=>Math.round(v*100)+'%'),
     SEG('Joystick','Dinamik: sol yarıda parmağını nereye koyarsan joystick oraya gelir. Sabit: yerinde durur.',[[1,'DİNAMİK'],[0,'SABİT']],()=>CFG.touch.dynStick?1:0,v=>CFG.touch.dynStick=+v),
     TG('Sol ateş butonu','Sol başparmakla da ateş edebilmek için ek ATEŞ butonu.',()=>CFG.touch.leftFire,v=>{ CFG.touch.leftFire=v; TCH.tick=0; }),
+    ...obTouchRows(SEG,TG),
     TG('Titreşim','Ateş ederken, isabette ve hasar alınca kısa titreşim (destekleyen cihazlarda).',()=>CFG.touch.haptic,v=>{ CFG.touch.haptic=v; if(v) touchHaptic('hit'); }),
     {t:'btns',l:'Buton düzeni',d:'Butonları sürükleyip taşı, boyutlarını ve opaklığı ayarla. Düzen bu cihazda kaydedilir.',btns:[['DÜZENLEYİCİYİ AÇ',()=>openTouchEditor()],['DÜZENİ SIFIRLA',()=>{ CFG.touch.layout={}; CFG.touch.scale=1; CFG.touch.alpha=POLISH_DEF.touch.alpha; saveCfg(); touchApplyLayout(); renderSettings(); toast('Varsayılan düzen'); }]]}
   ];
@@ -11400,6 +11475,386 @@ gameExport({ ACU, acuProbe, acuAt, acuOcc, acuAirLP, VOICE, voiceList, pickVoice
 
 
 /* @@BLOCK:onboard — code from the onboard work (tutorial, mobile fire buttons, AUG scope) goes right below this line */
+/* =====================================================================
+   ONBOARD — (1) AUG-type scope: you look through the gun's own optic (3D eyepiece housing in the viewmodel scene,
+   magnified lens render + blurred / darkened low-zoom world around it); (2) touch: big fire button can scope on hold and
+   fire on release (CFG.touchBigFire 'scope' | 'direct'), small fire button always fires at once; (3) tutorial
+   "ÖĞRENME ALANI" on a tiny private map (mandatory on first launch, before the name screen; replayable).
+   ===================================================================== */
+for(const [k,v] of [['touchBigFire','scope'],['tutorialDone',0],['tutHint',0]]){ if(!(k in CFG_DEF)) CFG_DEF[k]=v; if(CFG[k]===undefined||CFG[k]===null) CFG[k]=v; }
+if(CFG.touchBigFire!=='direct') CFG.touchBigFire='scope';
+const _obv1=new THREE.Vector3(), _obv2=new THREE.Vector3();
+
+/* ---------------- (1) AUG scope view ---------------- */
+// local housing units: 1 = screen height at the lens plane (z=0, +z toward the eye); lens radius OBS.R => diameter 57% of the screen height
+const OBS={ ok:true, house:null, rtO:null, rtV:null, rtL:null, mat:null, sc:null, cam:null, R:.285, e:0, lc:new THREE.Vector2(), sz:new THREE.Vector2(), cc:new THREE.Color() };
+document.body.classList.add('obsc');   // hides the old flat AUG overlay (#scope.aug); removed again if the render targets cannot be made
+function obsLQ(){ return CFG.quality==='low'||!!CFG.isTouch; }
+function obsHousing(){
+  const g=new THREE.Group(); g.name='augEyepiece';
+  const rub=new THREE.MeshStandardMaterial({color:0x2b2c2f,roughness:.8,metalness:.05,envMapIntensity:1.3,side:THREE.DoubleSide});
+  const met=new THREE.MeshStandardMaterial({color:0x4a4d52,roughness:.4,metalness:.65,envMapIntensity:1.4,side:THREE.DoubleSide});
+  const bod=new THREE.MeshStandardMaterial({color:0x44474c,roughness:.55,metalness:.45,envMapIntensity:1.6});
+  const blk=new THREE.MeshStandardMaterial({color:0x08090a,roughness:.75,metalness:.2,side:THREE.DoubleSide});
+  const add=(geo,m,x,y,z)=>{ const o=new THREE.Mesh(geo,m); o.position.set(x||0,y||0,z||0); g.add(o); return o; };
+  const lathe=(pts,m)=>{ const ge=new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),72); ge.rotateX(Math.PI/2); return add(ge,m); };
+  lathe([[.268,-.08],[.27,.004],[.286,.013],[.312,.022]],blk);                                                        // dark tube / bezel round the lens
+  lathe([[.312,.022],[.33,.037],[.352,.037],[.366,.02],[.372,-.065]],met);                    // eyepiece ring
+  lathe([[.374,-.065],[.376,.04],[.386,.07],[.405,.088],[.43,.094],[.452,.086],[.468,.06],[.476,.02],[.48,-.075]],rub);   // rubber eyecup (closest to the eye)
+  const s=new THREE.Shape(), hw=.62, hh=.72, cr=.24;                                                     // housing: rounded block with the eyepiece hole
+  s.moveTo(-hw+cr,-hh); s.lineTo(hw-cr,-hh); s.quadraticCurveTo(hw,-hh,hw,-hh+cr); s.lineTo(hw,hh-cr); s.quadraticCurveTo(hw,hh,hw-cr,hh);
+  s.lineTo(-hw+cr,hh); s.quadraticCurveTo(-hw,hh,-hw,hh-cr); s.lineTo(-hw,-hh+cr); s.quadraticCurveTo(-hw,-hh,-hw+cr,-hh);
+  const hole=new THREE.Path(); hole.absarc(0,0,.47,0,TAU,true); s.holes.push(hole);
+  const bg=new THREE.ExtrudeGeometry(s,{depth:.2,bevelEnabled:true,bevelThickness:.04,bevelSize:.045,bevelSegments:3,curveSegments:40}); bg.translate(0,0,-.3); add(bg,bod);
+  const bh=new THREE.CylinderGeometry(.064,.073,.05,28); bh.rotateX(Math.PI/2);                          // four big bolt heads with hex sockets + washers
+  const so=new THREE.CylinderGeometry(.03,.03,.012,6); so.rotateX(Math.PI/2); const wa=new THREE.TorusGeometry(.08,.011,8,28);
+  for(const sx of [-1,1]) for(const sy of [-1,1]){ const x=sx*.43, y=sy*.37; add(bh,met,x,y,-.035); add(so,blk,x,y,-.006); add(wa,met,x,y,-.058); }
+  add(new THREE.BoxGeometry(.56,.42,.3),bod,0,.88,-.22); add(new THREE.BoxGeometry(.8,.42,.32),bod,0,-.92,-.24);   // mount above / below (mostly off screen)
+  return g;
+}
+const OBS_VS='varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }';
+const OBS_FS=`uniform sampler2D tO,tV,tL; uniform vec2 res,lc; uniform float lr,lrF,bo,bv,dk,la,dmg,dotR; varying vec2 vUv;
+  vec3 bO(vec2 u){ vec2 o=bo/res, p=o*.7; vec3 c=texture2D(tO,u).rgb*.2;
+    c+=(texture2D(tO,u+vec2(o.x,0.)).rgb+texture2D(tO,u-vec2(o.x,0.)).rgb+texture2D(tO,u+vec2(0.,o.y)).rgb+texture2D(tO,u-vec2(0.,o.y)).rgb)*.12;
+    c+=(texture2D(tO,u+p).rgb+texture2D(tO,u-p).rgb+texture2D(tO,u+vec2(p.x,-p.y)).rgb+texture2D(tO,u+vec2(-p.x,p.y)).rgb)*.08; return c; }
+  vec4 bV(vec2 u){ vec2 o=bv/res, p=o*.7; vec4 c=texture2D(tV,u)*.2;
+    c+=(texture2D(tV,u+vec2(o.x,0.))+texture2D(tV,u-vec2(o.x,0.))+texture2D(tV,u+vec2(0.,o.y))+texture2D(tV,u-vec2(0.,o.y)))*.12;
+    c+=(texture2D(tV,u+p)+texture2D(tV,u-p)+texture2D(tV,u+vec2(p.x,-p.y))+texture2D(tV,u+vec2(-p.x,p.y)))*.08; return c; }
+  void main(){
+    vec2 px=gl_FragCoord.xy; float d=length(px-lc), inL=(1.-smoothstep(lr-1.5,lr+.5,d))*la; vec3 col=vec3(0.);
+    if(inL<.999){ vec4 v=bV(vUv); col=v.rgb+bO(vUv)*dk*(1.-v.a); }
+    if(inL>.001){ vec2 lu=(px-lc)/(2.*lrF)+.5; vec3 L=texture2D(tL,lu).rgb; float q=d/max(lr,1.);
+      L*=1.-.5*pow(smoothstep(.62,1.,q),2.); L*=1.-.4*smoothstep(.94,1.,q);
+      L+=vec3(.5,.56,.62)*.045*smoothstep(.5,0.,length((px-lc)/max(lr,1.)-vec2(-.38,.42)));
+      float g=smoothstep(dotR+.9,dotR-.7,d); L=mix(L,vec3(.32,2.6,.45),g); L+=vec3(.05,.5,.09)*exp(-d*d/(dotR*dotR*9.))*.5;
+      col=mix(col,L,inL); }
+    float l=dot(col,vec3(.2126,.7152,.0722)); col=mix(vec3(l),col,1.1-dmg*.5); col*=vec3(1.03,1.,.95);
+    vec2 cc=vUv-.5; col*=mix(1.,smoothstep(.95,.22,length(cc*vec2(1.,.85))*1.15),.55); col=mix(col,col*vec3(1.4,.45,.4),dmg*.32);
+    gl_FragColor=vec4(max(col,0.),1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }`;
+function obsInit(){
+  if(OBS.mat) return true; if(!OBS.ok) return false;
+  try{
+    const type=isGL2?THREE.HalfFloatType:THREE.UnsignedByteType, mk=n=>new THREE.WebGLRenderTarget(4,4,{type,samples:n|0});
+    OBS.rtO=mk(0); OBS.rtV=mk(0); OBS.rtL=mk(isGL2&&CFG.video.aa&&!obsLQ()?4:0);
+    OBS.mat=new THREE.ShaderMaterial({ uniforms:{ tO:{value:OBS.rtO.texture}, tV:{value:OBS.rtV.texture}, tL:{value:OBS.rtL.texture}, res:{value:new THREE.Vector2(1,1)}, lc:{value:OBS.lc},
+      lr:{value:0}, lrF:{value:1}, bo:{value:0}, bv:{value:0}, dk:{value:1}, la:{value:0}, dmg:{value:0}, dotR:{value:2} }, vertexShader:OBS_VS, fragmentShader:OBS_FS, depthTest:false, depthWrite:false });
+    const q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),OBS.mat); q.frustumCulled=false; OBS.sc=new THREE.Scene(); OBS.sc.add(q); OBS.cam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+    OBS.house=obsHousing(); OBS.house.visible=false; vmCam.add(OBS.house); return true;
+  }catch(e){ console.warn('aug scope',e); OBS.ok=false; OBS.mat=null; document.body.classList.remove('obsc'); return false; }
+}
+function obsSize(W,H){ const lq=obsLQ(), qo=lq?.4:.6, qv=lq?.5:1, D=Math.max(64,Math.round(Math.min(OBS.R*2*H,lq?480:1024)));
+  const set=(rt,w,h)=>{ w=Math.max(4,Math.round(w)); h=Math.max(4,Math.round(h)); if(rt.width!==w||rt.height!==h) rt.setSize(w,h); };
+  set(OBS.rtO,W*qo,H*qo); set(OBS.rtV,W*qv,H*qv); set(OBS.rtL,D,D); }
+function obsPS(hPx,fovV){ if(!FX.sparks) return; const s=hPx/(2*Math.tan(fovV*DEG/2)); FX.sparks.mat.uniforms.scale.value=s; FX.smoke.mat.uniforms.scale.value=s; FX.cloud.mat.uniforms.scale.value=s; }
+// called by renderMain; returns true when it drew the frame (AUG-type sight up or on its way to the eye)
+function obScopeRender(){
+  const R=VM, k=SC.k;
+  if(!OBS.ok||!R||!R.w||!R.scopeEye||!R.def||R.def.stats.scopeType!=='aug'||!(k>.001)||match.mode==='none'||match.state==='menu'){ OBS.e=0; return false; }
+  if(!obsInit()) return false;
+  const e=smooth(clamp(k,0,1)); OBS.e=e; renderer.getDrawingBufferSize(OBS.sz); const W=OBS.sz.x, H=OBS.sz.y; obsSize(W,H);
+  const st=R.def.stats, z=st.scopeZoom||2, hipV=csFovToV(CFG.fov), zoomV=csFovToV(CFG.fov/z), outV=csFovToV(CFG.fov/(1+(z-1)*.25)), f0=camera.fov;
+  // eyepiece rides on the sight's rear end, which the anim block brings to 8.5 cm in front of the eye
+  vmCam.updateMatrixWorld(true); const E=_obv1.copy(R.scopeEye).applyMatrix4(R.w.root.matrixWorld); vmCam.worldToLocal(E);
+  const tanV=Math.tan(vmCam.fov*DEG/2), hs=.17*tanV*lerp(.3,1,e*e), HS=OBS.house; HS.position.copy(E); HS.scale.setScalar(hs);   // grows out of the sight's rear end while it comes up
+  const c=_obv2.copy(E).applyMatrix4(vmCam.projectionMatrix); OBS.lc.set((c.x*.5+.5)*W,(c.y*.5+.5)*H);
+  const lrF=OBS.R*H, lr=Math.min(lrF,OBS.R*hs/(Math.max(.02,-E.z)*tanV)*H/2);
+  const ac=renderer.autoClear, sa=renderer.shadowMap.autoUpdate, ca=renderer.getClearAlpha(); renderer.getClearColor(OBS.cc);
+  renderer.autoClear=true; renderer.setScissorTest(false);
+  // 1) world outside the lens: barely magnified, low resolution (blurred + darkened in the composite)
+  camera.fov=lerp(hipV,outV,e); camera.updateProjectionMatrix(); obsPS(OBS.rtO.height,camera.fov);
+  renderer.setRenderTarget(OBS.rtO); renderer.render(scene,camera);
+  // 2) lens: centre square of a full zoomV frame (CS2 AUG 90 -> 45), sharp; shadows reused from pass 1
+  const Dt=lrF*2; camera.fov=zoomV; camera.setViewOffset(W,H,(W-Dt)/2,(H-Dt)/2,Dt,Dt); camera.updateProjectionMatrix(); obsPS(OBS.rtL.height*H/Dt,zoomV);
+  renderer.shadowMap.autoUpdate=false; renderer.setRenderTarget(OBS.rtL); renderer.render(scene,camera); renderer.shadowMap.autoUpdate=sa;
+  camera.clearViewOffset(); camera.fov=f0; camera.updateProjectionMatrix(); updateParticleScale();
+  // 3) hands, gun body and the eyepiece housing on a transparent layer
+  const rv=R.rig.visible, fv=R.flash.visible; R.rig.visible=player.alive||R.rig.visible; if(e>.5) R.flash.visible=false; HS.visible=e>.12;
+  renderer.setClearColor(0x000000,0); renderer.setRenderTarget(OBS.rtV); renderer.render(vmScene,vmCam);
+  R.rig.visible=rv; R.flash.visible=fv; HS.visible=false; renderer.setClearColor(OBS.cc,ca);
+  // 4) composite: blurred dark world, slightly blurred housing, sharp lens with a green dot, grade + tone mapping
+  const U=OBS.mat.uniforms; U.res.value.set(W,H); U.lr.value=lr; U.lrF.value=lrF; U.bo.value=H*.0065*e; U.bv.value=H*.006*e; U.dk.value=lerp(1,.58,e);
+  U.la.value=smooth(clamp((e-.2)/.55,0,1)); U.dmg.value=player.dmgAcc||0; U.dotR.value=Math.max(1.3,H*.0042);
+  renderer.setRenderTarget(null); renderer.render(OBS.sc,OBS.cam); renderer.autoClear=ac;
+  return true;
+}
+
+/* ---------------- (2) touch: big fire button = scope on hold, fire on release (scoped weapons) ---------------- */
+const OBF={ hold:null, rel:null, unsc:0, t:0, lab:null, lastShot:0 };
+function obBigScope(){ if(CFG.touchBigFire==='direct'||!player.slots) return false; const st=slotState(), d=st&&st.def; return !!d&&(d.stats.scope|0)>0&&!['grenade','knife','c4'].includes(d.type); }
+function obFireInit(){ const el=$('fireBtn'); if(!el) return;
+  // capture listeners run before bindFire's: they take the touch only in scope mode with a scoped weapon, otherwise bindFire handles it as before
+  el.addEventListener('touchstart',e=>{ if(TE.on||OBF.hold||!obBigScope()||!player.alive||match.state!=='live') return; e.preventDefault(); e.stopImmediatePropagation(); ensureAudio();
+    const t=e.changedTouches[0], P=player, d=curDef(); OBF.hold={id:t.identifier,x:t.clientX,y:t.clientY,wasSc:P.scope>0,def:d}; OBF.rel=null; OBF.unsc=0; el.classList.add('down');
+    if(P.scope===0&&canAct()&&!P.reloading&&!P.pendingThrow){ setScope(1); P.rescope=0; if(SFX_LIB) weaponSound(d,'zoomin'); else sfx.click(); } },{passive:false,capture:true});
+  el.addEventListener('touchmove',e=>{ const H=OBF.hold; if(!H) return; e.preventDefault(); e.stopImmediatePropagation();
+    for(const t of e.changedTouches){ if(t.identifier!==H.id) continue; if(gameInput()) touchLook(t.clientX-H.x,t.clientY-H.y,+CFG.touch.fireLook||.85); H.x=t.clientX; H.y=t.clientY; } },{passive:false,capture:true});
+  const end=e=>{ const H=OBF.hold; if(!H) return; let mine=false; for(const t of e.changedTouches) if(t.identifier===H.id) mine=true; if(!mine) return;
+    e.stopImmediatePropagation(); if(e.cancelable) e.preventDefault(); OBF.hold=null; el.classList.remove('down');
+    if(e.type==='touchcancel'){ if(!H.wasSc&&player.scope>0) setScope(0); return; }
+    OBF.rel={t:.7,wasSc:H.wasSc,def:H.def}; obReleaseShot(); };
+  el.addEventListener('touchend',end,{passive:false,capture:true}); el.addEventListener('touchcancel',end,{capture:true});
+}
+// release: one shot (queued for a moment while a bolt is still cycling); if the press scoped in, it scopes out again (bolt guns: no auto re-scope)
+function obReleaseShot(){ const R=OBF.rel, P=player; if(!R) return;
+  if(!P.alive||curDef()!==R.def||!canAct()||P.reloading){ OBF.rel=null; if(!R.wasSc&&P.scope>0&&P.alive) setScope(0); return; }
+  if(P.fireCd>0||VM.silT>=0) return;
+  OBF.rel=null; tryFire(true); OBF.lastShot=performance.now();
+  if(!R.wasSc){ P.rescope=0; if(P.scope>0) OBF.unsc=.16; } }
+function obFireTick(dt){
+  if(OBF.rel){ OBF.rel.t-=dt; if(OBF.rel.t<=0){ const R=OBF.rel; OBF.rel=null; if(!R.wasSc&&player.scope>0) setScope(0); } else obReleaseShot(); }
+  if(OBF.unsc>0){ OBF.unsc-=dt; if(OBF.unsc<=0&&!OBF.hold&&player.scope>0) setScope(0); }
+  OBF.t-=dt; if(OBF.t<=0){ OBF.t=.2; obFireLabels(); } }
+function obFireLabels(){ const b=$('fireBtn'), s=$('fireBtnL'); if(!b) return; const on=!!CFG.isTouch&&match.mode!=='none'&&obBigScope();
+  if(OBF.lab!==on){ OBF.lab=on; b.classList.toggle('obSc',on); const tl=b.querySelector('.tl'), ti=b.querySelector('.ti'); if(tl) tl.textContent=on?'NİŞAN·ATEŞ':'ATEŞ'; if(ti) ti.innerHTML=on?TI.scope:TI.fire; }
+  b.dataset.obtag=CFG.touchBigFire==='direct'?'BÜYÜK ATEŞ · DİREKT':'BÜYÜK ATEŞ · DÜRBÜN → ATEŞ'; if(s) s.dataset.obtag='KÜÇÜK ATEŞ · ANINDA';
+  const tb=$('obTeBig'); if(tb) tb.textContent='BÜYÜK ATEŞ: '+(CFG.touchBigFire==='direct'?'DİREKT':'DÜRBÜN → ATEŞ'); }
+function obTeInit(){
+  const bar=document.querySelector('#touchEd .teBar'), rs=$('teReset'); if(bar&&rs){ const tb=document.createElement('button'); tb.id='obTeBig'; tb.className='cBtn sm';
+    tb.title='Büyük ATEŞ butonu: dürbünlü silahlarda basılı tutunca dürbün, bırakınca ateş — ya da her zaman direkt ateş';
+    tb.addEventListener('click',()=>{ CFG.touchBigFire=CFG.touchBigFire==='direct'?'scope':'direct'; saveCfg(); OBF.lab=null; obFireLabels(); }); bar.insertBefore(tb,rs); }
+  // editor: name the two fire buttons clearly
+  document.addEventListener('pointerdown',()=>{ if(!TE.on) return; setTimeout(()=>{ const id=TE.sel, l=$('teSel'); if(l&&(id==='fireBtn'||id==='fireBtnL')) l.textContent=id==='fireBtn'?'BÜYÜK ATEŞ':'KÜÇÜK ATEŞ'; },0); },true);
+  obFireLabels();
+}
+function obTouchRows(SEG,TG){ return [
+  SEG('Büyük ATEŞ butonu','DÜRBÜN → ATEŞ: dürbünlü silahlarda (AWP, SSG 08, AUG) büyük butona basılı tutunca dürbün açılır, parmağını kaydırarak nişan alırsın, bırakınca ateş eder. Diğer silahlarda normal ateş (basılı tut = seri). DİREKT: her zaman basınca ateş eder. Küçük ATEŞ butonu her zaman anında ateş eder.',
+    [['scope','DÜRBÜN → ATEŞ'],['direct','DİREKT']],()=>CFG.touchBigFire,v=>{ CFG.touchBigFire=v; OBF.lab=null; }) ]; }
+
+/* ---------------- (3) tutorial "ÖĞRENME ALANI" ---------------- */
+const TUT={ on:false, first:false, quits:0, back:'mainMenu', i:-1, steps:null, t:0, time:0, d:{}, objs:[], dummies:[], fbots:[], modal:false, mfn:null, bigSaved:null, prefsDone:false, dead:false, scopeT:-9, ui:{}, map:null, hinted:false };
+const TUT_CP={ start:{pos:[0,0,14],yaw:0}, north:{pos:[0,0,-2.2],yaw:0} };
+function obTutMapData(){
+  const O=[], H=4.5;
+  const bx=(x0,y0,z0,x1,y1,z1,m,o)=>O.push(Object.assign({t:'block',p:[(x0+x1)/2,Math.min(y0,y1),(z0+z1)/2],r:[0,0,0],s:[Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0)],m,cap:1,c:1},o||{}));
+  const fl=(x0,z0,x1,z1,m)=>O.push({t:'floor',p:[(x0+x1)/2,-.015,(z0+z1)/2],r:[0,0,0],s:[Math.abs(x1-x0),.03,Math.abs(z1-z0)],m,c:0});
+  const A=o=>O.push(Object.assign({r:[0,0,0]},o));
+  bx(-9.6,0,17,9.6,H,17.6,'sandstone'); bx(-9.6,0,-21.6,9.6,H,-21,'sandstone'); bx(-9.6,0,-21,-9,H,17,'sandstone'); bx(9,0,-21,9.6,H,17,'sandstone');   // outer walls
+  bx(-9,0,6,-2.5,H,6.6,'plaster'); bx(2.5,0,6,9,H,6.6,'plaster'); bx(-2.5,0,-.6,-2,H,6.6,'plaster'); bx(2,0,-.6,2.5,H,6.6,'plaster');                   // start room | corridor
+  bx(-9,0,-.6,-2.5,H,0,'plaster'); bx(2.5,0,-.6,9,H,0,'plaster');                                                                                     // corridor | range
+  bx(-2,0,4.4,2,.8,4.8,'trim');                                    // low wall: jump
+  bx(-2,1.42,1.4,2,H,2.8,'concrete',{cap:0});                     // low passage: crouch (1.42 m clearance)
+  fl(-9,6.6,9,17,'slabs'); fl(-2,-.6,2,6.6,'concrete'); fl(-9,-21,9,-.6,'slabs');
+  bx(-6.4,0,-2.4,-4.6,.9,-1.6,'wood',{cap:0});                    // weapon table
+  for(const [x,z,s] of [[-6.6,-8,1.4],[6.8,-11,1.4],[-3.8,-15.5,1.2],[4,-16,1.4],[-7.6,-17.6,1.4]]) A({t:'crate',p:[x,0,z],s:[s,s,s]});
+  for(const [x,z] of [[6.4,-8.3],[4.7,-8.6],[6,-6.6],[8.2,-2.2],[-8.2,-12.5]]) A({t:'barrel',p:[x,0,z],s:[.7,1,.7]});
+  A({t:'sandbag',p:[-6,0,-13],s:[2.4,.9,.8]}); A({t:'sandbag',p:[6.4,0,-15],s:[2.4,.9,.8]});
+  for(const [x,z,ry] of [[-8.95,-5,90],[8.95,-5,-90],[-8.95,-15,90],[8.95,-15,-90],[-8.95,11,90],[8.95,11,-90]]) A({t:'lamp',p:[x,0,z],r:[0,ry,0],s:[1,3,1]});
+  A({t:'sign',p:[0,.42,4.82],s:[.76,.76,.1],txt:'ZIPLA',col:'#ffb648'}); A({t:'sign',p:[0,2.75,2.82],s:[1.5,1.5,.1],txt:'ÇÖMEL',col:'#ffb648'});
+  A({t:'sign',p:[0,3.1,-20.97],s:[3,3,.1],txt:'ATIŞ',col:'#e8e2d4'}); A({t:'sign',p:[0,3.1,16.97],r:[0,180,0],s:[3,3,.1],txt:'BAŞLA',col:'#e8e2d4'});
+  A({t:'spawnT',p:[0,0,14]}); A({t:'spawnCT',p:[0,0,-19],r:[0,180,0]});
+  return { id:'__tut', name:'Öğrenme alanı', builtin:1, settings:{size:21,sky:1,ground:'sand',sunAz:-35,sunEl:50,fog:.0045,mode:'bomb',preview:{p:[16,18,24],t:[0,0,-2]}}, objects:O };
+}
+function obTutMapEnsure(){ if(!TUT.map) TUT.map=normalizeMap(obTutMapData()); MAPLIB.byId.__tut=TUT.map; ensureMapBuilt('__tut'); }   // private: never in MAPLIB.list / map menus
+function obTutAdd(o){ scene.add(o); TUT.objs.push(o); return o; }
+function obTutClearObjs(){ for(const o of TUT.objs){ scene.remove(o); o.traverse(q=>{ if(q.isMesh){ q.geometry.dispose(); q.material.dispose(); } }); } TUT.objs=[]; }
+function obTutRing(x,z,r){ const g=new THREE.Group(), add=THREE.AdditiveBlending;
+  const ring=new THREE.Mesh(new THREE.RingGeometry(r*.78,r,48),new THREE.MeshBasicMaterial({color:0xff9a2e,transparent:true,opacity:.9,depthWrite:false,fog:false})); ring.material.color.multiplyScalar(2.2); ring.rotation.x=-Math.PI/2; ring.position.y=.035; g.add(ring);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(r*.9,r*.9,2.6,36,1,true),new THREE.MeshBasicMaterial({color:0xff9a2e,transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide,blending:add,fog:false})); beam.position.y=1.3; g.add(beam);
+  g.position.set(x,0,z); g.userData.pulse=1; return obTutAdd(g); }
+function obTutOrb(x,y,z){ const m=new THREE.Mesh(new THREE.SphereGeometry(.26,22,14),new THREE.MeshBasicMaterial({color:0xffffff,fog:false})); m.material.color.setRGB(3,1.1,.12);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.46,22,14),new THREE.MeshBasicMaterial({color:0xffa040,transparent:true,opacity:.28,depthWrite:false,blending:THREE.AdditiveBlending,fog:false})); m.add(h);
+  m.position.set(x,y,z); m.userData.found=false; return obTutAdd(m); }
+function obTutTp(x,z,yaw){ placePlayer({pos:new THREE.Vector3(x,0,z),yaw:yaw||0}); }
+function obTutCP(){ const s=TUT.steps&&TUT.steps[TUT.i], c=TUT_CP[(s&&s.cp)||'start']; obTutTp(c.pos[0],c.pos[2],c.yaw); }
+function obTutDummy(x,z,name){ const b=new TeamBot('CT',name||'HEDEF',0); b.spawn({pos:new THREE.Vector3(x,0,z),yaw:Math.PI}); b.hp=1; b.armor=0; b.helmet=false; b.dummy=true;
+  b.char.yaw=Math.PI; b.char.speed=0; if(b.char.tag) b.char.tag.visible=false; bots.push(b); TUT.dummies.push(b); return b; }
+function obTutDummiesClear(){ for(const b of TUT.dummies){ const i=bots.indexOf(b); if(i>=0){ bots.splice(i,1); b.char.dispose(); } } TUT.dummies=[]; }
+// final fight: two very weak bots (slow reaction, bad aim, 40 HP, a pea-shooter pistol, slow feet)
+function obTutWeakDef(){ const g=getWeapon('glock','secondary'), d=Object.assign({},g); d.stats=Object.assign({},g.stats,{dmg:7,head:1.5,rpm:150,speed:.62,armorPen:.5}); return d; }
+function obTutFightBot(x,z,n){ const b=new TeamBot('CT','ACEMİ '+n,0); b.slots.primary=mkSlot(obTutWeakDef()); b.spawn({pos:new THREE.Vector3(x,0,z),yaw:Math.PI});
+  b.hp=40; b.armor=0; b.helmet=false; b.react=1.9; b.aimSkill=-.7; bots.push(b); TUT.fbots.push(b); return b; }
+function obTutGiveNade(){ player.nades=['he']; refreshNadeSlot(); }
+function obTutUse(){ const P=player, KU=CFG.keys.use, d=canAct()?nearestDrop(P.pos,1.7):null, down=!!(keys[KU]||touchState.use); let h='';
+  if(d){ h=(CFG.isTouch?'KULLAN':keyName(KU))+': '+d.def.name.toUpperCase()+' AL'; if(down&&!P._eHeld) pickupDrop(d); }
+  P._eHeld=down; $('useHint').textContent=h; $('useHint').classList.toggle('hidden',!h); $('useBtnTouch').classList.toggle('hidden',!h); }
+function obTutSteps(){
+  const T=!!CFG.isTouch, P=player, kn=k=>'<kbd>'+esc(keyName(CFG.keys[k]))+'</kbd>', near=(x,z,r)=>Math.hypot(P.pos.x-x,P.pos.z-z)<r, L=[];
+  const augStart=()=>{ if(!(P.slots.primary&&P.slots.primary.def.id==='aug')) P.slots.primary=mkSlot(getWeapon('aug','primary')); if(P.cur!=='primary'){ P.last=P.cur; P.cur='primary'; } equipCurrent();
+    TUT.d.tg=obTutDummy(0,-19.5,'UZAK HEDEF'); obTutRing(0,-2.2,.9); };
+  const augTick=dt=>{ const b=TUT.d.tg; if(!b||b.alive) return false;
+    if(TUT.d.hitT===undefined){ TUT.d.hitT=0; TUT.d.hitOk=TUT.time-TUT.scopeT<.7; if(!TUT.d.hitOk) toast('Dürbünle vurmalısın! Hedef geri geliyor.',2000); }
+    TUT.d.hitT+=dt; if(TUT.d.hitOk) return TUT.d.hitT>.9;
+    if(TUT.d.hitT>1.4){ b.spawn({pos:new THREE.Vector3(0,0,-19.5),yaw:Math.PI}); b.hp=1; b.char.yaw=Math.PI; TUT.d.hitT=undefined; } return false; };
+  L.push({ id:'look', t:'ETRAFINA BAK', cp:'start', hi:T?['lookZone']:[],
+    x:()=>(T?'Ekranın sağ yarısında parmağını kaydırarak':'Fareyi oynatarak')+' etrafına bak. 4 turuncu küreyi tek tek ekranın ortasına getir.',
+    ex:()=>T?'Bakış hızı <span class="obStep"><button data-ob="lk-">−</button><b>'+(+CFG.touch.look).toFixed(2)+'</b><button data-ob="lk+">+</button></span>'
+      :'Fare hassasiyeti <b>'+(+CFG.sens).toFixed(2)+'</b> · <kbd>←</kbd><kbd>→</kbd> ile değiştir · Ters bakış <kbd>I</kbd>: <b>'+(CFG.invertY?'AÇIK':'KAPALI')+'</b>',
+    start(){ TUT.d.orbs=[[-6,3.4,9.5],[7,1.7,12.5],[1.5,2.3,16.4],[-7.4,.9,15.6]].map(a=>obTutOrb(a[0],a[1],a[2])); TUT.d.n=0; },
+    tick(){ const f=camera.getWorldDirection(_obv1); let n=0;
+      for(const o of TUT.d.orbs){ if(!o.userData.found&&_obv2.copy(o.position).sub(camera.position).normalize().dot(f)>.992){ o.userData.found=true; o.material.color.setRGB(.25,2.6,.6); o.children[0].material.color.setRGB(.3,1,.45); uiSound('click'); }
+        if(o.userData.found) n++; o.scale.setScalar(1+.12*Math.sin(TUT.time*5+o.position.x)); }
+      TUT.d.n=n; return n>=4; },
+    prog:()=>(TUT.d.n|0)+' / 4' });
+  L.push({ id:'move', t:'YÜRÜ', cp:'start', hi:['moveStick'],
+    x:()=>(T?'Sol alttaki joystick ile':kn('forward')+kn('left')+kn('back')+kn('right')+' ile')+' yürü ve yerdeki turuncu halkaya git.'+(T?'':' '+kn('walk')+' basılıyken sessiz yürürsün.'),
+    start(){ obTutRing(0,8.6,1.1); }, tick:()=>near(0,8.6,1.15), skip(){ obTutTp(0,8.6,0); } });
+  L.push({ id:'jump', t:'ZIPLA', cp:'start', hi:['jumpBtn'],
+    x:()=>(T?'ZIPLA butonuyla':kn('jump')+' ile')+' zıpla ve alçak duvarın üstünden halkaya geç.',
+    start(){ obTutRing(0,3.6,.9); }, tick:()=>P.pos.z<4.1&&P.pos.z>-1, skip(){ obTutTp(0,3.6,0); } });
+  L.push({ id:'crouch', t:'ÇÖMEL', cp:'start', hi:['crouchBtn'],
+    x:()=>T?'ÇÖMEL butonuna bas (aç / kapa) ve alçak geçidin altından sürünerek geç.':kn('crouchToggle')+' ile çömel (aç / kapa) ya da '+kn('crouch')+' tuşunu basılı tut ve alçak geçidin altından geç.',
+    start(){ obTutRing(0,-1.8,1); }, tick:()=>P.pos.z<-.9, end(){ P.crouch=false; touchState.crouch=false; }, skip(){ obTutTp(0,-1.8,0); } });
+  L.push({ id:'pick', t:'SİLAH AL', cp:'north', hi:['useBtnTouch'],
+    x:()=>'Soldaki masada bir AK-47 var. Yanına git ve '+(T?'beliren KULLAN butonuna bas.':kn('use')+' tuşuyla al.'),
+    start(){ obTutRing(-5.5,-3.2,.8); if(!DROPS.some(d=>d.def.id==='ak47')) spawnDrop({def:getWeapon('ak47','primary'),mag:30,res:90,silOn:false},new THREE.Vector3(-5.5,1.3,-2),new THREE.Vector3()); },
+    tick(){ obTutUse(); return !!(P.slots.primary&&P.slots.primary.def.id==='ak47'); },
+    end(){ $('useHint').classList.add('hidden'); $('useBtnTouch').classList.add('hidden'); },
+    skip(){ const d=DROPS.find(x=>x.def.id==='ak47'); if(d) pickupDrop(d); else { P.slots.primary=mkSlot(getWeapon('ak47','primary')); P.cur='primary'; equipCurrent(); } } });
+  L.push({ id:'shoot', t:'ATEŞ ET', cp:'north', hi:['fireBtn','fireBtnL'], wait:1.2,
+    x:()=>(T?'ATEŞ butonuyla':'Sol tık ile')+' 3 hedefi vur. Dur ve öyle ateş et: koşarken isabet çok düşer.'+(T?' Butona basılıyken parmağını kaydırarak nişan alabilirsin.':''),
+    start(){ TUT.d.list=[[-4,-11],[0,-12.5],[4,-11]].map((a,i)=>obTutDummy(a[0],a[1],'HEDEF '+(i+1))); },
+    tick(){ const n=TUT.d.list.filter(b=>!b.alive).length; TUT.d.n=n; return n>=3; }, prog:()=>(TUT.d.n|0)+' / 3', end:obTutDummiesClear });
+  L.push({ id:'reload', t:'ŞARJÖR DEĞİŞTİR', cp:'north', hi:['reloadBtnTouch'],
+    x:()=>(T?'ŞARJÖR butonuna':kn('reload')+' tuşuna')+' bas ve şarjörü değiştir. Şarjör boşalınca silah kendiliğinden de doldurur.',
+    start(){ if(P.slots.primary&&P.cur!=='primary') switchSlot('primary'); const st=P.slots.primary||slotState(); if(st&&st.mag>=st.def.stats.mag) st.mag=Math.max(1,st.def.stats.mag-7); updateHUD(); },
+    tick(){ if(P.reloading) TUT.d.saw=true; return !!TUT.d.saw&&!P.reloading; } });
+  L.push({ id:'swap', t:'SİLAH DEĞİŞTİR', cp:'north', hi:['swapBtnTouch'],
+    x:()=>T?'SİLAH butonuyla tabancana geç, sonra yine SİLAH ile tüfeğine dön.':kn('slot2')+' ile tabancana geç, sonra '+kn('slot1')+' ile tüfeğine dön. (Fare tekerleği ve '+kn('lastweapon')+' de çalışır.)',
+    tick(){ if(P.cur==='secondary') TUT.d.sec=true; return !!TUT.d.sec&&P.cur==='primary'; }, prog:()=>TUT.d.sec?'tabanca ✓':'',
+    skip(){ if(P.slots.primary) switchSlot('primary'); } });
+  L.push({ id:'nade', t:'EL BOMBASI', cp:'north', hi:['nadeBtnTouch','fireBtn'],
+    x:()=>T?'BOMBA butonuna dokun. Sonra büyük ATEŞ’e BASILI TUT (pim çekilir), sağdaki turuncu halkaya nişan al ve BIRAK: bomba fırlar.'
+      :kn('slot4')+' ile el bombasını seç. Sol tıkı BASILI TUT (pim çekilir), sağdaki turuncu halkaya nişan al ve BIRAK: bomba fırlar. Sağ tık ile bırakırsan kısa, alttan atarsın.',
+    start(){ obTutRing(5.5,-7.5,1.6); obTutGiveNade(); },
+    tick(dt){ const mine=NADES.some(n=>n.owner===P); if(mine) TUT.d.th=true; if(TUT.d.th&&!mine){ TUT.d.bt=(TUT.d.bt||0)+dt; return TUT.d.bt>.5; }
+      if(!TUT.d.th&&!P.pendingThrow&&!P.nades.length) obTutGiveNade(); return false; } });
+  if(!T) L.push({ id:'scope', t:'AUG DÜRBÜNÜ', cp:'north', x:()=>'Sana bir AUG verdik. Halkada dur, SAĞ TIK ile dürbünü aç ve en uzaktaki hedefi vur. Tekrar sağ tık dürbünü kapatır.', start:augStart, tick:augTick, end:obTutDummiesClear });
+  else {
+    L.push({ id:'scopeA', t:'DÜRBÜN: BASILI TUT → BIRAK', cp:'north', hi:['fireBtn'],
+      x:()=>'Sana bir AUG verdik. Büyük ATEŞ butonunu BASILI TUT: dürbün açılır. Parmağını kaldırmadan kaydırıp nişan al, BIRAK: ateş eder. En uzaktaki hedefi vur.',
+      start(){ if(TUT.bigSaved===null) TUT.bigSaved=CFG.touchBigFire; CFG.touchBigFire='scope'; OBF.lab=null; augStart(); }, tick:augTick, end:obTutDummiesClear });
+    L.push({ id:'scopeB', t:'DÜRBÜN: DİREKT ATEŞ', cp:'north', hi:['scopeBtnTouch','fireBtn'],
+      x:()=>'Şimdi diğer modu dene: önce ZOOM butonuyla dürbünü aç, sonra büyük ATEŞ’e dokun — basar basmaz ateş eder. Uzaktaki hedefi vur.',
+      start(){ if(TUT.bigSaved===null) TUT.bigSaved=CFG.touchBigFire; CFG.touchBigFire='direct'; OBF.lab=null; augStart(); }, tick:augTick, end:obTutDummiesClear });
+  }
+  L.push({ id:'prefs', t:'TERCİHLERİN', cp:'north', noAuto:true, noSkip:true, wait:.2, x:()=>'Kontrol tercihlerini seç.', start(){ obTutPrefs(); }, tick:()=>!!TUT.d.ok });
+  L.push({ id:'fight', t:'SON GÖREV: ÇATIŞMA', cp:'north', auto:100, noSkip:true, wait:1.8,
+    x:()=>'İki acemi bot geliyor! Bir siperin arkasına geç, dur ve ateş et. İkisini de etkisiz hale getir.',
+    start(){ obTutDummiesClear(); P.hp=100; P.armor=100; P.helmet=true; for(const k in P.slots){ const s=P.slots[k]; s.mag=s.def.stats.mag; s.res=Math.max(s.res,s.def.stats.reserve); } updateHUD();
+      TUT.d.list=[obTutFightBot(-5,-18,1),obTutFightBot(5,-18.5,2)]; TUT.d.lead=1.5; },
+    tick(dt){ const B=TUT.d.list; TUT.d.lead-=dt; if(TUT.d.lead<=0){ TUT.d.lead=2; for(const b of B) if(b.alive&&!b.target){ b.known=P.pos.clone(); b.lostT=0; } }   // they come to you
+      if(TUT.t>95) for(const b of B) if(b.alive) damageAgent(b,999,'chest',getWeapon('knife','melee'),P);
+      const n=B.filter(b=>!b.alive).length; TUT.d.n=n; return n>=B.length; },
+    prog:()=>'Kalan: '+(2-(TUT.d.n|0)) });
+  return L;
+}
+function obTutEls(){
+  if(TUT.ui.root) return TUT.ui; const r=document.createElement('div'); r.id='obTut'; r.className='hidden';
+  r.innerHTML='<div class="obHd"><b>ÖĞRENME ALANI</b><span class="obN"></span></div><div class="obTi"></div><div class="obTx"></div><div class="obEx"></div><div class="obBar"><i></i></div><div class="obSk hidden"></div>';
+  document.body.appendChild(r); const q=s=>r.querySelector(s); TUT.ui={root:r,n:q('.obN'),ti:q('.obTi'),tx:q('.obTx'),ex:q('.obEx'),bar:q('.obBar i'),sk:q('.obSk')};
+  const act=e=>{ const b=e.target.closest&&e.target.closest('[data-ob]'); if(!b) return; e.preventDefault(); e.stopPropagation(); obTutAct(b.dataset.ob); };
+  r.addEventListener('touchstart',act,{passive:false}); r.addEventListener('click',act);
+  return TUT.ui; }
+function obTutAct(a){ if(a==='lk-'||a==='lk+'){ CFG.touch.look=clamp(Math.round((+CFG.touch.look+(a==='lk+'?.1:-.1))*100)/100,.2,3); saveCfg(); uiSound('click'); }
+  else if(a==='skip') obTutSkip(); obTutUI(); }
+function obTutUI(){ const U=obTutEls(), S=TUT.steps, s=S&&S[TUT.i]; if(!s) return;
+  const set=(el,v)=>{ if(el._v!==v){ el._v=v; el.innerHTML=v; } }, done=TUT.d.doneT!==undefined, pr=s.prog?s.prog():'';
+  set(U.n,'ADIM '+(TUT.i+1)+' / '+S.length); set(U.ti,(done?'<i class="ok">✓</i> ':'')+esc(s.t)+(pr?' <small>'+esc(pr)+'</small>':'')); set(U.tx,s.x()); set(U.ex,s.ex?s.ex():''); U.ex.classList.toggle('hidden',!s.ex);
+  U.bar.style.width=Math.round((TUT.i+(done?1:0))/S.length*100)+'%'; U.root.classList.toggle('done',done);
+  const sk=TUT.t>25&&!s.noSkip&&!done; set(U.sk,sk?(CFG.isTouch?'Takıldın mı? <button data-ob="skip">ADIMI GEÇ</button>':'Takıldın mı? <kbd>ENTER</kbd> ile bu adımı geç.'):''); U.sk.classList.toggle('hidden',!sk); }
+function obTutHi(ids){ document.querySelectorAll('.obHi').forEach(e=>e.classList.remove('obHi')); if(CFG.isTouch&&ids) for(const id of ids){ const e=$(id); if(e) e.classList.add('obHi'); } }
+function obTutGo(i){ const S=TUT.steps, cur=S&&S[TUT.i]; if(cur&&cur.end) cur.end(); obTutClearObjs(); TUT.i=i; TUT.t=0; TUT.d={}; obTutHi(null);
+  if(!S||i>=S.length){ obTutFinish(); return; } const s=S[i]; obTutHi(s.hi); if(s.start) s.start(); obTutUI(); }
+function obTutSkip(){ const s=TUT.steps&&TUT.steps[TUT.i]; if(!s||s.noSkip||TUT.d.doneT!==undefined) return; if(s.skip) s.skip(); TUT.d.doneT=.25; }
+function obTutTick(dt){
+  if(match.mode!=='walk'||WORLD.active!==WORLD.maps.__tut){ obTutAbort(); return; }
+  if(TUT.modal||match.state==='paused') return;
+  TUT.time+=dt; TUT.t+=dt;
+  for(const b of TUT.dummies) b.char.update(dt);
+  for(const b of TUT.fbots) b.update(dt);
+  for(const o of TUT.objs) if(o.userData.pulse) o.children[1].material.opacity=.1+.08*Math.sin(TUT.time*4);
+  if(!player.alive){ TUT.dead=true; return; } if(TUT.dead){ TUT.dead=false; obTutCP(); }   // respawned (walk mode): back to this step's checkpoint
+  if(player.pos.y<-4) obTutCP();
+  if(player.scope>0) TUT.scopeT=TUT.time;
+  const s=TUT.steps[TUT.i]; if(!s) return;
+  if(TUT.d.doneT!==undefined){ TUT.d.doneT-=dt; if(TUT.d.doneT<=0) obTutGo(TUT.i+1); else obTutUI(); return; }
+  if(s.tick&&s.tick(dt)){ TUT.d.doneT=s.wait||.8; uiSound('pickup'); obTutUI(); return; }
+  if(!s.noAuto&&TUT.t>(s.auto||75)){ toast('Bu adımı senin için geçtik.',2200); if(s.skip) s.skip(); TUT.d.doneT=.3; }   // no softlock: stuck steps advance by themselves
+  obTutUI(); }
+/* modal cards (intro / preferences / finish) */
+function obModal(html,fn){ let m=$('obModal'); if(!m){ m=document.createElement('div'); m.id='obModal'; document.body.appendChild(m);
+    m.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-m]'); if(b&&TUT.mfn){ uiSound('click'); TUT.mfn(b.dataset.m); } }); }
+  m.innerHTML='<div class="obCard">'+html+'</div>'; m.classList.remove('hidden'); TUT.modal=true; TUT.mfn=fn; }
+function obModalClose(){ const m=$('obModal'); if(m) m.classList.add('hidden'); TUT.modal=false; TUT.mfn=null; }
+const obSeg=(k,opts,cur)=>'<div class="seg obSeg">'+opts.map(o=>'<button data-m="'+k+':'+o[0]+'" class="'+(String(o[0])===String(cur)?'on':'')+'">'+o[1]+'</button>').join('')+'</div>';
+const obRow=(l,h)=>'<div class="obRow"><span>'+l+'</span>'+h+'</div>';
+const obStepper=(k,v)=>'<span class="obStep"><button data-m="'+k+':-">−</button><b>'+(+v).toFixed(2)+'</b><button data-m="'+k+':+">+</button></span>';
+function obAutoTouch(){ return ('ontouchstart' in window)||navigator.maxTouchPoints>0; }
+function obTutIntro(first,back){ TUT.first=!!first; TUT.back=back||'mainMenu'; hideAllScreens(); $('hud').classList.add('hidden'); $('touch').classList.remove('active');
+  const T=!!CFG.isTouch;
+  obModal('<div class="obBig">ÖĞRENME ALANI</div><p>'+(first?'STRIKE POINT’e hoş geldin! Oynamaya başlamadan önce kısa bir eğitim seni bekliyor (~3 dakika). ':'Kısa eğitim (~3 dakika). ')+
+    'Bakmak, yürümek, zıplamak, çömelmek, silah almak, ateş etmek, şarjör değiştirmek, silah değiştirmek, el bombası, dürbün ve çok kolay bir çatışma. Kontrol tercihlerini de burada seçeceksin.</p>'+
+    obRow('KONTROLLER',obSeg('dev',[['on','DOKUNMATİK'],['off','KLAVYE + FARE']],T?'on':'off'))+
+    '<p class="obSm">'+(T?'Dokunmatik: solda joystick, sağ yarıda bakış, sağda ATEŞ / ZIPLA / ÇÖMEL butonları.':'Klavye + fare: başlayınca fare oyuna kilitlenir; ESC duraklatır.')+'</p>'+
+    '<div class="obBtns">'+(first?(TUT.quits?'<button class="cBtn sm" data-m="later">Şimdilik atla</button>':''):'<button class="cBtn" data-m="back">VAZGEÇ</button>')+'<button class="cBtn pri" data-m="go">BAŞLA</button></div>',
+    a=>{ const [k,v]=a.split(':');
+      if(k==='dev'){ touchSetMode((v==='on')===obAutoTouch()?'auto':v); saveCfg(); obTutIntro(TUT.first,TUT.back); }
+      else if(k==='go') obTutStart();
+      else if(k==='back'){ obModalClose(); showScreen(TUT.back); }
+      else if(k==='later'){ obModalClose(); showScreen(CFG.name?'mainMenu':'nameScreen'); } });
+  setTimeout(()=>{ try{ obTutMapEnsure(); }catch(e){ console.warn('tutorial map',e); } },80); }
+function obTutStart(){
+  obModalClose(); ensureAudio(); obTutMapEnsure(); if(NET.on) netShutdown(); match.testDef=null; match.testMap=null;
+  Object.assign(TUT,{on:true,i:-1,t:0,time:0,d:{},dead:false,bigSaved:null,prefsDone:false,dummies:[],fbots:[],scopeT:-9});
+  startMatch('walk',{map:'__tut'});
+  document.body.classList.remove('radar'); document.body.classList.add('obTutOn'); player.infAmmo=false;
+  delete player.slots.primary; player.nades=[]; refreshNadeSlot(); player.cur=player.slots.secondary?'secondary':'melee'; player.last='melee'; equipCurrent();
+  TUT.steps=obTutSteps(); obTutEls().root.classList.remove('hidden'); showBanner('ÖĞRENME ALANI','Adım adım temel kontroller',1800); obTutGo(0); }
+function obTutPrefs(){ match.state='paused'; firing=false; unlockPointer(); if(TUT.bigSaved!==null) CFG.touchBigFire=TUT.bigSaved; obTutPrefsCard(); }
+function obTutPrefsCard(){ const T=!!CFG.isTouch; let h='<div class="obBig">TERCİHLERİN</div><p>İstediğin zaman AYARLAR’dan değiştirebilirsin.</p>';
+  if(T) h+='<div class="obQ">Büyük ATEŞ butonu nasıl çalışsın?</div><div class="obChoice">'+
+    '<button data-m="big:scope" class="'+(CFG.touchBigFire!=='direct'?'on':'')+'"><b>BASILI TUT: DÜRBÜN · BIRAK: ATEŞ</b><small>Dürbünlü silahlarda (AWP, SSG 08, AUG) basınca dürbün açılır, bırakınca ateş eder. Diğer silahlarda normal ateş.</small></button>'+
+    '<button data-m="big:direct" class="'+(CFG.touchBigFire==='direct'?'on':'')+'"><b>DİREKT ATEŞ</b><small>Her silahta basınca hemen ateş eder. Dürbün için ZOOM butonu.</small></button></div>'+
+    obRow('Küçük ATEŞ butonu (anında ateş)',obSeg('lf',[[1,'AÇIK'],[0,'KAPALI']],CFG.touch.leftFire?1:0))+obRow('Bakış hızı',obStepper('lk',CFG.touch.look));
+  else h+=obRow('Fare hassasiyeti',obStepper('sens',CFG.sens))+obRow('Ters bakış (yukarı / aşağı)',obSeg('inv',[[0,'KAPALI'],[1,'AÇIK']],CFG.invertY?1:0));
+  h+=obRow('Silahı tuttuğun el',obSeg('hand',[[0,'SAĞ EL'],[1,'SOL EL']],CFG.leftHand?1:0))+'<div class="obBtns"><button class="cBtn pri" data-m="ok">KAYDET VE DEVAM</button></div>';
+  obModal(h,a=>{ const [k,v]=a.split(':');
+    if(k==='ok'){ TUT.prefsDone=true; saveCfg(); obModalClose(); match.state='live'; lockPointer(); TUT.d.ok=true; return; }
+    if(k==='big'){ CFG.touchBigFire=v; TUT.bigSaved=v; OBF.lab=null; }
+    if(k==='lf'){ CFG.touch.leftFire=+v; TCH.tick=0; }
+    if(k==='lk') CFG.touch.look=clamp(Math.round((+CFG.touch.look+(v==='+'?.1:-.1))*100)/100,.2,3);
+    if(k==='sens') CFG.sens=clamp(Math.round((+CFG.sens+(v==='+'?.1:-.1))*100)/100,.1,6);
+    if(k==='inv') CFG.invertY=+v;
+    if(k==='hand'){ CFG.leftHand=+v; applyHand(); }
+    saveCfg(); obTutPrefsCard(); }); }
+function obTutFinish(){ CFG.tutorialDone=1; saveCfg(); match.state='paused'; firing=false; unlockPointer(); obTutHi(null); if(TUT.ui.root) TUT.ui.root.classList.add('hidden');
+  obModal('<div class="obBig ok">TEBRİKLER!</div><p>Öğrenme alanını tamamladın. Tercihlerini istediğin zaman AYARLAR’dan değiştirebilir, eğitimi OYNA → ALIŞTIRMA → ÖĞRENME ALANI’ndan tekrar oynayabilirsin.</p>'+
+    '<div class="obBtns"><button class="cBtn pri" data-m="end">'+(CFG.name?'ANA MENÜ':'DEVAM: ADINI SEÇ')+'</button></div>',a=>{ if(a==='end') obTutEnd(); }); }
+function obTutEnd(){ obTutCleanup(); leaveToMenu(); if(!CFG.name) showScreen('nameScreen'); }
+function obTutCleanup(){ TUT.on=false; obTutClearObjs();
+  for(const b of TUT.dummies.concat(TUT.fbots)){ const i=bots.indexOf(b); if(i>=0){ bots.splice(i,1); b.char.dispose(); } } TUT.dummies=[]; TUT.fbots=[];
+  if(TUT.bigSaved!==null&&!TUT.prefsDone) CFG.touchBigFire=TUT.bigSaved; TUT.bigSaved=null; OBF.lab=null;
+  obTutHi(null); if(TUT.ui.root) TUT.ui.root.classList.add('hidden'); obModalClose(); document.body.classList.remove('obTutOn'); $('useHint').classList.add('hidden'); }
+function obTutAbort(){ const first=TUT.first; obTutCleanup(); if(first&&!CFG.tutorialDone&&!CFG.name){ TUT.quits++; obTutIntro(true); } }   // first launch: back to the intro card
+// BOOT: first launch (no name yet, tutorial not done) starts with the tutorial intro instead of the name screen
+function obBoot(){ if(CFG.name||CFG.tutorialDone) return false; obTutIntro(true); return true; }
+function obGameRows(){ if(match.mode!=='none') return []; return [ {sec:'ÖĞRENME ALANI'}, {t:'btns',l:'Öğrenme alanı',d:'Temel kontrolleri adım adım öğreten kısa eğitim (~3 dk): hareket, ateş, şarjör, el bombası, dürbün ve kolay bir çatışma. Kontrol tercihlerini de orada seçersin.'+(CFG.tutorialDone?' (Tamamlandı ✓)':''),
+  btns:[['ÖĞRENME ALANINI AÇ',()=>{ saveCfg(); settingsFromPause=false; obTutIntro(false,'settingsScreen'); }]]} ]; }
+// OYNA → ALIŞTIRMA → ÖĞRENME ALANI
+PRAC_MODES.push(['tut','ÖĞRENME ALANI']);
+function obPlayPane(M,S){ M.classList.add('one'); const b=document.createElement('button'); b.className='mapTile big obPlay';
+  b.innerHTML='<svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3"><path d="M6 18 24 9l18 9-18 9z"/><path d="M14 22v9c4 4 16 4 20 0v-9M42 18v11"/></svg><span class="bt">ÖĞRENME ALANI</span><span class="bd">Temel kontroller adım adım: bakış, hareket, ateş, şarjör, el bombası, dürbün ve kolay bir çatışma.</span>';
+  b.addEventListener('click',()=>{ ensureAudio(); uiSound('click'); obTutStart(); }); M.appendChild(b);
+  S.innerHTML='<h4>Öğrenme alanı</h4><p class="pd">Küçük bir eğitim haritası: kontrolleri adım adım öğrenir, dokunmatik ateş butonu ya da fare hassasiyeti gibi tercihlerini seçer ve 2 acemi bota karşı kolay bir çatışmayla bitirirsin (~3 dk).</p>'+(CFG.tutorialDone?'<p class="pNote">✓ Daha önce tamamladın.</p>':'');
+  return '<b>ÖĞRENME ALANI</b> · EĞİTİM · ~3 DK'; }
+// keys during the tutorial: ← → sensitivity, I invert (look step), ENTER skips a stuck step; ESC is swallowed while a card is open
+addEventListener('keydown',e=>{
+  if(TUT.modal){ if(e.code==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); } return; }
+  if(!TUT.on||match.state!=='live'||conOpen||isTyping(e)||Object.values(CFG.keys).includes(e.code)) return;
+  const s=TUT.steps&&TUT.steps[TUT.i];
+  if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&s&&s.id==='look'){ CFG.sens=clamp(Math.round((+CFG.sens+(e.code==='ArrowRight'?.1:-.1))*100)/100,.1,6); saveCfg(); e.preventDefault(); obTutUI(); }
+  else if(e.code==='KeyI'&&s&&s.id==='look'){ CFG.invertY=CFG.invertY?0:1; saveCfg(); obTutUI(); }
+  else if(e.code==='Enter'&&TUT.t>25) obTutSkip();
+},true);
+// per-frame hook (tick)
+function obTick(dt){ obFireTick(dt);
+  if(TUT.on) obTutTick(dt);
+  else if(!TUT.hinted&&match.mode==='none'&&curScreen==='mainMenu'&&CFG.name&&!CFG.tutorialDone&&!CFG.tutHint){ TUT.hinted=true; CFG.tutHint=1; saveCfg(); setTimeout(()=>toast('Yeni: ÖĞRENME ALANI — OYNA → ALIŞTIRMA → ÖĞRENME ALANI',5200),1500); } }
+obFireInit(); obTeInit();
+gameExport({ OBS, OBF, TUT, obScopeRender, obTutStart, obTutIntro, obBoot, obTutSkip, obReleaseShot, obBigScope, obTutGo:i=>obTutGo(typeof i==='string'?TUT.steps.findIndex(s=>s.id===i):i) });
 
 
 /* @@BLOCK:test — STRIKE POINT TEST-only features (zombies, skins, extra knives); everything here must check TEST_BUILD */
@@ -11423,7 +11878,7 @@ async function init(){
   setLoad(100,'Hazır'); window.__booted=true;
   setTimeout(()=>{ $('loading').classList.add('hidden');
     if(CFG.name){ $('nameInput').value=CFG.name; showScreen('mainMenu'); }
-    else showScreen('nameScreen'); },200);
+    else if(!obBoot()) showScreen('nameScreen'); },200);   // first launch: tutorial before the name (onboard block)
   animate();
 }
 window.__game={ get bots(){return bots;}, MapBuilder, MOBJ, buildMapFromData, buildWeaponObject, scene, get COMP(){return COMP;}, startComp, toggleBuy, buyItem, showScoreboard, openMapEditor, MAPLIB, WORLD, ME, get meCam(){return meCam;}, meSelect, meAdd, setScope, throwNade, dropCurrent, step:(n,dt)=>{ window.__manual=true; for(let i=0;i<n;i++) tick(dt||1/60,i===n-1); }, resume:()=>{ window.__manual=false; }, edStep:(n)=>{ for(let i=0;i<n;i++){ ED.last=performance.now()-16; } }, cmd:(s)=>{ const [c,...a]=s.split(/\s+/); CMDS[c](a); }, fire:()=>tryFire(true), switchSlot, tryReload, get CFG(){return CFG;}, get match(){return match;}, get player(){return player;}, startMatch, openEditor, LIB, ED, edSetView, edSelect, setMap, camera, applyQuality, applyVideo, showScreen, get VM(){return VM;}, vmFire, vmReload, vmInspect, updateRig, renderInventory, edFocus, openProfile, edPart, renderMapPreview, MENU, MENU_POSE, STATS, openDevAsk, weaponIcon, get curScreen(){return curScreen;}, renderer, vmScene, vmCam, get composer(){return composer;}, SND, sndPlay, weaponSound, weaponFire, announce, get PACK(){return PACK;}, PACK_UI, packImport, packLoad, packClear, packSummary, packPick, packHas, packGroups, packCount, packList, packAssign, packRemap, packRunImport, packPreview, soundVer, soundVerRaw, setSoundVer, sndProfile, Store, renderSoundWorkshop, renderSettings, cycleScope, doKnifeHit, c4Sounds, sfx, get AUD(){return AUD;}, ensureAudio, openSoundWorkshop, damageAgent, getWeapon, toggleSilencer, isSuppressed, SIL_POSE, DECOYS, NADES, DROPS, radarDecoys, updateHUD, inaccuracy };
