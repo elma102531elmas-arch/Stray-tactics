@@ -1310,8 +1310,7 @@ body.zmMode #scorebar{display:none;}
 #zmDownOv b{display:block;font-size:30px;font-weight:900;font-style:italic;letter-spacing:.08em;color:#ff6b78;}
 #zmDownOv span{display:block;font-size:13px;letter-spacing:.12em;margin:4px 0 8px;}
 #zmDownOv .pb{width:min(60vw,260px);height:6px;margin:0 auto;background:rgba(255,255,255,.2);} #zmDownOv .pb i{display:block;height:100%;background:#ff3b4d;}
-#bmGrid .bmItem.tpGo{grid-column:1/-1;justify-content:center;background:linear-gradient(180deg,#6cc04a,#4a9532);border-color:transparent;min-height:40px;}
-#bmGrid .bmItem.tpGo .nm{font-weight:800;letter-spacing:.14em;}
+#zmReadyBtn{background:linear-gradient(180deg,#6cc04a,#4a9532)!important;border-color:transparent!important;color:#fff;font-weight:800;margin-right:6px;} body:not(.zmMode) #zmReadyBtn{display:none;}
 @media (max-width:620px),(max-height:430px){ #zmHud .zmTeam{display:none;} #zmHud .zmW b{font-size:24px;} #zmHud .zmInfo{top:44px;} #zmHud .zmMoney{bottom:70px;font-size:17px;} }
 /* SKİNLER */
 .invTile.tpsTile img{width:100%;height:72px;object-fit:cover;border-radius:3px;}
@@ -13604,7 +13603,7 @@ function tpKnifePose(R,dt,mv,rp){ const D=R.def, k=D.tpKnife, A=TPK[k], w=R.w; i
 const ZM={ on:false, wave:0, phase:'none', t:0, left:0, toSpawn:0, spawnT:0, maxAlive:14, flow:null, flowT:0, nid:0, diff:1, bossLeft:0, pool:{}, startT:0, kills:0, over:false,
   sendT:0, uiT:0, revT:0, revId:null, hint:false, bleed:30, buyT:22, map:'', mirT:0, ui:null };
 const ZM_TYPES={
-  w:{n:'Yürüyen', hp:w=>90+16*w, spd:w=>Math.min(3.1,1.45+.07*w), dmg:w=>16+w*1.2, reach:1.45, cd:1.15, sc:1, rw:60, snd:'groan'},
+  w:{n:'Yürüyen', hp:w=>85+15*w, spd:w=>Math.min(3.1,1.35+.07*w), dmg:w=>14+w*1.1, reach:1.45, cd:1.15, sc:1, rw:60, snd:'groan'},
   r:{n:'Koşucu', hp:w=>60+11*w, spd:w=>Math.min(5.8,4.5+.06*w), dmg:w=>11+w, reach:1.4, cd:.85, sc:.97, rw:70, snd:'scream'},
   t:{n:'Tank', hp:w=>480+75*w, spd:w=>1.35+.02*w, dmg:w=>38+2*w, reach:1.8, cd:1.6, sc:1.32, rw:160, snd:'growl'},
   e:{n:'Patlayan', hp:w=>70+9*w, spd:w=>2.7+.04*w, dmg:w=>65+3*w, reach:2.3, cd:9, sc:1.05, rw:85, snd:'groan'},
@@ -13770,10 +13769,10 @@ function zmPickType(){ const w=ZM.wave, r=Math.random(); if(ZM.bossLeft>0&&(ZM.t
   const pr=w>=2?Math.min(.36,.1+.03*w+(ZM.diff===2?.06:0)):0, pe=w>=2?Math.min(.13,.05+.01*w):0, pt=w>=3?Math.min(.12,.03+.012*w):0;
   return r<pr?'r':r<pr+pe?'e':r<pr+pe+pt?'t':'w'; }
 function zmPoolPut(z){ z.char.root.visible=false; z.alive=false; (ZM.pool[(z.isRemote?'m':'')+z.zt]||(ZM.pool[(z.isRemote?'m':'')+z.zt]=[])).push(z); }
-function zmSpawnZombie(){ const p=zmSpawnPoint(); if(!p) return false; const type=zmPickType(), P=ZM.pool[type], z=P&&P.length?P.pop():new ZmZombie(type), T=ZM_TYPES[type], D=[[.8,.7,.92],[1,1,1],[1.2,1.3,1.06]][ZM.diff]||[1,1,1], w=ZM.wave;
+function zmSpawnZombie(ft,fp){ const p=fp||zmSpawnPoint(); if(!p) return false; const type=ft||zmPickType(), P=ZM.pool[type], z=P&&P.length?P.pop():new ZmZombie(type), T=ZM_TYPES[type], D=[[.8,.7,.92],[1,1,1],[1.2,1.3,1.06]][ZM.diff]||[1,1,1], w=ZM.wave;
   z.id=z.nid='z'+(++ZM.nid); z.maxHp=z.hp=Math.round(T.hp(w)*D[0]*(.9+Math.random()*.2)*(type==='b'?1+.35*(zmSurv().length-1):1)); z.dmg=Math.round(T.dmg(w)*D[1]); z.spd=T.spd(w)*D[2]*(.88+Math.random()*.24); z.reach=T.reach; z.cd=T.cd;
   z.alive=true; z.dmgBy={}; z._db={}; z.spawnProt=0; z.blindT=0; z.atkT=-1; z.atkCd=.3; z.fuse=-1; z.deadT=0; z.tgt=null; z.tgtT=0; z.wp=null; z.planting=false; z.defusing=false;
-  z.pos.copy(p); z.vel.set(0,0,0); z.onGround=true; z.yaw=Math.random()*TAU; z.char.setDead(false); z.char.root.visible=true; z.char._lpOk=false; zmDressReset(z.char); bots.push(z);
+  z.pos.copy(p); z.vel.set(0,0,0); z.onGround=true; z.yaw=Math.random()*TAU; z.char.setDead(false); z.char.root.visible=true; z.char._lpOk=false; zmDressReset(z.char); bots.push(z); if(fp) return z;
   if(type==='b'){ tpSnd('roar',{pos:p.clone().setY(p.y+2),ref:12}); showBanner('BOSS!','Büyük bir şey geliyor…',1600,'#ff5a3c'); } return true; }
 function zmDressReset(C){ C.gunRoot.visible=false; C.body.rotation.set(0,0,0); C.body.position.set(0,0,0); }
 function zmMirror(e){ if(typeof e[0]!=='string'||e[0][0]!=='z') return null; const ty=String(e[7]||'zw').slice(1,2); if(!ZM_TYPES[ty]) return null;
@@ -13820,9 +13819,9 @@ function zmResults(R){ if(match.state==='over') return; match.state='over'; ZM.p
   $('sbInner2').parentNode.classList.remove('hidden'); $('btnRematch').classList.toggle('hidden',NET.on); $('btnLobby').textContent=NET.on&&NET.kind==='custom'?'LOBİYE DÖN':'MENÜYE DÖN'; $('matchEnd').classList.remove('hidden'); sfx.lose();
   if(NET.host&&NET.inMatch){ NET.inMatch=false; if(NET.lobby){ NET.lobby.started=0; NET.lobby.startAt=0; netLobbyChanged(); } } if(NET.client) NET.inMatch=false; }
 /* ---- waves ---- */
-function zmWaveStart(){ ZM.wave++; const w=ZM.wave, S=zmSurv(), n=S.length, k=1+.55*(n-1);
-  ZM.toSpawn=Math.round((5+3*w+2*Math.floor(w/3))*k*([.85,1,1.15][ZM.diff]||1)); ZM.bossLeft=w%5===0?1:0; ZM.toSpawn+=ZM.bossLeft; ZM.left=ZM.toSpawn; ZM.phase='live'; ZM.t=0; ZM.spawnT=1.2;
-  ZM.maxAlive=Math.min(CFG.quality==='low'?14:20,7+2*n+w); S.forEach((a,i)=>{ if(!a.alive) zmSpawnSurvivor(a,i,false); }); if(buyOpen&&match.zm) toggleBuy(false);
+function zmWaveStart(){ ZM.wave++; const w=ZM.wave, S=zmSurv(), n=S.length, k=1+.3*(n-1);
+  ZM.toSpawn=Math.round((4+2.5*w+2*Math.floor(w/3))*k*([.8,1,1.15][ZM.diff]||1)); ZM.bossLeft=w%5===0?1:0; ZM.toSpawn+=ZM.bossLeft; ZM.left=ZM.toSpawn; ZM.phase='live'; ZM.t=0; ZM.spawnT=1.2;
+  ZM.maxAlive=Math.min(CFG.quality==='low'?12:18,4+2*n+w); S.forEach((a,i)=>{ if(!a.alive) zmSpawnSurvivor(a,i,false); }); if(buyOpen&&match.zm) toggleBuy(false);
   zmWaveFx(w,ZM.bossLeft); zmSend({k:'wave',w,b:ZM.bossLeft}); ZM.flowT=0; }
 function zmWaveFx(w,boss){ showBanner('DALGA '+w,boss?'BOSS DALGASI!':'Hayatta kal',2200,boss?'#ff5a3c':'#ffb648'); tpSnd('wave',{vol:.9}); }
 function zmWaveEnd(){ const w=ZM.wave, bon=250+40*w; ZM.phase='buy'; ZM.t=NET.on?ZM.buyT+6:ZM.buyT;
@@ -13862,7 +13861,7 @@ function zmRenderBuy(){ const G=$('bmGrid'); if(!G) return; G.innerHTML=''; $('b
       b.innerHTML='<span class="kn">'+n+'</span>'+(ic?'<img alt="" src="'+ic+'">':'<span class="gi">'+(GEAR_SVG[id]||ZM_AMMO_SVG)+'</span>')+'<span class="nm">'+esc(it.name)+'</span><span class="pr">$'+it.price+'</span>'+(why==='var'?'<span class="tag">VAR</span>':why==='dolu'?'<span class="tag">DOLU</span>':'');
       b.addEventListener('click',()=>{ if(zmBuy(id)){ if(!NET.client) zmRenderBuy(); } else uiSound('deny'); }); col.appendChild(b); }
     G.appendChild(col); });
-  if(!NET.client){ const go=el('button',{class:'bmItem tpGo'},'<span class="nm">HAZIRIM · DALGAYI BAŞLAT</span>'); go.addEventListener('click',()=>{ ZM.t=Math.min(ZM.t,.5); toggleBuy(false); }); G.appendChild(go); }
+  let go=$('zmReadyBtn'); if(!go){ go=el('button',{id:'zmReadyBtn',class:'eb'},'HAZIRIM · DALGAYI BAŞLAT'); go.addEventListener('click',()=>{ if(!NET.client&&match.zm&&ZM.phase==='buy'){ ZM.t=Math.min(ZM.t,.5); toggleBuy(false); } }); $('bmClose').before(go); } go.classList.toggle('hidden',!!NET.client);
   $('bmHint').textContent='Tıkla: satın al · B / ESC: kapat'; }
 /* ---- online: host <-> clients ('zm' messages; zombie positions ride in the normal snapshot) ---- */
 function zmSend(o){ if(NET.host&&NET.inMatch) netBroadcast(Object.assign({t:'zm'},o)); }
@@ -13942,7 +13941,7 @@ function zmHostTick(dt){ if(ZM.over) return;
   ZM.flowT-=dt; if(ZM.flowT<=0){ ZM.flowT=.5; zmFlow(); }
   if(ZM.phase==='buy'){ ZM.t-=dt; if(ZM.t<=0) zmWaveStart(); }
   else if(ZM.phase==='live'){ let alive=0; for(const b of bots) if(b.zombie&&b.alive) alive++;
-    if(ZM.toSpawn>0){ ZM.spawnT-=dt; if(ZM.spawnT<=0&&alive<ZM.maxAlive){ if(zmSpawnZombie()) ZM.toSpawn--; ZM.spawnT=Math.max(.35,1.3-ZM.wave*.06)*(.6+Math.random()*.8); } }
+    if(ZM.toSpawn>0){ ZM.spawnT-=dt; if(ZM.spawnT<=0&&alive<ZM.maxAlive){ if(zmSpawnZombie()) ZM.toSpawn--; ZM.spawnT=Math.max(.4,1.8-ZM.wave*.08)*(.6+Math.random()*.8); } }
     if(ZM.toSpawn<=0&&alive===0&&ZM.left<=0) zmWaveEnd(); else if(ZM.toSpawn<=0&&alive===0) ZM.left=0; }
   for(const a of zmSurv()){ if(a.zmDown){ a.zmBleed-=dt; if(a===player) player.zmBleedT=a.zmBleed; if(a.zmBleed<=0) zmBleedOut(a); } }
   if(!ZM.over&&!zmSurv().some(a=>a.alive&&!a.zmDown)) zmGameOver();
@@ -13960,7 +13959,15 @@ function tpTick(dt,raw){ if(match.zm) zmTick(dt,raw); }
 /* ---- registration: only the TEST build adds the knives, the ZOMBİ entries and restores its own picks ---- */
 if(TEST_BUILD){ tpBrand(); const t=tpPrefs(); if(t.melee) CFG.loadout.melee=t.melee; if(t.prac) CFG.net.prac=t.prac; if(t.room) CFG.net.room.mode=t.room;
   BUILTIN.push(tpDefKarambit(),tpDefButterfly()); PRAC_MODES.push(['zombie','ZOMBİ']); NET_MODES.zombie='ZOMBİ'; }
-gameExport({ ZM, TPS, TPK, ZM_TYPES, zmStart, zmStartOffline, zmSpawnZombie, zmWaveStart, zmFlow, zmDown, zmRevive, zmGameOver, zmBuy, zmSurv, zmPrefs, tpsGen, tpsPreview, tpSkinApply, tpsEnsure, tpsSave, tpsRefresh,
+// test helper: an open spot (long clear sight line), the player looking down it, optional zombies lined up ahead
+function zmTestBooth(types,dist){ const nav=WORLD.active.nav, P=player; let best=null, bs=0;
+  for(let i=0;i<80;i++){ const p=navRandom(nav), e=new THREE.Vector3(p.x,p.y+1.6,p.z); for(let k=0;k<12;k++){ const y=k/12*TAU, d=new THREE.Vector3(-Math.sin(y),0,-Math.cos(y)), h=rayWorld(e,d,30), L=h?h.dist:30;
+      const r=new THREE.Vector3(Math.cos(y),0,-Math.sin(y)), hl=rayWorld(e.clone().addScaledVector(d,6),r,6), hr=rayWorld(e.clone().addScaledVector(d,6),r.clone().negate(),6), w=Math.min(hl?hl.dist:6,hr?hr.dist:6);
+      const sc=Math.min(L,20)+w*2; if(sc>bs){ bs=sc; best={p,y}; } } }
+  P.pos.copy(best.p); P.yaw=best.y; P.pitch=-.05; P.vel.set(0,0,0); const f=[-Math.sin(best.y),-Math.cos(best.y)], r=[Math.cos(best.y),-Math.sin(best.y)], out=[];
+  (types||[]).forEach((t,i)=>{ const o=(i-(types.length-1)/2)*1.8; out.push(zmSpawnZombie(t,new THREE.Vector3(P.pos.x+f[0]*(dist||9)+r[0]*o,P.pos.y,P.pos.z+f[1]*(dist||9)+r[1]*o))); });
+  return {score:bs,pos:P.pos.toArray(),n:out.length}; }
+gameExport({ zmTestBooth, ZM, TPS, TPK, ZM_TYPES, zmStart, zmStartOffline, zmSpawnZombie, zmWaveStart, zmFlow, zmDown, zmRevive, zmGameOver, zmBuy, zmSurv, zmPrefs, tpsGen, tpsPreview, tpSkinApply, tpsEnsure, tpsSave, tpsRefresh,
   get testBuild(){ return TEST_BUILD; } });
 
 
