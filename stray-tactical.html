@@ -10604,9 +10604,9 @@ function anInitRig(R){
   const j=new THREE.Mesh(new THREE.BoxGeometry(.012,.04,.008),met); j.position.y=.05; pl.add(j); pl.visible=false; pl.traverse(o=>{ o.frustumCulled=false; }); R.armR.hand.add(pl); R.pliers=pl;
 }
 function anOnEquip(R){
-  const w=R.w, d=R.def, T=d.type; R.lock=0; R.sh.ph=0; R.sh.demo=0; R.boltU=-1; R.hR.k=R.hL.k=R.hLr.k=R.hRr.k=0; R.typeK=0; R.noHol=false; anApplyFit(w); R._rhsN=0; anRlKit(R);
+  const w=R.w, d=R.def, T=d.type; R.lock=0; R.sh.ph=0; R.sh.demo=0; R.boltU=-1; R.hR.k=R.hL.k=R.hLr.k=R.hRr.k=0; R.typeK=0; R.noHol=false; anApplyFit(w); R._rhsN=0; anRlKit(R); if(R.hsOL) R.hsOL.set(0,0,0); if(R.hsOR) R.hsOR.set(0,0,0);
   R.drawV=0; R.drawX=anFirstDraw(R); R.spawnDraw=false; R.dsnd=0; anRoundsInit(R); R.scopeEye=anScopeEye(R);   // no twirl on deploy; the rack only on a gun's very first draw
-  R.ring=null; if(T==='grenade'){ for(const p of d.parts) if(/pim|pin|ring|halka/i.test(p.name)&&w.nodes[p.id]){ R.ring=w.nodes[p.id]; R.ringP.copy(R.ring.position); break; } }
+  R.ring=null; if(T==='grenade'){ for(const re of [/pim.*halka|pin.*ring/i,/^pim|pin/i,/ring|halka/i]){ const p=d.parts.find(q=>re.test(q.name)&&w.nodes[q.id]); if(p){ R.ring=w.nodes[p.id]; R.ringP.copy(R.ring.position); break; } } }
   R.c4keys=null; R.slideTop=null; const sl=w.roles.slide[0];
   if(sl&&sl.node.geometry){ const g=sl.node.geometry; if(!g.boundingBox) g.computeBoundingBox(); const b=g.boundingBox.clone(); _am.copy(sl.node.matrix); let p=sl.node.parent; while(p&&p!==w.root){ _am.premultiply(p.matrix); p=p.parent; } b.applyMatrix4(_am); R.slideTop=new THREE.Vector3((b.min.x+b.max.x)/2,b.max.y,b.max.z); }
   R.knob=-1; let mx=-1; w.roles.bolt.forEach((r,i)=>{ if(r.pos.x>mx){ mx=r.pos.x; R.knob=i; } }); R.boreY=w.anchors.muzzle.y;
@@ -10696,12 +10696,11 @@ function anPose(R,dt,mv,rp){
     const LH=K_DR_LH[C], G=w.anchors.gripL; if(LH&&G&&rp<0&&t<.6){ const k=kq(t,LH); if(k>0){ R.hL.p.copy(G.p).add(_a4.fromArray(ANP_DRL[C])); R.hL.q.copy(G.q); R.hL.k=Math.max(R.hL.k,k); } }
     if(R.drawX&&rp<0&&R.sounds){ const c=AN_DRSND[C]; if(c&&(C==='pistol'?!!G:C==='rifle'?!!(G&&w.roles.bolt.length):true)){ if(R.dsnd<1&&t>=c[0]){ R.dsnd=1; anQuietSnd(D,'boltback'); } if(R.dsnd<2&&t>=c[1]){ R.dsnd=2; anQuietSnd(D,'boltfwd'); } } }
     if(R.drawX&&rp<0){ const X=AN_DRAWX[C]; if(X) kadd(t,X,1);
-      if(C==='pistol'&&w.anchors.gripL){ const hk=kq(t,K_DR_HAND), pl=kq(t,K_DR_PULL); if(hk>0) anSlideHand(R,hk,pl*(w.roles.slide.length?.024:.04)); }
-      else if((C==='rifle')&&w.anchors.gripL&&w.roles.bolt.length){ const hk=kq(t,K_DR_HAND), pl=kq(t,K_DR_PULL); R.boltX=pl*.05; if(hk>0) anBoltHand(R,hk,R.boltX); }
+      if((C==='pistol'||C==='rifle')&&w.anchors.gripL&&t>=.5&&t<=.94) anRackHand(R,t);   // support hand works the model's own slide / charging handle / bolt release (keys over anchors)
       else if(C==='shotgun') R.pump=kq(t,K_DR_PUMP)*.075;
       else if(C==='sniper'&&t>.55) anBolt(R,(t-.55)/.42,.45); }
     if(C==='knife') anGunSpin(R,AX_Z,kq(t,K_DR_KNIFE),w.anchors.gripR.p,0);   // twirl about the handle: the grip never leaves the fist
-    if(C==='grenade'){ const h=kq(t,K_DR_TOSS); if(t>.5&&t<.9) R.rCurl=.064; anGunSpin(R,AX_X,kq(t,K_DR_TOSSR),w.anchors.gripR.p,h); }   // spin done while it is still in the air, caught in an open hand
+    if(C==='grenade'){ const h=kq(t,K_DR_TOSS); if(t>.5&&t<.9) R.rCurl=.064; anGunSpin(R,AX_X,D.stats.nade==='molotov'?0:kq(t,K_DR_TOSSR),w.anchors.gripR.p,h); }   // spin done while it is still in the air, caught in an open hand
     if(C==='pistol'&&R.drawV&&t<.42) anGunSpin(R,AX_X,kq(t,K_DR_TWIRL),anTrig(R),0); }
   // inspect
   if(R.inspectT>=0){ const t=Math.min(1,R.inspectT/R.inspectDur), IW=anInspW(D);
@@ -11047,22 +11046,31 @@ function anHandCost(L,H,hp,hq,oth,left){ let pen=0; _gap.fill(1);
   for(const s of left?H.sphL:H.sph){ _wp.copy(s.p).applyQuaternion(hq).add(hp); const g=anHDist(L,_wp,s.r+.03,oth)-s.r; if(-g>pen) pen=-g; if(g<_gap[s.f]) _gap[s.f]=g; }
   return pen; }
 // grip fit: curl + small offset of the anchor so the fingers close around the grip / handguard without sinking in (cached per weapon definition)
+const _fq=new THREE.Quaternion();
 function anFitHand(L,A,left,oth){ let best=null;
-  const tryP=(c,ox,oy,oz)=>{ const H=anHandGeo(c); _wo.set(ox,oy,oz).applyQuaternion(A.q); _wp2.copy(A.p).add(_wo); const pen=anHandCost(L,H,_wp2,A.q,oth,left), G=_gap;
-    const fg=(Math.max(0,G[1]-.002)+Math.max(0,G[2]-.002)+Math.max(0,G[3]-.002)+Math.max(0,G[0]-.002)*.5)/3.5, J=pen*5+fg*1.2+Math.max(0,G[5]-.004)*.4+Math.hypot(ox,oy,oz)*.25+(c-.0305)*.25;
-    if(!best||J<best.J) best={J,o:_wo.clone(),c,pen,ox,oy,oz}; };
+  const tryP=(c,ox,oy,oz,a)=>{ const H=anHandGeo(c); _wo.set(ox,oy,oz).applyQuaternion(A.q); _wp2.copy(A.p).add(_wo); _fq.copy(A.q); if(a) _fq.multiply(_rlQ.setFromAxisAngle(AX_Y,a)); const pen=anHandCost(L,H,_wp2,_fq,oth,left), G=_gap;
+    const fg=(Math.max(0,G[1]-.002)+Math.max(0,G[2]-.002)+Math.max(0,G[3]-.002)+Math.max(0,G[0]-.002)*.5)/3.5, J=pen*5+fg*1.2+Math.max(0,G[5]-.004)*.4+Math.hypot(ox,oy,oz)*.25+(c-.0305)*.25+Math.abs(a||0)*.006;
+    if(!best||J<best.J) best={J,o:_wo.clone(),c,pen,ox,oy,oz,rot:a||0}; };
   _wp2.copy(A.p); anWNear(L,_wp2,.16); if(!L.some(P=>P.near)) return {o:new THREE.Vector3(),c:.0305,pen:0};
   const R1=left?.03:.016, S1=left?.0075:.008;
   for(const c of AN_CURL) for(let ox=-R1;ox<=R1+1e-6;ox+=S1) for(let oz=-R1;oz<=R1+1e-6;oz+=S1) for(const oy of (left?[-.006,0,.006]:[-.016,-.008,0,.006])) tryP(c,ox,oy,oz);
-  const b=best; for(let ox=-.006;ox<=.0061;ox+=.002) for(let oz=-.006;oz<=.0061;oz+=.002) for(const c of [b.c]) tryP(c,b.ox+ox,b.oy,b.oz+oz);
+  const b=best, ci=AN_CURL.indexOf(b.c), cs=[AN_CURL[ci-1],b.c,AN_CURL[ci+1]].filter(Boolean);
+  for(const a of [-.4,-.2,0,.2,.4]) for(const c of cs) for(let ox=-.006;ox<=.0061;ox+=.003) for(let oz=-.006;oz<=.0061;oz+=.003) tryP(c,b.ox+ox,b.oy,b.oz+oz,a);
   return best; }
 const AN_FITC=new WeakMap();
 function anFitFor(w){ const d=w.def, A=d.anchors, sig=JSON.stringify([A.gripR,A.gripL,d.parts.length]); let f=AN_FITC.get(d); if(f&&f.sig===sig) return f;
   const L=anWUpdate(w,true); f={sig,R:null,L:null};
+  const T=AN_FITTAB[d.id], fr=(o)=>({o:new THREE.Vector3(o[0],o[1],o[2]),c:o[3],rot:o[4],pen:o[5]});
+  if(T&&T[0]===sig){ f.R=fr(T[1]); f.L=T[2]?fr(T[2]):null; AN_FITC.set(d,f); return f; }   // built-in guns: baked
   const AR=w.anchors.gripR; f.R=anFitHand(L,AR,false,null);
-  if(w.anchors.gripL){ const H=anHandGeo(f.R.c), oth=[]; _wp2.copy(AR.p).add(f.R.o); for(const s of H.sph) oth.push({c:s.p.clone().applyQuaternion(AR.q).add(_wp2),r:s.r}); f.L=anFitHand(L,w.anchors.gripL,true,oth); }
+  if(w.anchors.gripL){ const H=anHandGeo(f.R.c), oth=[], q=AR.q.clone().multiply(_rlQ.setFromAxisAngle(AX_Y,f.R.rot)); _wp2.copy(AR.p).add(f.R.o); for(const s of H.sph) oth.push({c:s.p.clone().applyQuaternion(q).add(_wp2),r:s.r}); f.L=anFitHand(L,w.anchors.gripL,true,oth); }
   AN_FITC.set(d,f); return f; }
-function anApplyFit(w){ if(!w||w.fitted) return w&&w.fit; const f=anFitFor(w); w.fitted=true; w.fit=f; if(f.R) w.anchors.gripR.p.add(f.R.o); if(f.L&&w.anchors.gripL) w.anchors.gripL.p.add(f.L.o); return f; }
+const AN_FITTAB={};   // id -> [sig, [ox,oy,oz,curl,rot,pen] right, left] (filled from the fit, see anFitDump)
+function anFitDump(){ const o={}; for(const d of LIB.list) if(d.builtin&&d.anchors&&d.anchors.gripR){ const w=buildWeaponObject(d,{}); AN_FITC.delete(d); const T=AN_FITTAB[d.id]; delete AN_FITTAB[d.id]; const f=anFitFor(w); if(T) AN_FITTAB[d.id]=T;
+  const r=v=>v?[+v.o.x.toFixed(4),+v.o.y.toFixed(4),+v.o.z.toFixed(4),v.c,v.rot,+v.pen.toFixed(4)]:0; o[d.id]=[f.sig,r(f.R),r(f.L)]; disposeWeaponObject(w); } return o; }
+function anApplyFit(w){ if(!w||w.fitted) return w&&w.fit; const f=anFitFor(w); w.fitted=true; w.fit=f; const A=w.anchors;
+  if(f.R){ A.gripR.p.add(f.R.o); if(f.R.rot) A.gripR.q.multiply(_rlQ.setFromAxisAngle(AX_Y,f.R.rot)); }
+  if(f.L&&A.gripL){ A.gripL.p.add(f.L.o); if(f.L.rot) A.gripL.q.multiply(_rlQ.setFromAxisAngle(AX_Y,f.L.rot)); } return f; }
 // per frame (viewmodel): hand pose -> gun space, choose the curl, push the hand out along the distance gradient (left hand also out of the right hand)
 const _hsP=new THREE.Vector3(), _hsQ=new THREE.Quaternion(), _hsI=new THREE.Matrix4(), _hsGQ=new THREE.Quaternion(), AN_RHS=[];
 for(let i=0;i<64;i++) AN_RHS.push({c:new THREE.Vector3(),r:0});
@@ -11078,16 +11086,22 @@ function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const le
   if(!left){ R._sdfOk=false; }
   if(!R._sdfOk){ anWUpdate(w,false); _hsI.copy(R.gunRoot.matrix).invert(); _hsGQ.copy(R.gunRoot.quaternion).invert(); R._sdfOk=true; }
   const atGrip=left?(R.hL.k<.2&&R.hLr.k<.2&&R.lAtGrip):(R.hR.k<.2&&R.hRr.k<.2);
-  const c=!left&&R.rCurl?R.rCurl:atGrip&&f?(left?(f.L?f.L.c:.0305):(f.R?f.R.c:.0305)):(left?(R.lCurl||.038):.0305); anSetHand(arm,c);
+  let c=!left&&R.rCurl?R.rCurl:atGrip&&f?(left?(f.L?f.L.c:.0305):(f.R?f.R.c:.0305)):(left?(R.lCurl||.038):.0305);
+  if(left&&!atGrip&&f&&f.L&&w.anchors.gripL){ _wp.copy(hp).applyMatrix4(_hsI); if(_wp.distanceTo(w.anchors.gripL.p)<.025) c=Math.max(c,f.L.c); }
+  anSetHand(arm,c);
   if(!left&&R.gsPiv){ R._rhsN=0; return; }
   const L=w._sdf, H=arm.hg, S=left?H.sphL:H.sph, P=_hsP.copy(hp).applyMatrix4(_hsI), Q=_hsQ.copy(_hsGQ).multiply(hq);
-  anWNear(L,P,.14); const oth=left&&R._rhsN?AN_RHS.slice(0,R._rhsN):null; let moved=false; _wo.copy(P);
-  let pen0=anHandPush(L,S,P,Q,oth,_wacc), best=pen0; const pen1=pen0; _hsB.copy(P);
+  anWNear(L,P,.16); const oth=left&&R._rhsN?AN_RHS.slice(0,R._rhsN):null; let moved=false; _wo.copy(P);
+  // warm start: last frame's correction, relaxed a little (the hand drifts back onto its target once it is free), so corrections stay smooth and can build over frames
+  const O=left?(R.hsOL||(R.hsOL=new THREE.Vector3())):(R.hsOR||(R.hsOR=new THREE.Vector3()));
+  let pen0=anHandPush(L,S,P,Q,oth,_wacc); const pen1=pen0;
+  if(O.lengthSq()>1e-10){ _hsC.copy(_wo).addScaledVector(O,.85); const pw=anHandPen(L,S,_hsC,Q,oth); if(pw<=pen0+.0003){ P.copy(_hsC); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; } }
+  let best=pen0; _hsB.copy(P);
   for(let it=0;it<6&&pen0>.0008;it++){ let bp=pen0, found=false; const g=_wacc.lengthSq()>1e-12; if(g) _hsD.copy(_wacc).normalize();
     for(let c=g?0:1;c<7;c++){ const dir=c?AN_DIRS[c-1]:_hsD;   // summed push-out direction first, then the six axes (concave spots, hand between two parts)
-      for(const m of (c?[1]:[1,2])){ _hsC.copy(P).addScaledVector(dir,pen0*m+.0005); if(_hsC.distanceTo(_wo)>.04) _hsC.sub(_wo).setLength(.04).add(_wo); const pn=anHandPen(L,S,_hsC,Q,oth); if(pn<bp-1e-5){ bp=pn; _hsE.copy(_hsC); found=true; } } }
+      for(const m of (c?[1]:[1,2])){ _hsC.copy(P).addScaledVector(dir,pen0*m+.0005); if(_hsC.distanceTo(_wo)>.06) _hsC.sub(_wo).setLength(.06).add(_wo); const pn=anHandPen(L,S,_hsC,Q,oth); if(pn<bp-1e-5){ bp=pn; _hsE.copy(_hsC); found=true; } } }
     if(!found) break; P.copy(_hsE); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; if(pen0<best){ best=pen0; _hsB.copy(P); } }
-  if(moved) P.copy(_hsB); if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1),arm.curl];
+  if(moved) P.copy(_hsB); O.subVectors(P,_wo); if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1),arm.curl];
   if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; }
   if(moved) hp.copy(P).applyMatrix4(R.gunRoot.matrix); }
 
@@ -11112,7 +11126,7 @@ function anRlKit(R){ const w=R.w, d=R.def, A=w.anchors, T=d.type, K={style:'none
   K.stroke=T==='pistol'?.03:K.style==='top'?.06:.055;
   const mr=w.roles.mag[0]; if(mr&&w.magBox){ const b=w.magBox; K.mag=mr.node; K.bp=(b.min.z+b.max.z)/2>A.gripR.p.z+.01;
     _am.copy(mr.node.matrix); let p=mr.node.parent; while(p&&p!==w.root){ _am.premultiply(p.matrix); p=p.parent; } const inv=_am.clone().invert();
-    K.grab=_rv((b.min.x+b.max.x)/2,b.min.y+(T==='pistol'?.022:.032),(b.min.z+b.max.z)/2).applyMatrix4(inv);
+    K.grab=_rv((b.min.x+b.max.x)/2,b.min.y+(T==='pistol'?-.012:.032),(b.min.z+b.max.z)/2).applyMatrix4(inv);
     K.topRest=_rv((b.min.x+b.max.x)/2,b.max.y+.012,Math.min((b.min.z+b.max.z)/2,b.min.z+.07)); K.top=K.topRest.clone().applyMatrix4(inv); K.chain=[]; for(let o=mr.node;o&&o!==w.root;o=o.parent) K.chain.push(o); }
   R.rk=K; return K; }
 function anMagM(K,out){ out.identity(); for(let i=K.chain.length-1;i>=0;i--){ const o=K.chain[i]; o.updateMatrix(); out.multiply(o.matrix); } return out; }
@@ -11122,7 +11136,10 @@ function anRlPt(R,n,P,Q){ const w=R.w, K=R.rk||anRlKit(R), A=w.anchors, G=A.grip
   const gq=G?G.q:AN_RQ.mag;
   switch(n){
     case 'grip': P.copy(G?G.p:A.gripR.p); Q.copy(gq); return w.fit&&w.fit.L?w.fit.L.c:.038;
-    case 'gripLo': P.copy(G?G.p:mb).add(_a4.set(-.03,-.05,.025)); Q.copy(gq); return .038;
+    case 'gripLo': P.copy(G?G.p:mb).add(_a4.set(-.03,-.06,.025)); Q.copy(gq); return .038;
+    case 'side': { const g=G?G.p:mb, top=R.def.anchors.magPath==='top';   // waypoint beside the gun (left; under it for a right-side handle) so the hand goes around, not through
+      if(st==='R'&&K.hdl) P.set(K.hdl.x-.01,K.hdl.y-.08,K.hdl.z+.03); else if(top&&K.topRest) P.set(Math.min(g.x,K.topRest.x)-.075,(K.topRest.y+g.y)/2,g.z+.03); else if(K.hdl) P.set(Math.min(g.x,K.hdl.x)-.075,K.hdl.y,K.hdl.z+.03); else P.set(g.x-.075,g.y+.03,g.z+.03);
+      Q.copy(AN_RQ.mag); return .038; }
     case 'gripUp': case 'ret': P.copy(G?G.p:mb).add(n==='ret'&&st==='R'?_a4.set(-.03,-.05,.025):_a4.set(-.035,.045,.03)); Q.copy(gq); return .038;
     case 'mag': if(K.mag){ P.copy(K.grab).applyMatrix4(anMagM(K,_rlM)); } else P.copy(mb); Q.setFromAxisAngle(AX_X,R.mRot||0).multiply(AN_RQ.mag); return R.def.type==='pistol'?.038:.043;
     case 'magLo': P.copy(mb).add(_a4.set(0,-.07,.01)); Q.copy(AN_RQ.mag); return .043;
@@ -11146,12 +11163,12 @@ function anRlPt(R,n,P,Q){ const w=R.w, K=R.rk||anRlKit(R), A=w.anchors, G=A.grip
 // key lists (t, point) per family
 const AN_RLK={
   rifleT:[[0,'grip'],[.05,'gripLo'],[.12,'mag'],[.68,'mag'],[.71,'magLo'],[.74,'slap'],[.78,'magLo'],[.86,'gripLo'],[.94,'grip']],
-  rifleE:[[0,'grip'],[.05,'gripLo'],[.12,'mag'],[.68,'mag'],[.71,'hdlPre'],[.75,'hdl'],[.825,'hdl'],[.85,'hdlP'],[.89,'hdlOut'],[.95,'ret'],[1,'grip']],
+  rifleE:[[0,'grip'],[.05,'gripLo'],[.12,'mag'],[.68,'mag'],[.705,'side'],[.735,'hdlPre'],[.755,'hdl'],[.825,'hdl'],[.85,'hdlP'],[.89,'hdlOut'],[.95,'ret'],[1,'grip']],
   bpT:[[0,'grip'],[.06,'bpLo'],[.12,'mag'],[.68,'mag'],[.71,'magLo'],[.74,'slap'],[.78,'magLo'],[.86,'bpLo'],[.95,'grip']],
-  bpE:[[0,'grip'],[.06,'bpLo'],[.12,'mag'],[.68,'mag'],[.71,'hdlPre'],[.75,'hdl'],[.825,'hdl'],[.85,'hdlP'],[.89,'hdlOut'],[.96,'grip']],
+  bpE:[[0,'grip'],[.06,'bpLo'],[.12,'mag'],[.68,'mag'],[.705,'side'],[.735,'hdlPre'],[.755,'hdl'],[.825,'hdl'],[.85,'hdlP'],[.89,'hdlOut'],[.96,'grip']],
   relE:[[0,'grip'],[.05,'gripLo'],[.12,'mag'],[.68,'mag'],[.71,'relPre'],[.745,'rel'],[.77,'relPre'],[.86,'gripLo'],[.95,'grip']],
-  topT:[[0,'grip'],[.06,'topPre'],[.14,'top'],[.64,'top'],[.67,'topPush'],[.72,'topPre'],[.86,'grip']],
-  topE:[[0,'grip'],[.06,'topPre'],[.14,'top'],[.64,'top'],[.67,'topPush'],[.71,'hdlPre'],[.75,'hdl'],[.825,'hdl'],[.85,'hdlP'],[.89,'hdlOut'],[.96,'grip']],
+  topT:[[0,'grip'],[.04,'side'],[.08,'topPre'],[.14,'top'],[.64,'top'],[.67,'topPush'],[.72,'topPre'],[.78,'side'],[.88,'grip']],
+  topE:[[0,'grip'],[.04,'side'],[.08,'topPre'],[.14,'top'],[.64,'top'],[.67,'topPush'],[.71,'topPre'],[.735,'hdlPre'],[.755,'hdl'],[.825,'hdl'],[.85,'hdlP'],[.89,'hdlOut'],[.96,'grip']],
   pistolT:[[0,'grip'],[.08,'gripLo'],[.2,'pouch'],[.36,'pouch'],[.42,'mag'],[.6,'mag'],[.63,'slapP'],[.68,'gripLo'],[.8,'grip']],
   slideE:[[0,'grip'],[.08,'gripLo'],[.2,'pouch'],[.36,'pouch'],[.42,'mag'],[.6,'mag'],[.63,'slapP'],[.67,'sldPre'],[.72,'sld'],[.775,'sld'],[.795,'sldP'],[.84,'sldOut'],[.93,'grip']],
   stopE:[[0,'grip'],[.08,'gripLo'],[.2,'pouch'],[.36,'pouch'],[.42,'mag'],[.6,'mag'],[.63,'slapP'],[.68,'grip'],[.72,'stop'],[.77,'stop'],[.82,'grip']],
@@ -11220,17 +11237,31 @@ function anInspW(D){ return AN_INSPW[D.id]||(D.type==='grenade'?AN_INSPW.grenade
 const K_FX_ENV=[[0,0],[.18,1],[.82,1],[1,0]], K_FX_PULL=[[.22,0],[.42,1],[.6,1],[.75,0,1]], K_FX_TAP=[[.22,1],[.32,0],[.42,1],[.52,0],[.62,1]];
 const K_FX_TOSS=[[0,0],[.12,0],[.42,.09,1],[.72,0,2],[.78,-.004],[.84,0]], K_FX_TOSSR=[[.14,0],[.6,TAU,6]], K_FX_SPIN=[[.2,0],[.78,-TAU,6]], K_FX_TW=[[0,0],[1,TAU,6]];
 const _ptQ=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0,0,-1),new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0)));
+// support hand along a key path (u 0..1) of named model points (anRlPt); starts and ends on the grip so blends stay continuous
+function anKeyHand(R,u,L){ let i=1; while(i<L.length-1&&u>L[i][0]) i++; const a=L[i-1], b=L[i], k=smooth(clamp((u-a[0])/Math.max(1e-6,b[0]-a[0]),0,1));
+  const c1=anRlPt(R,a[1],_rlP1,_rlQ1), c2=anRlPt(R,b[1],_rlP2,_rlQ2); R.hL.p.copy(_rlP1).lerp(_rlP2,k); R.hL.q.copy(_rlQ1).slerp(_rlQ2,k); R.hL.k=1; R.lCurl=k<.5?c1:c2; }
+const IN_K={mag:[[0,'grip'],[.16,'gripLo'],[.28,'mag'],[.72,'mag'],[.84,'gripLo'],[1,'grip']], tap:[[0,'grip'],[.16,'gripLo'],[.28,'slap'],[.72,'slap'],[.84,'gripLo'],[1,'grip']],
+  top:[[0,'grip'],[.16,'topPre'],[.28,'top'],[.72,'top'],[.84,'topPre'],[1,'grip']], bolt:[[0,'grip'],[.16,'hdlPre'],[.28,'hdl'],[.72,'hdl'],[.84,'hdlOut'],[.93,'ret'],[1,'grip']],
+  slide:[[0,'grip'],[.16,'sldPre'],[.28,'sld'],[.72,'sld'],[.84,'sldOut'],[1,'grip']]};
+const K_FX_PULL2=[[.3,0],[.44,1,1],[.58,1],[.7,0,1]];
+// first draw of a fresh gun: rack (pistol slingshot / Tec-9 knob / rifle handle) or bolt-release slap (M4s); timing matches K_DR_PULL
+const DR_K={sld:[[.5,'grip'],[.56,'sldPre'],[.62,'sld'],[.72,'sld'],[.75,'sldP'],[.8,'sldOut'],[.9,'grip']], hdl:[[.5,'grip'],[.56,'hdlPre'],[.62,'hdl'],[.72,'hdl'],[.75,'hdlP'],[.8,'hdlOut'],[.88,'ret'],[.94,'grip']],
+  rel:[[.5,'grip'],[.58,'relPre'],[.64,'rel'],[.68,'relPre'],[.8,'gripLo'],[.9,'grip']]};
+function anRackHand(R,t){ const K=R.rk||anRlKit(R), w=R.w, pl=kq(t,K_DR_PULL);
+  if(R.def.type==='pistol'&&w.roles.slide.length){ R.slideX=Math.max(R.slideX,pl*.024); anKeyHand(R,t,DR_K.sld); return; }
+  if(K.style==='rel'){ anKeyHand(R,t,DR_K.rel); return; }
+  if(!K.hdl) return; R.boltX=Math.max(R.boltX,pl*K.stroke); anKeyHand(R,t,DR_K.hdl); }
 function anInspFx(R,e,t){ const u=(t-e[1])/(e[2]-e[1]); if(u<0||u>1) return; const w=R.w, env=kq(u,K_FX_ENV), A=w.anchors;
   switch(e[0]){
-    case 'mag': if(!w.roles.mag.length||!A.gripL) return; R.magX=kq(u,K_FX_PULL)*.03; anMagHand(R,env); return;
-    case 'magtap': if(!w.roles.mag.length||!A.gripL) return; R.lCurl=anRlPt(R,'slap',R.hL.p,R.hL.q); R.hL.p.y-=.022*kq(u,K_FX_TAP); R.hL.k=Math.max(R.hL.k,env); return;
-    case 'topchk': if(!w.roles.mag.length||!A.gripL) return; R.lCurl=anRlPt(R,'top',R.hL.p,R.hL.q); R.hL.p.y+=.012*kq(u,K_FX_TAP); R.hL.k=Math.max(R.hL.k,env); return;
-    case 'bolt': if(!A.gripL) return; anBoltHand(R,env,kq(u,K_FX_PULL)*(e[3]||.3)*(R.rk?R.rk.stroke:.05)); return;
-    case 'slide': if(!A.gripL) return; anSlideHand(R,env,kq(u,K_FX_PULL)*(e[3]||.012)); return;
+    case 'mag': if(!w.roles.mag.length||!A.gripL) return; R.magX=kq(u,K_FX_PULL2)*.03; anKeyHand(R,u,IN_K.mag); return;
+    case 'magtap': if(!w.roles.mag.length||!A.gripL) return; anKeyHand(R,u,IN_K.tap); if(u>.28&&u<.72) R.hL.p.y-=.022*kq(u,K_FX_TAP); return;
+    case 'topchk': if(!w.roles.mag.length||!A.gripL) return; anKeyHand(R,u,IN_K.top); if(u>.28&&u<.72) R.hL.p.y+=.012*kq(u,K_FX_TAP); return;
+    case 'bolt': { if(!A.gripL) return; const K=R.rk||anRlKit(R); if(!K.hdl) return; R.boltX=Math.max(R.boltX,kq(u,K_FX_PULL2)*(e[3]||.3)*K.stroke); anKeyHand(R,u,IN_K.bolt); return; }
+    case 'slide': if(!A.gripL) return; if(!w.roles.slide.length){ anInspFx(R,['bolt',e[1],e[2],.4],t); return; } R.slideX=Math.max(R.slideX,kq(u,K_FX_PULL2)*(e[3]||.012)); anKeyHand(R,u,IN_K.slide); return;
     case 'pump': R.pump=Math.max(R.pump,kq(u,K_FX_PULL)*.075*(e[3]||.5)); return;
     case 'boltR': anBolt(R,u,e[3]||.3); return;
     case 'twirl': anGunSpin(R,AX_Z,kq(u,K_FX_TW),A.gripR.p,0); return;
-    case 'toss': { const h=kq(u,K_FX_TOSS); R.rCurl=h>.004||(u>.1&&u<.86)?.064:0; anGunSpin(R,AX_X,kq(u,K_FX_TOSSR),A.gripR.p,h); return; }
+    case 'toss': { const h=kq(u,K_FX_TOSS); R.rCurl=h>.004||(u>.1&&u<.86)?.064:0; anGunSpin(R,AX_X,R.def.stats.nade==='molotov'?0:kq(u,K_FX_TOSSR),A.gripR.p,h); return; }
     case 'spin': { const P=anTrig(R); R.hR.k=Math.max(R.hR.k,env); R.hR.p.copy(P).add(_a4.set(.055,-.031,.03)); R.hR.q.copy(_ptQ); R.typeK=Math.max(R.typeK,env);
       if(A.gripL){ anRlPt(R,'gripLo',R.hL.p,R.hL.q); R.hL.p.x-=.04; R.hL.p.z+=.04; R.hL.k=Math.max(R.hL.k,env); }
       if(u>.18&&u<.8) anGunSpin(R,AX_X,kq(u,K_FX_SPIN),P,0); return; } } }
@@ -11360,7 +11391,7 @@ gameExport({ ANIM:{kq,AP,ANQ,ANP,AN_DRAW,AN_INSP,AN_KICK,anShellTimes,vmShell,an
 // test helpers (respawn / penetration checks): internal player + rig functions, ticks without rendering
 gameExport({ anT:{ resetPlayer:s=>resetPlayer(s), placePlayer:s=>placePlayer(s), equipCurrent:()=>equipCurrent(), toggleSilencer:()=>toggleSilencer(), mkSlot:d=>mkSlot(d), spawnFor:i=>spawnFor(i),
   refreshNadeSlot:()=>refreshNadeSlot(), tryFire:c=>tryFire(c), slotState:()=>slotState(), dmRespawn:a=>dmRespawn(a), vmEquip:(R,d,s,o,n)=>vmEquip(R,d,s,o,n), get SC(){ return SC; },
-  tick:(n,dt)=>{ window.__manual=true; for(let i=0;i<n;i++) tick(dt||1/60,false); }, csFovToV:f=>csFovToV(f), supportAt:(x,z,y,r)=>supportAt(x,z,y,r) } });
+  tick:(n,dt)=>{ window.__manual=true; for(let i=0;i<n;i++) tick(dt||1/60,false); }, csFovToV:f=>csFovToV(f), supportAt:(x,z,y,r)=>supportAt(x,z,y,r), fitDump:()=>anFitDump() } });
 
 /* @@BLOCK:polish — code from the polish work goes right below this line */
 /* =====================================================================
