@@ -13545,22 +13545,22 @@ function tpDefKarambit(){ const steel=M('steel','#cfd3d8'), handle=M('grip','#1b
   for(const z of [4.6,9.6]) P.push(CY('Perçin',.34,.34,1.95,0,0,z,[0,0,90],metal));
   return normalizeDef({ id:'karambit', name:'Karambit', builtin:1, tpKnife:'karambit', type:'knife', slot:'melee', parts:finalizeParts(P),
     stats:{dmg:40,head:1,rpm:120,mag:0,reserve:0,reload:0,auto:1,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:1.7,speed:1,sound:'knife',draw:1.0},
-    view:{pos:[.15,-.165,-.34],rot:[72,16,-14]},
+    view:{pos:[.13,-.115,-.36],rot:[58,24,-18]},
     anchors:{gripR:{p:[0,0,-.075],r:[-90,0,0]}, gripL:null, muzzle:[0,-.06,.07], eject:[0,0,0]} }); }
-function tpDefButterfly(){ const steel=M('steel','#d3d7dc'), al=M('aluminum','#2a2d33'), pin=M('steel','#9aa1a8'), P=[], sl=[[-2.2,.5, -5.6,.5, -5.6,.78, -2.2,.78],[-6.6,.5, -10,.5, -10,.78, -6.6,.78]];
+function tpDefButterfly(){ const K=1.25, k=a=>a.map(v=>v*K), steel=M('steel','#d3d7dc'), al=M('aluminum','#2a2d33'), pin=M('steel','#9aa1a8'), P=[], sl=[[-2.2,.5, -5.6,.5, -5.6,.78, -2.2,.78],[-6.6,.5, -10,.5, -10,.78, -6.6,.78]].map(k);
   // open pose: blade forward from pin A (y +.55, held "safe" handle side), handle B hangs from pin B (y -.55) on the blade tang; both handles point back into the fist
-  P.push(EX('Sap A',[1,.08, 1,1.1, .3,1.18, -11.2,1.12, -11.9,.85, -11.9,.08],1.0,.18,al,{holes:sl}));
-  P.push(CY('Pim A',.22,.22,1.25,0,.55,0,[0,0,90],pin));
-  P.push(EM('Bıçak ekseni',0,.55,0,{id:'bf_bp'}));
-  P.push(EX('Bıçak',[-1,.7, 7.5,.72, 10.6,.1, 10.2,-.35, 8,-.72, -1,-.72],.32,.1,steel,{role:'blade',parent:'bf_bp'}));
-  P.push(CY('Pim B',.22,.22,1.25,0,-.55,0,[0,0,90],pin,{parent:'bf_bp'}));
-  P.push(EM('Sap B ekseni',0,-.55,0,{id:'bf_hp',parent:'bf_bp'}));
-  P.push(EX('Sap B',[1,-.08, -11.9,-.08, -11.9,-.85, -11.2,-1.12, .3,-1.18, 1,-1.1],1.0,.18,al,{parent:'bf_hp',holes:sl.map(h=>h.map((v,i)=>i%2?-v:v))}));
-  P.push(BX('Mandal',.5,.42,1.5,0,-.9,-11.4,.1,pin,{parent:'bf_hp'}));
+  P.push(EX('Sap A',k([1,.08, 1,1.1, .3,1.18, -11.2,1.12, -11.9,.85, -11.9,.08]),1.1,.18,al,{holes:sl}));
+  P.push(CY('Pim A',.25,.25,1.35,0,.55*K,0,[0,0,90],pin));
+  P.push(EM('Bıçak ekseni',0,.55*K,0,{id:'bf_bp'}));
+  P.push(EX('Bıçak',k([-1,.7, 7.5,.72, 10.6,.1, 10.2,-.35, 8,-.72, -1,-.72]),.34,.1,steel,{role:'blade',parent:'bf_bp'}));
+  P.push(CY('Pim B',.25,.25,1.35,0,-.55*K,0,[0,0,90],pin,{parent:'bf_bp'}));
+  P.push(EM('Sap B ekseni',0,-.55*K,0,{id:'bf_hp',parent:'bf_bp'}));
+  P.push(EX('Sap B',k([1,-.08, -11.9,-.08, -11.9,-.85, -11.2,-1.12, .3,-1.18, 1,-1.1]),1.1,.18,al,{parent:'bf_hp',holes:sl.map(h=>h.map((v,i)=>i%2?-v:v))}));
+  P.push(BX('Mandal',.55,.5,1.8,0,-.9*K,-11.4*K,.1,pin,{parent:'bf_hp'}));
   return normalizeDef({ id:'butterfly', name:'Kelebek Bıçak', builtin:1, tpKnife:'butterfly', type:'knife', slot:'melee', parts:finalizeParts(P),
     stats:{dmg:40,head:1,rpm:120,mag:0,reserve:0,reload:0,auto:1,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:1.7,speed:1,sound:'knife',draw:1.05},
     view:{pos:[.14,-.13,-.36],rot:[18,12,-38]},
-    anchors:{gripR:{p:[0,0,.06],r:[-90,0,0]}, gripL:null, muzzle:[0,0,-.16], eject:[0,0,0]} }); }
+    anchors:{gripR:{p:[0,0,.068],r:[-90,0,0]}, gripL:null, muzzle:[0,0,-.18], eject:[0,0,0]} }); }
 const TPI=Math.PI, TPK_RING=new THREE.Vector3(0,0,-.1275);
 const TPK={
   karambit:{ idur:4.2,
@@ -13573,10 +13573,10 @@ const TPK={
       TRK({rz:[[0,0],[.15,-.6,1],[.42,.6,1],[.62,.45],[1,0]], ry:[[0,0],[.15,.45],[.42,-.45,1],[1,0]], px:[[0,0],[.15,-.1],[.42,.07,1],[1,0]], py:[[0,0],[.15,.05],[.42,-.04],[1,0]], pz:[[0,0],[.42,-.07,1],[1,0]], rx:[[0,0],[.15,.3],[.42,-.2],[1,0]]})],
     stab:TRK({pz:[[0,0],[.22,.07],[.36,-.22,1],[.58,-.18],[1,0]], rx:[[0,0],[.22,.5],[.36,-.45,1],[.58,-.35],[1,0]], py:[[0,0],[.22,.09],[.36,-.06,1],[1,0]], rz:[[0,0],[.22,.25],[.36,-.2],[1,0]]}) },
   butterfly:{ idur:4.6,
-    draw:TRK({py:[[0,-.12],[.3,.01,5],[.42,0,6]], rx:[[0,-.45],[.3,0,5]], rz:[[0,.2],[.18,-.45,6],[.36,.4,6],[.55,-.15,6],[.72,.04,6],[.85,0,6]], px:[[0,.04],[.35,0,5]]}),
+    draw:TRK({py:[[0,-.12],[.3,.01,5],[.42,0,6]], rx:[[0,-.45],[.3,0,5]], ry:[[0,.75],[.55,.65,6],[.8,0,6]], rz:[[0,.2],[.18,-.45,6],[.36,.4,6],[.55,-.15,6],[.72,.04,6],[.85,0,6]], px:[[0,.04],[.35,-.02,5],[.8,0,6]]}),
     dA:[[0,TPI],[.15,TPI],[.52,0,6]], dB:[[0,TPI],[.12,TPI],[.4,-.35,6],[.56,.12,6],[.66,0,6]], dcues:[[.2,'whoosh'],[.52,'click'],[.66,'click']],
-    insp:TRK({px:[[0,0],[.08,-.05,6],[.92,-.05],[1,0,6]], py:[[0,0],[.08,.05,6],[.92,.05],[1,0,6]], pz:[[0,0],[.08,-.04,6],[.92,-.04],[1,0,6]],
-      rz:[[0,0],[.08,-.3,6],[.2,.25,6],[.32,-.35,6],[.44,.1,6],[.56,.6,6],[.66,.55],[.76,-.5,6],[.86,-.45],[.94,-.1,6],[1,0,6]], ry:[[0,0],[.08,.3,6],[.44,.3],[.56,-.2,6],[.86,-.2],[1,0,6]], rx:[[0,0],[.08,.15,6],[.2,.3,6],[.32,.05,6],[.56,.2,6],[.76,.35,6],[1,0,6]]}),
+    insp:TRK({px:[[0,0],[.08,-.07,6],[.92,-.07],[1,0,6]], py:[[0,0],[.08,.06,6],[.92,.06],[1,0,6]], pz:[[0,0],[.08,-.06,6],[.92,-.06],[1,0,6]],
+      ry:[[0,0],[.08,1,6],[.44,1],[.5,.8,6],[.62,1.1,6],[.74,.9],[.84,1.15,6],[.94,.5,6],[1,0,6]], rz:[[0,0],[.08,.35,6],[.2,.5,6],[.32,.25,6],[.44,.4,6],[.56,.65,6],[.66,.45],[.76,.2,6],[.86,.35],[.94,.1,6],[1,0,6]], rx:[[0,0],[.08,.25,6],[.32,.35,6],[.56,.2,6],[.76,.3,6],[1,0,6]]}),
     iA:[[0,0],[.1,0],[.22,TPI,6],[.34,TAU,6],[.44,TAU],[.55,TPI,6],[.66,0,6],[.74,0],[.84,-TPI,6],[.93,-TAU,6],[1,-TAU]],
     iB:[[0,0],[.1,0],[.22,TPI,6],[.34,TAU,6],[.44,TAU],[.55,3*TPI,6],[.66,4*TPI,6],[.74,4*TPI],[.84,3*TPI,6],[.93,2*TPI,6],[1,2*TPI]],
     icues:[[.15,'whoosh'],[.22,'click'],[.34,'click'],[.5,'whoosh'],[.55,'click'],[.66,'click'],[.8,'whoosh'],[.84,'click'],[.93,'click']],
