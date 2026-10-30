@@ -10713,7 +10713,7 @@ function anPose(R,dt,mv,rp){
   // knife attacks
   if(R.knifeT>=0){ if(R.knifeKind===0) kadd(R.knifeT/.5,AN_SLASH[R.slash],1); else kadd(R.knifeT/.9,AN_STAB,1); }
   // grenade throw: pin pull by the left hand, overhand (left click) or underhand (right click)
-  if(R.throwT>=0){ const t=R.throwT/.62; kadd(Math.min(1,t),AN_THROW[R.throwU?1:0],1); R.hideGun=t>.5; anThrowHand(R,t); }
+  if(R.throwT>=0) anThrowPose(R,dt); else { R.thK=0; if(R.ringL) R.ringL.visible=false; }
   // reload (non-shell)
   if(rp>=0){ const E=R.rlEmpty, key=(C==='pistol'?'pistol':C==='sniper'?'sniper':'rifle')+(E?'E':'T'); kadd(rp,AN_RL[key],1);
     if(R.rlLift){ const k=kq(rp,K_RL_LIFT[R.rlLift[2]]); AP[0]+=R.rlLift[0]*k; AP[1]+=R.rlLift[1]*k; AP[2]+=R.rlLift[3]*k; }   // CS2-like: the magwell stays on screen during the swap
@@ -10741,7 +10741,8 @@ function anThrowHand(R,t){ const w=R.w; R.armLvis=t<.95; const hk=kq(t,K_TH_HK);
   const rg=R.ring?R.ringP:_a5.set(.016,.044,0);
   if(t<.3){ R.hL.k=hk; R.hL.p.copy(rg).add(anV('pin',_a4)); const pull=kq(t,K_TH_PULL); R.hL.p.x+=pull*.05; R.hL.p.y+=pull*.07; R.hL.p.z+=pull*.03; anQ('pin',R.hL.q);
     if(R.ring){ R.ring.position.copy(R.ringP); R.ring.position.x+=pull*.05; R.ring.position.y+=pull*.07; R.ring.position.z+=pull*.03; R.ring.visible=true; } }
-  else { if(R.ring) R.ring.visible=false; const k=kq(t,K_TH_PT); R.hLr.k=k; R.hLr.p.set(R.throwU?-.17:-.13,(R.throwU?-.3:-.08)+kq(t,K_TH_DROP),-.42); anQ('point',R.hLr.q);
+  else { if(R.ring) R.ring.visible=false; const k=kq(t,K_TH_PT), u=R.thU||0; R.hLr.k=k; R.hLr.p.set(lerp(-.13,-.17,u),lerp(-.08,-.3,u)+kq(t,K_TH_DROP),-.42); anQ('point',R.hLr.q);
+    if(R.thK>.01){ const b=R.time, q=R.thK; R.hLr.p.x+=Math.sin(b*1.3)*.006*q; R.hLr.p.y+=Math.sin(b*2.1+.4)*.005*q+Math.sin(b*21)*.0012*q; }   // held: the pointing arm breathes and trembles a little
     R.hL.k=hk; R.hL.p.copy(rg).add(anV('pin',_a4)); R.hL.p.x+=.05; R.hL.p.y+=.07; R.hL.p.z+=.03; anQ('pin',R.hL.q); } }
 function anShellPose(R){ const S=R.sh, u=S.t/S.dur, w=R.w; let k=1;
   if(S.ph===1) k=smooth(u); else if(S.ph===3) k=1-smooth(u);
@@ -11082,9 +11083,9 @@ function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const le
   const L=w._sdf, H=arm.hg, S=left?H.sphL:H.sph, P=_hsP.copy(hp).applyMatrix4(_hsI), Q=_hsQ.copy(_hsGQ).multiply(hq);
   anWNear(L,P,.14); const oth=left&&R._rhsN?AN_RHS.slice(0,R._rhsN):null; let moved=false; _wo.copy(P);
   let pen0=anHandPush(L,S,P,Q,oth,_wacc), best=pen0; const pen1=pen0; _hsB.copy(P);
-  for(let it=0;it<8&&pen0>.0008;it++){ let bp=pen0, found=false; const g=_wacc.lengthSq()>1e-12; if(g) _hsD.copy(_wacc).normalize();
+  for(let it=0;it<6&&pen0>.0008;it++){ let bp=pen0, found=false; const g=_wacc.lengthSq()>1e-12; if(g) _hsD.copy(_wacc).normalize();
     for(let c=g?0:1;c<7;c++){ const dir=c?AN_DIRS[c-1]:_hsD;   // summed push-out direction first, then the six axes (concave spots, hand between two parts)
-      for(const m of [1,2]){ _hsC.copy(P).addScaledVector(dir,pen0*m+.0005); if(_hsC.distanceTo(_wo)>.04) _hsC.sub(_wo).setLength(.04).add(_wo); const pn=anHandPen(L,S,_hsC,Q,oth); if(pn<bp-1e-5){ bp=pn; _hsE.copy(_hsC); found=true; } } }
+      for(const m of (c?[1]:[1,2])){ _hsC.copy(P).addScaledVector(dir,pen0*m+.0005); if(_hsC.distanceTo(_wo)>.04) _hsC.sub(_wo).setLength(.04).add(_wo); const pn=anHandPen(L,S,_hsC,Q,oth); if(pn<bp-1e-5){ bp=pn; _hsE.copy(_hsC); found=true; } } }
     if(!found) break; P.copy(_hsE); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; if(pen0<best){ best=pen0; _hsB.copy(P); } }
   if(moved) P.copy(_hsB); if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1),arm.curl];
   if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; }
@@ -11233,6 +11234,17 @@ function anInspFx(R,e,t){ const u=(t-e[1])/(e[2]-e[1]); if(u<0||u>1) return; con
     case 'spin': { const P=anTrig(R); R.hR.k=Math.max(R.hR.k,env); R.hR.p.copy(P).add(_a4.set(.055,-.031,.03)); R.hR.q.copy(_ptQ); R.typeK=Math.max(R.typeK,env);
       if(A.gripL){ anRlPt(R,'gripLo',R.hL.p,R.hL.q); R.hL.p.x-=.04; R.hL.p.z+=.04; R.hL.k=Math.max(R.hL.k,env); }
       if(u>.18&&u<.8) anGunSpin(R,AX_X,kq(u,K_FX_SPIN),P,0); return; } } }
+
+/* ---------- grenade: cocked pose held while the button is down (breathing + arm tension), over / under / medium blend from the live throw mode, pin ring kept in the left hand ---------- */
+function anThrowPose(R,dt){ const t=R.throwT/.62, P=R===VM?player.pendingThrow:null, held=!!(P&&P.hold&&R.throwT>=.278);
+  const uT=P&&P.hold?(P.mode==='under'?1:P.mode==='mid'?.45:0):(R.throwU?1:0); R.thU=R.throwT<.03?uT:lerp(R.thU||0,uT,Math.min(1,dt*6));
+  const tt=Math.min(1,t); kadd(tt,AN_THROW[0],1-R.thU); if(R.thU>0) kadd(tt,AN_THROW[1],R.thU);
+  R.thK=lerp(R.thK||0,held?1:0,Math.min(1,dt*(held?3:12))); const k=R.thK, b=R.time;
+  if(k>.01){ AP[1]+=Math.sin(b*2.1)*.005*k; AP[3]+=Math.sin(b*2.1+.6)*.022*k; AP[5]+=Math.sin(b*1.3)*.014*k; AP[2]+=Math.sin(b*2.1+1.1)*.004*k;   // breathing
+    AP[3]+=(Math.sin(b*23)*.003+Math.sin(b*31)*.002)*k; AP[0]+=Math.sin(b*19)*.001*k; AP[2]-=.012*k; }   // arm tension: drawn back a touch, fine tremor
+  R.hideGun=t>.5; anThrowHand(R,t);
+  if(!R.ringL){ const m=new THREE.Mesh(new THREE.TorusGeometry(.011,.0017,6,18),makeMaterial({preset:'gunmetal',color:'#9aa0a6'})); m.frustumCulled=false; m.rotation.y=Math.PI/2; R.armL.hand.add(m); R.ringL=m; }
+  R.ringL.visible=t>=.3&&t<.95&&R.armLvis; if(R.ringL.visible){ const c=R.armL.curl||.0305; R.ringL.position.set(0,.031,-c+.002); R.ringL.rotation.z=Math.sin(b*3.1)*.3; } }
 
 /* ---------- respawn: nothing from the last life survives (timers, locks, springs, flash cover, plant/defuse, holster, shell reload) ---------- */
 function anRespawn(R){ if(!R) return; R.hol=null; R.noHol=true; R.spawnDraw=true; R.reloadT=0; R.inspectT=-1; R.knifeT=-1; R.rechamberT=-1; R.throwT=-1; R.silT=-1; R.silSlot=null; R.silFlip=false;
