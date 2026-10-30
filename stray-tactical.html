@@ -13498,11 +13498,11 @@ function tpsRefresh(wid){ for(const k in thumbCache) if(k.startsWith(wid+'_')) d
 function tpsSwatch(s){ const k=s.style+s.c.join('')+Math.round(s.wear*40); let u=TPS.img.get(k); if(u) return u;
   try{ const T=tpsGen(s,128), c=document.createElement('canvas'); c.width=160; c.height=96; const x=c.getContext('2d'); x.drawImage(T.map.image,0,0,128,128,0,0,160,160); u=c.toDataURL('image/png'); }catch(e){ u=''; }
   TPS.img.set(k,u); return u; }
-function tpsPreview(){ const def=LIB.byId[TPS.ui.wid]; if(!def||!VM||curScreen!=='loadoutScreen') return;
+function tpsPreview(){ const def=LIB.byId[TPS.ui.wid]; if(!def||!VM||curScreen!=='loadoutScreen'||!$('tpsSt')) return;
   if(showcaseObj){ const h=showcaseObj.holder; disposeWeaponObject(showcaseObj); if(h&&h.parent) h.parent.remove(h); showcaseObj=null; }
   const w=buildWeaponObject(def,{tpSkin:tpsFix(TPS.ui.draft),tpS:256}), box=new THREE.Box3().setFromObject(w.root), c=box.getCenter(new THREE.Vector3()), size=box.getSize(new THREE.Vector3());
   const holder=new THREE.Group(), pivot=new THREE.Group(); w.root.position.sub(c); pivot.add(w.root); holder.add(pivot);
-  w.size=Math.max(.2,size.x,size.y,size.z); w.holder=holder; w.pivot=pivot; w.def=null; vmCam.add(holder); showcaseObj=w; placeShowcase(); }
+  w.size=Math.max(.2,size.x,size.y,size.z); w.holder=holder; w.pivot=pivot; w.def={tpPreview:1}; vmCam.add(holder); showcaseObj=w; placeShowcase(); }
 function tpsPreviewSoon(){ clearTimeout(TPS.ui.to); TPS.ui.to=setTimeout(tpsPreview,140); }
 function tpsCommit(){ const d=tpsFix(TPS.ui.draft); if(!d.id) d.id='u'+uid(); const i=TPS.list.findIndex(s=>s.id===d.id), c=deepClone(d); if(i>=0) TPS.list[i]=c; else TPS.list.push(c); tpsSave();
   for(const k in TPS.equip) if(TPS.equip[k]===d.id) tpsRefresh(k); return d; }
