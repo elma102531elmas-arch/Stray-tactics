@@ -10360,6 +10360,7 @@ function netMMCancel(){ netShutdown(); showScreen('playScreen'); }
 function dmStart(o,roster){
   match.target=o.target; startMatch('duel',{map:o.map}); clearBots();
   match.dm=true; Object.assign(DM,{on:true,t:o.time,target:o.target,weapons:o.weapons||'loadout',resp:[],duel:!!o.duel,uiT:0});
+  LO.dmSeen=0; LO.dmSeenT=0;   // new DM match: the gun menu opens again on the first spawn (loadout block)
   player.team='D0';
   if(roster){ const me=roster.find(r=>r.id===NET.myId); if(me) player.team=me.team; for(const r of roster) if(r.id!==NET.myId) bots.push(netMakeAgent(r,o.diff)); }
   else { const names=BOT_NAMES.slice().sort(()=>Math.random()-.5); for(let i=0;i<o.bots;i++){ const b=new TeamBot(i%2?'CT':'T','BOT '+names[i%names.length],o.diff); b.team='D'+(i+1); bots.push(b); } }
@@ -11725,7 +11726,7 @@ const LO_GEAR=['kevlar','helmet','kit','taser','tagrenade'], LO_NADES=['he','fla
 const LO_DM_PRI=[['TÜFEKLER',['ak47','m4a4','m4a1s','famas','galil','aug','sg556']],['KESKİN NİŞANCI',['awp','ssg08']],['HAFİF MAKİNELİ',['mp9','mac10','mp7','mp5sd','ump45','p90']],['AĞIR',['nova']]];
 const LO_DM_SEC=['glock','usps','hkp2000','p250','fiveseven','tec9','cz75a','deagle'];
 const LO_DM_WIN=10, LO_ZEUS_RECHARGE=20, LO_INJ_DUR=1.0, LO_INJ_HIT=.42, LO_HEAL=50, LO_HEAL_RATE=25, LO_TA_ARM=2, LO_TA_SHOW=5, LO_TA_R=15;
-const LO={ ui:{side:CFG.agent==='T'?'T':'CT',sel:null}, dmOpen:false, dmSeen:0, dmSeenT:0, dmT:0, stT:0, age:99, tb:0, inj:null, heals:[], reveal:new Map(), fx:[], bufs:{}, dmHinted:0 };
+const LO={ ui:{side:CFG.agent==='T'?'T':'CT',sel:null}, dmOpen:false, dmSeen:0, dmSeenT:0, stT:0, age:99, tb:0, inj:null, heals:[], reveal:new Map(), fx:[], bufs:{}, dmHinted:0 };
 const LO_UP=new THREE.Vector3(0,1,0), _loV=new THREE.Vector3(), _loV2=new THREE.Vector3(), _loE=new THREE.Euler();
 // old saves: CFG.loadout {primary, secondary, melee} only -> CS2 defaults, keeping the M4 / starting pistol you used and your old DM guns
 function loMigrate(){
@@ -11992,9 +11993,9 @@ function loNetClient(d){ if(d&&d.k==='zap'&&d.o!==NET.myId) loZapFx(netV3(d.a),n
 
 // ---- per frame (called from tick) ----
 function loTick(dt){ const now=performance.now(), P=player;
-  if(match.dm&&DM.on&&match.state==='live'){ if(DM.t>LO.dmT+.5){ LO.dmSeen=0; LO.dmSeenT=0; } LO.dmT=DM.t;
+  if(match.dm&&DM.on&&match.state==='live'){
     if(!LO.dmSeen&&P.alive){ LO.dmSeenT+=dt; if(LO.dmSeenT>.35){ LO.dmSeen=1; if(!CFG.lo.dm.always) loDmToggle(true); } } }
-  else { if(!match.dm){ LO.dmSeen=0; LO.dmSeenT=0; LO.dmT=0; } if(LO.dmOpen&&match.state!=='paused') loDmToggle(false); }
+  else { if(LO.dmOpen&&match.state!=='paused') loDmToggle(false); }
   if(LO.dmOpen&&(LO.stT-=dt)<=0){ LO.stT=.25; loDmStatus(); }
   const tb=$('buyBtnTouch'); if(match.dm&&match.state==='live'&&CFG.isTouch){ if(!LO.tb){ LO.tb=1; tb.classList.remove('hidden'); } } else if(LO.tb){ LO.tb=0; tb.classList.add('hidden'); }
   const live=match.state==='live'; if(live) LO.age+=dt;   // game time (stops while paused)
