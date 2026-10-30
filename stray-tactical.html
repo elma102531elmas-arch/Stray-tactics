@@ -10089,7 +10089,8 @@ gameExport({mpRoute,mpNavTime,navNbrs,navLayer});
    grenade yard with lineups, movement course, bot pen, stats board. buildRange() hands the build to rgBuildRange(). ===================== */
 const RG_NEW=true;
 const RG={items:[],btns:[],pops:[],pen:[],armory:[],libKey:'',kh:{state:'idle',t0:0,best:null,last:null,seen:{},out:0},mc:{state:'idle',t0:0,best:null,last:null},
-  st:{hits:0,hs:0,kills:0,ttk:[]},nades:new Map(),board:null,boardT:0,boardKey:''};
+  st:{hits:0,hs:0,kills:0,ttk:[]},nades:new Map(),board:null,boardT:0,boardKey:'',time:0};
+const rgNow=()=>RG.time*1000;   // range clock (game time: pauses / slow motion / test stepping stay exact)
 /* text plate (canvas) as a standalone mesh */
 function rgPlate(txt,w,h,o){ o=o||{}; const cw=512, ch=Math.max(32,Math.round(cw*h/w)), cv=document.createElement('canvas'); cv.width=cw; cv.height=ch; const x=cv.getContext('2d');
   x.fillStyle=o.bg||'#1b2129'; x.fillRect(0,0,cw,ch); if(o.border!==false){ x.strokeStyle=o.bc||'#ffb648'; x.lineWidth=Math.max(3,ch*.06); x.strokeRect(x.lineWidth/2,x.lineWidth/2,cw-x.lineWidth,ch-x.lineWidth); }
@@ -10100,7 +10101,7 @@ function rgPlate(txt,w,h,o){ o=o||{}; const cw=512, ch=Math.max(32,Math.round(cw
 /* where a full throw (no movement, standing) lands and rests on flat ground for a pitch (rad), same integrator as updateNades */
 function rgNadeRange(pitch){ const c=Math.cos(pitch), s=Math.sin(pitch); let x=c*.45, y=1.64-.08+s*.45, vx=c*17, vy=s*17+2.4; const dt=1/60;
   for(let i=0;i<900;i++){ vy-=GRAV*.85*dt; const nx=x+vx*dt, ny=y+vy*dt; if(ny<=.07&&vy<0){ x=nx; y=.07; vy=-.25*vy; vx*=.5; if(Math.hypot(vx,vy)<1.1) return x; } else { x=nx; y=ny; } } return x; }
-function rgLineupPitch(D){ let best=0, be=1e9; for(let a=2;a<=62;a+=.05){ const e=Math.abs(rgNadeRange(a*DEG)-D); if(e<be){ be=e; best=a; } } return best*DEG; }
+function rgLineupPitch(D){ let best=0, be=1e9, mid=0, me=1e9; for(let a=2;a<=62;a+=.05){ const e=Math.abs(rgNadeRange(a*DEG)-D); if(e<be){ be=e; best=a; } if(a>=18&&a<=42&&e<me){ me=e; mid=a; } } return (me<.35?mid:best)*DEG; }
 function rgBuildRange(){
   const B=new MapBuilder('range'); B.begin(null);
   const rg=B.rg={rack:{x0:-11,x1:11,y:1.72,z:27.08},west:{x:-14.5,z0:6,z1:22,y:.97},east:{x:14.5,z0:6,z1:22,y:.97},center:{x0:-6.2,x1:6.2,z:22.7,y:.97},armor:[9.6,1.25,22.7],
@@ -10118,7 +10119,7 @@ function rgBuildRange(){
   ab(-16.5,0,2.5,-16,4,12,'panelW',{cap:true}); ab(-16.5,0,17,-16,4,27.5,'panelW',{cap:true}); ab(16,0,2.5,16.5,4,12,'panelW',{cap:true}); ab(16,0,17,16.5,4,27.5,'panelW',{cap:true});
   ab(-16.5,3,12,-16,4,17,'panelW'); ab(16,3,12,16.5,4,17,'panelW'); ab(-10,3.2,2,10,4,2.5,'panelW',{cap:true});
   for(let z=5;z<=26;z+=3.5) ab(-16.2,4.05,z-.12,16.2,4.35,z+.12,'darkmetal',{collide:false,ao:false}); ab(-.12,4.35,2.2,.12,4.6,27.8,'darkmetal',{collide:false,ao:false});
-  ab(-12.2,.4,27.2,12.2,2.8,27.5,'planksD',{collide:false,ao:false}); ab(-12.2,2.8,27.0,12.2,2.9,27.5,'darkmetal',{collide:false,ao:false});
+  ab(-12.2,.4,27.2,12.2,2.8,27.5,'plasterW',{collide:false,ao:false}); ab(-12.2,2.8,27.0,12.2,2.9,27.5,'darkmetal',{collide:false,ao:false});
   ab(-15.6,0,5,-13.4,.92,23,'wood'); ab(-15.7,.92,4.9,-13.3,.97,23.1,'wood',{collide:false,ao:false});
   ab(13.4,0,5,15.6,.92,23,'wood'); ab(13.3,.92,4.9,15.7,.97,23.1,'wood',{collide:false,ao:false});
   ab(-7,0,21.9,7,.92,23.5,'wood'); ab(-7.1,.92,21.8,7.1,.97,23.6,'wood',{collide:false,ao:false});
@@ -10165,13 +10166,13 @@ function rgBuildRange(){
   ab(-44,0,52,-36,3,52.6,'stuccoY',{cap:true}); ab(-44,0,52.6,-43.4,3,58,'stuccoY',{cap:true});   // corner wall
   plate('BOMBA ALANI',-20.62,2.6,30,Wd,3,.6); plate('KUTUYA GİR · KIRMIZIYA NİŞAN AL · SOL TIK (TAM ATIŞ)',-20.62,1.6,40,Wd,6.6,.5,{border:false});
   const ringTex=drawTex(256,(x,s)=>{ x.clearRect(0,0,s,s); x.strokeStyle='rgba(255,210,60,.95)'; x.lineWidth=14; x.beginPath(); x.arc(s/2,s/2,s/2-10,0,TAU); x.stroke(); x.lineWidth=5; x.beginPath(); x.arc(s/2,s/2,s/4,0,TAU); x.stroke(); });
-  const lineups=[{name:'PENCERE',tx:-46,tz:33.5,fx:-26,fz:30},{name:'KAPI',tx:-45.5,tz:43,fx:-26,fz:42},{name:'KÖŞE',tx:-41,tz:56.4,fx:-26,fz:54}];
+  const lineups=[{name:'PENCERE',tx:-46,tz:33.5,fx:-21.6,fz:30},{name:'KAPI',tx:-45.5,tz:43,fx:-21.6,fz:41},{name:'KÖŞE',tx:-42.5,tz:57,fx:-21.6,fz:49}];
   for(const L of lineups){ const D=Math.hypot(L.tx-L.fx,L.tz-L.fz), yaw=Math.atan2(L.tz-L.fz,L.tx-L.fx), pitch=rgLineupPitch(D), r=1.6; rg.rings.push({x:L.tx,z:L.tz,r,name:L.name});
     const rm=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:ringTex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3})); rm.rotation.x=-Math.PI/2; rm.position.set(L.tx,.03,L.tz); B.group.add(rm);
     fl(L.fx-.45,L.fz-.45,L.fx+.45,L.fz+.45,'hazard'); const AD=7, ax=L.fx+Math.cos(yaw)*AD, az=L.fz+Math.sin(yaw)*AD, ay=1.64+Math.tan(pitch)*AD;
     ab(ax-.04,0,az-.04,ax+.04,ay-.25,az+.04,'darkmetal',{collide:false,ao:false}); const mk=new THREE.Mesh(new THREE.CircleGeometry(.16,20),new THREE.MeshBasicMaterial({color:0xff2a2a,side:THREE.DoubleSide})); mk.position.set(ax,ay,az); mk.lookAt(L.fx,1.64,L.fz); B.group.add(mk);
     const mr=new THREE.Mesh(new THREE.RingGeometry(.2,.26,24),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide})); mr.position.copy(mk.position); mr.quaternion.copy(mk.quaternion); B.group.add(mr);
-    const lp=plate(L.name,L.fx+.9,1.0,L.fz,Wd,1.2,.36,{bg:'#20262e'}); lp.rotation.y=-Math.PI/2; L.pitch=+(pitch/DEG).toFixed(1); }
+    const lp=plate(L.name,L.fx-.2,1.0,L.fz+.75,0,1.2,.36,{bg:'#20262e'}); lp.rotation.y=0; ab(L.fx-.25,0,L.fz+.68,L.fx-.15,.82,L.fz+.72,'darkmetal',{collide:false,ao:false}); L.pitch=+(pitch/DEG).toFixed(1); }
   rg.lineups=lineups;
   // ---- MOVEMENT COURSE (stairs, gap jump, step-ups, beam, tower, drop, crouch tunnel, hurdles) ----
   fl(16,12,24,17,'concrete'); fl(24,-32,60,10,'concrete'); fl(25,4,29,8,'greenP',.005); fl(53,4,57,8,'paintR',.005);
@@ -10184,16 +10185,16 @@ function rgBuildRange(){
   ab(31,0,4,33,1.6,6,'wood'); ab(35,0,4,37,1.2,6,'crate');
   ab(25.2,0,8.6,25.32,3,8.72,'darkmetal',{collide:false,ao:false}); ab(28.68,0,8.6,28.8,3,8.72,'darkmetal',{collide:false,ao:false}); plate('HAREKET PARKURU',27,2.6,8.74,0,3.6,.6);
   ab(26.2,0,8.1,27.8,.85,8.3,'darkmetal'); ab(54.2,0,8.1,55.8,.85,8.3,'darkmetal'); plate('BAŞLA',27,.5,8.32,0,1.4,.4,{bg:'#1f4a2a'}); plate('BİTİŞ',55,.5,8.32,0,1.4,.4,{bg:'#5a1f1f'});
-  plate('ÇÖMEL!',55,1.6,-7.94,0,1.6,.36); plate('ÇÖMELİP ZIPLA',32,1.15,6.03,0,1.8,.36,{border:false}); plate('DÜŞ',52,3.3,-25.9,0,1,.36);
+  plate('ÇÖMEL!',55,1.6,-20.06,N,1.6,.36); plate('ÇÖMELİP ZIPLA',32,1.15,6.03,0,1.8,.36,{border:false});
   for(const [x,z] of [[24.5,-31],[59,-31],[59,9]]) ob({t:'flood',kind:'pole',p:[x,0,z],r:[0,x>40?-90:90,0],s:[1,7,1]});
   // ---- BOT PEN (console: standing bots, strafing bots, clear) ----
   fl(24,12,60,19.4,'concrete'); ab(26,0,19.4,58,1,20,'wood'); ab(25.9,1,19.3,58.1,1.05,20.1,'wood',{collide:false,ao:false});
   ab(23.5,0,20,24,1.2,56,'concrete',{cap:true}); ab(60,0,20,60.5,1.2,56,'concrete',{cap:true}); ab(23.5,0,56,60.5,4.4,56.6,'concrete',{cap:true});
-  for(const D of [10,20,30]) fl(24,20+D-.07,60,20+D+.07,'white'); for(const D of [10,20,30]) plate(D+' m',60.47,1.5,20+D,Wd,1.4,.5,{bg:'#20262e'});
+  for(const D of [10,20,30]) fl(24,20+D-.07,60,20+D+.07,'white'); for(const D of [10,20,30]) plate(D+' m',59.97,1.5,20+D,Wd,1.4,.5,{bg:'#20262e'});
   ab(24.3,0,13,25.9,1,18,'darkmetal'); const btn=[['DURAN BOT EKLE','stand',0x3fbf5a],['HAREKETLİ BOT EKLE','strafe',0xe0a020],['BOTLARI TEMİZLE','clear',0xd03030]];
   btn.forEach(([label,act,col],i)=>{ const z=14+i*1.5, m=new THREE.Mesh(new THREE.CylinderGeometry(.16,.18,.08,18),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.6})); m.position.set(25.1,1.04,z); B.group.add(m);
     const lp=rgPlate(label,1.3,.26,{bg:'#20262e',border:false}); lp.rotation.y=E; lp.position.set(25.93,.62,z); B.group.add(lp); rg.btns.push({label,act,pos:[25.1,1.05,z]}); });
-  ab(40.3,0,19.5,40.42,2.6,19.62,'darkmetal',{collide:false,ao:false}); ab(43.58,0,19.5,43.7,2.6,19.62,'darkmetal',{collide:false,ao:false}); plate('BOT KAFESİ',42,2.2,19.64,0,3,.6);
+  ab(40.3,0,19.5,40.42,2.6,19.62,'darkmetal',{collide:false,ao:false}); ab(43.58,0,19.5,43.7,2.6,19.62,'darkmetal',{collide:false,ao:false}); plate('BOT KAFESİ',42,2.2,19.48,N,3,.6);
   ab(24.4,1,13.1,24.5,2.5,13.2,'darkmetal',{collide:false,ao:false}); ab(24.4,1,17.8,24.5,2.5,17.9,'darkmetal',{collide:false,ao:false}); plate('KONSOL: E İLE BOT EKLE / TEMİZLE',24.53,2.15,15.5,E,4.6,.42,{border:false});
   // ---- decor, skyline, spawn ----
   for(const [x,z] of [[-30,30],[-30,-10],[40,30],[40,-36],[0,40]]) ob({t:'flood',kind:'pole',p:[x,0,z],s:[1,7.5,1]});
@@ -10244,7 +10245,7 @@ function rgPenRemove(d){ d.char.dispose(); const i=RANGE.dummies.indexOf(d); if(
 function rgPenClear(){ const n=RG.pen.length; while(RG.pen.length) rgPenRemove(RG.pen[0]); if(n&&match.mode==='range') toast('Botlar temizlendi',1000); }
 /* ---- kill house ---- */
 function rgKHReset(){ const K=RG.kh; K.seen={}; K.out=0; for(const d of RG.pops){ d.hp=100; d.armor=100; d.deadT=0; d._t0=0; d.char.setDead(false); d.char.pos.copy(d.home); d.char.yaw=d.yaw; d.char.root.visible=false; } }
-function rgKH(dt){ const K=RG.kh, rooms=WORLD.maps.range.rg.rooms, p=player.pos, now=performance.now(), ri=rooms.findIndex(r=>p.x>r[0]&&p.x<r[2]&&p.z>r[1]&&p.z<r[3]);
+function rgKH(dt){ const K=RG.kh, rooms=WORLD.maps.range.rg.rooms, p=player.pos, now=rgNow(), ri=rooms.findIndex(r=>p.x>r[0]&&p.x<r[2]&&p.z>r[1]&&p.z<r[3]);
   if(K.state==='idle'){ if(ri===0&&player.alive){ rgKHReset(); K.state='run'; K.t0=now; toast('BASKIN EVİ — süre başladı',1400); } }
   else if(K.state==='run'){
     if(ri>=0&&!K.seen[ri]){ K.seen[ri]=1; for(const d of RG.pops) if(d.room===ri){ d.char.root.visible=true; sfx.plate(d.char.pos.clone().setY(1.2)); } }
@@ -10252,7 +10253,7 @@ function rgKH(dt){ const K=RG.kh, rooms=WORLD.maps.range.rg.rooms, p=player.pos,
     if(RG.pops.every(d=>d.hp<=0)){ K.state='done'; K.last=(now-K.t0)/1000; const rec=K.best===null||K.last<K.best; if(rec) K.best=K.last; showBanner('BASKIN EVİ',K.last.toFixed(2)+' sn'+(rec?' · REKOR':''),2200); } }
   else if(K.state==='done'&&ri<0) K.state='idle'; }
 /* ---- movement course ---- */
-function rgMC(){ const M=RG.mc, rg=WORLD.maps.range.rg, p=player.pos, now=performance.now(), inR=r=>p.x>r[0]&&p.x<r[2]&&p.z>r[1]&&p.z<r[3]&&p.y<.7;
+function rgMC(){ const M=RG.mc, rg=WORLD.maps.range.rg, p=player.pos, now=rgNow(), inR=r=>p.x>r[0]&&p.x<r[2]&&p.z>r[1]&&p.z<r[3]&&p.y<.7;
   if(inR(rg.mcStart)){ if(M.state!=='ready') M.state='ready'; } else if(M.state==='ready'){ M.state='run'; M.t0=now; toast('PARKUR — süre başladı',1100); }
   if(M.state==='run'){ if(inR(rg.mcFinish)){ M.state='done'; M.last=(now-M.t0)/1000; const rec=M.best===null||M.last<M.best; if(rec) M.best=M.last; showBanner('PARKUR',M.last.toFixed(2)+' sn'+(rec?' · REKOR':''),2200); } else if(now-M.t0>180000) M.state='idle'; } }
 /* ---- grenade yard: where did it land? ---- */
@@ -10262,12 +10263,12 @@ function rgNadeLand(p){ const rg=WORLD.maps.range.rg, y=rg.yard; if(p.x<y[0]||p.
 function rgNades(){ for(const n of NADES){ let v=RG.nades.get(n); if(!v){ v={p:new THREE.Vector3(),done:false}; RG.nades.set(n,v); } v.p.copy(n.g.position); if(n.rest&&!v.done){ v.done=true; rgNadeLand(v.p); } }
   for(const [n,v] of RG.nades) if(!NADES.includes(n)){ if(!v.done) rgNadeLand(v.p); RG.nades.delete(n); } }
 /* ---- stats ---- */
-function rgOnHit(d,dmg,zone){ const S=RG.st, now=performance.now(); S.hits++; if(zone==='head') S.hs++; if(d.hp+dmg>=100||!d._t0) d._t0=now;
+function rgOnHit(d,dmg,zone){ const S=RG.st, now=rgNow(); S.hits++; if(zone==='head') S.hs++; if(d.hp+dmg>=100||!d._t0) d._t0=now;
   if(d.hp<=0&&d._t0>=0){ const t=(now-d._t0)/1000; S.ttk.push(t); if(S.ttk.length>20) S.ttk.shift(); S.kills++; d._t0=-1; if(d.pop) d.deadT=1e9; } }
 function rgStats(){ const S=RANGE.stats, R=RG.st, avg=R.ttk.length?R.ttk.reduce((a,b)=>a+b,0)/R.ttk.length:null, last=R.ttk.length?R.ttk[R.ttk.length-1]:null;
   return {shots:S.shots,hits:S.hits,acc:S.shots?Math.round(S.hits/S.shots*100):0,hs:R.hits?Math.round(R.hs/R.hits*100):0,kills:R.kills,ttk:last,avg,kh:RG.kh,mc:RG.mc}; }
 const rgT=v=>v===null||v===undefined?'—':v.toFixed(2)+' sn';
-function rgPanelExtra(){ const s=rgStats(), K=RG.kh, M=RG.mc, now=performance.now();
+function rgPanelExtra(){ const s=rgStats(), K=RG.kh, M=RG.mc, now=rgNow();
   return '<br>Kafa: <b>'+s.hs+'%</b> · Leş: <b>'+s.kills+'</b><br>Son TTK: <b>'+rgT(s.ttk)+'</b> · Ort: <b>'+rgT(s.avg)+'</b>'+
     (K.state==='run'?'<br>Baskın evi: <b>'+((now-K.t0)/1000).toFixed(1)+' sn</b> · kalan '+RG.pops.filter(d=>d.hp>0).length:'')+(M.state==='run'?'<br>Parkur: <b>'+((now-M.t0)/1000).toFixed(1)+' sn</b>':''); }
 function rgBoard(){ const B=WORLD.maps.range; if(!RG.board){ const cv=document.createElement('canvas'); cv.width=512; cv.height=340; const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace;
@@ -10283,7 +10284,7 @@ function rgSetup(){ const B=WORLD.maps.range; if(!B||!B.rg) return; rgArmory();
   if(!RG.pops.length) B.rg.rooms.forEach((r,ri)=>r.pops.forEach(([x,z,yaw],k)=>{ const c=new Character(ri%2?'T':'CT','HEDEF'); c.setWeapon(getWeapon(['ak47','m4a1s','mp9','deagle','p90','nova','galil','famas'][(ri*2+k)%8]));
     const d={char:c,home:new THREE.Vector3(x,0,z),yaw,hp:100,armor:100,helmet:true,deadT:0,strafe:null,pop:true,room:ri}; c.pos.copy(d.home); c.yaw=yaw; RANGE.dummies.push(d); RG.pops.push(d); }));
   rgPenClear(); rgKHReset(); RG.kh.state='idle'; RG.mc.state='idle'; RG.st={hits:0,hs:0,kills:0,ttk:[]}; RG.nades.clear(); RG.boardKey=''; rgBoard(); }
-function rgUpdate(dt){ if(!WORLD.maps.range.rg) return; rgKH(dt); rgMC(); rgNades(); RG.boardT-=dt; if(RG.boardT<=0){ RG.boardT=.35; rgBoard(); } }
+function rgUpdate(dt){ if(!WORLD.maps.range.rg) return; RG.time+=dt; rgKH(dt); rgMC(); rgNades(); RG.boardT-=dt; if(RG.boardT<=0){ RG.boardT=.35; rgBoard(); } }
 gameExport({RG,rgGive,rgPenAdd,rgPenClear,rgStats,rgKHReset,rgNadeRange,rgLineupPitch,get rgItems(){ return RG.items.map(i=>({hint:i.hint,p:i.pos.toArray().map(v=>+v.toFixed(2))})); }});
 
 
