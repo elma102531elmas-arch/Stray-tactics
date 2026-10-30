@@ -13967,7 +13967,7 @@ function zmTestBooth(types,dist){ const nav=WORLD.active.nav, P=player; let best
   P.pos.copy(best.p); P.yaw=best.y; P.pitch=-.05; P.vel.set(0,0,0); const f=[-Math.sin(best.y),-Math.cos(best.y)], r=[Math.cos(best.y),-Math.sin(best.y)], out=[];
   (types||[]).forEach((t,i)=>{ const o=(i-(types.length-1)/2)*1.8; out.push(zmSpawnZombie(t,new THREE.Vector3(P.pos.x+f[0]*(dist||9)+r[0]*o,P.pos.y,P.pos.z+f[1]*(dist||9)+r[1]*o))); });
   return {score:bs,pos:P.pos.toArray(),n:out.length}; }
-gameExport({ zmTestBooth, ZM, TPS, TPK, ZM_TYPES, zmStart, zmStartOffline, zmSpawnZombie, zmWaveStart, zmFlow, zmDown, zmRevive, zmGameOver, zmBuy, zmSurv, zmPrefs, tpsGen, tpsPreview, tpSkinApply, tpsEnsure, tpsSave, tpsRefresh,
+gameExport({ zmTestBooth, zmSpawnPoint, ZM, TPS, TPK, ZM_TYPES, zmStart, zmStartOffline, zmSpawnZombie, zmWaveStart, zmFlow, zmDown, zmRevive, zmGameOver, zmBuy, zmSurv, zmPrefs, tpsGen, tpsPreview, tpSkinApply, tpsEnsure, tpsSave, tpsRefresh,
   get testBuild(){ return TEST_BUILD; } });
 
 
