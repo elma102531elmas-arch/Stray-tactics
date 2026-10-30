@@ -1121,6 +1121,94 @@ body.touchEditing #lookZone,body.touchEditing #moveZone{pointer-events:none;}
 
 
 /* @@CSS:loadout — styles from the loadout work go right below this line */
+/* ENVANTER → EKİPMAN: CS2-style CT / T loadout */
+.invGrid.loMode{display:block;padding:12px 14px 18px;}
+.invWrap.loWide .invSide{width:min(30%,340px);}
+.loPage{display:flex;flex-direction:column;gap:14px;--lc:var(--m-ct);}
+.loPage.t{--lc:var(--m-t);}
+.loTop{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.loSides{display:flex;border:1px solid var(--m-line2);border-radius:6px;overflow:hidden;flex:none;}
+.loSideBtn{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 18px;font-family:var(--f-cs);font-weight:700;font-size:16px;letter-spacing:.12em;color:var(--m-txt2);background:rgba(255,255,255,.03);transition:background .15s,color .15s;}
+.loSideBtn+.loSideBtn{border-left:1px solid var(--m-line2);}
+.loSideBtn i{width:10px;height:10px;border-radius:2px;background:currentColor;opacity:.45;}
+.loSideBtn:hover{color:#fff;background:rgba(255,255,255,.07);}
+.loSideBtn.ct.on{color:#fff;background:linear-gradient(180deg,rgba(120,180,255,.3),rgba(120,180,255,.1));box-shadow:inset 0 -2px 0 var(--m-ct);}
+.loSideBtn.t.on{color:#fff;background:linear-gradient(180deg,rgba(232,179,60,.3),rgba(232,179,60,.1));box-shadow:inset 0 -2px 0 var(--m-t);}
+.loSideBtn.ct.on i{background:var(--m-ct);opacity:1;} .loSideBtn.t.on i{background:var(--m-t);opacity:1;}
+.loSideBtn:focus-visible{outline:2px solid #fff;outline-offset:-2px;}
+.loTip{flex:1;min-width:200px;font-size:12px;color:var(--m-mut);line-height:1.45;}
+.loRow h5{margin:0 0 7px;font-family:var(--f-cs);font-weight:700;font-size:14px;letter-spacing:.18em;color:var(--m-txt2);display:flex;align-items:baseline;gap:10px;}
+.loRow h5 small{font-size:11px;letter-spacing:.06em;color:var(--m-mut);font-weight:500;}
+.loCards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.loRow.fixed .loCards{grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:6px;}
+.loCard{all:unset;cursor:pointer;box-sizing:border-box;position:relative;min-width:0;display:flex;flex-direction:column;padding:18px 9px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#262c35,#171b21);transition:transform .12s,border-color .12s,box-shadow .12s;}
+.loCard::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:0 0 6px 6px;background:var(--tc);opacity:.9;}
+.loCard:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.3);box-shadow:0 10px 22px rgba(0,0,0,.35);}
+.loCard:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.loCard.sel{border-color:#fff;box-shadow:0 0 0 1px #fff;}
+.loCard img{display:block;width:100%;height:46px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));}
+.loCard .loNm{margin-top:7px;font-family:var(--f-cs);font-weight:700;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.loCard .loPr{font-family:var(--f-mono);font-size:11px;color:#7ee08a;}
+.loCard .loK{position:absolute;left:7px;top:5px;font-family:var(--f-mono);font-size:10px;color:var(--m-mut);}
+.loCard .loTag{position:absolute;right:6px;top:5px;font-family:var(--f-cs);font-weight:700;font-size:10px;letter-spacing:.12em;padding:0 5px;border-radius:2px;background:var(--lc);color:#0c1016;}
+.loCard.empty{border-style:dashed;background:rgba(255,255,255,.02);}
+.loCard.empty .loNm{color:var(--m-mut);}
+.loPlus{height:46px;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--m-mut);}
+.loGi{height:30px;display:flex;align-items:center;justify-content:center;} .loGi svg{width:26px;height:26px;}
+.loCard.fix{cursor:default;padding:15px 6px 8px;background:linear-gradient(180deg,#1f242b,#14171c);}
+.loCard.fix:hover{transform:none;box-shadow:none;border-color:rgba(255,255,255,.1);}
+.loCard.fix.link{cursor:pointer;} .loCard.fix.link:hover{border-color:rgba(255,255,255,.3);}
+.loCard.fix img{height:28px;} .loCard.fix .loNm{font-size:13px;margin-top:5px;} .loCard.fix .loPr{font-size:10px;}
+/* slot picker */
+#loPick{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.64);padding:12px;}
+#loPick.hidden{display:none;}
+.loPickBox{width:min(100%,760px);max-height:92vh;display:flex;flex-direction:column;background:rgba(16,19,25,.98);border:1px solid var(--m-line2);border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.6);}
+.loPickBox header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--m-line);font-family:var(--f-cs);font-weight:700;font-size:18px;letter-spacing:.12em;color:#fff;}
+.loPickBox header span{flex:1;min-width:0;}
+.loPickGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:14px;overflow:auto;}
+.loOpt{all:unset;cursor:pointer;box-sizing:border-box;position:relative;display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:6px;border:1px solid var(--m-line);background:linear-gradient(180deg,#262c35,#171b21);}
+.loOpt:hover{border-color:rgba(255,255,255,.32);} .loOpt:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.loOpt.on{border-color:#7ee08a;box-shadow:0 0 0 1px #7ee08a;}
+.loOpt img{width:100%;height:50px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));}
+.loOpt .nm{font-family:var(--f-cs);font-weight:700;font-size:16px;color:#fff;}
+.loOpt .pr{font-family:var(--f-mono);font-size:11px;color:var(--m-mut);}
+.loOpt .tg{font-family:var(--f-cs);font-size:10px;font-weight:700;letter-spacing:.1em;color:#7ee08a;}
+.loOpt.empty .loPlus{height:50px;}
+.loPickNote{margin:0;padding:0 16px 14px;font-size:12px;color:var(--m-mut);}
+/* deathmatch gun menu */
+#loDm{position:fixed;inset:0;z-index:85;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.5);padding:10px;}
+#loDm.hidden{display:none;}
+.loDmBox{background:rgba(14,18,25,.97);border:1px solid var(--line2);width:min(100%,980px);max-height:94vh;display:flex;flex-direction:column;}
+.loDmBox header{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--f-display);}
+.loDmBox header .t{font-weight:900;font-style:italic;font-size:26px;letter-spacing:.06em;}
+.loDmBox .grow{flex:1;}
+#loDmSt{font-family:var(--f-ui);font-size:12px;color:#7ee08a;letter-spacing:.06em;} #loDmSt.late{color:var(--mut);}
+.loDmFree{font-family:var(--f-mono);font-size:12px;color:#7ee08a;border:1px solid rgba(126,224,138,.4);padding:1px 6px;}
+.loDmBody{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;padding:12px 14px;overflow:auto;}
+.loDmCol h4{margin:0 0 2px;font-family:var(--f-display);font-weight:800;font-size:14px;letter-spacing:.25em;color:#fff;}
+.loDmCol h5{margin:8px 0 5px;font-family:var(--f-display);font-weight:700;font-size:11px;letter-spacing:.22em;color:var(--mut);}
+.loDmGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:6px;}
+.loDmItem{all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 6px 5px;background:#121820;border:1px solid var(--line);min-width:0;}
+.loDmItem img{width:100%;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));}
+.loDmItem span{font-family:var(--f-display);font-weight:800;font-size:14px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.loDmItem:hover{border-color:#7ee08a;background:#16202a;}
+.loDmItem.on{border-color:#7ee08a;background:rgba(126,224,138,.13);box-shadow:inset 0 0 0 1px #7ee08a;}
+.loDmBox footer{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap;}
+.loDmGear{font-size:11px;color:var(--mut);letter-spacing:.04em;}
+.loTg{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);background:#121820;}
+.loTg:hover{border-color:rgba(255,255,255,.3);}
+.loTg i{width:14px;height:14px;border:2px solid var(--mut);border-radius:3px;flex:none;}
+.loTg.on i{background:#7ee08a;border-color:#7ee08a;box-shadow:inset 0 0 0 2px #121820;}
+.loTg b{display:block;font-family:var(--f-display);font-weight:800;font-size:14px;letter-spacing:.12em;color:#fff;}
+.loTg small{display:block;font-size:11px;color:var(--mut);}
+.loDmOk{min-width:130px;height:40px;font-size:18px;}
+#loHealFx{position:fixed;inset:0;pointer-events:none;z-index:30;opacity:0;background:radial-gradient(ellipse at center,rgba(60,230,110,0) 45%,rgba(60,230,110,.32) 100%);}
+#loHealFx.on{animation:loHeal 1.6s ease-out;}
+@keyframes loHeal{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+@media (max-width:860px){ .loCards{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;} .loCard{padding:16px 6px 8px;} .loCard .loNm{font-size:13px;} .loCard img{height:36px;} .loTip{font-size:11px;} }
+@media (max-width:560px){ .loCards{grid-template-columns:repeat(3,minmax(0,1fr));} .loDmBody{grid-template-columns:1fr;} .loSideBtn{padding:8px 12px;font-size:14px;} }
+@media (max-height:620px) and (orientation:landscape){ .loDmBox header .t{font-size:20px;} .loDmBody{padding:8px 12px;} .loDmItem img{height:22px;} .loDmItem span{font-size:12px;} .loDmGrid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));} }
+@media (prefers-reduced-motion:reduce){ .loCard,.loSideBtn{transition:none;} .loCard:hover{transform:none;} #loHealFx.on{animation:none;} }
 
 
 /* @@CSS:onboard — styles from the onboard work go right below this line */
@@ -5345,6 +5433,15 @@ function decoySnd(kind, R, v) {
   return finish(Ls, Rs, 0.3, { loop: true });
 }
 
+// loadout additions: P2000, Five-SeveN, CZ75-Auto, MP7, UMP-45, MP5-SD, SG 553 (derived from the closest real profiles)
+GUNS.hkp2000 = { ...GUNS.uspu, lvl: 0.74, ld: -2.8, bd: [90, 185, 0.007, 0.046, 0.7], bk: [1100, 1.35, 0.017, 0.6, 2600, 0.36], cr: [4200, 0.0021, 0.3], h: { size: 1.2, heavy: 0.65, ring: 0.9, poly: 0.45 } };
+GUNS.fiveseven = { ...GUNS.p250, lvl: 0.75, ld: -2.8, bl: [0.66, 0.92, 0.045, 2.3], bd: [96, 200, 0.006, 0.04, 0.6], bk: [1300, 1.45, 0.016, 0.62, 3000, 0.42], cr: [4700, 0.0021, 0.36], nw: [0.00018, 0.18], h: { size: 1.25, heavy: 0.6, ring: 0.8, poly: 0.55 } };
+GUNS.cz75a = { ...GUNS.glock, lvl: 0.73, ld: -3.2, bd: [92, 192, 0.0065, 0.044, 0.66], bk: [1080, 1.3, 0.016, 0.6, 2500, 0.34], rs: [[2650, 0.035, 0.035], [3800, 0.028, 0.03]], h: { size: 1.2, heavy: 0.7, ring: 1.15, poly: 0.1 } };
+GUNS.mp7 = { ...GUNS.p90, lvl: 0.77, bd: [90, 185, 0.007, 0.044, 0.72], bk: [1250, 1.45, 0.016, 0.6, 2950, 0.4], cr: [4700, 0.0021, 0.3], h: { size: 1.1, heavy: 0.7, ring: 0.85, poly: 0.55 } };
+GUNS.ump45 = { ...GUNS.mac10, lvl: 0.8, ld: -2.0, bd: [74, 155, 0.009, 0.055, 0.9], bk: [860, 1.2, 0.019, 0.58, 1950, 0.3], h: { size: 1.05, heavy: 0.85, ring: 0.85, poly: 0.6 } };
+GUNS.mp5sd = { ...GUNS.m4a1s, lvl: 0.44, ld: -12, bl: [2.3, 0.75, 0.55, 2.0], bd: [92, 160, 0.007, 0.044, 1.05], bk: [700, 1.0, 0.016, 0.3, 1700, 0.14], sup: [850, 0.16], tl: { ...GUNS.m4a1s.tl, len: 0.6, g: 0.15 }, h: { size: 1.15, heavy: 0.8, ring: 0.9, poly: 0.3 } };
+GUNS.sg556 = { ...GUNS.galil, lvl: 0.9, ld: -0.4, bd: [70, 158, 0.009, 0.074, 0.88], bk: [900, 1.3, 0.022, 0.62, 2100, 0.34], cr: [3800, 0.0028, 0.36], h: { size: 0.95, heavy: 1.1, ring: 1.05, poly: 0.15 } };
+Object.assign(PROFILES, { hkp2000: 'P2000', fiveseven: 'Five-SeveN', cz75a: 'CZ75-Auto', mp7: 'MP7', ump45: 'UMP-45', mp5sd: 'MP5-SD', sg556: 'SG 553' });
 /* ------------------------------ registry ------------------------------ */
 const REG = Object.create(null);
 /** def(id, fn(R, version, variant) -> {L,R}, {vars: round-robin count, loop}) */
@@ -5496,7 +5593,7 @@ function weaponSound(def,act,o){
 // o (optional) is passed through to weaponSound: {unsup:true} = removable suppressor is off
 function weaponFire(def,pos,dist,o){
   if(!pos){ weaponSound(def,'fire',Object.assign({rev:.16,jit:.03},o)); touchHaptic('fire'); return; }
-  const d=dist||0, sup=/silenc|usps|m4a1s|silpistol/.test(sndProfile(def,o)), occ=acuOcc(pos), src=acuSrc(pos);
+  const d=dist||0, sup=/silenc|usps|m4a1s|silpistol|mp5sd/.test(sndProfile(def,o)), occ=acuOcc(pos), src=acuSrc(pos);
   const nearV=clamp(1-(d-22)/26,0,1), farV=clamp((d-14)/26,0,1)*(sup?.35:1), air=acuAirLP(d);
   const lpN=occ?Math.min(air||20000,occ>.6?1250:2600):(air||(d>12?Math.max(2600,16000/(1+d*.04)):0));   // behind a wall: muffled, more room sound
   if(nearV>0) weaponSound(def,'fire',Object.assign({pos,ref:5,roll:.9,lp:lpN,rev:(.22+d*.006)*src*(1+.7*occ),vol:nearV*(1-.42*occ),jit:.05},o));
@@ -6425,7 +6522,7 @@ const player={ id:'p', isPlayer:true, name:'SEN', team:'T', pos:new THREE.Vector
   alive:true, slots:{}, cur:'primary', last:'secondary', fireCd:0, reloading:false, reloadT:0, sprayIdx:0, sinceShot:9,
   punch:new THREE.Vector2(), scope:0, rescope:0, noclip:false, god:false, infAmmo:false, stepAcc:0, wasGround:true, pendingKnife:null, dmgAcc:0, useT:0, flashT:0 };
 let firing=false, firing2=false;
-const SLOT_ORDER=['primary','secondary','melee','grenade','c4'];
+const SLOT_ORDER=['primary','secondary','melee','taser','grenade','c4','heal'];
 const mkSlot=d=>({def:d,mag:d.stats.mag,res:d.stats.reserve,silOn:!!d.stats.silencer});
 function slotState(){ return player.slots[player.cur]||player.slots.secondary||player.slots.melee; }
 function curDef(){ return slotState().def; }
@@ -6437,6 +6534,7 @@ function setupLoadout(override){
   if(override){ const sl=override.slot; if(sl==='grenade'){ player.nades=[override.id]; refreshNadeSlot(); } else player.slots[sl]=mkSlot(override); player.cur=sl; }
   else player.cur='primary';
   player.last=player.cur==='primary'?'secondary':'primary';
+  loPracticeGear();   // Zeus + healthshot in the test range / free roam (loadout block)
 }
 function refreshNadeSlot(){
   if(!player.nades.length){ delete player.slots.grenade; return; }
@@ -6449,6 +6547,7 @@ function equipCurrent(){
 }
 function switchSlot(slot){
   if(!player.alive||(match.state!=='live')) return;
+  if(slot==='melee'&&player.slots.taser&&(player.cur==='melee'||player.cur==='taser')) slot=player.cur==='melee'?'taser':'melee';   // CS2: 3 again = Zeus
   if(slot==='grenade'&&player.cur==='grenade'&&player.nades.length>1){ player.nadeIdx++; refreshNadeSlot(); equipCurrent(); return; }
   if(!player.slots[slot]||slot===player.cur) return;
   if(player.planting||player.defusing) return;
@@ -6614,6 +6713,7 @@ function opponents(){ const L=[];
 function tryFire(click){
   const P=player, st=slotState(), def=st.def, s=def.stats;
   if(!canAct()||(P.shell&&anShellFire(P,click))||P.reloading||P.planting||P.defusing) return;
+  if(s.zeus||s.heal){ loUseItem(def,st,click); return; }   // Zeus x27 / healthshot (loadout block)
   if(def.type==='knife'){ tryKnife(0); return; }
   if(def.type==='grenade'){ if(click) startThrow(); return; }
   if(def.type==='c4'){ return; }
@@ -6970,23 +7070,14 @@ function buyAllowed(){ return match.mode==='comp'&&player.alive&&(COMP.phase==='
 function botBuy(b){
   if(b.isRemote) return;
   const T=b.team==='T', r=COMP.round, half=COMP.maxRounds/2, pistolRound=r===1||r===half+1;
-  if(!pistolRound&&!b.slots.primary){
-    if(b.money>=5750&&Math.random()<.2) buyItem(b,'awp');
-    else if(b.money>=(T?3700:4100)) buyItem(b,T?'ak47':(Math.random()<.25?'aug':(Math.random()<.5?'m4a4':'m4a1s')));
-    else if(b.money>=3000&&Math.random()<.35) buyItem(b,'p90');
-    else if(b.money>=(T?2450:2700)) buyItem(b,T?'galil':'famas');
-    else if(b.money>=1900&&Math.random()<.6) buyItem(b,T?'mac10':'mp9');
-  }
-  const eco=!pistolRound&&!b.slots.primary, cheapPistol=!(b.slots.secondary&&b.slots.secondary.def.stats.price>200);
-  if(T&&(pistolRound||eco)&&cheapPistol&&b.money>=500&&Math.random()<.4) buyItem(b,'tec9');
-  else if(pistolRound&&cheapPistol&&b.money>=300&&Math.random()<.35) buyItem(b,'p250');
+  loBotBuyGuns(b,T,pistolRound);   // per-side pools (loadout block)
   if(b.money>=1000&&(!b.helmet||b.armor<60)) buyItem(b,'helmet'); else if(b.money>=650&&b.armor<60) buyItem(b,'kevlar');
   if(!T&&b.money>=400&&Math.random()<.45) buyItem(b,'kit');
   b.equipBest(true);
 }
 /* ---- match setup ---- */
 function teamDefault(team){ return getWeapon(team==='T'?'glock':'usps'); }
-function resetAgentGear(a){ a.slots={primary:null,secondary:mkSlot(teamDefault(a.team)),melee:mkSlot(a===player?knifeDef():getWeapon('knife'))}; if(a===player){ delete a.slots.primary; } a.armor=0; a.helmet=false; a.kit=false; a.nades=[]; a.hasBomb=false; if(a===player) refreshNadeSlot(); }
+function resetAgentGear(a){ a.slots={primary:null,secondary:mkSlot(a===player?loStartPistol(a.team):teamDefault(a.team)),melee:mkSlot(a===player?knifeDef():getWeapon('knife'))}; if(a===player){ delete a.slots.primary; } a.armor=0; a.helmet=false; a.kit=false; a.nades=[]; a.hasBomb=false; if(a===player) refreshNadeSlot(); }
 function startComp(opts){
   const C=Object.assign({},CFG.comp,opts||{}); ensureAudio(); clearBots(); clearDrops();
   match.mode='comp'; match.state='live'; match.testDef=null;
@@ -7243,7 +7334,7 @@ function updateHUD(){
   $('ammoNum').classList.toggle('low',!knife&&st.mag<=Math.ceil(d.stats.mag*.2));
   $('wpnName').textContent=d.name.toUpperCase();
   const sl=$('wpnSlots'); sl.innerHTML='';
-  [['primary','1'],['secondary','2'],['melee','3'],['grenade','4'],['c4','5']].forEach(([k,n])=>{ const s=P.slots[k]; if(!s) return; const e=document.createElement('div'); e.className='slot'+(P.cur===k?' active':'');
+  [['primary','1'],['secondary','2'],['melee','3'],['taser','3'],['grenade','4'],['c4','5'],['heal','X']].forEach(([k,n])=>{ const s=P.slots[k]; if(!s) return; const e=document.createElement('div'); e.className='slot'+(P.cur===k?' active':'');
     const nm=k==='grenade'&&P.nades.length>1?P.nades.map(id=>(LIB.byId[id]||{name:id}).name.split(' ')[0]).join(' · '):s.def.name;
     const ic=weaponIcon(s.def); e.innerHTML=(P.cur===k?'<span class="sn">'+esc(nm.toUpperCase())+'</span>':'')+(ic?'<img alt="" src="'+ic+'">':'<span class="sn">'+esc(nm.toUpperCase())+'</span>')+'<b>'+n+'</b>'; e.addEventListener('click',()=>switchSlot(k)); sl.appendChild(e); });
   const sbt=$('scopeBtnTouch'), hasSc=(d.stats.scope|0)>0; sbt.classList.toggle('hidden',!(hasSc||d.stats.silencer)); touchScopeLabel(sbt,hasSc);
@@ -7308,6 +7399,7 @@ function smokeBlocks(a,b){ for(const s of SMOKES){ if(s.t<1.2||s.t>s.dur-1.5) co
   const q=a.clone().addScaledVector(ab,t); if(q.distanceTo(s.pos)<s.r*.92) return true; } return false; }
 function updateNades(dt){
   for(let i=NADES.length-1;i>=0;i--){ const n=NADES[i]; n.t+=dt;
+    if(n.kind==='ta'){ if(loTaUpdate(n,dt)) NADES.splice(i,1); continue; }   // sticky TA grenade (loadout block)
     if(!n.rest){ n.vel.y-=GRAV*.85*dt; const step=n.vel.clone().multiplyScalar(dt), L=step.length();
       if(L>1e-5){ const hit=rayWorld(n.g.position,step.clone().multiplyScalar(1/L),L+.07);
         if(hit){ n.g.position.copy(hit.point).addScaledVector(hit.normal,.07); const vn=n.vel.dot(hit.normal); n.vel.addScaledVector(hit.normal,-1.5*vn).multiplyScalar(.5);
@@ -7460,6 +7552,7 @@ function renderScoreboard(into){
 function showScoreboard(v){ if(match.mode!=='comp'&&match.mode!=='duel'){ v=false; } sbOpen=v; $('scoreBoard').classList.toggle('hidden',!v); if(v) renderScoreboard(); }
 /* ---- buy menu ---- */
 function toggleBuy(v){
+  if(match.dm||LO.dmOpen){ loDmToggle(v); return; }   // deathmatch: free gun menu (loadout block)
   if(v===undefined) v=!buyOpen;
   if(v&&!buyAllowed()){ if(match.mode==='comp') toast(!inBuyZone(player)?'Satın alma bölgesinde değilsin':'Satın alma süresi bitti'); return; }
   buyOpen=v; buyCat=-1; $('buyMenu').classList.toggle('hidden',!v); firing=false; uiSound(v?'tab':'back');
@@ -7472,7 +7565,7 @@ function buyKey(n){ if(n<1) return; if(buyCat<0){ if(n<=buyCols.length){ buyCat=
 function renderBuy(){
   const G=$('bmGrid'); G.innerHTML=''; $('bmMoney').textContent='$'+player.money;
   const custom=LIB.list.filter(d=>!d.builtin&&['primary','secondary'].includes(d.slot)).map(d=>d.id);
-  const cats=SHOP.concat(custom.length?[{cat:'ATÖLYE (ÖZEL)',items:custom}]:[]); buyCols=[];
+  const cats=loShopCats(player.team).concat(custom.length?[{cat:'ATÖLYE (ÖZEL)',items:custom}]:[]); buyCols=[];
   cats.forEach((c,ci)=>{ const col=el('div',{class:'bmCol'+(buyCat===ci?' sel':'')}); col.appendChild(el('h4',null,'<b>'+(ci+1)+'</b> '+esc(c.cat))); const ids=[];
     for(const id of c.items){ const it=itemInfo(id); if(!it) continue; if(it.team&&it.team!=='any'&&it.team!==player.team) continue; ids.push(id);
       const why=canBuyItem(player,id); const b=el('button',{class:'bmItem'+(why?' no':'')+(why==='var'?' own':'')});
@@ -7906,14 +7999,15 @@ function statBars(d){ const s=d.stats; const knife=d.type==='knife';
   return '<div class="statBars">'+rows.map(r=>'<span>'+r[0]+'</span><div class="bar"><i style="width:'+Math.round(r[1]*100)+'%"></i></div><b>'+r[2]+'</b>').join('')+'</div>'; }
 /* ---------- inventory ---------- */
 const RARITY={industrial:['ENDÜSTRİYEL SINIF','#5e98d9'],milspec:['ASKERİ SINIF','#4b69ff'],restricted:['KISITLI','#8847ff'],classified:['GİZLİ','#d32ce6'],covert:['ÖRTÜLÜ','#eb4b4b'],gold:['★ NADİR ÖZEL EŞYA','#e4ae39'],custom:['ATÖLYE YAPIMI','#f0a63a']};
-function rarityOf(d){ if(!d.builtin) return 'custom'; return ({ak47:'classified',m4a1s:'classified',awp:'covert',deagle:'restricted',m4a4:'restricted',ssg08:'restricted',famas:'milspec',galil:'milspec',usps:'milspec',glock:'milspec',p250:'industrial',mac10:'industrial',mp9:'industrial',nova:'industrial',p90:'milspec',tec9:'industrial',aug:'restricted',knife:'gold'})[d.id]||'milspec'; }
+function rarityOf(d){ if(!d.builtin) return 'custom'; return ({ak47:'classified',m4a1s:'classified',awp:'covert',deagle:'restricted',m4a4:'restricted',ssg08:'restricted',famas:'milspec',galil:'milspec',usps:'milspec',glock:'milspec',p250:'industrial',mac10:'industrial',mp9:'industrial',nova:'industrial',p90:'milspec',tec9:'industrial',aug:'restricted',knife:'gold',hkp2000:'milspec',fiveseven:'milspec',cz75a:'industrial',mp7:'industrial',ump45:'industrial',mp5sd:'milspec',sg556:'restricted',taser:'industrial',healthshot:'industrial',tagrenade:'industrial'})[d.id]||'milspec'; }
 const AGENTS={T:{name:'ÇÖL AKINCISI',sub:'Terörist ajanı',col:'#e8b33c'},CT:{name:'GECE KALKANI',sub:'Anti-terör ajanı',col:'#78b4ff'}};
-let invCat='primary', invSel=null;
+let invCat='loadout', invSel=null;
 function renderInventory(){
-  const cats=[['primary','BİRİNCİL'],['secondary','TABANCALAR'],['melee','BIÇAKLAR'],['agent','AJANLAR'],['custom','ATÖLYE']];
-  const count=c=>c==='agent'?2:c==='custom'?LIB.list.filter(d=>!d.builtin&&['primary','secondary','melee'].includes(d.slot)).length:LIB.list.filter(d=>d.slot===c).length;
+  const cats=[['loadout','EKİPMAN'],['primary','BİRİNCİL'],['secondary','TABANCALAR'],['melee','BIÇAKLAR'],['agent','AJANLAR'],['custom','ATÖLYE']];
+  const count=c=>c==='loadout'?'CT · T':c==='agent'?2:c==='custom'?LIB.list.filter(d=>!d.builtin&&['primary','secondary','melee'].includes(d.slot)).length:LIB.list.filter(d=>d.slot===c).length;
   const C=$('invCats'); C.innerHTML=''; cats.forEach(([k,l])=>{ const b=el('button',{class:invCat===k?'on':''},esc(l)+'<small>'+count(k)+'</small>'); b.addEventListener('click',()=>{ uiSound('tab'); invCat=k; invSel=null; renderInventory(); }); C.appendChild(b); });
-  const G=$('loGrid'); G.innerHTML='';
+  const G=$('loGrid'); G.innerHTML=''; G.classList.toggle('loMode',invCat==='loadout'); G.parentNode.classList.toggle('loWide',invCat==='loadout');
+  if(invCat==='loadout'){ loRenderLoadout(G,$('invInfo')); return; }   // CS2 CT / T loadout (loadout block)
   if(invCat==='agent'){
     for(const t of ['T','CT']){ const A=AGENTS[t], b=el('button',{class:'invTile'+(CFG.agent===t?' sel':'')});
       b.innerHTML=(CFG.agent===t?'<span class="eq">KUŞANILDI</span>':'')+'<svg class="ph" viewBox="0 0 120 96"><circle cx="60" cy="26" r="13" fill="'+A.col+'"/><path d="M33 92c2-30 12-46 27-46s25 16 27 46z" fill="'+A.col+'" opacity=".85"/></svg><div class="nm">'+A.name+'</div><div class="ty">'+A.sub+'</div><div class="rar" style="background:'+A.col+'"></div>';
@@ -9003,6 +9097,7 @@ function tick(raw,doRender){
   FX.sparks.update(dt); FX.smoke.update(dt); FX.cloud.update(dt); updateTracers(dt); updateShells(dt); updateWorldFlashes(dt);
   worldFlash.intensity=Math.max(0,worldFlash.intensity-raw*320);
   updateDmgNums(raw);
+  loTick(dt);   // loadout block: DM gun menu, Zeus recharge, healthshot, TA reveal
   skyMat.uniforms.time.value+=raw;
   player.dmgAcc=Math.max(0,(player.dmgAcc||0)-raw*.8);
   if(gradePass){ gradePass.uniforms.time.value=(gradePass.uniforms.time.value+raw)%100; gradePass.uniforms.dmg.value=player.dmgAcc; }
@@ -9994,11 +10089,11 @@ function netClientDrop(){
   const k=P.cur; if(k!=='primary'&&k!=='secondary') return; const st=P.slots[k]; if(!st) return;
   netSendHost({t:'drop',s:k,mag:st.mag,res:st.res,sil:st.silOn===false?0:1,p:netV(chest.clone().addScaledVector(fw,.4)),v:netV(fw.clone().multiplyScalar(4.2).setY(1.8).add(P.vel))});
   delete P.slots[k]; P.cur=P.slots.primary?'primary':P.slots.secondary?'secondary':'melee'; equipCurrent(); sfx.draw(); }
-function netInv(a){ const s=a.slots; return {m:a.money|0,ar:Math.round(a.armor),hl:a.helmet?1:0,kit:a.kit?1:0,nd:(a.nades||[]).slice(),p:s.primary?s.primary.def.id:'',s:s.secondary?s.secondary.def.id:''}; }
+function netInv(a){ const s=a.slots; return {m:a.money|0,ar:Math.round(a.armor),hl:a.helmet?1:0,kit:a.kit?1:0,nd:(a.nades||[]).slice(),p:s.primary?s.primary.def.id:'',s:s.secondary?s.secondary.def.id:'',z:s.taser?s.taser.def.id:''}; }
 function netApplyInv(v,roundStart){
   if(!v) return; const P=player, changed=[];
   P.money=v.m|0; P.armor=v.ar|0; P.helmet=!!v.hl; P.kit=!!v.kit; P.nades=(v.nd||[]).slice();
-  for(const [slot,id] of [['primary',v.p],['secondary',v.s]]){ const cur=P.slots[slot];
+  for(const [slot,id] of [['primary',v.p],['secondary',v.s],['taser',v.z]]){ const cur=P.slots[slot];
     if(!id){ if(cur){ delete P.slots[slot]; changed.push(slot); } continue; }
     if(!cur||cur.def.id!==id){ const st=mkSlot(getWeapon(id,slot)); if(v.pk&&v.pk.s===slot){ st.mag=v.pk.mag|0; st.res=v.pk.res|0; if(!v.pk.sil) st.silOn=false; } P.slots[slot]=st; changed.push(slot); } }
   refreshNadeSlot();
@@ -10145,6 +10240,7 @@ function netHostMsg(nid,d){
     case 'st': if(Array.isArray(d.p)&&(d.sq|0)>=(a.spawnSeq|0)) a.push({t:performance.now(),p:d.p.map(Number),y:+d.y||0,pi:+d.pi||0,f:d.f|0,w:d.w}); break;
     case 'shot': netShotFx(d,a); d.o=nid; netBroadcast(d,nid); break;
     case 'hit': netHostHit(a,d); break;
+    case 'lo': loNetHost(a,d,nid); break;   // Zeus FX / Zeus spent / healthshot (loadout block)
     case 'fall': if(a.alive) damageAgent(a,Math.min(+d.d||0,300),'legs',{name:'Düşme',type:'fall',stats:{head:1,armorPen:1}},null); break;
     case 'nade': { const def=LIB.byId[d.w]; if(!def||def.type!=='grenade'||!a.alive) break; const i=(a.nades||[]).indexOf(d.w); if(i<0&&match.mode==='comp') break; if(i>=0) a.nades.splice(i,1);
       throwNade(def,netV3(d.p),netV3(d.v).clampLength(0,30),a); if(match.mode==='comp') netSendTo(nid,{t:'inv',v:netInv(a)}); break; }
@@ -10207,6 +10303,7 @@ function netClientData(d){
       moneyNote(win?'+$'+d.wm+': Raunt galibiyeti':'+$'+d.lm+': Raunt mağlubiyeti'); if(SFX_LIB) music(win?'mus:roundwin':'mus:roundlose'); else if(win) sfx.win(); else sfx.lose(); announce(d.w==='T'?'twin':'ctwin');
       roundBanner(d.w,d.r,d.mvp?{name:d.mvp}:null,d.why); updateScoreUI(); break; }
     case 'kill': netOnKill(d); break;
+    case 'lo': loNetClient(d); break;
     case 'dmg': { const P=player; if(!P.alive) break; const hp0=P.hp; P.hp=Math.max(0,d.hp|0); P.armor=d.ar|0; P.dmgShake=Math.min(1.2,(P.dmgShake||0)+.5); sfx.hurt(); flashDmg(); if(d.f) showDmgDir(netV3(d.f).setY(d.f[1]+1.5)); P.dmgAcc=Math.min(1,(P.dmgAcc||0)+(hp0-P.hp)/60); if(d.z==='head') P.pitch+=.04; updateHUD(); break; }
     case 'shot': if(d.o!==NET.myId) netShotFx(d,netAgent(d.o)); break;
     case 'nade': { const def=LIB.byId[d.w]; if(!def) break; throwNade(def,netV3(d.p),netV3(d.v),netAgent(d.o)); const n=NADES[NADES.length-1]; n.mirror=true; n.nid=d.id; break; }
@@ -10216,7 +10313,7 @@ function netClientData(d){
     case 'inv': netApplyInv(d.v,false); break;
     case 'deny': uiSound('deny'); if(d.v) netApplyInv(d.v,false); break;
     case 'sb': for(const e of d.a){ const a=netAgent(e[0]); if(!a) continue; a.kills=e[1]; a.deaths=e[2]; a.assists=e[3]; a.mvps=e[4]; a.hsKills=e[5]; a.dmgDealt=e[6]; if(a!==player) a.money=e[7]; } if(match.dm) dmHud(); break;
-    case 'spawn': { NET.spawnSeq=d.sq|0; const sp={pos:netV3(d.p),yaw:+d.y||0}; setupLoadout(null); resetPlayer(sp); player.armor=100; player.helmet=true; player.spawnProt=performance.now()+DM.prot*1000; updateHUD(); break; }
+    case 'spawn': { NET.spawnSeq=d.sq|0; const sp={pos:netV3(d.p),yaw:+d.y||0}; loDmArm(); resetPlayer(sp); player.armor=100; player.helmet=true; player.spawnProt=performance.now()+DM.prot*1000; updateHUD(); break; }
     case 'swap': { const a=netAgent(d.id); if(!a) break; const b=new NetAgent(d.team,d.name,d.nid,false); for(const k of ['money','kills','deaths','assists','mvps','hsKills','dmgDealt','alive','hp','yaw']) b[k]=a[k]; b.pos.copy(a.pos); b.setWid(a.wid); if(!a.alive) b.char.setDead(true); a.char.dispose(); bots[bots.indexOf(a)]=b; toast(a.name+' oyundan ayrıldı · yerine bot',2400); break; }
     case 'gone': { const a=netAgent(d.id); if(!a||a===player) break; a.char.dispose(); bots.splice(bots.indexOf(a),1); toast(a.name+' oyundan ayrıldı',2400); break; }
     case 'end': { NET.inMatch=false; if(d.c){ COMP.score.us=player.team==='T'?d.c[0]:d.c[1]; COMP.score.them=player.team==='T'?d.c[1]:d.c[0]; endMatch(COMP.score.us>COMP.score.them,true); }
@@ -10335,6 +10432,7 @@ function netMMCancel(){ netShutdown(); showScreen('playScreen'); }
 function dmStart(o,roster){
   match.target=o.target; startMatch('duel',{map:o.map}); clearBots();
   match.dm=true; Object.assign(DM,{on:true,t:o.time,target:o.target,weapons:o.weapons||'loadout',resp:[],duel:!!o.duel,uiT:0});
+  LO.dmSeen=0; LO.dmSeenT=0;   // new DM match: the gun menu opens again on the first spawn (loadout block)
   player.team='D0';
   if(roster){ const me=roster.find(r=>r.id===NET.myId); if(me) player.team=me.team; for(const r of roster) if(r.id!==NET.myId) bots.push(netMakeAgent(r,o.diff)); }
   else { const names=BOT_NAMES.slice().sort(()=>Math.random()-.5); for(let i=0;i<o.bots;i++){ const b=new TeamBot(i%2?'CT':'T','BOT '+names[i%names.length],o.diff); b.team='D'+(i+1); bots.push(b); } }
@@ -10353,11 +10451,10 @@ function dmSpawnPoint(a){
   for(const c of C){ let md=60; for(const o of others){ const d=o.pos.distanceTo(c.pos); if(d<md) md=d; } const s=Math.min(md,38)+Math.random()*6; if(s>bs){ bs=s; best=c; } }
   if(!best) return spawnFor(0);
   best.yaw=Math.atan2(best.pos.x,best.pos.z)+rand(-.5,.5); return best; }
-function dmArm(b){ const id=DM_GUNS[(Math.random()*DM_GUNS.length)|0]; b.slots.primary=mkSlot(getWeapon(id,'primary')); b.slots.primary.res=999; if(b.slots.secondary) b.slots.secondary.res=999; }
+function dmArm(b){ loDmBotArm(b); }   // random rifle / SMG / sniper / shotgun + random pistol (loadout block)
 function dmRespawn(a){
   const sp=dmSpawnPoint(a);
-  if(a===player){ if(DM.weapons==='random'){ const L=CFG.loadout; player.slots={primary:mkSlot(getWeapon(DM_GUNS[(Math.random()*DM_GUNS.length)|0],'primary')),secondary:mkSlot(getWeapon(['glock','usps','p250','deagle','tec9'][(Math.random()*5)|0],'secondary')),melee:mkSlot(getWeapon(L.melee,'melee'))}; player.nades=[]; delete player.slots.grenade; }
-    else setupLoadout(null);
+  if(a===player){ loDmArm();   // DM gun menu choice (or random) + Zeus + healthshot (loadout block)
     resetPlayer(sp); player.armor=100; player.helmet=true; updateHUD(); }
   else { if(!a.isRemote) dmArm(a); a.spawn(sp); a.armor=100; a.helmet=true; if(a.netPeer) netSendTo(a.netPeer,{t:'spawn',p:netV(sp.pos),y:sp.yaw,sq:a.spawnSeq}); }
   a.spawnProt=performance.now()+DM.prot*1000; }
@@ -10424,7 +10521,7 @@ function renderPlay(){
       for(const m of MAPLIB.list) tile(m.id,m.name.toUpperCase(),'HERKES DÜŞMAN · ANINDA DOĞUŞ',D.map===m.id,()=>{ D.map=m.id; saveCfg(); },m.builtin?'':'ATÖLYE');
       S.innerHTML='<h4>Ölüm maçı</h4><p class="pd">Botlara karşı herkes-herkese. Öldükten 2 sn sonra güvenli bir noktada doğarsın (2 sn doğuş koruması). Satın alma yok; silahlar envanterinden ya da rastgele.</p>'+
         opt('BOT SAYISI',segHTML('dmbots',[[3,'3'],[5,'5'],[7,'7'],[9,'9']],D.bots))+opt('HEDEF',segHTML('dmtarget',[[20,'20 LEŞ'],[30,'30 LEŞ'],[50,'50 LEŞ']],D.target))+
-        opt('SÜRE',segHTML('dmtime',[[5,'5 DK'],[10,'10 DK'],[15,'15 DK']],D.time))+opt('SİLAHLAR',segHTML('dmw',[['loadout','ENVANTER'],['random','RASTGELE']],D.weapons))+opt('BOT ZORLUĞU',segHTML('diff',[[0,'KOLAY'],[1,'NORMAL'],[2,'ZOR']],CFG.botDiff))+note;
+        opt('SÜRE',segHTML('dmtime',[[5,'5 DK'],[10,'10 DK'],[15,'15 DK']],D.time))+opt('SİLAHLAR',segHTML('dmw',[['loadout','MENÜDEN SEÇ'],['random','RASTGELE']],D.weapons))+opt('BOT ZORLUĞU',segHTML('diff',[[0,'KOLAY'],[1,'NORMAL'],[2,'ZOR']],CFG.botDiff))+note;
       summary='<b>'+esc(MAPLIB.byId[D.map].name.toUpperCase())+'</b> · ÖLÜM MAÇI · '+D.bots+' BOT · '+D.time+' DK / '+D.target+' LEŞ'; }
     else if(pm==='tut') summary=obPlayPane(M,S);   // ÖĞRENME ALANI (onboard block)
     else if(pm==='range'){ M.classList.add('one'); tile('range','TEST ALANI','HEDEFLER · DPS · SPREY',true,()=>{});
@@ -11472,6 +11569,535 @@ gameExport({ ACU, acuProbe, acuAt, acuOcc, acuAirLP, VOICE, voiceList, pickVoice
 
 
 /* @@BLOCK:loadout — code from the loadout work (inventory CT/T, deathmatch gun menu, equipment) goes right below this line */
+/* =====================================================================
+   LOADOUT — CS2-style CT / T inventory (starting pistol + 4 pistols + 5 mid-tier + 5 rifles), the buy menu built from it,
+   new weapons (P2000, Five-SeveN, CZ75-Auto, MP7, UMP-45, MP5-SD, SG 553), deathmatch gun menu, Zeus x27, healthshot, TA grenade
+   ===================================================================== */
+// ---- new weapon models: same part conventions as the default arsenal (cm, x = forward, y = up) ----
+function defHKP2000(){
+  const poly=M('polymer','#26272a'), sl=M('gunmetal','#2f3236'), grip=M('grip','#232426'), blk=M('polymer','#0b0b0c'), P=[];
+  P.push(EX('Gövde',[-6.6,.4, 9.4,.4, 9.4,-.7, 5.4,-1.0, 5.0,-3.8, 4.0,-4.4, -.6,-4.4, -1.5,-3.2, -2.2,-1.4, -6.6,-1.2],2.5,.3,poly,{holes:[[-1.3,-1.3, 4.2,-1.3, 4.1,-3.3, 3.5,-3.8, -.2,-3.8, -.9,-3.0]]}));
+  P.push(BX('Ray',1.7,.55,3.8,0,-1.15,7.2,.1,poly));
+  P.push(EX('Sürgü',[-7.0,.4, 9.9,.4, 9.9,2.0, 9.3,2.9, -6.4,2.9, -7.0,2.4],2.45,.35,sl,{role:'slide',id:'p2k_sl'}));
+  for(let i=0;i<5;i++) P.push(BX('Tırtık',2.55,1.7,.2,0,1.75,-6.2+i*.5,.02,blk,{parent:'p2k_sl'}));
+  P.push(BX('Gez',1.7,.6,.9,0,3.15,-6.0,.12,sl,{parent:'p2k_sl'}));
+  P.push(BX('Arpacık',.45,.55,.6,0,3.1,8.9,.08,sl,{parent:'p2k_sl'}));
+  P.push(BX('Fişek çıkış yuvası',.1,.9,3.0,1.24,2.2,1.6,.05,blk,{parent:'p2k_sl'}));
+  P.push(CY('Namlu ağzı',.46,.46,.2,0,1.7,9.95,[90,0,0],blk,{sides:16,parent:'p2k_sl'}));
+  P.push(EX('Kabza',[-1.8,-1.2, -6.4,-1.2, -8.6,-11.6, -8.0,-12.6, -3.8,-12.4, -3.0,-11.2, -2.0,-3.8],2.9,.5,grip));
+  P.push(EX('Sırt kapağı',[-6.0,-2.0, -6.9,-2.0, -9.0,-11.6, -8.2,-11.6],3.0,.4,poly));
+  P.push(EM('Horoz pivotu',0,.9,-7.0,{role:'hammer',id:'p2k_ham'}));
+  P.push(BX('Horoz',.7,1.3,.7,0,1.6,-7.3,.2,sl,{parent:'p2k_ham'}));
+  P.push(EX('Tetik',[.4,-1.3, 1.0,-1.3, .8,-2.4, .1,-3.3, -.3,-3.1, .3,-2.3],.5,0,sl,{role:'trigger'}));
+  P.push(EX('Şarjör',[-2.8,-2.4, -5.8,-2.4, -7.8,-11.9, -4.4,-11.8],2.1,.1,sl,{role:'mag',id:'p2k_mag'}));
+  P.push(BX('Şarjör tabanı',2.7,.7,4.3,0,-12.5,-6.2,.2,poly,{rot:[-12,0,0],parent:'p2k_mag'}));
+  return normalizeDef({ id:'hkp2000', name:'P2000', builtin:1, type:'pistol', slot:'secondary', parts:finalizeParts(P),
+    stats:{dmg:35,head:4,rpm:352,mag:13,reserve:52,reload:2.2,auto:0,spread:.16,moveSpread:3.4,recoil:1.05,pattern:'vertical',pellets:1,scope:0,range:250,speed:.96,sound:'pistol',sndProfile:'hkp2000',draw:.8,price:200,team:'CT',reward:300,armorPen:.505},
+    view:{pos:[.088,-.088,-.36],rot:[0,3,0]},
+    anchors:{gripR:{p:[0,-.062,.052],r:[-16,0,0]}, gripL:{p:[-.006,-.076,.04],r:[-16,0,-8]}, muzzle:[0,.017,-.102], eject:[.014,.024,-.01]} });
+}
+function defFiveSeven(){
+  const poly=M('polymer','#34363a'), sl=M('polymer','#2a2c2f'), grip=M('grip','#2b2d30'), metal=M('gunmetal','#3b3e43'), blk=M('polymer','#0a0a0b'), P=[];
+  P.push(EX('Gövde',[-7.2,.3, 10.8,.3, 10.8,-.9, 5.8,-1.1, 5.4,-4.0, 4.4,-4.6, -.4,-4.6, -1.4,-3.3, -2.2,-1.3, -7.2,-1.1],2.4,.3,poly,{holes:[[-1.2,-1.3, 4.6,-1.3, 4.4,-3.5, 3.7,-4.0, -.1,-4.0, -.8,-3.1]]}));
+  for(let i=0;i<3;i++) P.push(BX('Ray dişi',1.7,.35,.5,0,-1.2,6.8+i*1.2,.05,poly));
+  P.push(EX('Sürgü',[-7.6,.3, 11.2,.3, 11.2,1.5, 10.0,2.8, -6.9,2.8, -7.6,2.1],2.3,.35,sl,{role:'slide',id:'fs_sl'}));
+  for(let i=0;i<6;i++) P.push(BX('Tırtık',2.4,1.5,.18,0,1.6,-6.9+i*.45,.02,blk,{parent:'fs_sl'}));
+  P.push(BX('Gez',1.6,.55,.8,0,3.0,-6.4,.1,metal,{parent:'fs_sl'}));
+  P.push(BX('Arpacık',.4,.5,.6,0,2.95,9.6,.08,metal,{parent:'fs_sl'}));
+  P.push(BX('Fişek çıkış yuvası',.1,.8,2.6,1.15,2.0,1.8,.05,blk,{parent:'fs_sl'}));
+  P.push(CY('Namlu ağzı',.4,.4,.2,0,1.55,11.25,[90,0,0],blk,{sides:14,parent:'fs_sl'}));
+  P.push(EX('Kabza',[-1.9,-1.1, -6.6,-1.1, -9.0,-13.0, -8.4,-14.0, -4.0,-13.8, -3.2,-12.6, -2.1,-3.8],2.7,.5,grip));
+  for(let i=0;i<5;i++){ const y=-5.2-i*1.6, z=nw_lerp(-2.3,-3.5,(i+.5)/5); P.push(BX('Kabza yivi',2.76,.28,1.0,0,y,z-.2,.08,blk)); }
+  P.push(EX('Tetik',[.4,-1.3, 1.0,-1.3, .8,-2.4, .1,-3.3, -.3,-3.1, .3,-2.3],.5,0,metal,{role:'trigger'}));
+  P.push(EX('Şarjör',[-2.8,-2.3, -5.9,-2.3, -8.2,-13.4, -4.9,-13.3],2.0,.1,metal,{role:'mag',id:'fs_mag'}));
+  P.push(BX('Şarjör tabanı',2.6,.7,4.4,0,-14.0,-6.8,.2,poly,{rot:[-12,0,0],parent:'fs_mag'}));
+  return normalizeDef({ id:'fiveseven', name:'Five-SeveN', builtin:1, type:'pistol', slot:'secondary', parts:finalizeParts(P),
+    stats:{dmg:32,head:4,rpm:400,mag:20,reserve:100,reload:2.2,auto:0,spread:.22,moveSpread:3.1,recoil:1.0,pattern:'vertical',pellets:1,scope:0,range:250,speed:.96,sound:'pistol',sndProfile:'fiveseven',draw:.8,price:500,team:'CT',reward:300,armorPen:.9115},
+    view:{pos:[.088,-.088,-.36],rot:[0,3,0]},
+    anchors:{gripR:{p:[0,-.064,.058],r:[-18,0,0]}, gripL:{p:[-.006,-.078,.044],r:[-18,0,-8]}, muzzle:[0,.0155,-.1135], eject:[.012,.02,-.018]} });
+}
+function defCZ75(){
+  const st=M('blued','#2c2e32'), fr=M('gunmetal','#35383c'), grip=M('grip','#1f2022'), blk=M('polymer','#09090a'), P=[];
+  P.push(EX('Gövde',[-7,.6, 10,.6, 10,-.8, 5.2,-1.0, 5.0,-3.8, 4.2,-4.4, -.4,-4.4, -1.4,-3.2, -2.2,-1.4, -7,-1.0],2.5,.25,fr,{holes:[[-1.2,-1.2, 4.3,-1.2, 4.2,-3.4, 3.6,-3.8, -.1,-3.8, -.8,-3.0]]}));
+  P.push(EX('Sürgü',[-7.4,.6, 10.4,.6, 10.4,2.2, 9.7,2.9, -6.8,2.9, -7.4,2.4],2.2,.3,st,{role:'slide',id:'cz_sl'}));
+  for(let i=0;i<7;i++) P.push(BX('Tırtık',2.3,1.5,.18,0,1.8,-6.8+i*.42,.02,blk,{parent:'cz_sl'}));
+  P.push(BX('Gez',1.6,.6,.8,0,3.15,-6.5,.1,st,{parent:'cz_sl'}));
+  P.push(BX('Arpacık',.4,.55,.6,0,3.1,9.4,.08,st,{parent:'cz_sl'}));
+  P.push(BX('Fişek çıkış yuvası',.1,.8,2.4,1.12,2.2,1.4,.05,blk,{parent:'cz_sl'}));
+  P.push(CY('Namlu ağzı',.45,.45,.2,0,1.85,10.45,[90,0,0],blk,{sides:14,parent:'cz_sl'}));
+  P.push(EX('Kabza',[-1.8,-1.0, -6.6,-1.0, -9.2,-11.4, -8.5,-12.4, -4.4,-12.2, -3.6,-11.0, -2.0,-3.6],2.85,.45,grip));
+  P.push(EM('Horoz pivotu',0,1.0,-7.1,{role:'hammer',id:'cz_ham'})); P.push(BX('Horoz',.7,1.5,.8,0,1.8,-7.5,.22,st,{parent:'cz_ham'}));
+  P.push(EX('Tetik',[.4,-1.2, 1.0,-1.2, .8,-2.3, .1,-3.2, -.3,-3.0, .3,-2.2],.5,0,st,{role:'trigger'}));
+  P.push(BX('Emniyet',.3,.6,1.2,-1.35,.1,-4.6,.1,st));
+  P.push(EX('Şarjör',[-2.8,-2.4, -6.0,-2.4, -8.6,-12.0, -5.0,-11.9],2.0,.1,st,{role:'mag',id:'cz_mag'}));
+  P.push(BX('Şarjör tabanı',2.6,.75,4.5,0,-12.6,-6.9,.22,blk,{rot:[-16,0,0],parent:'cz_mag'}));
+  // spare magazine clamped under the dust cover (the CZ75-Auto's front grip)
+  P.push(BX('Yedek şarjör kelepçesi',2.4,1.2,2.6,0,-1.3,8.5,.25,fr));
+  P.push(EX('Yedek şarjör',[7.4,-1.8, 9.8,-1.8, 10.6,-10.2, 8.2,-10.2],1.9,.1,st));
+  P.push(BX('Yedek şarjör tabanı',2.5,.75,3.4,0,-10.6,9.4,.22,blk,{rot:[6,0,0]}));
+  return normalizeDef({ id:'cz75a', name:'CZ75-Auto', builtin:1, type:'pistol', slot:'secondary', parts:finalizeParts(P),
+    stats:{dmg:31,head:4,rpm:600,mag:12,reserve:12,reload:2.7,auto:1,spread:.32,moveSpread:3.4,recoil:.95,pattern:'vertical',pellets:1,scope:0,range:220,speed:.96,sound:'pistol',sndProfile:'cz75a',draw:.8,price:500,team:'any',reward:100,armorPen:.7765},
+    view:{pos:[.088,-.088,-.36],rot:[0,3,0]},
+    anchors:{gripR:{p:[0,-.06,.058],r:[-20,0,0]}, gripL:{p:[-.006,-.074,.044],r:[-20,0,-8]}, muzzle:[0,.0185,-.106], eject:[.012,.026,-.014]} });
+}
+function defMP7(){
+  const poly=M('polymer','#2a2b2e'), dk=M('blued','#26282c'), grip=M('grip','#232427'), blk=M('polymer','#08080a'), P=[];
+  P.push(EX('Üst gövde',[-12,0, 11,0, 13.4,1.0, 13.4,3.8, 12,4.6, -10.8,4.6, -12,3.8],3.0,.45,poly));
+  P.push(EX('Alt gövde',[-7,.2, 6.4,.2, 6.4,-1.6, -3.6,-1.6, -7,-1.0],2.8,.3,poly));
+  P.push(BX('Ray',1.9,.45,21,0,4.85,0,.05,dk,{id:'mp7_rail'}));
+  for(let i=0;i<9;i++) P.push(BX('Ray dişi',2.0,.3,.5,0,5.2,-9+i*2.25,.02,dk,{parent:'mp7_rail'}));
+  P.push(EX('Gez',[-9.6,5.0, -7.0,5.0, -7.2,6.8, -9.2,6.8],1.8,.15,dk)); P.push(BX('Gez yarığı',.4,.6,1.6,0,6.6,-8.2,0,blk));
+  P.push(EX('Arpacık',[8.6,5.0, 11.0,5.0, 10.8,6.8, 9.0,6.8],1.8,.15,dk));
+  P.push(LA('Namlu',[13,0, 13,.85, 16.6,.8, 16.6,0],16,dk,{y:2.0}));
+  P.push(LA('Alev gizleyici',[16.2,0, 16.2,1.0, 18.6,1.0, 18.6,.6],16,dk,{y:2.0}));
+  P.push(CY('Namlu ağzı',.5,.5,.2,0,2.0,18.65,[90,0,0],blk,{sides:14}));
+  P.push(EX('Kabza',[-.4,-1.4, -4.8,-1.4, -6.0,-11.2, -5.6,-12.0, -1.8,-12.0, -1.2,-11.0, -.6,-3.4],2.9,.55,grip));
+  P.push(EX('Tetik korkuluğu',[-.6,-1.4, 4.8,-1.4, 4.8,-1.9, 3.8,-3.9, .2,-4.0, -.4,-3.2],.8,.05,poly,{holes:[[0,-1.9, 4.0,-1.9, 3.3,-3.5, .3,-3.5]]}));
+  P.push(EX('Tetik',[1.0,-1.4, 1.6,-1.4, 1.4,-2.4, .8,-3.2, .5,-3.0, 1.0,-2.3],.5,0,dk,{role:'trigger'}));
+  P.push(EX('Şarjör',[-1.4,-11.6, -5.4,-11.6, -6.2,-19.2, -2.2,-19.4],2.3,.15,dk,{role:'mag',id:'mp7_mag'}));
+  P.push(BX('Şarjör tabanı',2.6,.7,4.4,0,-19.6,-4.2,.2,poly,{rot:[-6,0,0],parent:'mp7_mag'}));
+  P.push(BX('Ön kabza menteşesi',2.2,1.2,2.6,0,-.5,9.0,.3,dk));
+  P.push(EX('Ön kabza',[7.6,-1.0, 10.4,-1.0, 10.2,-8.6, 9.6,-9.2, 8.2,-9.2, 7.8,-8.6],2.4,.55,grip));
+  P.push(BX('Kurma kolu',3.6,.7,1.0,0,3.9,-12.6,.25,dk,{role:'bolt'}));
+  for(const y of [3.2,.8]) P.push(CY('Dipçik teli',.32,.32,11,0,y,-17.2,[90,0,0],dk,{sides:10}));
+  P.push(EX('Dipçik plakası',[-22.4,4.2, -21.6,4.2, -21.6,-.4, -22.6,-1.6, -23.6,-1.6, -23.6,3.8],3.2,.4,poly));
+  return normalizeDef({ id:'mp7', name:'MP7', builtin:1, type:'smg', slot:'primary', parts:finalizeParts(P),
+    stats:{dmg:29,head:4,rpm:750,mag:30,reserve:120,reload:3.1,auto:1,spread:.42,moveSpread:3.0,recoil:.7,pattern:'smg',pellets:1,scope:0,range:200,speed:.88,sound:'smg',sndProfile:'mp7',draw:.9,price:1500,team:'any',reward:600,armorPen:.625},
+    view:{pos:[.12,-.11,-.31],rot:[0,4,0]},
+    anchors:{gripR:{p:[0,-.056,.032],r:[-10,0,0]}, gripL:{p:[0,-.05,-.09],r:[-4,0,8]}, muzzle:[0,.02,-.187], eject:[.016,.03,-.02]} });
+}
+function defUMP45(){
+  const poly=M('polymer','#303236'), dk=M('blued','#26282b'), grip=M('grip','#27282b'), blk=M('polymer','#09090a'), P=[];
+  P.push(EX('Gövde',[-14,-1.2, 17.6,-1.2, 18.6,-.2, 18.6,4.0, 17.6,4.6, -13.2,4.6, -14,3.8],3.6,.5,poly));
+  for(const y of [.2,1.4,2.6]) P.push(BX('Yan oluk',3.66,.22,9.6,0,y,12.6,0,blk));
+  P.push(BX('Ray',2.0,.45,24,0,4.85,1,.05,dk,{id:'ump_rail'}));
+  for(let i=0;i<10;i++) P.push(BX('Ray dişi',2.1,.3,.5,0,5.2,-10+i*2.3,.02,dk,{parent:'ump_rail'}));
+  P.push(EX('Gez',[-11,5.0, -8.4,5.0, -8.6,7.0, -10.6,7.0],2.0,.2,dk)); P.push(BX('Gez deliği',.5,.6,1.6,0,6.5,-9.6,0,blk));
+  P.push(EX('Arpacık',[14.2,5.0, 16.8,5.0, 16.6,7.2, 14.6,7.2],2.0,.2,dk));
+  P.push(LA('Namlu',[18.4,0, 18.4,.95, 23.4,.9, 23.4,0],16,dk,{y:2.2}));
+  P.push(LA('Namlu ucu',[22.8,0, 22.8,1.15, 25.2,1.15, 25.2,.6],16,dk,{y:2.2}));
+  P.push(CY('Namlu ağzı',.55,.55,.2,0,2.2,25.25,[90,0,0],blk,{sides:14}));
+  P.push(EX('Kabza',[-3.2,-1.2, -7.4,-1.2, -9.4,-11.4, -8.8,-12.4, -4.8,-12.4, -4.0,-11.2, -3.4,-3.8],3.0,.55,grip));
+  P.push(EX('Tetik korkuluğu',[-3.4,-1.2, 3.8,-1.2, 3.8,-1.7, 2.8,-4.2, -1.8,-4.4, -3.4,-3.2],.9,.05,poly,{holes:[[-2.6,-1.7, 3.0,-1.7, 2.2,-3.7, -1.4,-3.8, -2.6,-3.0]]}));
+  P.push(trigger(dk));
+  P.push(BX('Şarjör yuvası',3.2,1.8,6.4,0,-1.9,7.4,.3,poly));
+  P.push(EX('Şarjör',[4.8,-2.0, 9.8,-2.0, 10.6,-17.0, 5.8,-17.4],2.5,.2,M('polymer','#2a2c30'),{role:'mag',id:'ump_mag'}));
+  P.push(BX('Şarjör tabanı',2.8,.7,5.2,0,-17.6,8.2,.2,poly,{rot:[4,0,0],parent:'ump_mag'}));
+  P.push(BX('Kurma kolu',1.2,1.2,1.8,-2.2,3.0,12.4,.35,dk,{role:'bolt'}));
+  P.push(EX('Dipçik',[-14,3.6, -36,3.2, -37,2, -37,-6.4, -35.6,-7.2, -34,-7.2, -34,.6, -14,.4],2.8,.5,poly,{holes:[[-17,2.6, -32.6,2.3, -32.6,1.3, -17,1.5]]}));
+  P.push(BX('Dipçik pedi',3.0,10.0,.8,0,-1.9,-37.2,.3,M('rubber')));
+  return normalizeDef({ id:'ump45', name:'UMP-45', builtin:1, type:'smg', slot:'primary', parts:finalizeParts(P),
+    stats:{dmg:35,head:4,rpm:666,mag:25,reserve:100,reload:3.5,auto:1,spread:.5,moveSpread:3.4,recoil:.78,pattern:'smg',pellets:1,scope:0,range:200,speed:.92,sound:'smg',sndProfile:'ump45',draw:1.0,price:1200,team:'any',reward:600,armorPen:.65},
+    view:{pos:[.13,-.112,-.3],rot:[0,4,0]},
+    anchors:{gripR:{p:[0,-.058,.068],r:[-17,0,0]}, gripL:{p:[0,-.014,-.15],r:[90,0,-25]}, muzzle:[0,.022,-.253], eject:[.02,.03,-.04]} });
+}
+function defMP5SD(){
+  const st=M('parker','#2b2d30'), poly=M('polymer','#26272a'), dk=M('blued','#232528'), grip=M('grip','#232426'), blk=M('polymer','#08080a'), P=[];
+  P.push(EX('Gövde',[-13,-1.0, 8.6,-1.0, 8.6,4.0, -13,4.0],3.0,.35,st));
+  P.push(CY('Kurma tüpü',.95,.95,14,0,3.5,15.4,[90,0,0],st,{sides:18}));
+  P.push(LA('Susturucu',[8.2,0, 8.2,2.05, 8.8,2.2, 34.6,2.2, 35.2,2.0, 35.2,.5],28,M('parker','#232427'),{y:1.4}));
+  P.push(EX('El kundağı',[9.0,-1.4, 21.4,-1.4, 22.2,-.4, 22.2,4.4, 9.0,4.4],5.0,1.0,poly));
+  for(const y of [-.2,.8,1.8,2.8]) P.push(BX('Kundak oluğu',5.06,.22,11,0,y,15.4,0,blk));
+  P.push(CY('Gez tamburu',1.0,1.0,2.2,0,5.2,-10.4,[0,0,90],st,{sides:16})); P.push(BX('Gez kaidesi',2.0,1.2,2.4,0,4.4,-10.4,.2,st));
+  P.push(BX('Arpacık',.5,1.6,.9,0,4.3,31.4,.1,st)); P.push(TR('Arpacık halkası',1.0,.2,0,4.9,31.4,[0,0,0],st,{arc:180}));
+  P.push(BX('Kurma kolu',1.0,1.2,1.8,-1.6,3.6,19.4,.3,dk,{role:'bolt'}));
+  P.push(EX('Kabza',[-2.6,-1.0, -6.6,-1.0, -9.8,-11.0, -9.2,-12.0, -5.2,-12.2, -4.4,-11.0, -2.8,-3.8],2.9,.6,grip));
+  P.push(EX('Tetik korkuluğu',[-3.0,-1.0, 3.6,-1.0, 3.6,-1.5, 2.6,-3.8, -1.6,-4.0, -3.0,-2.6],.8,.05,st,{holes:[[-2.2,-1.5, 2.8,-1.5, 2.0,-3.4, -1.2,-3.5, -2.2,-2.6]]}));
+  P.push(trigger(dk));
+  P.push(BX('Şarjör yuvası',3.4,2.0,5.6,0,-1.8,5.6,.3,st));
+  P.push(EX('Şarjör',[3.2,-1.6, 7.8,-1.6, 8.6,-6.4, 10.4,-11.6, 11.8,-15.8, 7.8,-17.2, 6.4,-13.0, 4.6,-7.6],2.3,.2,dk,{role:'mag',id:'mp5_mag'}));
+  P.push(BX('Şarjör tabanı',2.6,.6,4.6,0,-16.8,9.6,.2,poly,{rot:[18,0,0],parent:'mp5_mag'}));
+  P.push(EX('Dipçik',[-13,3.6, -34,3.0, -35,1.8, -35,-6.8, -33.6,-7.4, -31,-7.0, -20,-2.6, -13,-1.0],3.2,.6,poly));
+  P.push(BX('Dipçik pedi',3.4,10.0,.8,0,-1.9,-35.2,.3,M('rubber')));
+  return normalizeDef({ id:'mp5sd', name:'MP5-SD', builtin:1, type:'smg', slot:'primary', parts:finalizeParts(P),
+    stats:{dmg:27,head:4,rpm:750,mag:30,reserve:120,reload:3.0,auto:1,spread:.44,moveSpread:2.8,recoil:.62,pattern:'smg',pellets:1,scope:0,range:190,speed:.94,sound:'silenced',sndProfile:'mp5sd',draw:1.0,price:1500,team:'any',reward:600,armorPen:.625},
+    view:{pos:[.13,-.112,-.3],rot:[0,4,0]},
+    anchors:{gripR:{p:[0,-.058,.07],r:[-16,0,0]}, gripL:{p:[0,-.016,-.155],r:[90,0,-25]}, muzzle:[0,.014,-.353], eject:[.018,.03,-.02]} });
+}
+function defSG553(){
+  const metal=M('gunmetal','#34373b'), poly=M('polymer','#2b2d30'), dk=M('blued','#25272a'), rec=M('aluminum','#2a2c2f'), glass=M('glass','#0e1622',{emissive:'#050a14',emi:.4}),
+    clear=M('glass','#4a3a24',{metal:.1,rough:.25,emissive:'#120a02',emi:.25,opacity:.7}), P=[];
+  P.push(EX('Gövde',[-14,-1.4, 14,-1.4, 14,3.4, -14,3.4],3.2,.3,metal));
+  P.push(BX('Üst ray',2.2,.6,24,0,3.7,0,.1,dk));
+  P.push(EX('El kundağı',[14,-1.6, 29,-1.2, 30,-.4, 30,3.8, 14,3.8],4.0,.8,poly));
+  for(let i=0;i<4;i++) P.push(BX('Havalandırma',4.1,.5,1.8,0,1.4,17+i*3.2,.15,M('polymer','#0d0d0e')));
+  P.push(CY('Gaz borusu',.8,.8,14,0,5.0,37,[90,0,0],dk,{sides:16}));
+  P.push(BX('Gaz bloğu',2.0,3.0,1.8,0,3.4,43.2,.3,dk));
+  P.push(LA('Namlu',[14,0, 14,1.0, 47,.85, 47,0],18,dk,{y:2.0}));
+  P.push(LA('Alev gizleyici',[46.5,0, 46.5,1.1, 51,1.1, 51,.6],18,dk,{y:2.0}));
+  for(const a of [0,60,120]) P.push(BX('Yarık',.35,2.5,2.6,0,2.0,49.6,0,M('polymer','#050505'),{rot:[0,0,a]}));
+  P.push(BX('Dürbün ayağı',1.6,2.4,1.6,0,5.0,-4,.2,rec)); P.push(BX('Dürbün ayağı',1.6,2.4,1.6,0,5.0,6,.2,rec));
+  P.push(LA('Dürbün',[-9,0, -9,1.5, -7.8,1.6, -6.2,1.3, 5.6,1.3, 7.6,1.6, 9.6,1.85, 9.9,1.75, 9.9,0],28,rec,{y:7.4}));
+  P.push(CY('Ön lens',1.78,1.78,.2,0,7.4,9.85,[90,0,0],glass,{sides:28}));
+  P.push(CY('Arka lens',1.45,1.45,.2,0,7.4,-8.95,[90,0,0],glass,{sides:28}));
+  P.push(TR('Göz lastiği',1.5,.2,0,7.4,-8.8,[0,0,0],M('rubber')));
+  P.push(CY('Ayar kulesi',.7,.7,1.4,0,9.2,1,[0,0,0],rec)); P.push(CY('Yan ayar',.7,.7,1.4,1.7,7.4,1,[0,0,90],rec));
+  P.push(EX('Tabanca kabzası',[-2.8,-1.4, -6.8,-1.4, -10.4,-11.2, -10,-12.2, -6,-12.4, -5.0,-11.4, -3.0,-3.6],2.9,.6,M('grip','#262729')));
+  P.push(EX('Tetik korkuluğu',[-3.2,-1.4, 4.6,-1.4, 4.6,-1.9, 3.6,-4.2, -1.6,-4.5, -3.2,-2.6],.8,0,metal,{holes:[[-2.4,-2.0, 3.6,-2.0, 2.8,-3.6, -1.3,-3.8, -2.4,-2.8]]}));
+  P.push(trigger(metal));
+  P.push(EX('Şarjör',[5.4,-.8, 11.4,-.8, 11.8,-4.4, 12.8,-9, 14.4,-14, 16.2,-18.6, 16.6,-19.6, 10.4,-21.2, 10,-20.2, 8.6,-15.2, 7.4,-10.2, 6.2,-5.2],2.6,.3,clear,{role:'mag',id:'sg_mag'}));
+  P.push(BX('Şarjör tabanı',2.9,.6,6.6,0,-20.6,13.4,.2,poly,{rot:[14,0,0],parent:'sg_mag'}));
+  P.push(BX('Kurma kolu',1.2,1.4,2.0,1.9,2.4,9,.35,dk,{role:'bolt'}));
+  P.push(EX('Dipçik',[-14,3.2, -36,2.6, -37.4,1.4, -37.4,-7.6, -36,-8.4, -34.2,-8.4, -24,-3.4, -14,-1.2],3.0,.5,poly,{holes:[[-17.4,2.0, -34.4,1.4, -34.4,-5.2, -25,-1.8, -17.4,-.2]]}));
+  P.push(BX('Dipçik pedi',3.2,10.4,.8,0,-2.9,-37.8,.3,M('rubber')));
+  return normalizeDef({ id:'sg556', name:'SG 553', builtin:1, type:'rifle', slot:'primary', parts:finalizeParts(P),
+    stats:{dmg:30,head:4,rpm:545,mag:30,reserve:90,reload:2.8,auto:1,spread:.2,moveSpread:6.5,recoil:.95,pattern:'ak',pellets:1,scope:1,scopeZoom:2,scopeType:'aug',range:320,speed:.84,sound:'rifle',sndProfile:'sg556',draw:1.0,price:3000,team:'T',reward:300,armorPen:1},
+    view:{pos:[.13,-.112,-.3],rot:[0,4,0]},
+    anchors:{gripR:{p:[0,-.058,.072],r:[-17,0,0]}, gripL:{p:[0,.012,-.22],r:[90,0,-25]}, muzzle:[0,.02,-.51], eject:[.022,.026,-.1]} });
+}
+// Zeus x27 (CS2 taser): one-shot, ~3.5 m; type pistol so it uses the pistol animation class, slot 'taser' (key 3 cycles knife <-> Zeus)
+function defZeus(){
+  const blk=M('polymer','#1d1e20'), yel=M('paint','#e0b321',{rough:.5,metal:.1}), grip=M('grip','#222326'), metal=M('gunmetal','#8a8f96'), red=M('emissive','#ff3030',{emissive:'#ff2020',emi:.8}), P=[];
+  P.push(EX('Gövde',[-6.4,.4, 5.6,.4, 6.4,1.2, 6.4,3.4, 5.6,4.0, -5.4,4.0, -6.4,3.2],3.0,.5,blk));
+  P.push(BX('Sarı şerit',3.06,.5,10.4,0,3.2,-.4,.05,yel));
+  P.push(BX('Kartuş',3.3,3.4,4.4,0,2.2,8.4,.45,yel,{id:'zeus_cart'}));
+  P.push(BX('Kartuş yüzü',3.0,3.0,.3,0,2.2,10.6,.15,blk,{parent:'zeus_cart'}));
+  for(const y of [1.3,3.1]) P.push(CY('Elektrot',.32,.32,.5,0,y,10.85,[90,0,0],metal,{sides:10,parent:'zeus_cart'}));
+  P.push(EX('Kabza',[-1.4,.6, -5.6,.6, -7.6,-9.8, -7.0,-10.8, -3.2,-10.6, -2.6,-9.4, -1.6,-2.0],2.9,.55,grip));
+  P.push(EX('Tetik korkuluğu',[-1.6,.6, 4.4,.6, 4.4,.1, 3.4,-2.2, -.6,-2.4, -1.6,-1.4],.9,.05,blk,{holes:[[-.8,.1, 3.6,.1, 2.8,-1.8, -.4,-1.9, -.8,-1.2]]}));
+  P.push(EX('Tetik',[.6,.6, 1.2,.6, 1.0,-.4, .4,-1.3, .1,-1.1, .6,-.3],.5,0,yel,{role:'trigger'}));
+  P.push(SP('LED',.28,0,.3,5.8,red));
+  P.push(BX('Emniyet',.3,.8,1.4,-1.55,2.0,-3.4,.1,yel));
+  P.push(BX('Ekran',.1,1.2,2.4,1.52,2.2,-2.4,.05,M('emissive','#5fd0ff',{emissive:'#2aa0ff',emi:.6})));
+  return normalizeDef({ id:'taser', name:'Zeus x27', builtin:1, type:'pistol', slot:'taser', parts:finalizeParts(P),
+    stats:{dmg:500,head:1,rpm:30,mag:1,reserve:0,reload:0,auto:0,spread:.1,moveSpread:1,recoil:.8,pattern:'vertical',pellets:1,scope:0,range:3.6,speed:.96,sound:'pistol',draw:1.0,price:200,team:'any',reward:100,armorPen:1,zeus:1},
+    view:{pos:[.088,-.092,-.36],rot:[0,3,0]},
+    anchors:{gripR:{p:[0,-.044,.05],r:[-20,0,0]}, gripL:{p:[-.006,-.058,.036],r:[-20,0,-8]}, muzzle:[0,.022,-.11], eject:[0,.02,0]} });
+}
+// healthshot: +50 HP over 2 s; type c4 (no reload / scope / throw paths), slot 'heal' (key X)
+function defHealthshot(){
+  const body=M('polymer','#d9dde2'), dk=M('polymer','#2a2c30'), liq=M('glass','#3ee86a',{emissive:'#1aa83a',emi:.6,opacity:.85,rough:.1,metal:0}), steel=M('steel'), red=M('paint','#d0262f'), P=[];
+  P.push(CY('Gövde',1.25,1.25,8.4,0,0,0,[90,0,0],body,{sides:20}));
+  P.push(CY('Sıvı',1.28,1.28,4.6,0,0,1.2,[90,0,0],liq,{sides:20}));
+  P.push(TR('Bilezik',1.27,.2,0,0,-1.6,[0,0,0],dk));
+  P.push(CY('Uç',1.0,.45,1.8,0,0,5.1,[90,0,0],dk,{sides:16}));
+  P.push(CY('İğne',.07,.05,2.0,0,0,6.9,[90,0,0],steel,{sides:8}));
+  P.push(CY('Piston',1.0,1.0,2.6,0,0,-5.4,[90,0,0],dk,{sides:18,id:'hs_pist'}));
+  P.push(CY('Basma başlığı',1.2,1.2,.5,0,0,-6.9,[90,0,0],red,{sides:18,parent:'hs_pist'}));
+  P.push(BX('Haç',.1,1.2,.4,1.26,0,-2.9,0,red)); P.push(BX('Haç',.1,.4,1.2,1.26,0,-2.9,0,red));
+  return normalizeDef({ id:'healthshot', name:'Sağlık iğnesi', builtin:1, type:'c4', slot:'heal', parts:finalizeParts(P),
+    stats:{dmg:0,head:1,rpm:60,mag:1,reserve:0,reload:0,auto:0,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:0,speed:1,sound:'pistol',draw:.6,price:400,team:'any',heal:1},
+    view:{pos:[.11,-.107,-.33],rot:[4,12,-8]},
+    anchors:{gripR:{p:[0,-.004,.022],r:[72,0,0]}, gripL:null, muzzle:[0,0,-.08], eject:[0,0,0]} });
+}
+// tactical awareness grenade: sticks where it lands, pings after 2 s, shows enemies within 15 m through walls
+function defTAGrenade(){ const P=[], body=M('aluminum','#3c4148'), band=M('paint','#2f8fd8'), dk=M('gunmetal','#2a2c30'), led=M('emissive','#ff3a3a',{emissive:'#ff2020',emi:.9}), pad=M('rubber');
+  P.push(CY('Gövde',1.8,1.8,8.0,0,0,0,[0,0,0],body,{sides:24}));
+  P.push(TR('Mavi bant',1.82,.3,0,2.2,0,[90,0,0],band)); P.push(TR('Mavi bant',1.82,.3,0,-2.2,0,[90,0,0],band));
+  P.push(CY('Yapışkan taban',1.9,1.6,1.0,0,-4.5,0,[0,0,0],pad,{sides:24}));
+  P.push(CY('Fünye',.85,1.05,1.8,0,4.9,0,[0,0,0],dk)); P.push(BX('Mandal',1.1,6.6,.3,0,1.9,-1.95,.12,dk,{rot:[3,0,0]})); P.push(TR('Pim halkası',1.0,.14,1.5,5.5,0,[0,90,0],dk));
+  P.push(SP('LED',.34,0,.2,1.8,led));
+  return nadeDef('tagrenade','TA bombası','ta',600,'any',P); }
+BUILTIN.push(defHKP2000(),defFiveSeven(),defCZ75(),defMP7(),defUMP45(),defMP5SD(),defSG553(),defZeus(),defHealthshot(),defTAGrenade());
+
+// ---- CS2 loadout data: per side, starting pistol + 4 pistol / 5 mid-tier / 5 rifle slots. Any weapon of a tier fits any slot of that tier (as in CS2);
+//      picking one that is already in another slot swaps the two. null = empty slot (not offered in the buy menu).
+const LO_POOL={CT:{start:['usps','hkp2000'],pistols:['p250','fiveseven','cz75a','deagle'],mid:['mp9','mp7','mp5sd','ump45','p90','nova'],rifles:['famas','m4a4','m4a1s','aug','ssg08','awp']},
+  T:{start:['glock'],pistols:['p250','tec9','cz75a','deagle'],mid:['mac10','mp7','mp5sd','ump45','p90','nova'],rifles:['galil','ak47','sg556','ssg08','awp']}};
+const LO_DEFAULT={CT:{start:'usps',pistols:['p250','fiveseven','cz75a','deagle'],mid:['mp9','mp7','ump45','p90','nova'],rifles:['famas','m4a4','aug','ssg08','awp']},
+  T:{start:'glock',pistols:['p250','tec9','cz75a','deagle'],mid:['mac10','mp7','ump45','p90','nova'],rifles:['galil','ak47','sg556','ssg08','awp']}};
+const LO_TIERS=[['pistols','TABANCALAR','Başlangıç + 4 yuva',4],['mid','ORTA SINIF','Hafif makineli · pompalı',5],['rifles','TÜFEKLER','Tüfek · keskin nişancı',5]];
+const LO_GEAR=['kevlar','helmet','kit','taser','tagrenade'], LO_NADES=['he','flash','smoke','molotov','incgren','decoy'];
+const LO_DM_PRI=[['TÜFEKLER',['ak47','m4a4','m4a1s','famas','galil','aug','sg556']],['KESKİN NİŞANCI',['awp','ssg08']],['HAFİF MAKİNELİ',['mp9','mac10','mp7','mp5sd','ump45','p90']],['AĞIR',['nova']]];
+const LO_DM_SEC=['glock','usps','hkp2000','p250','fiveseven','tec9','cz75a','deagle'];
+const LO_DM_WIN=10, LO_ZEUS_RECHARGE=20, LO_INJ_DUR=1.0, LO_INJ_HIT=.42, LO_HEAL=50, LO_HEAL_RATE=25, LO_TA_ARM=2, LO_TA_SHOW=5, LO_TA_R=15;
+const LO={ ui:{side:CFG.agent==='T'?'T':'CT',sel:null}, dmOpen:false, dmSeen:0, dmSeenT:0, stT:0, age:99, tb:0, inj:null, heals:[], reveal:new Map(), fx:[], bufs:{}, dmHinted:0 };
+const LO_UP=new THREE.Vector3(0,1,0), _loV=new THREE.Vector3(), _loV2=new THREE.Vector3(), _loE=new THREE.Euler();
+// old saves: CFG.loadout {primary, secondary, melee} only -> CS2 defaults, keeping the M4 / starting pistol you used and your old DM guns
+function loMigrate(){
+  const old=CFG.loadout||{};
+  if(!CFG.lo||typeof CFG.lo!=='object'||CFG.lo.v!==1){ const n=deepClone(LO_DEFAULT);
+    if(old.primary==='m4a1s') n.CT.rifles[n.CT.rifles.indexOf('m4a4')]='m4a1s';
+    if(LO_POOL.CT.start.includes(old.secondary)) n.CT.start=old.secondary;
+    CFG.lo={v:1,CT:n.CT,T:n.T,dm:{pri:old.primary||'ak47',sec:old.secondary||'deagle',always:0}}; }
+  for(const s of ['CT','T']){ const S=CFG.lo[s]=Object.assign(deepClone(LO_DEFAULT[s]),CFG.lo[s]&&typeof CFG.lo[s]==='object'?CFG.lo[s]:{});
+    if(typeof S.start!=='string') S.start=LO_DEFAULT[s].start;
+    for(const [k,,,n] of LO_TIERS){ if(!Array.isArray(S[k])) S[k]=LO_DEFAULT[s][k].slice(); S[k]=S[k].slice(0,n).map(x=>typeof x==='string'?x:null); while(S[k].length<n) S[k].push(null); } }
+  CFG.lo.dm=Object.assign({pri:'ak47',sec:'deagle',always:0},CFG.lo.dm||{});
+}
+loMigrate();
+const loPick=a=>a[(Math.random()*a.length)|0];
+// sanitized side loadout (unknown / foreign / duplicate ids -> empty slot)
+function loSide(side){ side=side==='T'?'T':'CT'; const S=CFG.lo[side], P=LO_POOL[side], ok=(id,pool)=>id&&pool.includes(id)&&LIB.byId[id]?id:null;
+  const o={start:ok(S.start,P.start)||P.start[0]}; for(const [k,,,n] of LO_TIERS){ const seen=new Set(); o[k]=[]; for(let i=0;i<n;i++){ let id=ok(S[k][i],P[k]); if(id&&seen.has(id)) id=null; if(id) seen.add(id); o[k].push(id); } } return o; }
+function loStartPistol(team){ return getWeapon(loSide(team).start,'secondary'); }
+// buy menu (B): exactly this side's loadout in slot order, then gear and grenades
+function loShopCats(team){ const S=loSide(team), f=a=>a.filter(Boolean);
+  return [{cat:'TABANCALAR',items:f([S.start,...S.pistols])},{cat:'ORTA SINIF',items:f(S.mid)},{cat:'TÜFEKLER',items:f(S.rifles)},{cat:'TEÇHİZAT',items:LO_GEAR.slice()},{cat:'BOMBALAR',items:LO_NADES.slice()}]; }
+function loAssign(side,tier,i,id){ const L=CFG.lo[side];
+  if(tier==='start'){ if(id) L.start=id; }
+  else { const arr=loSide(side)[tier].slice(), j=id?arr.indexOf(id):-1; if(j>=0&&j!==i) arr[j]=arr[i]; arr[i]=id||null; L[tier]=arr; }
+  const d=id&&LIB.byId[id]; if(d&&(d.slot==='primary'||d.slot==='secondary')) CFG.loadout[d.slot]=id;   // the last pick is also your practice / menu weapon
+  saveCfg(); uiSound('equip'); LO.ui.sel={tier,i}; if(curScreen==='loadoutScreen') renderInventory(); }
+// bots: per-side pools that roughly follow what CS2 bots buy
+function loBotBuyGuns(b,T,pistolRound){
+  const R=Math.random, buy=id=>buyItem(b,id);
+  if(!pistolRound&&!b.slots.primary){ const m=b.money;
+    if(m>=5750&&R()<.18) buy('awp');
+    else if(m>=(T?3700:4100)&&R()<.94) buy(T?(R()<.16?'sg556':'ak47'):(R()<.2?'aug':R()<.5?'m4a4':'m4a1s'));
+    else if(m>=3000&&R()<.32) buy(loPick(T?['p90','ump45','mp7']:['p90','ump45','mp7','mp5sd']));
+    else if(m>=(T?2450:2700)) buy(T?'galil':'famas');
+    else if(m>=1900&&R()<.6) buy(loPick(T?['mac10','mac10','ump45']:['mp9','mp9','mp5sd','ump45']));
+  }
+  const eco=!pistolRound&&!b.slots.primary, cheap=!(b.slots.secondary&&b.slots.secondary.def.stats.price>200);
+  if(cheap&&(pistolRound||eco)&&b.money>=500&&R()<.42) buy(loPick(T?['tec9','tec9','cz75a']:['fiveseven','fiveseven','cz75a']));
+  else if(cheap&&pistolRound&&b.money>=300&&R()<.35) buy('p250');
+  else if(cheap&&!pistolRound&&b.slots.primary&&b.money>=2200&&R()<.2) buy('deagle');
+}
+
+// ---- ENVANTER → EKİPMAN page ----
+function loCardKey(list,id,cat){ const i=list.filter(Boolean).indexOf(id); return id&&i>=0?cat+'·'+(i+1):''; }
+function loRenderLoadout(G,I){
+  const side=LO.ui.side, S=loSide(side), wrap=el('div',{class:'loPage '+(side==='CT'?'ct':'t')});
+  if(!LO.ui.sel) LO.ui.sel={tier:'rifles',i:1};
+  const top=el('div',{class:'loTop'}), sw=el('div',{class:'loSides'});
+  for(const [k,n] of [['CT','ANTİ-TERÖR'],['T','TERÖRİST']]){ const b=el('button',{class:'loSideBtn '+k.toLowerCase()+(side===k?' on':'')},'<i></i>'+n);
+    b.addEventListener('click',()=>{ if(LO.ui.side===k) return; uiSound('tab'); LO.ui.side=k; renderInventory(); }); sw.appendChild(b); }
+  top.append(sw,el('div',{class:'loTip'},'Bir yuvaya tıkla ve silahını seç. Satın alma menüsü (B) bu tarafın düzenini sırasıyla gösterir; maça başlangıç tabancanla başlarsın.'));
+  wrap.appendChild(top);
+  const mk=o=>{ const d=o.id&&LIB.byId[o.id], info=!d&&o.gear?itemInfo(o.gear):null, sel=!o.fixed&&LO.ui.sel.tier===o.tier&&LO.ui.sel.i===o.i;
+    const b=el('button',{class:'loCard'+(sel?' sel':'')+(d||info?'':' empty')+(o.fixed?' fix':'')+(o.link?' link':'')});
+    const team=d?(d.stats.team||'any'):(info&&info.team)||'any'; b.style.setProperty('--tc',team==='CT'?'var(--m-ct)':team==='T'?'var(--m-t)':'rgba(255,255,255,.26)');
+    const ic=d?weaponIcon(d):'', nm=d?d.name:info?info.name:'BOŞ YUVA', pr=d?priceOf(d):info?info.price:null;
+    b.innerHTML=(o.key?'<span class="loK">'+o.key+'</span>':'')+(o.start?'<span class="loTag">BAŞLANGIÇ</span>':'')+
+      (ic?'<img alt="" src="'+ic+'">':info?'<span class="loGi">'+(GEAR_SVG[o.gear]||'')+'</span>':'<span class="loPlus">+</span>')+
+      '<span class="loNm">'+esc(nm)+'</span>'+(pr!==null&&!(o.fixed&&o.tier==='melee')?'<span class="loPr">'+(pr?'$'+pr:'ÜCRETSİZ')+'</span>':'<span class="loPr">&nbsp;</span>');
+    if(!o.fixed) b.addEventListener('click',()=>{ uiSound('click'); LO.ui.sel={tier:o.tier,i:o.i}; renderInventory(); loPickOpen(o.tier,o.i); });
+    else if(o.link) b.addEventListener('click',o.link);
+    return b; };
+  const row=(title,sub,cards,cls)=>{ const r=el('section',{class:'loRow'+(cls?' '+cls:'')}); r.appendChild(el('h5',null,esc(title)+(sub?'<small>'+esc(sub)+'</small>':'')));
+    const c=el('div',{class:'loCards'}); cards.forEach(x=>c.appendChild(x)); r.appendChild(c); return r; };
+  const pl=[S.start,...S.pistols];
+  wrap.appendChild(row('TABANCALAR','Başlangıç tabancası + 4 yuva',[mk({tier:'start',i:0,id:S.start,start:1,key:'1·1'}),...S.pistols.map((id,i)=>mk({tier:'pistols',i,id,key:loCardKey(pl,id,1)}))],'pist'));
+  wrap.appendChild(row('ORTA SINIF','Hafif makineli · pompalı',S.mid.map((id,i)=>mk({tier:'mid',i,id,key:loCardKey(S.mid,id,2)}))));
+  wrap.appendChild(row('TÜFEKLER','Tüfek · keskin nişancı',S.rifles.map((id,i)=>mk({tier:'rifles',i,id,key:loCardKey(S.rifles,id,3)}))));
+  const gear=LO_GEAR.filter(g=>{ const it=itemInfo(g); return it&&(!it.team||it.team==='any'||it.team===side); }), nades=LO_NADES.filter(g=>{ const it=itemInfo(g); return it&&(!it.team||it.team==='any'||it.team===side); });
+  const knife=knifeDef(), fixed=[mk({fixed:1,tier:'melee',id:knife.id,link:()=>{ uiSound('tab'); invCat='melee'; invSel=null; renderInventory(); }})];
+  gear.forEach((g,i)=>fixed.push(mk({fixed:1,id:LIB.byId[g]?g:null,gear:g,key:'4·'+(i+1)})));
+  nades.forEach((g,i)=>fixed.push(mk({fixed:1,id:g,key:'5·'+(i+1)})));
+  wrap.appendChild(row('BIÇAK · TEÇHİZAT · BOMBALAR','Sabit — her maçta aynı',fixed,'fixed'));
+  G.appendChild(wrap);
+  // info panel: the selected slot
+  const sl=LO.ui.sel, id=sl.tier==='start'?S.start:(S[sl.tier]||[])[sl.i], d=id&&LIB.byId[id];
+  const where=sl.tier==='start'?'Başlangıç tabancası':(LO_TIERS.find(t=>t[0]===sl.tier)||['','YUVA'])[1]+' · '+(sl.i+1)+'. yuva';
+  if(!d){ I.innerHTML='<div class="rr" style="color:var(--m-txt2)">'+esc(where.toUpperCase())+'</div><div class="nm">Boş yuva</div><p class="pMuted">Bu yuva satın alma menüsünde görünmez. Doldurmak için yuvaya tıkla.</p><div class="btns"></div>';
+    const e=el('button',{class:'goBtn'},'SİLAH SEÇ'); e.addEventListener('click',()=>loPickOpen(sl.tier,sl.i)); I.querySelector('.btns').appendChild(e); menuShowcase(null); return; }
+  const R=RARITY[rarityOf(d)], tm=d.stats.team==='CT'?'Yalnız CT':d.stats.team==='T'?'Yalnız T':'Her iki taraf';
+  I.innerHTML='<div class="rr" style="color:'+R[1]+'">'+esc(where.toUpperCase())+'</div><div class="nm">'+esc(d.name)+'</div><div class="pMuted">'+esc(WTYPES[d.type]||'')+' · $'+priceOf(d)+' · '+tm+'</div>'+statBars(d)+'<div class="btns"></div>';
+  const bt=I.querySelector('.btns'), e1=el('button',{class:'goBtn'},'DEĞİŞTİR'); e1.addEventListener('click',()=>loPickOpen(sl.tier,sl.i));
+  const e2=el('button',{class:'cBtn'},'ATÖLYEDE AÇ'); e2.addEventListener('click',()=>openEditor(d.id)); const e3=el('button',{class:'cBtn ghost'},'SESLER'); e3.addEventListener('click',()=>openSoundWorkshop(d.id));
+  bt.append(e1,e2,e3); menuShowcase(d);
+}
+function loPickClose(){ const W=$('loPick'); if(W) W.classList.add('hidden'); }
+function loPickOpen(tier,i){ const side=LO.ui.side, S=loSide(side), P=LO_POOL[side], cur=tier==='start'?S.start:S[tier][i], opts=tier==='start'?P.start:P[tier];
+  let W=$('loPick'); if(!W){ W=el('div',{id:'loPick',class:'hidden'}); document.body.appendChild(W); W.addEventListener('click',e=>{ if(e.target===W){ uiSound('back'); loPickClose(); } }); }
+  const t=LO_TIERS.find(x=>x[0]===tier), title=(tier==='start'?'BAŞLANGIÇ TABANCASI':t[1]+' · '+(i+1)+'. YUVA')+' · '+(side==='CT'?'ANTİ-TERÖR':'TERÖRİST');
+  W.innerHTML='<div class="loPickBox"><header><span>'+esc(title)+'</span><button class="eb" id="loPickX">Kapat (ESC)</button></header><div class="loPickGrid"></div><p class="loPickNote">'+
+    (tier==='start'?'Her raunda (ve tabanca raundlarına) bu tabancayla başlarsın.':'Başka bir yuvadaki silahı seçersen iki yuva yer değiştirir. Satın alma menüsünde tuşlar bu sırayı izler.')+'</p></div>';
+  const g=W.querySelector('.loPickGrid');
+  for(const id of opts){ const d=LIB.byId[id]; if(!d) continue; const at=tier==='start'?-1:S[tier].indexOf(id), tm=d.stats.team==='CT'?'CT':d.stats.team==='T'?'T':'ORTAK';
+    const tag=id===cur?'SEÇİLİ':at>=0?(at+1)+'. YUVADA · YER DEĞİŞTİR':'';
+    const b=el('button',{class:'loOpt'+(id===cur?' on':'')},'<img alt="" src="'+weaponIcon(d)+'"><span class="nm">'+esc(d.name)+'</span><span class="pr">$'+priceOf(d)+' · '+tm+' · '+esc(WTYPES[d.type]||'')+'</span>'+(tag?'<span class="tg">'+tag+'</span>':''));
+    b.addEventListener('click',()=>{ loAssign(side,tier,i,id); loPickClose(); }); g.appendChild(b); }
+  if(tier!=='start'){ const b=el('button',{class:'loOpt empty'+(cur?'':' on')},'<span class="loPlus">∅</span><span class="nm">BOŞ BIRAK</span><span class="pr">Satın alma menüsünde gösterme</span>');
+    b.addEventListener('click',()=>{ loAssign(side,tier,i,null); loPickClose(); }); g.appendChild(b); }
+  W.querySelector('#loPickX').addEventListener('click',()=>{ uiSound('back'); loPickClose(); }); W.classList.remove('hidden'); }
+
+// ---- deathmatch: CS2-style gun menu (free, random spawns stay; B / touch $ button opens it) ----
+function loDmRandom(){ const r=Math.random(), g=r<.5?0:r<.62?1:r<.92?2:3; return loPick(LO_DM_PRI[g][1]); }
+function loDmChoice(){ const D=CFG.lo.dm, rnd=CFG.dm.weapons==='random', P=LIB.byId[D.pri], S=LIB.byId[D.sec];
+  return {pri:rnd?loDmRandom():(P&&P.slot==='primary'?D.pri:'ak47'), sec:rnd?loPick(LO_DM_SEC):(S&&S.slot==='secondary'?D.sec:'deagle')}; }
+function loAddItems(P){ if(LIB.byId.taser) P.slots.taser=mkSlot(LIB.byId.taser); if(LIB.byId.healthshot) P.slots.heal=mkSlot(LIB.byId.healthshot); }
+// player (re)spawn in DM — offline dmRespawn and the online 'spawn' message both call this; resetPlayer() follows
+function loDmArm(){ const c=loDmChoice(), P=player;
+  P.slots={primary:mkSlot(getWeapon(c.pri,'primary')),secondary:mkSlot(getWeapon(c.sec,'secondary')),melee:mkSlot(knifeDef())}; loAddItems(P);
+  P.nades=[]; P.hasBomb=false; LO.age=0; if(LO.inj) loInjEnd(false); }
+function loDmBotArm(b){ b.slots.primary=mkSlot(getWeapon(loDmRandom(),'primary')); b.slots.secondary=mkSlot(getWeapon(loPick(LO_DM_SEC),'secondary')); b.slots.primary.res=999; b.slots.secondary.res=999; }
+function loPracticeGear(){ if((match.mode==='range'||match.mode==='walk')&&!match.testDef) loAddItems(player); }
+function loDmEl(){ let W=$('loDm'); if(W) return W; W=el('div',{id:'loDm',class:'hidden'});
+  W.innerHTML='<div class="loDmBox"><header><span class="t">SİLAH SEÇ</span><span id="loDmSt"></span><span class="grow"></span><span class="loDmFree">ÜCRETSİZ</span><button class="eb" id="loDmX">Kapat (B)</button></header><div class="loDmBody" id="loDmBody"></div><footer id="loDmFoot"></footer></div>';
+  document.body.appendChild(W); W.querySelector('#loDmX').addEventListener('click',()=>loDmToggle(false)); W.addEventListener('click',e=>{ if(e.target===W) loDmToggle(false); }); return W; }
+function loDmToggle(v){ if(v===undefined) v=!LO.dmOpen; if(v&&!(match.dm&&match.state==='live')) v=false; if(!v&&!LO.dmOpen) return;
+  LO.dmOpen=v; buyOpen=v; firing=false; loDmEl().classList.toggle('hidden',!v); uiSound(v?'tab':'back');
+  if(v){ unlockPointer(); loDmRender(); } else { if(match.state==='live') lockPointer(); if(!LO.dmHinted&&match.dm){ LO.dmHinted=1; toast(CFG.isTouch?'Silahını istediğin an $ düğmesiyle değiştirebilirsin':'Silahını istediğin an B ile değiştirebilirsin',2200); } } }
+function loDmStatus(){ const s=$('loDmSt'); if(!s) return; const left=LO_DM_WIN-LO.age, now=player.alive&&left>0;
+  s.textContent=CFG.dm.weapons==='random'?'Her doğuşta rastgele silah':now?'Seçimin hemen verilir · '+Math.ceil(left)+' sn':'Seçimin bir sonraki doğuşta verilir'; s.classList.toggle('late',!now); }
+function loDmRender(){ const B=$('loDmBody'); if(!B) return; const D=CFG.lo.dm, rnd=CFG.dm.weapons==='random'; B.innerHTML='';
+  const custom=k=>LIB.list.filter(d=>!d.builtin&&d.slot===k).map(d=>d.id);
+  const col=(title,groups,kind,sel)=>{ const c=el('div',{class:'loDmCol'}); c.appendChild(el('h4',null,esc(title)));
+    for(const [g,ids] of groups){ const L=ids.filter(id=>LIB.byId[id]); if(!L.length) continue; c.appendChild(el('h5',null,esc(g))); const gr=el('div',{class:'loDmGrid'});
+      for(const id of L){ const d=LIB.byId[id], b=el('button',{class:'loDmItem'+(!rnd&&sel===id?' on':'')},'<img alt="" src="'+weaponIcon(d)+'"><span>'+esc(d.name)+'</span>');
+        b.addEventListener('click',()=>loDmChoose(kind,id)); gr.appendChild(b); } c.appendChild(gr); } return c; };
+  const cp=custom('primary'), cs=custom('secondary');
+  B.append(col('BİRİNCİL',LO_DM_PRI.concat(cp.length?[['ATÖLYE',cp]]:[]),'pri',D.pri),col('İKİNCİL',[['TABANCALAR',LO_DM_SEC]].concat(cs.length?[['ATÖLYE',cs]]:[]),'sec',D.sec));
+  const F=$('loDmFoot'); F.innerHTML='';
+  const tg=(k,on,label,sub)=>{ const b=el('button',{class:'loTg'+(on?' on':'')},'<i></i><span><b>'+label+'</b><small>'+sub+'</small></span>'); b.addEventListener('click',()=>loDmChoose(k)); return b; };
+  const ok=el('button',{class:'goBtn loDmOk'},'TAMAM'); ok.addEventListener('click',()=>loDmToggle(false));
+  F.append(tg('rnd',rnd,'RASTGELE','Her doğuşta rastgele silah'),tg('always',!!D.always,'HEP BUNU VER','Maç başında menüyü açma'),el('span',{class:'grow'}),el('span',{class:'loDmGear'},'+ Zeus x27 · Sağlık iğnesi · bıçak'),ok);
+  loDmStatus(); }
+function loDmChoose(kind,id){ const D=CFG.lo.dm;
+  if(kind==='rnd'){ CFG.dm.weapons=CFG.dm.weapons==='random'?'loadout':'random'; saveCfg(); uiSound('click'); loDmRender(); return; }
+  if(kind==='always'){ D.always=D.always?0:1; saveCfg(); uiSound('click'); loDmRender(); return; }
+  const slot=kind==='pri'?'primary':'secondary', d=LIB.byId[id]; if(!d||d.slot!==slot) return;
+  D[kind]=id; if(CFG.dm.weapons==='random') CFG.dm.weapons='loadout'; saveCfg(); uiSound('equip');
+  const P=player, inWin=P.alive&&match.dm&&match.state==='live'&&LO.age<LO_DM_WIN;
+  if(inWin){ if(!P.slots[slot]||P.slots[slot].def!==d){ P.slots[slot]=mkSlot(d); if(slot==='primary'||P.cur==='secondary'){ if(P.cur!==slot) P.last=P.cur; P.cur=slot; equipCurrent(); } else updateHUD(); } }
+  else toast(d.name+' bir sonraki doğuşta verilecek',1300);
+  loDmRender(); }
+
+// ---- Zeus x27 ----
+function loUseItem(def,st,click){ if(def.stats.zeus) loZeusFire(def,st,click); else if(def.stats.heal) loHealUse(def,st,click); }
+function loZeusFire(def,st,click){ const P=player; if(!click||P.fireCd>0||VM.drawT>0) return;
+  if(st.mag<=0){ sfx.dry(); P.fireCd=.3; if(st.charge>0) toast('Zeus şarj oluyor · '+Math.ceil(st.charge)+' sn',900); return; }
+  st.mag=0; P.fireCd=1; P.noise=2;
+  vmFire(VM); VM.flash.visible=false;
+  camera.updateMatrixWorld(); vmCam.updateMatrixWorld(); VM.gunRoot.updateMatrixWorld(true); VM.flash.getWorldPosition(_loV2); const a=vmToWorld(_loV2,new THREE.Vector3());
+  const o=camera.position.clone(), dir=new THREE.Vector3(); camera.getWorldDirection(dir); const R=def.stats.range||3.6, opp=opponents(), wh=rayWorld(o,dir,R); let ch=null;
+  for(const [yo,po] of [[0,0],[.035,0],[-.035,0],[0,.035],[0,-.035],[.06,0],[-.06,0]]){ const d=aimDir(yo,po,new THREE.Vector3()), w=rayWorld(o,d,R), c=rayCharacters(o,d,w?w.dist:R,opp); if(c){ ch=c; break; } }
+  const b=ch?ch.point.clone():wh?wh.point.clone():o.clone().addScaledVector(dir,R);
+  loZapFx(a,b,!!ch,true);
+  if(ch) dealHit({char:ch.char,raw:def.stats.dmg,zone:'chest',dist:ch.dist,point:ch.point},def);
+  if(NET.on){ const m={t:'lo',k:'zap',a:netV(a),b:netV(b),h:ch?1:0}; if(NET.client) netSendHost(m); else netBroadcast(m); }
+  if(match.mode==='comp'){ if(NET.client) netSendHost({t:'lo',k:'zeus'});   // one charge per purchase
+    setTimeout(()=>{ if(player.slots.taser!==st) return; delete player.slots.taser; if(player.cur==='taser'&&player.alive){ player.cur=player.last&&player.slots[player.last]&&player.last!=='taser'?player.last:(player.slots.primary?'primary':'secondary'); equipCurrent(); } updateHUD(); },650); }
+  else st.charge=match.mode==='range'||match.mode==='walk'?2:LO_ZEUS_RECHARGE;   // DM / practice: recharges
+  updateHUD(); }
+function loZapShape(e){ const d=_loV.subVectors(e.b,e.a), L=Math.max(.01,d.length()); d.multiplyScalar(1/L);
+  const u=new THREE.Vector3().crossVectors(d,Math.abs(d.y)<.9?LO_UP:new THREE.Vector3(1,0,0)).normalize(), v=new THREE.Vector3().crossVectors(d,u), amp=.05+L*.035;
+  for(let s=0;s<e.strands.length;s++){ const A=e.strands[s].geometry.attributes.position, N=A.count;
+    for(let i=0;i<N;i++){ const t=i/(N-1), env=Math.sin(Math.PI*t)*(s?1.4:1), ju=(Math.random()-.5)*2*amp*env, jv=(Math.random()-.5)*2*amp*env;
+      A.setXYZ(i,e.a.x+(e.b.x-e.a.x)*t+u.x*ju+v.x*jv,e.a.y+(e.b.y-e.a.y)*t+u.y*ju+v.y*jv,e.a.z+(e.b.z-e.a.z)*t+u.z*ju+v.z*jv); }
+    A.needsUpdate=true; } }
+function loZapFx(a,b,hit,mine){ const strands=[];
+  for(let s=0;s<3;s++){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(14*3),3));
+    const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:s?0x7cc8ff:0xf0f8ff,transparent:true,opacity:1,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); l.frustumCulled=false; l.renderOrder=45; scene.add(l); strands.push(l); }
+  const e={kind:'zap',a:a.clone(),b:b.clone(),t:0,dur:.18,strands,fl:0}; loZapShape(e); LO.fx.push(e); LO.nZap=(LO.nZap|0)+1;
+  for(let i=0;i<12;i++) FX.sparks.spawn(_loV.copy(a).lerp(b,Math.random()),_loV2.set(rand(-.4,.4),rand(-.4,.4),rand(-.4,.4)),rand(.05,.13),.04,.01,[2.2,3.2,6],1,0,.5);
+  if(hit) for(let i=0;i<18;i++) FX.sparks.spawn(b,_loV2.set(rand(-2,2),rand(-.5,2.5),rand(-2,2)),rand(.15,.4),.03,.01,[3,4,8],1,9.8,.6);
+  worldFlash.position.copy(b); worldFlash.intensity=Math.max(worldFlash.intensity,10);
+  loSnd('zap',mine?{bus:'weapons',vol:.85}:{pos:a,ref:5,bus:'weapons',vol:.85}); }
+
+// ---- healthshot ----
+function loHealUse(def,st,click){ const P=player; if(!click||LO.inj||VM.drawT>0||st.mag<=0) return;
+  if(P.hp>=100&&match.mode!=='range'&&match.mode!=='walk'){ toast('Canın zaten dolu',1100); uiSound('deny'); return; }
+  const pp=def.parts.find(q=>q.name==='Piston'), n=pp&&VM.w&&VM.w.nodes[pp.id];
+  LO.inj={t:0,st,def,done:false,pist:n?{n,z:n.position.z}:null,v0:{pos:def.view.pos.slice(),rot:def.view.rot.slice()}}; P.fireCd=LO_INJ_DUR; }
+function loKf(t,K){ if(t<=K[0][0]) return K[0][1]; for(let i=1;i<K.length;i++){ if(t<=K[i][0]){ const a=K[i-1], b=K[i], u=(t-a[0])/Math.max(1e-6,b[0]-a[0]); return a[1]+(b[1]-a[1])*u*u*(3-2*u); } } return K[K.length-1][1]; }
+// injection: the injector's view pose (read by updateRig, so the arm IK follows) swings down-left with the needle down, jabs, comes back
+function loInjPose(t){ const J=LO.inj, V=J.def.view, P0=J.v0.pos, R0=J.v0.rot, k=loKf(t,[[0,0],[.28,1],[.68,1],[1,0]]), j=loKf(t,[[0,0],[.3,0],[.42,1],[.58,1],[.74,0]]);
+  V.pos=[P0[0]-.07*k,P0[1]-.012*k-.022*j,P0[2]+.012*k-.012*j]; V.rot=[R0[0]-38*k-8*j,R0[1]+18*k,R0[2]+28*k];
+  if(J.pist) J.pist.n.position.z=J.pist.z-.022*loKf(t,[[0,0],[.42,0],[.6,1],[1,1]]); }
+function loInjEnd(done){ const J=LO.inj; LO.inj=null; if(J){ J.def.view.pos=J.v0.pos; J.def.view.rot=J.v0.rot; if(J.pist) J.pist.n.position.z=J.pist.z; }
+  if(!done||!J||J.st.mag>0) return; const P=player;
+  if(match.mode==='range'||match.mode==='walk'){ J.st.charge=3; return; }
+  if(P.slots.heal===J.st){ delete P.slots.heal; if(P.cur==='heal'&&P.alive){ P.cur=P.last&&P.slots[P.last]&&P.last!=='heal'?P.last:(P.slots.primary?'primary':'secondary'); equipCurrent(); } updateHUD(); } }
+function loInjTick(dt){ const J=LO.inj, P=player;
+  if(!P.alive||!VM||VM.def!==J.def||match.state==='menu'||match.state==='over'){ loInjEnd(false); return; }
+  if(match.state==='paused') return;
+  J.t+=dt; if(!J.done&&J.t>=LO_INJ_HIT){ J.done=true; J.st.mag=Math.max(0,J.st.mag-1); loHealStart(); }
+  loInjPose(J.t); if(J.t>=LO_INJ_DUR) loInjEnd(true); }
+function loHealStart(){ loSnd('inject',{bus:'weapons',vol:.8}); loHealFx(); if(NET.client) netSendHost({t:'lo',k:'heal'}); else loHealAgent(player); }
+function loHealAgent(a){ LO.heals.push({a,left:LO_HEAL}); }
+function loHealFx(){ let f=$('loHealFx'); if(!f){ f=el('div',{id:'loHealFx'}); document.body.appendChild(f); } f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+function loHpUi(){ const P=player; $('hpNum').textContent=Math.max(0,Math.round(P.hp)); $('hpNum').classList.toggle('low',P.hp<=25); $('hpFill').style.width=Math.max(0,P.hp)+'%'; }
+
+// ---- TA grenade ----
+function loTaUpdate(n,dt){
+  const T=n.ta||(n.ta={stuck:false,t:0,fired:false,beep:0,led:null,ledOff:0});
+  if(T.led===null){ const p=n.def.parts.find(q=>q.name==='LED'); T.led=(p&&n.w&&n.w.nodes[p.id])||false; }
+  if(!T.stuck){
+    n.vel.y-=GRAV*.85*dt; const step=n.vel.clone().multiplyScalar(dt), L=step.length();
+    if(L>1e-5){ const hit=rayWorld(n.g.position,step.clone().multiplyScalar(1/L),L+.06);
+      if(hit){ T.stuck=true; n.rest=true; n.vel.set(0,0,0); n.g.position.copy(hit.point).addScaledVector(hit.normal,.05); n.g.quaternion.setFromUnitVectors(LO_UP,hit.normal); loSnd('stick',{pos:n.g.position.clone(),ref:3,vol:.8}); }
+      else { n.g.position.add(step); n.g.rotation.x+=n.spin.x*dt; n.g.rotation.y+=n.spin.y*dt; n.g.rotation.z+=n.spin.z*dt; } }
+    return n.t>10?loTaKill(n):false; }
+  T.t+=dt;
+  if(!T.fired){ T.beep-=dt; if(T.beep<=0){ T.beep=Math.max(.14,.5-T.t*.18); loSnd('beep',{pos:n.g.position.clone(),ref:3,vol:.55}); if(T.led) T.led.visible=true; T.ledOff=.07; }
+    if(T.t>=LO_TA_ARM){ T.fired=true; loTaPulse(n); } }
+  if(T.ledOff>0){ T.ledOff-=dt; if(T.ledOff<=0&&T.led&&!T.fired) T.led.visible=false; }
+  if(T.fired&&T.led) T.led.visible=((T.t*3)|0)%2===0;
+  return T.t>=LO_TA_ARM+LO_TA_SHOW?loTaKill(n):false; }
+function loTaKill(n){ scene.remove(n.g); disposeWeaponObject(n.w); return true; }
+function loTaPulse(n){ const p=n.g.position.clone(), o=n.owner, now=performance.now(); loSnd('ping',{pos:p,ref:6,bus:'fx',vol:.85}); loWave(p);
+  const mine=!!o&&(o===player||(!match.dm&&o.team===player.team)); let k=0;
+  for(const a of allAgents()){ if(!a.alive||a===o) continue; if(o&&!match.dm&&a.team===o.team) continue; if(agentChest(a,_loV).distanceTo(p)>LO_TA_R) continue; k++;
+    if(mine&&a!==player) LO.reveal.set(a,now+LO_TA_SHOW*1000);
+    if(match.mode==='comp'&&o&&o.team) teamIntel(o.team,a.pos); }
+  LO.lastTa={n:k,at:now}; return k; }
+function loWave(p){ const mats=[new THREE.MeshBasicMaterial({color:0x6fd8ff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}),
+    new THREE.MeshBasicMaterial({color:0x3aa6ff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.BackSide,fog:false})];
+  const rg=new THREE.RingGeometry(.9,1,56); rg.rotateX(-Math.PI/2); const r=new THREE.Mesh(rg,mats[0]), s=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),mats[1]);
+  for(const m of [r,s]){ m.position.copy(p); m.renderOrder=40; m.frustumCulled=false; scene.add(m); } LO.fx.push({kind:'wave',ring:r,sph:s,t:0,dur:.9}); }
+// enemies revealed by a TA grenade: red x-ray silhouette through walls (+ radar dot via COMP.spotted)
+const LO_GHOST_MAT=new THREE.MeshBasicMaterial({color:0xff3a3a,transparent:true,opacity:.5,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false});
+function loGhost(a,on){ const c=a.char; if(!c) return;
+  if(on){ if(c._loG) return; const src=[]; c.root.traverse(o=>{ if(o.isMesh&&o.material!==HITMAT&&!o.userData.loG) src.push(o); });
+    c._loG=src.map(o=>{ const g=new THREE.Mesh(o.geometry,LO_GHOST_MAT); g.userData.loG=1; g.renderOrder=60; g.frustumCulled=false; o.add(g); return g; }); }
+  else if(c._loG){ for(const g of c._loG) if(g.parent) g.parent.remove(g); c._loG=null; } }
+
+// ---- procedural one-shot sounds (zap / injection / TA beep + ping / stick / Zeus charged) ----
+function loBuf(kind){ const ctx=AUD.ctx; if(!ctx) return null; if(LO.bufs[kind]) return LO.bufs[kind];
+  const sr=ctx.sampleRate, dur={zap:.7,inject:.55,beep:.09,ping:1.1,charge:.32,stick:.14}[kind]||.3, n=Math.max(1,Math.floor(sr*dur)), B=ctx.createBuffer(2,n,sr), L=B.getChannelData(0), Rc=B.getChannelData(1);
+  let sd=1234567+kind.length*7919; const rn=()=>{ sd=(sd*16807)%2147483647; return sd/1073741823.5-1; };
+  let prev=0, lp=0, lp2=0, gate=1, gT=0, ph=0;
+  for(let i=0;i<n;i++){ const t=i/sr; let s=0;
+    if(kind==='zap'){ if(t>=gT){ gT=t+.0008+Math.abs(rn())*.004; gate=Math.abs(rn())<.55?1:.12; } const w=rn(), hp=w-prev; prev=w;
+      const env=(t<.003?t/.003:Math.exp(-(t-.003)*4.2))*Math.min(1,Math.max(0,(dur-t)/.08));
+      const buzz=(Math.sin(2*Math.PI*120*t)>0?1:-1)*.22+Math.sin(2*Math.PI*240*t+3*Math.sin(2*Math.PI*7*t))*.18;
+      s=env*(hp*gate*.75+buzz*(.5+.5*gate))+(t<.012?rn()*(1-t/.012)*.9:0); }
+    else if(kind==='inject'){ const w=rn(); lp+=(w-lp)*.35; const hp=lp-lp2; lp2+=(lp-lp2)*.05;
+      s=(t>.04?Math.exp(-(t-.04)*7)*Math.min(1,(t-.04)/.02):0)*hp*1.6+(t<.008?rn()*(1-t/.008)*.8:0)+(Math.abs(t-.035)<.004?rn()*.5:0)+Math.sin(2*Math.PI*95*t)*Math.exp(-t*30)*.5; }
+    else if(kind==='beep'){ s=Math.sin(2*Math.PI*2600*t)*Math.min(1,t/.004)*Math.min(1,(dur-t)/.02)*.5; }
+    else if(kind==='ping'){ ph+=2*Math.PI*(1500*Math.exp(-t*1.2)+500)/sr; s=Math.sin(ph)*Math.exp(-t*3.2)*Math.min(1,t/.005)*.55; }
+    else if(kind==='charge'){ ph+=2*Math.PI*(500+t/dur*1100)/sr; s=Math.sin(ph)*.35*Math.min(1,t/.01)*Math.min(1,(dur-t)/.04); }
+    else if(kind==='stick'){ s=rn()*Math.exp(-t*90)*.8+Math.sin(2*Math.PI*160*t)*Math.exp(-t*40)*.5; }
+    L[i]=s; Rc[i]=s; }
+  if(kind==='ping'){ const d=Math.floor(sr*.16); for(let i=n-1;i>=d;i--){ L[i]+=L[i-d]*.38; Rc[i]+=Rc[i-d]*.3; } }
+  if(kind==='zap') for(let i=n-1;i>0;i--) Rc[i]=Rc[i]*.8+L[i-1]*.2;
+  let pk=0; for(let i=0;i<n;i++) pk=Math.max(pk,Math.abs(L[i]),Math.abs(Rc[i])); const g=pk>0?.9/pk:1; for(let i=0;i<n;i++){ L[i]*=g; Rc[i]*=g; }
+  const fo=Math.min(n,Math.floor(sr*.008)); for(let i=0;i<fo;i++){ const k=i/fo; L[n-1-i]*=k; Rc[n-1-i]*=k; }
+  return LO.bufs[kind]=B; }
+function loSnd(kind,o){ try{ ensureAudio(); const b=loBuf(kind); if(b) return sndPlay('',Object.assign({bus:'fx'},o||{},{buf:b})); }catch(e){} return null; }
+
+// ---- network (host-star): zap FX for the others, Zeus spent (comp), healthshot heal is applied by the host ----
+function loNetHost(a,d,nid){ if(!a||!d) return;
+  if(d.k==='zap'){ if(!a.alive) return; loZapFx(netV3(d.a),netV3(d.b),!!d.h,false); d.o=nid; netBroadcast(d,nid); }
+  else if(d.k==='zeus'){ if(match.mode==='comp'&&a.slots) delete a.slots.taser; }
+  else if(d.k==='heal'){ if(!a.alive||match.mode==='comp') return; if(a._loHs&&a._loHsSeq===(a.spawnSeq|0)) return; a._loHs=1; a._loHsSeq=a.spawnSeq|0; loHealAgent(a); } }
+function loNetClient(d){ if(d&&d.k==='zap'&&d.o!==NET.myId) loZapFx(netV3(d.a),netV3(d.b),!!d.h,false); }
+
+// ---- per frame (called from tick) ----
+function loTick(dt){ const now=performance.now(), P=player;
+  if(match.dm&&DM.on&&match.state==='live'){
+    if(!LO.dmSeen&&P.alive){ LO.dmSeenT+=dt; if(LO.dmSeenT>.35){ LO.dmSeen=1; if(!CFG.lo.dm.always) loDmToggle(true); } } }
+  else { if(LO.dmOpen&&match.state!=='paused') loDmToggle(false); }
+  if(LO.dmOpen&&(LO.stT-=dt)<=0){ LO.stT=.25; loDmStatus(); }
+  const tb=$('buyBtnTouch'); if(match.dm&&match.state==='live'&&CFG.isTouch){ if(!LO.tb){ LO.tb=1; tb.classList.remove('hidden'); } } else if(LO.tb){ LO.tb=0; tb.classList.add('hidden'); }
+  const live=match.state==='live'; if(live) LO.age+=dt;   // game time (stops while paused)
+  const z=P.slots.taser; if(z){ if(z.mag>0) z.charge=0; else if(z.charge>0&&live&&(z.charge-=dt)<=0){ z.mag=1; z.charge=0; if(P.alive&&match.state==='live') loSnd('charge',{bus:'ui',vol:.5}); updateHUD(); } }
+  const h=P.slots.heal; if(h&&h.mag<=0&&h.charge>0&&live&&(h.charge-=dt)<=0){ h.mag=1; h.charge=0; updateHUD(); }
+  if(LO.inj) loInjTick(dt);
+  for(let i=LO.heals.length-1;i>=0;i--){ const H=LO.heals[i], a=H.a; if(!a.alive||a.hp<=0||match.state==='menu'){ LO.heals.splice(i,1); continue; }
+    const k=Math.min(H.left,LO_HEAL_RATE*dt); a.hp=Math.min(100,a.hp+k); H.left-=k; if(a===P) loHpUi(); if(H.left<=1e-3||a.hp>=100) LO.heals.splice(i,1); }
+  if(LO.reveal.size){ LO_GHOST_MAT.opacity=.32+.2*Math.sin(now*.012);
+    for(const [a,until] of LO.reveal){ if(now>until||!a.alive||!a.char||match.state==='menu'||!bots.includes(a)){ loGhost(a,false); LO.reveal.delete(a); continue; } COMP.spotted[a.id]=now; loGhost(a,true); } }
+  for(let i=LO.fx.length-1;i>=0;i--){ const e=LO.fx[i]; e.t+=dt; const u=Math.min(1,e.t/e.dur);
+    if(e.kind==='zap'){ e.fl-=dt; if(e.fl<=0&&u<1){ e.fl=.03; loZapShape(e); } for(const l of e.strands) l.material.opacity=1-u*u;
+      if(u>=1){ for(const l of e.strands){ scene.remove(l); l.geometry.dispose(); l.material.dispose(); } LO.fx.splice(i,1); } }
+    else if(e.kind==='wave'){ const s=.5+(LO_TA_R-.5)*(1-(1-u)*(1-u)); e.ring.scale.setScalar(s); e.sph.scale.setScalar(s); e.ring.material.opacity=.9*(1-u); e.sph.material.opacity=.22*(1-u);
+      if(u>=1){ for(const m of [e.ring,e.sph]){ scene.remove(m); m.geometry.dispose(); m.material.dispose(); } LO.fx.splice(i,1); } } }
+}
+// keys: X = healthshot, R does nothing on Zeus / healthshot, ESC closes the slot picker, no comp quick-buy digits in the DM menu
+addEventListener('keydown',e=>{
+  if(isTyping(e)) return; const W=$('loPick');
+  if(W&&!W.classList.contains('hidden')&&e.code==='Escape'){ e.stopImmediatePropagation(); e.preventDefault(); uiSound('back'); loPickClose(); return; }
+  if(match.state!=='live'||conOpen) return;
+  if(LO.dmOpen&&/^(Digit|Numpad)[0-9]$/.test(e.code)){ e.stopImmediatePropagation(); return; }
+  if(!gameInput()||buyOpen) return; const P=player, c=e.code, st=P.slots[P.cur];
+  if(c===(CFG.keys.heal||'KeyX')&&!e.repeat&&P.slots.heal&&P.alive){ e.stopImmediatePropagation(); if(P.cur!=='heal') switchSlot('heal'); else { const b=P.last&&P.slots[P.last]&&P.last!=='heal'?P.last:P.slots.primary?'primary':'secondary'; switchSlot(b); } return; }
+  if(c===CFG.keys.reload&&st&&(st.def.stats.zeus||st.def.stats.heal)) e.stopImmediatePropagation();
+},true);
+gameExport({ LO, loSide, loShopCats, loAssign, loPickOpen, loDmToggle, loDmChoose, loDmArm, loDmChoice, loZapFx, loTaPulse, loHealAgent, get loReveal(){ return LO.reveal; } });
 
 
 /* @@BLOCK:onboard — code from the onboard work (tutorial, mobile fire buttons, AUG scope) goes right below this line */
