@@ -8,7 +8,9 @@ Oyunun adı ve alt başlığı **DEV → PROJE AYARLARI** bölümünden değişt
 - **Üst menü çubuğu:** OYNA · ENVANTER · PROFİL · DEV, sağda rütbe / seviye ve ayarlar.
 - **Ana ekran:** haritada duran ajan (alan derinliği efektiyle), hızlı oyun kartı, haberler, arkadaşlarla oyna, istatistikler, menü müziği.
 - **Oyna:** Rekabetçi · Düello · Antrenman · Arkadaşla sekmeleri, gerçek 3D harita önizlemeleri, takım boyutu / taraf / maç uzunluğu / bot zorluğu.
+- **Envanter → Ekipman:** CS2 gibi ANTİ-TERÖR / TERÖRİST sekmeleri; başlangıç tabancası + 4 tabanca, 5 orta sınıf, 5 tüfek yuvası. Satın alma menüsü o tarafın düzenini gösterir.
 - **Envanter:** birincil, tabanca, bıçak, ajan ve atölye silahları; 3D önizleme, nadirlik renkleri, istatistik çubukları, kuşan.
+- **Öğrenme alanı:** ilk açılışta (isimden önce) küçük bir haritada adım adım eğitim, kontrol tercihleri ve çok kolay bir çatışma. Sonradan OYNA → ALIŞTIRMA → ÖĞRENME ALANI.
 - **Profil:** rütbe (ACEMİ → EFSANE), XP, maç / galibiyet / K/D / kafa % / MVP ve son maçlar.
 - **Ayarlar:** Oyun, Ses, Görüntü, Klavye / Fare (tuş atama), Nişangah (önizleme + paylaşılabilir kod), HUD.
 
@@ -20,8 +22,9 @@ Oyunun adı ve alt başlığı **DEV → PROJE AYARLARI** bölümünden değişt
   - Radar, skor tablosu (TAB: para, L/A/Ö, kafa %, ort. hasar, MVP, skor), raunt sonu bandı ve raundun MVP'si, silah simgeli öldürme akışı.
   - Satın alma menüsü (B): numaralı kategoriler, `1-5` ile hızlı alım.
 - **Bot düello** — ilk 5 / 10 / 15 leş kazanır.
+- **Ölüm maçı** — rastgele doğuş, CS2 gibi silah seçim menüsü (B): doğduktan sonraki 10 sn içinde seçim hemen verilir; Rastgele / Hep bunu ver.
 - **Oda kur / katıl** — arkadaşınla P2P 1v1 (PeerJS).
-- **Antrenman** — test alanı ya da haritalarda sınırsız mermiyle gezme.
+- **Test alanı** — silah deposu (rafa yaklaş, E ile al), 10/25/50/75 m atış hatları, baskın evi, bomba alanı, parkur, bot alanı ve istatistik tahtası.
 
 ## Ses
 - Örnek dosya kullanmayan, tamamen kodla üretilen ses kütüphanesi: her silah için ateş, uzaktan ateş, çekme, şarjör çıkar / tak, mekanizma, boş tetik.
@@ -45,17 +48,20 @@ Oyunun adı ve alt başlığı **DEV → PROJE AYARLARI** bölümünden değişt
 - **Test alanı** ve **konsol** (`~`).
 
 ## Haritalar
+- **Reaktör** — iki katlı nükleer santral: A üst katta, B tam altında; cennet / cehennem, kapak ve havalandırma inişleri. Radar bulunduğun kata göre değişir.
+- **Toz II · Serap · Alev · Kadim** — klasik bomba haritası düzenleri, yükseltilmiş geçitler, balkonlar ve platformlarla.
 - **Kum Vadisi** — çöl kasabası bomba haritası: uzun A, kısa A (yükseltilmiş geçit), orta kapılar, kapalı B tünelleri.
 - **Avlu** — simetrik, küçük bir arena.
 - Atölyede yaptığın haritalar **★** ile listelenir.
 
 ## Silahlar
-- **Tabancalar:** Glock-18, USP-S, P250, Tec-9, Desert Eagle
-- **SMG ve pompalı:** MAC-10, MP9, P90, Nova
-- **Tüfekler:** Galil AR, FAMAS, AK-47, M4A4, M4A1-S, AUG (1,7× dürbün), SSG 08, AWP
+- **Tabancalar:** Glock-18, USP-S, P2000, P250, Five-SeveN, CZ75-Auto, Tec-9, Desert Eagle
+- **SMG ve pompalı:** MAC-10, MP9, MP7, MP5-SD, UMP-45, P90, Nova
+- **Tüfekler:** Galil AR, FAMAS, AK-47, M4A4, M4A1-S, AUG ve SG 553 (dürbünün içinden bakılan optik), SSG 08, AWP
 - **Bombalar:** HE, flaş, sis, molotof, yangın bombası, dekoy — sis görüşü keser, molotofu söndürür; dekoy 15 sn boyunca senin silahının sesiyle sahte ateş eder ve rakip radarında görünür.
 - **Susturucu:** USP-S ve M4A1-S'de sağ tık (mobilde SUS.) susturucuyu takar / söker.
-- **Ekipman:** C4, kevlar, kask, imha kiti
+- **Bomba atışı:** basınca pim çekilir ve elde tutulur, bırakınca atılır (sol tık tam, sağ tık alttan, ikisi birden orta).
+- **Teçhizat:** C4, kevlar, kask, imha kiti, Zeus x27, TA bombası (yakındaki düşmanları duvar arkasından gösterir), sağlık iğnesi (ölüm maçı ve antrenman)
 
 ## Harita atölyesi
 - **Paneller:** Sahne hiyerarşisi, Inspector, nesne paleti (sürükle-bırak ya da tıkla) ve harita kütüphanesi (üstten küçük resimlerle).
@@ -75,7 +81,7 @@ Tüm tuşlar **Ayarlar → Klavye / Fare** bölümünden değiştirilebilir. Var
 - **Bomba modu:** `B` satın al · `E` bomba kur / çöz / silah al · `TAB` skor tablosu
 - `~` geliştirici konsolu (`help`; örn. `map kumvadisi`, `bot_add`, `mp_roundtime`, `cash`)
 
-Mobilde dokunmatik kontroller otomatik açılır (E ve $ düğmeleri dahil).
+Mobilde dokunmatik kontroller otomatik açılır (E ve $ düğmeleri dahil). Küçük ATEŞ düğmesi anında sıkar; büyük ATEŞ düğmesi dürbünlü silahlarda basılı tutunca nişan alır, bırakınca sıkar (Ayarlar → HUD). Görüntü ayarlarında kare hızı sınırı ve dinamik çözünürlük, 90 / 120 Hz ekranlarda ekranın yenileme hızını hedefler.
 
 ## Not
 Bu bağımsız bir hayran projesidir; Valve ya da Counter-Strike ile bir bağlantısı yoktur ve onlara ait isim, logo, harita veya ses dosyası içermez. Oyunla gelen tüm sesler kodla üretilir; ses paketi özelliği yalnızca oyuncunun kendi cihazından seçtiği dosyaları tarayıcıda kullanır.
