@@ -83,5 +83,12 @@ Tüm tuşlar **Ayarlar → Klavye / Fare** bölümünden değiştirilebilir. Var
 
 Mobilde dokunmatik kontroller otomatik açılır (E ve $ düğmeleri dahil). Küçük ATEŞ düğmesi anında sıkar; büyük ATEŞ düğmesi dürbünlü silahlarda basılı tutunca nişan alır, bırakınca sıkar (Ayarlar → HUD). Görüntü ayarlarında kare hızı sınırı ve dinamik çözünürlük, 90 / 120 Hz ekranlarda ekranın yenileme hızını hedefler.
 
+## STRIKE POINT TEST
+Deneysel özellikler ayrı dosyada: `strike-point-test.html` (ana oyunla aynı kod, `TEST_BUILD=true`). Ana oyunda bu özellikler görünmez.
+- **Zombi modu:** tek başına (bot takım arkadaşlarıyla) ya da Özel oyunda 4 kişiye kadar online; dalgalar, yürüyen / koşucu / tank / patlayan zombiler, her 5. dalgada boss, dalga arası satın alma, yere düşen arkadaşı E ile kaldırma.
+- **Skinler:** Envanter → SKİNLER — tamamen kodla üretilen özgün desenler (düz boya, eloksal, kamuflaj, solma, şam çeliği tarzı, hidrografik, aşınmış metal), 0–1000 desen numarası ve aşınma derecesi. Kasa yok, gerçek para yok.
+- **Bıçaklar:** karambit ve kelebek bıçak, kendi çekme / inceleme animasyonlarıyla.
+- Ana dosya değişince `tools/build-test.sh` TEST dosyasını yeniden üretir.
+
 ## Not
 Bu bağımsız bir hayran projesidir; Valve ya da Counter-Strike ile bir bağlantısı yoktur ve onlara ait isim, logo, harita veya ses dosyası içermez. Oyunla gelen tüm sesler kodla üretilir; ses paketi özelliği yalnızca oyuncunun kendi cihazından seçtiği dosyaları tarayıcıda kullanır.
