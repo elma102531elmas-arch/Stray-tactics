@@ -3180,7 +3180,7 @@ function buildNav(B){
   for(let j=0;j<W;j++) for(let i=0;i<W;i++){ const x=-S+(i+.5)*cell, z=-S+(j+.5)*cell, k=j*W+i, inb=Math.abs(x)<B.bounds-.4&&Math.abs(z)<B.bounds-.4; let f=0; const tops=[];
     for(const c of Q.at(x,z)){ if(x<c.min.x||x>c.max.x||z<c.min.z||z>c.max.z) continue; const L=toLocal(c,x,z); if(Math.abs(L.x)>c.h.x||Math.abs(L.z)>c.h.z) continue; const t=colTop(c,L.x,L.z); if(t<=2.8&&t>f) f=t; if(t>2.8) tops.push(t); }
     f0[k]=f; ok0[k]=inb&&!Q.blocked(x,f+.03,z,1.7,.32)?1:0; if(!inb) continue; if(f>2) tops.push(0); if(!tops.length) continue;
-    tops.sort((a,b)=>a-b); const e=[]; for(const t of tops){ if(Math.abs(t-f)<1||(e.length&&t-e[e.length-1]<.9)) continue; if(!Q.blocked(x,t+.03,z,1.7,.32)) e.push(t); }
+    tops.sort((a,b)=>a-b); const e=[]; for(const t of tops){ if((ok0[k]&&Math.abs(t-f)<1)||Math.abs(t-f)<.05||(e.length&&t-e[e.length-1]<.9)) continue; if(!Q.blocked(x,t+.03,z,1.7,.32)) e.push(t); }
     if(e.length){ ex.push([k,e]); if(e.length>maxE) maxE=e.length; } }
   const L0=1+Math.min(3,maxE), floor=new Float32Array(N*L0), ok=new Uint8Array(N*L0); floor.set(f0); ok.set(ok0);
   for(const [k,e] of ex) for(let q=0;q<e.length&&q<L0-1;q++){ floor[k+(q+1)*N]=e[q]; ok[k+(q+1)*N]=1; }
@@ -9356,7 +9356,7 @@ function mpTopDown(id,opt){ opt=opt||{};
 }
 /* 3D overview: orthographic (top) or perspective camera rendered into a data URL, like the map cards */
 function mpOverview(id,opt){ opt=opt||{}; if(window.__manual===undefined) window.__manual=false;
-  const B=ensureMapBuilt(id); if(!B) return null; const vis={}; for(const k in WORLD.maps){ vis[k]=WORLD.maps[k].group.visible; WORLD.maps[k].group.visible=WORLD.maps[k]===B; }
+  const B=id==='range'?WORLD.maps.range:ensureMapBuilt(id); if(!B) return null; const vis={}; for(const k in WORLD.maps){ vis[k]=WORLD.maps[k].group.visible; WORLD.maps[k].group.visible=WORLD.maps[k]===B; }
   const S=B.bounds+1, W=opt.w||900, H=opt.h||900; let cam;
   if(opt.p){ cam=new THREE.PerspectiveCamera(opt.fov||55,W/H,.1,1400); cam.position.fromArray(opt.p); cam.lookAt(new THREE.Vector3().fromArray(opt.t||[0,0,0])); }
   else { cam=new THREE.OrthographicCamera(-S,S,S*H/W,-S*H/W,1,400); cam.position.set(0,150,0); cam.up.set(0,0,-1); cam.lookAt(0,0,0); }
@@ -9847,8 +9847,8 @@ Object.assign(MAPMAT,{
   wtile:{tex:'wtile',tile:1.6,surf:'stone'}, wtileB:{tex:'wtile',tile:1.6,surf:'stone',tint:'#b3cde3'}, wtileG:{tex:'wtile',tile:1.6,surf:'stone',tint:'#cfe2c6'},
   hazard:{tex:'hazard',tile:1,surf:'metal'}, dplate:{tex:'dplate',tile:1,surf:'metal',metal:.55},
   epoxy:{tex:'epoxy',tile:4,surf:'stone'}, epoxyG:{tex:'epoxy',tile:4,surf:'stone',tint:'#c4dacb'}, epoxyB:{tex:'epoxy',tile:4,surf:'stone',tint:'#bccbdc'},
-  panelW:{tex:'metalSheet',tile:2.6,surf:'metal',metal:.25,tint:'#e6eaee'}, panelB:{tex:'metalSheet',tile:2.6,surf:'metal',metal:.25,tint:'#7b9dbd'},
-  panelR:{tex:'metalSheet',tile:2.6,surf:'metal',metal:.25,tint:'#b8735c'}, panelG:{tex:'metalSheet',tile:2.6,surf:'metal',metal:.25,tint:'#93a88f'},
+  panelW:{tex:'rust',tile:2.4,surf:'metal',metal:.12,tint:'#f6f8f8'}, panelB:{tex:'rust',tile:2.4,surf:'metal',metal:.12,tint:'#a3c0dc'},
+  panelR:{tex:'rust',tile:2.4,surf:'metal',metal:.12,tint:'#dc957a'}, panelG:{tex:'rust',tile:2.4,surf:'metal',metal:.12,tint:'#b0c8a8'},
   asphalt:{tex:'concrete',tile:5,surf:'stone',tint:'#9a9b9e'}, siloW:{tex:'rust',tile:2.4,surf:'metal',metal:.1,tint:'#f2f3ef'}, lampE:{uv:'face',surf:'metal'}
 });
 Object.assign(MATKEYS,{wtile:'Beyaz fayans',wtileB:'Mavi fayans',wtileG:'Yeşil fayans',hazard:'İkaz şeridi',dplate:'Baklava sac',epoxy:'Epoksi zemin',epoxyG:'Yeşil epoksi',epoxyB:'Mavi epoksi',
@@ -9858,7 +9858,7 @@ Object.assign(ME_HAS_MAT,{pipe:1,tank:1,rail:1,drum:1});
 function mp4LampMat(){ if(!mapMatCache.lampE) mapMatCache.lampE=new THREE.MeshStandardMaterial({color:0xfff6e6,emissive:0xfff0d8,emissiveIntensity:7,roughness:.4}); }
 function mp4Box(B,m,x,y,z,w,h,d){ const g=new THREE.BoxGeometry(w,h,d); g.translate(x,y,z); B.mesh(m,g); }
 /* pipe from p to p+e (decor), flanges every ~3 m */
-MOBJ.pipe={label:'Boru',cat:'Dekor',def:{s:[1,1,1],e:[6,0,0],r:.15,m:'paintW',c:0},build(o,B){ const b=new THREE.Vector3().fromArray(o.e||[6,0,0]), L=b.length(); if(L<.05) return; const r=o.r||.15, m=o.m||'paintW';
+MOBJ.pipe={label:'Boru',cat:'Dekor',def:{s:[1,1,1],e:[6,0,0],rad:.15,m:'paintW',c:0},build(o,B){ const b=new THREE.Vector3().fromArray(o.e||[6,0,0]), L=b.length(); if(L<.05) return; const r=o.rad||.15, m=o.m||'paintW';
   const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().normalize()), mid=b.clone().multiplyScalar(.5), add=g=>{ g.applyQuaternion(q); g.translate(mid.x,mid.y,mid.z); B.mesh(m,g); };
   add(new THREE.CylinderGeometry(r,r,L,12,1,true)); const nf=Math.max(1,Math.floor(L/3)); for(let i=0;i<=nf;i++){ const fg=new THREE.CylinderGeometry(r*1.3,r*1.3,.07,12); fg.translate(0,-L/2+L*i/nf,0); add(fg); } }};
 /* vertical tank / silo with dome, bands, ladder; octagonal collider */
@@ -9997,7 +9997,7 @@ function reaktorData(){
   const cr=(x,y,z,s)=>A({t:'crate',p:[x,y,z],s:[s,s,s]}), ba=(x,y,z,m)=>A({t:'drum',p:[x,y,z],s:[.7,1,.7],m:m||'paintY'}), bk=(x,y,z,w,h,d,m,c)=>A({t:'block',p:[x,y,z],s:[w,h,d],m,cap:0,c:c===0?0:1});
   const sign=(x,y,z,r,txt,s,col)=>A({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.2,s||2.2,.1],txt,col:col||'#24303c'}), rail=(x,y,z,len,r)=>A({t:'rail',p:[x,y,z],r:[0,r||0,0],s:[len,1.05,.08],m:'paintY'});
   const lampH=(x,y,z,cab)=>A({t:'flood',kind:'hang',p:[x,y,z],s:[1,0,1],cab:cab||1}), lampW=(x,y,z,r)=>A({t:'flood',kind:'wall',p:[x,y-3.2,z],r:[0,r,0],s:[1,3.2,1]}), pole=(x,z,h)=>A({t:'flood',kind:'pole',p:[x,U,z],s:[1,h||7,1]});
-  const pipe=(x,y,z,e,r,m)=>A({t:'pipe',p:[x,y,z],e,r:r||.15,m:m||'paintW'}), haz=(x0,z0,x1,z1,y)=>A({t:'floor',p:[(x0+x1)/2,(y||0)+.008,(z0+z1)/2],s:[x1-x0,.02,z1-z0],m:'hazard',c:0});
+  const pipe=(x,y,z,e,r,m)=>A({t:'pipe',p:[x,y,z],e,rad:r||.15,m:m||'paintW'}), haz=(x0,z0,x1,z1,y)=>A({t:'floor',p:[(x0+x1)/2,(y||0)+.008,(z0+z1)/2],s:[x1-x0,.02,z1-z0],m:'hazard',c:0});
   // A hall: heaven + rafters catwalks (with drop gaps), pillars, cover, hatch, lights, pipes
   bk(10,U+3.4,-42,24,.4,4,'dplate'); bk(20.5,U+3.4,-27,3,.4,26,'dplate');
   rail(1,U+3.8,-40,6); rail(12.5,U+3.8,-40,13); rail(-2,U+3.8,-42,4,90); rail(19,U+3.8,-33.5,13,90); rail(19,U+3.8,-19.5,11,90);
