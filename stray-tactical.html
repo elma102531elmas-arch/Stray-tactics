@@ -10604,7 +10604,7 @@ function anInitRig(R){
   const j=new THREE.Mesh(new THREE.BoxGeometry(.012,.04,.008),met); j.position.y=.05; pl.add(j); pl.visible=false; pl.traverse(o=>{ o.frustumCulled=false; }); R.armR.hand.add(pl); R.pliers=pl;
 }
 function anOnEquip(R){
-  const w=R.w, d=R.def, T=d.type; R.lock=0; R.sh.ph=0; R.sh.demo=0; R.boltU=-1; R.hR.k=R.hL.k=R.hLr.k=R.hRr.k=0; R.typeK=0; R.noHol=false; anApplyFit(w); R._rhsN=0; anRlKit(R); if(R.hsOL) R.hsOL.set(0,0,0); if(R.hsOR) R.hsOR.set(0,0,0);
+  const w=R.w, d=R.def, T=d.type; R.lock=0; R.sh.ph=0; R.sh.demo=0; R.boltU=-1; R.hR.k=R.hL.k=R.hLr.k=R.hRr.k=0; R.typeK=0; R.noHol=false; anApplyFit(w); R._rhsN=0; anRlKit(R); if(R.hsOL) R.hsOL.set(0,0,0); if(R.hsOR) R.hsOR.set(0,0,0); if(R.hsTL) R.hsTL.set(1e3,0,0); if(R.hsTR) R.hsTR.set(1e3,0,0);
   R.drawV=0; R.drawX=anFirstDraw(R); R.spawnDraw=false; R.dsnd=0; anRoundsInit(R); R.scopeEye=anScopeEye(R);   // no twirl on deploy; the rack only on a gun's very first draw
   R.ring=null; if(T==='grenade'){ for(const re of [/pim.*halka|pin.*ring/i,/^pim|pin/i,/ring|halka/i]){ const p=d.parts.find(q=>re.test(q.name)&&w.nodes[q.id]); if(p){ R.ring=w.nodes[p.id]; R.ringP.copy(R.ring.position); break; } } }
   R.c4keys=null; R.slideTop=null; const sl=w.roles.slide[0];
@@ -11087,13 +11087,17 @@ function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const le
   if(!R._sdfOk){ anWUpdate(w,false); _hsI.copy(R.gunRoot.matrix).invert(); _hsGQ.copy(R.gunRoot.quaternion).invert(); R._sdfOk=true; }
   const atGrip=left?(R.hL.k<.2&&R.hLr.k<.2&&R.lAtGrip):(R.hR.k<.2&&R.hRr.k<.2);
   let c=!left&&R.rCurl?R.rCurl:atGrip&&f?(left?(f.L?f.L.c:.0305):(f.R?f.R.c:.0305)):(left?(R.lCurl||.038):.0305);
-  if(left&&!atGrip&&f&&f.L&&w.anchors.gripL){ _wp.copy(hp).applyMatrix4(_hsI); if(_wp.distanceTo(w.anchors.gripL.p)<.025) c=Math.max(c,f.L.c); }
+  if(left&&!atGrip&&f&&f.L&&w.anchors.gripL){ _wp.copy(hp).applyMatrix4(_hsI); if(_wp.distanceTo(w.anchors.gripL.p)<.025) c=.064; }   // letting go of / closing on the handguard: open hand, so the fingers clear it
   anSetHand(arm,c);
   if(!left&&R.gsPiv){ R._rhsN=0; return; }
   const L=w._sdf, H=arm.hg, S=left?H.sphL:H.sph, P=_hsP.copy(hp).applyMatrix4(_hsI), Q=_hsQ.copy(_hsGQ).multiply(hq);
   anWNear(L,P,.16); const oth=left&&R._rhsN?AN_RHS.slice(0,R._rhsN):null; let moved=false; _wo.copy(P);
   // warm start: last frame's correction, relaxed a little (the hand drifts back onto its target once it is free), so corrections stay smooth and can build over frames
   const O=left?(R.hsOL||(R.hsOL=new THREE.Vector3())):(R.hsOR||(R.hsOR=new THREE.Vector3()));
+  // wedged hand that did not move since the last frame: keep last frame's answer (no search)
+  const TT=left?(R.hsTL||(R.hsTL=new THREE.Vector3(1e3,0,0))):(R.hsTR||(R.hsTR=new THREE.Vector3(1e3,0,0))), still=TT.distanceToSquared(_wo)<2.5e-7&&(left?R.hsSL:R.hsSR)===arm.curl; TT.copy(_wo);
+  if(still){ P.copy(_wo).add(O); if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; } if(O.lengthSq()>0) hp.copy(P).applyMatrix4(R.gunRoot.matrix); return; }
+  if(left) R.hsSL=arm.curl; else R.hsSR=arm.curl;
   let pen0=anHandPush(L,S,P,Q,oth,_wacc); const pen1=pen0;
   if(O.lengthSq()>1e-10){ _hsC.copy(_wo).addScaledVector(O,.85); const pw=anHandPen(L,S,_hsC,Q,oth); if(pw<=pen0+.0003){ P.copy(_hsC); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; } }
   let best=pen0; _hsB.copy(P);
