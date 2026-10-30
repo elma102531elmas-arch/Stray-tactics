@@ -11095,8 +11095,10 @@ function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const le
   // warm start: last frame's correction, relaxed a little (the hand drifts back onto its target once it is free), so corrections stay smooth and can build over frames
   const O=left?(R.hsOL||(R.hsOL=new THREE.Vector3())):(R.hsOR||(R.hsOR=new THREE.Vector3()));
   // wedged hand that did not move since the last frame: keep last frame's answer (no search)
-  const TT=left?(R.hsTL||(R.hsTL=new THREE.Vector3(1e3,0,0))):(R.hsTR||(R.hsTR=new THREE.Vector3(1e3,0,0))), still=TT.distanceToSquared(_wo)<2.5e-7&&(left?R.hsSL:R.hsSR)===arm.curl; TT.copy(_wo);
-  if(still){ P.copy(_wo).add(O); if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; } if(O.lengthSq()>0) hp.copy(P).applyMatrix4(R.gunRoot.matrix); return; }
+  const TT=left?(R.hsTL||(R.hsTL=new THREE.Vector3(1e3,0,0))):(R.hsTR||(R.hsTR=new THREE.Vector3(1e3,0,0))), still=TT.distanceToSquared(_wo)<2.5e-7&&(left?R.hsSL:R.hsSR)===arm.curl&&(left?R.hsKL:R.hsKR); TT.copy(_wo);   // only while stuck (the search could not clear it); a free hand keeps relaxing onto its target
+  const fg=f&&(left?f.L:f.R), wedged=atGrip&&fg&&fg.pen>.002;   // resting on a grip the fit could not clear completely: keep the fitted pose (contact), only ease any leftover offset back
+  if(wedged){ O.multiplyScalar(.85); if(O.lengthSq()<1e-8) O.set(0,0,0); }
+  if(still||wedged){ P.copy(_wo).add(O); if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; } if(O.lengthSq()>0) hp.copy(P).applyMatrix4(R.gunRoot.matrix); return; }
   if(left) R.hsSL=arm.curl; else R.hsSR=arm.curl;
   let pen0=anHandPush(L,S,P,Q,oth,_wacc); const pen1=pen0;
   if(O.lengthSq()>1e-10){ _hsC.copy(_wo).addScaledVector(O,.85); const pw=anHandPen(L,S,_hsC,Q,oth); if(pw<=pen0+.0003){ P.copy(_hsC); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; } }
@@ -11105,7 +11107,7 @@ function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const le
     for(let c=g?0:1;c<7;c++){ const dir=c?AN_DIRS[c-1]:_hsD;   // summed push-out direction first, then the six axes (concave spots, hand between two parts)
       for(const m of (c?[1]:[1,2])){ _hsC.copy(P).addScaledVector(dir,pen0*m+.0005); if(_hsC.distanceTo(_wo)>.06) _hsC.sub(_wo).setLength(.06).add(_wo); const pn=anHandPen(L,S,_hsC,Q,oth); if(pn<bp-1e-5){ bp=pn; _hsE.copy(_hsC); found=true; } } }
     if(!found) break; P.copy(_hsE); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; if(pen0<best){ best=pen0; _hsB.copy(P); } }
-  if(moved) P.copy(_hsB); O.subVectors(P,_wo); if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1),arm.curl];
+  if(moved) P.copy(_hsB); O.subVectors(P,_wo); if(left) R.hsKL=best>.0008; else R.hsKR=best>.0008; if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1),arm.curl];
   if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; }
   if(moved) hp.copy(P).applyMatrix4(R.gunRoot.matrix); }
 
