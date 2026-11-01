@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070a">
+<title>STRAY TACTICAL — VIEWMODEL</title>
+<style>
+  :root{
+    --bg:#090c11; --panel:#11161f; --line:#232c3a;
+    --red:#ff3b4d; --red-dim:#7a2530; --cyan:#3ee6d8; --white:#e8ecf1; --amber:#ffb648;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+  html,body{margin:0;padding:0;width:100%;height:100%;background:#05070a;overflow:hidden;
+    font-family:'Segoe UI',Arial,sans-serif;touch-action:none;overscroll-behavior:none;}
+
+  /* ---------- ARKA PLAN (sadece hareketi gorebilmek icin, oyun mantigi yok) ---------- */
+  #world{position:fixed;inset:0;overflow:hidden;background:
+      radial-gradient(120% 80% at 50% 15%, #1b2532 0%, #0d1117 55%, #05070a 100%);}
+  #stars{position:absolute;inset:-20% -20% 40% -20%;
+    background-image:radial-gradient(1.5px 1.5px at 20% 30%,rgba(255,255,255,.35),transparent),
+      radial-gradient(1.5px 1.5px at 70% 20%,rgba(255,255,255,.25),transparent),
+      radial-gradient(1.5px 1.5px at 45% 60%,rgba(255,255,255,.2),transparent),
+      radial-gradient(1.5px 1.5px at 85% 55%,rgba(255,255,255,.28),transparent),
+      radial-gradient(1.5px 1.5px at 10% 70%,rgba(255,255,255,.18),transparent);
+    background-size:340px 260px;will-change:transform;}
+  #horizon{position:absolute;left:-40%;right:-40%;top:50%;height:2px;
+    background:linear-gradient(90deg,transparent,rgba(62,230,216,.35),transparent);will-change:transform;}
+  #floorWrap{position:absolute;left:-60%;right:-60%;top:50%;bottom:-60%;perspective:340px;perspective-origin:50% 0%;will-change:transform;}
+  #floor{position:absolute;inset:0;transform-origin:50% 0%;transform:rotateX(74deg);
+    background-image:
+      repeating-linear-gradient(90deg,rgba(62,230,216,.16) 0 1px,transparent 1px 84px),
+      repeating-linear-gradient(0deg,rgba(62,230,216,.13) 0 1px,transparent 1px 84px);
+    background-size:84px 84px;
+    -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 62%);
+    mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 62%);}
+  #haze{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 50% 55%,transparent 35%,rgba(3,5,8,.85) 100%);}
+
+  /* ---------- VIEWMODEL ---------- */
+  #vmLayer{position:fixed;inset:0;perspective:900px;perspective-origin:50% 65%;pointer-events:none;z-index:10;}
+  /* WebGL tuvali: video karesi cizilir, beyaz zemin shader'da ayiklanir */
+  #vmCanvas{position:absolute;left:50%;transform-origin:50% 100%;will-change:transform;
+    filter:drop-shadow(0 16px 24px rgba(0,0,0,.7));}
+  /* kaynak videolar - hicbir zaman dogrudan gosterilmez, sadece doku kaynagi */
+  #vids{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;left:-9999px;}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;z-index:20;pointer-events:none;}
+  #muzzleGlow{position:absolute;inset:0;opacity:0;
+    background:radial-gradient(60% 45% at 50% 34%,rgba(255,206,130,.5),rgba(255,150,40,.12) 45%,transparent 72%);}
+  #cross{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);opacity:.85;}
+  #cross i{position:absolute;background:var(--white);box-shadow:0 0 3px #000;}
+  #cross i:nth-child(1){left:50%;top:0;width:2px;height:8px;margin-left:-1px;}
+  #cross i:nth-child(2){left:50%;bottom:0;width:2px;height:8px;margin-left:-1px;}
+  #cross i:nth-child(3){top:50%;left:0;height:2px;width:8px;margin-top:-1px;}
+  #cross i:nth-child(4){top:50%;right:0;height:2px;width:8px;margin-top:-1px;}
+  #tag{position:absolute;left:14px;top:12px;font-size:10px;letter-spacing:3px;color:#4d5665;line-height:1.7;}
+  #tag b{color:var(--cyan);font-weight:700;}
+  #wpnName{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));text-align:right;color:#fff;}
+  #wpnName .n{font-size:15px;font-weight:900;letter-spacing:4px;text-shadow:0 2px 4px #000;}
+  #wpnName .s{font-size:10px;letter-spacing:3px;color:var(--cyan);font-weight:700;}
+
+  /* ---------- DOKUNMATIK KONTROL ---------- */
+  #touch{position:fixed;inset:0;z-index:30;pointer-events:none;}
+  #lookZone{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:auto;}
+  #stick{position:absolute;left:calc(20px + env(safe-area-inset-left));bottom:calc(26px + env(safe-area-inset-bottom));
+    width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.05);
+    border:2px solid rgba(255,255,255,.14);pointer-events:auto;}
+  #stick .knob{position:absolute;width:48px;height:48px;left:35px;top:35px;border-radius:50%;
+    background:rgba(255,59,77,.42);border:1px solid rgba(255,255,255,.4);will-change:transform;}
+  .tbtn{position:absolute;pointer-events:auto;background:rgba(17,22,31,.62);border:2px solid rgba(255,255,255,.18);
+    color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:11px;letter-spacing:1px;backdrop-filter:blur(2px);}
+  .tbtn.down{background:rgba(255,59,77,.4);border-color:var(--red);transform:scale(.94);}
+  #fireBtn{width:86px;height:86px;right:calc(22px + env(safe-area-inset-right));bottom:calc(120px + env(safe-area-inset-bottom));
+    background:rgba(255,59,77,.3);border-color:rgba(255,59,77,.75);font-size:12px;}
+  #aimBtn{width:58px;height:58px;right:calc(120px + env(safe-area-inset-right));bottom:calc(190px + env(safe-area-inset-bottom));}
+  #jumpBtn{width:58px;height:58px;right:calc(120px + env(safe-area-inset-right));bottom:calc(38px + env(safe-area-inset-bottom));}
+  #aimBtn.hide{display:none;}
+  #slots{position:absolute;left:calc(16px + env(safe-area-inset-left));top:calc(58px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:6px;}
+  .slot{pointer-events:auto;background:rgba(17,22,31,.7);border:1px solid var(--line);color:#8a96a8;
+    font-size:10px;font-weight:800;letter-spacing:2px;padding:7px 13px;
+    clip-path:polygon(0 0,calc(100% - 7px) 0,100% 100%,7px 100%);}
+  .slot.active{border-color:var(--red);color:#fff;background:rgba(122,37,48,.6);}
+  #topBtns{position:absolute;right:calc(14px + env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));display:flex;gap:8px;}
+  #topBtns button{pointer-events:auto;width:36px;height:36px;border-radius:50%;background:rgba(17,22,31,.7);
+    border:1px solid var(--line);color:#8a96a8;font-size:15px;line-height:1;}
+
+  /* dikey modda butonlar silahin uzerine binmesin */
+  @media (orientation:portrait){
+    #fireBtn{width:78px;height:78px;right:calc(18px + env(safe-area-inset-right));bottom:calc(232px + env(safe-area-inset-bottom));}
+    #aimBtn{right:calc(30px + env(safe-area-inset-right));bottom:calc(326px + env(safe-area-inset-bottom));}
+    #jumpBtn{right:calc(28px + env(safe-area-inset-right));bottom:calc(152px + env(safe-area-inset-bottom));}
+    #stick{bottom:calc(34px + env(safe-area-inset-bottom));}
+    #wpnName{top:calc(60px + env(safe-area-inset-top));bottom:auto;}
+    #lookZone{height:72%;}
+    .tbtn{background:rgba(17,22,31,.42);}
+    #fireBtn{background:rgba(255,59,77,.26);}
+  }
+
+  /* ---------- AYAR PANELI ---------- */
+  #cfg{position:fixed;inset:0;z-index:60;background:rgba(5,7,10,.9);display:none;
+    align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+  #cfg.on{display:flex;}
+  .panel{background:var(--panel);border:1px solid var(--line);padding:18px 20px;width:min(92vw,390px);color:var(--white);
+    clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));max-height:92vh;overflow-y:auto;}
+  .panel h3{margin:0 0 14px;font-size:12px;letter-spacing:4px;color:#6b7688;text-transform:uppercase;}
+  .row{display:flex;justify-content:space-between;align-items:center;margin:10px 0;font-size:11px;color:#a9b3c2;
+    letter-spacing:1px;text-transform:uppercase;gap:10px;}
+  .row input[type=range]{width:150px;accent-color:var(--red);}
+  .row .v{font-size:10px;color:#5c6779;min-width:34px;text-align:right;}
+  .bigBtn{margin-top:14px;width:100%;padding:13px;background:linear-gradient(90deg,var(--red-dim),var(--red));border:none;
+    color:#fff;font-size:14px;font-weight:800;letter-spacing:4px;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 100%,12px 100%);}
+  .bigBtn.ghost{background:#1a212c;border:1px solid var(--line);color:#c3ccd8;}
+
+  /* ---------- YUKLEME ---------- */
+  #loading{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#141a24,#05070a 75%);z-index:100;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);padding:16px;text-align:center;}
+  #loading h1{font-size:min(9vw,44px);letter-spacing:6px;margin:0 0 6px;font-weight:900;transform:skewX(-6deg);
+    background:linear-gradient(180deg,#fff,var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #loading .sub{font-size:10px;letter-spacing:6px;color:var(--cyan);margin-bottom:20px;}
+  .loadbar{width:min(70vw,300px);height:6px;background:#1c2330;border:1px solid var(--line);overflow:hidden;}
+  .loadbar>div{height:100%;width:0;background:linear-gradient(90deg,var(--red-dim),var(--red));transition:width .2s;}
+  #loadTxt{margin-top:10px;font-size:10px;letter-spacing:3px;color:#8a96a8;text-transform:uppercase;}
+  #startBtn{margin-top:22px;display:none;padding:13px 34px;background:linear-gradient(90deg,var(--red-dim),var(--red));
+    border:none;color:#fff;font-size:14px;font-weight:800;letter-spacing:5px;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 100%,12px 100%);}
+  #errTxt{margin-top:14px;font-size:11px;color:var(--amber);letter-spacing:1px;max-width:320px;line-height:1.6;display:none;}
+  #hint{position:fixed;left:0;right:0;bottom:calc(6px + env(safe-area-inset-bottom));text-align:center;z-index:40;
+    font-size:9px;letter-spacing:2px;color:#3f4857;pointer-events:none;transition:opacity .6s;}
+</style>
+</head>
+<body>
+
+<!-- arka plan katmanlari -->
+<div id="world">
+  <div id="stars"></div>
+  <div id="floorWrap"><div id="floor"></div></div>
+  <div id="horizon"></div>
+  <div id="haze"></div>
+</div>
+
+<!-- viewmodel: tek WebGL tuvali -->
+<div id="vmLayer"><canvas id="vmCanvas" width="960" height="540"></canvas></div>
+
+<!-- doku kaynagi videolar (ekranda gorunmez) -->
+<div id="vids">
+  <!-- webm/VP9 once (kucuk, Android+masaustu), mp4/H.264 yedek (iOS Safari) -->
+  <video id="v-knife" loop muted playsinline preload="auto">
+    <source src="assets/vm/knife.webm" type="video/webm"><source src="assets/vm/knife.mp4" type="video/mp4"></video>
+  <video id="v-pistol" loop muted playsinline preload="auto">
+    <source src="assets/vm/pistol.webm" type="video/webm"><source src="assets/vm/pistol.mp4" type="video/mp4"></video>
+  <video id="v-ak47" loop muted playsinline preload="auto">
+    <source src="assets/vm/ak47.webm" type="video/webm"><source src="assets/vm/ak47.mp4" type="video/mp4"></video>
+  <video id="v-rifle" loop muted playsinline preload="auto">
+    <source src="assets/vm/rifle.webm" type="video/webm"><source src="assets/vm/rifle.mp4" type="video/mp4"></video>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="muzzleGlow"></div>
+  <div id="cross"><i></i><i></i><i></i><i></i></div>
+  <div id="tag"><b>VIEWMODEL TEST</b><br>oyun mantigi yok</div>
+  <div id="wpnName"><div class="n" id="wName">BICAK</div><div class="s" id="wSub">MELEE</div></div>
+</div>
+
+<!-- kontroller -->
+<div id="touch">
+  <div id="lookZone"></div>
+  <div id="stick"><div class="knob" id="knob"></div></div>
+  <div class="tbtn" id="fireBtn">ATES</div>
+  <div class="tbtn" id="aimBtn">NISAN</div>
+  <div class="tbtn" id="jumpBtn">ZIPLA</div>
+  <div id="slots">
+    <div class="slot active" data-w="knife">1 &nbsp;BICAK</div>
+    <div class="slot" data-w="pistol">2 &nbsp;TABANCA</div>
+    <div class="slot" data-w="ak47">3 &nbsp;AK-47</div>
+    <div class="slot" data-w="rifle">4 &nbsp;TUFEK</div>
+  </div>
+  <div id="topBtns">
+    <button id="replayBtn" title="animasyonu bastan oynat">&#8635;</button>
+    <button id="cfgBtn" title="ayarlar">&#9881;</button>
+    <button id="fsBtn" title="tam ekran">&#9974;</button>
+  </div>
+</div>
+
+<div id="hint">SOL: YURU &nbsp;·&nbsp; SAG: BAK &nbsp;·&nbsp; CIFT DOKUN: SILAH DEGISTIR</div>
+
+<!-- ayarlar -->
+<div id="cfg">
+  <div class="panel">
+    <h3>Viewmodel Ayarlari</h3>
+    <div class="row"><span>Sallanma (sway)</span><input type="range" id="cSway" min="0" max="200" value="100"><span class="v" id="vSway">100</span></div>
+    <div class="row"><span>Yuruyus (bob)</span><input type="range" id="cBob" min="0" max="200" value="100"><span class="v" id="vBob">100</span></div>
+    <div class="row"><span>Nefes</span><input type="range" id="cIdle" min="0" max="200" value="100"><span class="v" id="vIdle">100</span></div>
+    <div class="row"><span>Geri tepme</span><input type="range" id="cRecoil" min="0" max="200" value="100"><span class="v" id="vRecoil">100</span></div>
+    <div class="row"><span>Boyut</span><input type="range" id="cScale" min="70" max="160" value="100"><span class="v" id="vScale">100</span></div>
+    <div class="row"><span>Yukseklik</span><input type="range" id="cOffY" min="-25" max="25" value="0"><span class="v" id="vOffY">0</span></div>
+    <div class="row"><span>Bakis hassasiyeti</span><input type="range" id="cSens" min="20" max="300" value="100"><span class="v" id="vSens">100</span></div>
+    <div class="row"><span>Isik uyumu</span><input type="range" id="cLight" min="0" max="100" value="55"><span class="v" id="vLight">55</span></div>
+    <div class="row"><span>Zemin ayiklama</span><input type="range" id="cKey" min="0" max="100" value="50"><span class="v" id="vKey">50</span></div>
+    <div class="row"><span>Animasyon hizi</span><input type="range" id="cRate" min="25" max="200" value="100"><span class="v" id="vRate">100</span></div>
+    <button class="bigBtn" id="cfgClose">KAPAT</button>
+    <button class="bigBtn ghost" id="cfgReset">VARSAYILANA DON</button>
+  </div>
+</div>
+
+<!-- yukleme -->
+<div id="loading">
+  <h1>STRAY TACTICAL</h1>
+  <div class="sub">VIEWMODEL</div>
+  <div class="loadbar"><div id="loadFill"></div></div>
+  <div id="loadTxt">VIDEOLAR YUKLENIYOR</div>
+  <button id="startBtn">BASLA</button>
+  <div id="errTxt"></div>
+</div>
+
+<script>
+"use strict";
+(function(){
+
+/* =========================================================
+   Bu sayfa bir oyun degil. Dort animasyonlu viewmodel videosu
+   WebGL ile cizilir; videolarin beyaz zemini shader icinde
+   ayiklanir. Yuruyus / bakis / geri tepme hareketleri video
+   goruntusunun uzerine prosedurel olarak eklenir.
+   ========================================================= */
+
+const VID_AR = 540/960;   // tum videolar 960x540
+
+const WEAPONS = {
+  knife:  { vid:'v-knife',  name:'BICAK',   sub:'MELEE',    wFactor:1.20, topBias:0.06, canAim:false, fireLabel:'SALDIR', bob:1.15, sway:1.25 },
+  pistol: { vid:'v-pistol', name:'TABANCA', sub:'GLOCK 17', wFactor:1.24, topBias:0.22, canAim:true,  fireLabel:'ATES',   bob:1.00, sway:1.00 },
+  ak47:   { vid:'v-ak47',   name:'AK-47',   sub:'OTOMATIK', wFactor:1.24, topBias:0.18, canAim:true,  fireLabel:'ATES',   bob:0.90, sway:0.85, auto:true },
+  rifle:  { vid:'v-rifle',  name:'TUFEK',   sub:'OTOMATIK', wFactor:1.24, topBias:0.18, canAim:true,  fireLabel:'ATES',   bob:0.90, sway:0.85, auto:true }
+};
+const ORDER = ['knife','pistol','ak47','rifle'];
+
+// ---- kullanici ayarlari ----
+const DEF = { sway:100, bob:100, idle:100, recoil:100, scale:100, offY:0, sens:100, key:50, rate:100, light:55 };
+let CFG = Object.assign({}, DEF);
+try{ const s = localStorage.getItem('st_vm_cfg2'); if(s) CFG = Object.assign(CFG, JSON.parse(s)); }catch(e){}
+function saveCfg(){ try{ localStorage.setItem('st_vm_cfg2', JSON.stringify(CFG)); }catch(e){} }
+
+// ---- durum ----
+const S = {
+  cur:'knife', next:null,
+  vw:0, vh:0, U:1,
+  yaw:0, pitch:0,
+  lookIn:{x:0,y:0},
+  swayX:0, swayY:0,
+  moveX:0, moveY:0, spd:0, sprint:false,
+  bobT:0, walkDist:0,
+  recoil:0, aim:0, aimHeld:false,
+  swap:0, jumpT:-1, jumpH:0, land:0,
+  atk:-1, atkDir:1,
+  fireHeld:false, lastFire:0,
+  glow:0, t:0
+};
+
+const $ = s => document.querySelector(s);
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const damp=(a,b,l,dt)=>lerp(a,b,1-Math.exp(-l*dt));
+const easeOut=t=>1-Math.pow(1-clamp(t,0,1),3);
+const easeIn=t=>{t=clamp(t,0,1);return t*t;};
+
+// =========================================================
+//  WebGL: video karesini ciz, beyaz zemini ayikla
+// =========================================================
+const canvas = $('#vmCanvas');
+let gl=null, uKey=null, uGrade=null, tex=null;
+
+const VS = `attribute vec2 p; varying vec2 uv;
+void main(){ uv = vec2(p.x*0.5+0.5, 0.5-p.y*0.5); gl_Position = vec4(p,0.0,1.0); }`;
+
+// Beyaz zemin, min(r,g,b) esigine gore alfaya cevrilir. Kenarlardaki
+// beyaz sacak, rengin beyazla karisimi geri sokulerek temizlenir.
+const FS = `precision mediump float;
+uniform sampler2D tex; uniform vec2 key; uniform vec2 grade; varying vec2 uv;
+void main(){
+  vec3 c = texture2D(tex, uv).rgb;
+  float m = min(c.r, min(c.g, c.b));
+  float a = 1.0 - smoothstep(key.x, key.y, m);
+  if(a <= 0.003) discard;
+  vec3 col = clamp((c - (1.0 - a)) / max(a, 0.004), 0.0, 1.0);
+  // Videolar beyaz studyo isiginda cekilmis; karanlik sahneye otursun diye
+  // pozlama + gama ile karartilip hafif soguk bir ton veriliyor.
+  col = pow(col * grade.x, vec3(grade.y)) * vec3(0.95, 0.98, 1.06);
+  gl_FragColor = vec4(clamp(col,0.0,1.0) * a, a);          // premultiplied
+}`;
+
+function initGL(){
+  gl = canvas.getContext('webgl', {alpha:true, premultipliedAlpha:true, antialias:false, depth:false, stencil:false});
+  if(!gl) return false;
+  const mk=(t,src)=>{ const s=gl.createShader(t); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog, mk(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog,'p');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  uKey = gl.getUniformLocation(prog,'key');
+  uGrade = gl.getUniformLocation(prog,'grade');
+  gl.uniform1i(gl.getUniformLocation(prog,'tex'), 0);
+
+  tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);   // premultiplied
+  gl.clearColor(0,0,0,0);
+  gl.viewport(0,0,canvas.width,canvas.height);
+  return true;
+}
+
+function drawVideo(v){
+  if(!gl || !v || v.readyState < 2) return;
+  // Ozne govdesi ~<200, zemin ~250+, arasi kenar bandi. Bant genis tutulur ki
+  // kenardaki beyaz hale tam opak kalip kontur olusturmasin; despill onu temizler.
+  const c = CFG.key/100;
+  const k0 = 0.60 + c*0.30, k1 = 0.935 + c*0.06;
+  gl.uniform2f(uKey, k0, k1);
+  // isik uyumu: 0 = video ne ise o, 100 = cok karanlik
+  const g = CFG.light/100;
+  gl.uniform2f(uGrade, 1.12 - g*0.55, 1.0 + g*0.75);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  try{ gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, v); }
+  catch(e){ return; }
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+// ---------- boyutlandirma ----------
+function layout(){
+  S.vw = window.innerWidth; S.vh = window.innerHeight;
+  S.U = Math.min(S.vw, S.vh)/420;
+  const gs = CFG.scale/100;
+  // dikey modda ekran dar kaldigi icin referans olarak yuksekligi de hesaba kat
+  const base = Math.max(S.vw, S.vh*0.62);
+  const W = WEAPONS[S.cur];
+
+  const w = base * W.wFactor * gs;
+  const h = w * VID_AR;
+
+  // Video 16:9; ekran daha genis (yatay) oldugunda kare ekrandan tasar.
+  // Tasan kismin ne kadari ustten kirpilacagi silaha gore degisir: bicagin
+  // ucu karenin tepesinde oldugu icin ondan neredeyse hic kirpilmaz, tufeklerde
+  // ust bosluk fazla oldugu icin daha rahat kirpilir. Kalan tasma, kolun
+  // bulundugu alttan tasar.
+  const over = Math.max(0, h - S.vh);
+  const top = (over > 0) ? -over*W.topBias : (S.vh - h);
+
+  canvas.style.width  = w+'px';
+  canvas.style.height = h+'px';
+  canvas.style.marginLeft = (-w/2)+'px';
+  canvas.style.top = (top - CFG.offY*S.U)+'px';
+  canvas.style.bottom = 'auto';
+  // donme/olcek ekranin alt kenari etrafinda olsun (gercek viewmodel gibi)
+  canvas.style.transformOrigin = '50% ' + (S.vh - top).toFixed(1) + 'px';
+  W.w = w; W.h = h;
+}
+
+// ---------- girdi: sol analog ----------
+const stick = $('#stick'), knob = $('#knob');
+let stickId=null, stickC={x:0,y:0}, stickR=59;
+function stickStart(e){
+  if(stickId!==null) return;
+  stickId = e.pointerId;
+  const r = stick.getBoundingClientRect();
+  stickC = {x:r.left+r.width/2, y:r.top+r.height/2}; stickR = r.width/2;
+  stick.setPointerCapture(stickId); stickMove(e);
+}
+function stickMove(e){
+  if(e.pointerId!==stickId) return;
+  let dx = e.clientX-stickC.x, dy = e.clientY-stickC.y;
+  const d = Math.hypot(dx,dy), m = stickR;
+  if(d>m){ dx*=m/d; dy*=m/d; }
+  knob.style.transform = `translate(${dx}px,${dy}px)`;
+  S.moveX = dx/m; S.moveY = -dy/m;
+  const mag = Math.min(1, Math.hypot(S.moveX,S.moveY));
+  S.spd = mag; S.sprint = mag>0.86 && S.moveY>0.4;
+}
+function stickEnd(e){
+  if(e.pointerId!==stickId) return;
+  stickId=null; knob.style.transform='translate(0,0)';
+  S.moveX=S.moveY=0; S.spd=0; S.sprint=false;
+}
+stick.addEventListener('pointerdown',stickStart);
+stick.addEventListener('pointermove',stickMove);
+stick.addEventListener('pointerup',stickEnd);
+stick.addEventListener('pointercancel',stickEnd);
+
+// ---------- girdi: sag bakis alani ----------
+const lookZone = $('#lookZone');
+let lookId=null, lookLast={x:0,y:0}, lastTap=0;
+lookZone.addEventListener('pointerdown',e=>{
+  if(lookId!==null) return;
+  lookId=e.pointerId; lookLast={x:e.clientX,y:e.clientY};
+  lookZone.setPointerCapture(lookId);
+  const now = performance.now();
+  if(now-lastTap < 280) cycleWeapon();      // cift dokunus = siradaki silah
+  lastTap = now;
+});
+lookZone.addEventListener('pointermove',e=>{
+  if(e.pointerId!==lookId) return;
+  const dx=e.clientX-lookLast.x, dy=e.clientY-lookLast.y;
+  lookLast={x:e.clientX,y:e.clientY};
+  applyLook(dx,dy);
+});
+function lookUp(e){ if(e.pointerId===lookId) lookId=null; }
+lookZone.addEventListener('pointerup',lookUp);
+lookZone.addEventListener('pointercancel',lookUp);
+
+function applyLook(dx,dy){
+  const k = (CFG.sens/100) * (S.aim>0.5?0.55:1);
+  S.yaw   += dx*0.16*k;
+  S.pitch  = clamp(S.pitch - dy*0.16*k, -55, 55);
+  S.lookIn.x += dx*k; S.lookIn.y += dy*k;
+}
+
+// ---------- butonlar ----------
+function bindBtn(el, down, up){
+  el.addEventListener('pointerdown',e=>{ e.preventDefault(); el.classList.add('down'); down&&down(); });
+  const off=()=>{ el.classList.remove('down'); up&&up(); };
+  el.addEventListener('pointerup',off);
+  el.addEventListener('pointercancel',off);
+  el.addEventListener('pointerleave',off);
+}
+bindBtn($('#fireBtn'), ()=>{ S.fireHeld=true; fire(); }, ()=>{ S.fireHeld=false; });
+bindBtn($('#aimBtn'),  ()=>{ S.aimHeld=true; },        ()=>{ S.aimHeld=false; });
+bindBtn($('#jumpBtn'), jump, null);
+
+document.querySelectorAll('.slot').forEach(el=>{
+  el.addEventListener('pointerdown',e=>{ e.preventDefault(); setWeapon(el.dataset.w); });
+});
+$('#replayBtn').addEventListener('click',()=>{ const v=vidOf(S.cur); if(v){ v.currentTime=0; v.play().catch(()=>{}); } });
+
+// ---------- silah ----------
+const vidOf = k => document.getElementById(WEAPONS[k].vid);
+
+function setWeapon(k){
+  if(k===S.cur || S.next || !WEAPONS[k]) return;
+  S.next = k; S.atk=-1; S.recoil=0; S.aimHeld=false;
+  buzz(12);
+}
+function cycleWeapon(){ setWeapon(ORDER[(ORDER.indexOf(S.cur)+1) % ORDER.length]); }
+
+function activateWeapon(){
+  // eski videoyu durdur, yenisini bastan oynat
+  for(const k of ORDER){
+    const v = vidOf(k);
+    if(!v) continue;
+    if(k===S.cur){ v.currentTime=0; v.playbackRate=CFG.rate/100; v.play().catch(()=>{}); }
+    else v.pause();
+  }
+  const W = WEAPONS[S.cur];
+  $('#wName').textContent = W.name;
+  $('#wSub').textContent  = W.sub;
+  $('#fireBtn').textContent = W.fireLabel;
+  $('#aimBtn').classList.toggle('hide', !W.canAim);
+  document.querySelectorAll('.slot').forEach(s=>s.classList.toggle('active', s.dataset.w===S.cur));
+  layout();
+}
+
+// ---------- aksiyonlar ----------
+function fire(){
+  const now = performance.now();
+  if(S.swap>0.35) return;
+  const W = WEAPONS[S.cur];
+  if(S.cur==='knife'){
+    if(S.atk>=0 && S.atk<0.62) return;
+    S.atk = 0; S.atkDir *= -1;
+    buzz(20);
+    return;
+  }
+  const gap = W.auto ? 95 : 130;
+  if(now-S.lastFire < gap) return;
+  S.lastFire = now;
+  const r = CFG.recoil/100;
+  S.recoil = Math.min(1.4, S.recoil + (W.auto?0.7:0.9)*r);
+  S.pitch = clamp(S.pitch + (W.auto?1.1:1.6)*r, -55, 55);
+  S.yaw  += (Math.random()*2-1)*0.6*r;
+  S.glow = 1;
+  buzz(W.auto?9:14);
+}
+function jump(){ if(S.jumpT<0){ S.jumpT=0; buzz(10);} }
+function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+
+// ---------- klavye / fare (masaustu testi) ----------
+const keys={};
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  const n = {Digit1:0,Digit2:1,Digit3:2,Digit4:3}[e.code];
+  if(n!==undefined) setWeapon(ORDER[n]);
+  if(e.code==='KeyQ')   cycleWeapon();
+  if(e.code==='Space'){ e.preventDefault(); jump(); }
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; });
+addEventListener('mousedown',e=>{
+  if(e.target.closest('#touch,#cfg,#loading')) return;
+  if(e.button===0){ S.fireHeld=true; fire(); }
+  if(e.button===2){ S.aimHeld=true; }
+});
+addEventListener('mouseup',e=>{ if(e.button===0) S.fireHeld=false; if(e.button===2) S.aimHeld=false; });
+addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('mousemove',e=>{ if(document.pointerLockElement) applyLook(e.movementX, e.movementY); });
+addEventListener('click',e=>{
+  if(e.target.closest('#touch,#cfg,#loading')) return;
+  if(document.pointerLockElement) return;
+  if(matchMedia('(pointer:fine)').matches) document.documentElement.requestPointerLock?.();
+});
+let kbWalk=false;
+function readKeys(){
+  let x=0,y=0;
+  if(keys.KeyW) y+=1; if(keys.KeyS) y-=1;
+  if(keys.KeyD) x+=1; if(keys.KeyA) x-=1;
+  if(x||y){
+    const m=Math.hypot(x,y);
+    S.moveX=x/m; S.moveY=y/m; S.spd=1; S.sprint=!!keys.ShiftLeft && y>0;
+    kbWalk=true;
+  }else if(kbWalk){
+    kbWalk=false;
+    if(stickId===null){ S.moveX=S.moveY=0; S.spd=0; S.sprint=false; }
+  }
+}
+
+// ---------- ana dongu ----------
+const starsEl=$('#stars'), floorEl=$('#floor'), floorWrap=$('#floorWrap'),
+      horizonEl=$('#horizon'), crossEl=$('#cross'), glowEl=$('#muzzleGlow');
+let last = performance.now(), started=false;
+
+function frame(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  S.t += dt;
+  readKeys();
+
+  // --- silah degistirme (indir / kaldir) ---
+  if(S.next){
+    S.swap = Math.min(1, S.swap + dt*4.2);
+    if(S.swap>=1){ S.cur = S.next; S.next=null; activateWeapon(); }
+  }else if(S.swap>0){
+    S.swap = Math.max(0, S.swap - dt*3.4);
+  }
+  const W = WEAPONS[S.cur];
+
+  // --- video karesini ciz ---
+  if(started) drawVideo(vidOf(S.cur));
+
+  // --- nisan ---
+  const wantAim = W.canAim && S.aimHeld && S.swap<0.2 && !S.sprint;
+  S.aim = damp(S.aim, wantAim?1:0, 11, dt);
+
+  // --- yuruyus / bob ---
+  const spd = S.spd * (S.sprint?1.25:1);
+  const bobK = (CFG.bob/100) * W.bob * (1 - S.aim*0.72);
+  if(spd>0.02){
+    S.bobT += dt * (7.4 + spd*3.4);
+    S.walkDist += dt * spd * 190;
+  }else{
+    S.bobT = damp(S.bobT % (Math.PI*2), 0, 4, dt);
+  }
+  const bobX = Math.sin(S.bobT) * 13 * S.U * spd * bobK;
+  const bobY = Math.abs(Math.cos(S.bobT)) * 11 * S.U * spd * bobK;
+  const bobZ = Math.sin(S.bobT) * 2.2 * spd * bobK;
+
+  // --- bakis sallanmasi (sway) ---
+  const inX = S.lookIn.x * (0.0166/Math.max(dt,0.001));
+  const inY = S.lookIn.y * (0.0166/Math.max(dt,0.001));
+  S.lookIn.x = S.lookIn.y = 0;
+  const swayK = (CFG.sway/100) * W.sway * (1 - S.aim*0.78);
+  S.swayX = damp(S.swayX, clamp(-inX*1.05,-46,46)*S.U*swayK, 9, dt);
+  S.swayY = damp(S.swayY, clamp(-inY*0.85,-38,38)*S.U*swayK, 9, dt);
+
+  // --- nefes (idle) ---
+  const idleK = (CFG.idle/100) * (1 - S.spd*0.8) * (1 - S.aim*0.6);
+  const idleX = Math.sin(S.t*0.9)  * 3.4 * S.U * idleK;
+  const idleY = Math.sin(S.t*1.35) * 2.6 * S.U * idleK;
+  const idleR = Math.sin(S.t*0.72) * 0.55 * idleK;
+
+  // --- ziplama ---
+  if(S.jumpT>=0){
+    S.jumpT += dt;
+    const T = 0.62;
+    if(S.jumpT>=T){ S.jumpT=-1; S.jumpH=0; S.land=1; }
+    else S.jumpH = Math.sin(Math.PI * S.jumpT/T);
+  }
+  S.land = Math.max(0, S.land - dt*4.2);
+  const jumpY = S.jumpH * 16 * S.U + easeOut(S.land) * 20 * S.U;
+
+  // --- geri tepme ---
+  S.recoil = Math.max(0, S.recoil - dt*(4.6 + S.recoil*3.4));
+  const rc = S.recoil;
+  S.glow = Math.max(0, S.glow - dt*7);
+  glowEl.style.opacity = (S.glow*0.55).toFixed(3);
+
+  // --- bicak saldirisi ---
+  let aX=0, aY=0, aRz=0, aRx=0, aSc=1;
+  if(S.atk>=0){
+    S.atk += dt/0.42;
+    if(S.atk>=1) S.atk=-1;
+    else{
+      const p = S.atk, d = S.atkDir;
+      if(p<0.26){
+        const e = easeOut(p/0.26);
+        aX = 34*S.U*e*d; aY = -16*S.U*e; aRz = -20*e*d; aRx = 9*e; aSc = 1-0.03*e;
+      }else if(p<0.5){
+        const e = easeIn((p-0.26)/0.24);
+        aX = lerp(34,-46,e)*S.U*d; aY = lerp(-16,20,e)*S.U;
+        aRz = lerp(-20,34,e)*d; aRx = lerp(9,-8,e); aSc = lerp(0.97,1.07,e);
+      }else{
+        const e = easeOut((p-0.5)/0.5);
+        aX = -46*S.U*(1-e)*d; aY = 20*S.U*(1-e);
+        aRz = 34*(1-e)*d; aRx = -8*(1-e); aSc = lerp(1.07,1,e);
+      }
+    }
+  }
+
+  // --- kosma pozu ---
+  W.sprintK = damp(W.sprintK||0, S.sprint?1:0, 8, dt);
+
+  // --- birlestir ---
+  const swapE = easeIn(S.swap);
+  let x  = bobX + S.swayX + idleX + aX + S.moveX*9*S.U*(1-S.aim*0.6);
+  let y  = bobY + S.swayY + idleY + aY + jumpY + rc*26*S.U + swapE*(W.h||400)*0.95 + W.sprintK*18*S.U;
+  let rz = bobZ + idleR + aRz - S.moveX*3.1*(1-S.aim*0.7) - S.swayX*0.045 + swapE*16 + W.sprintK*8;
+  let rx = aRx - rc*9 - S.swayY*0.05 + swapE*10;
+  let ry = S.swayX*0.075;
+  let sc = aSc * (1 + rc*0.02);
+
+  // nisan alirken sallanma azalir, silah merkeze yaklasip buyur
+  x  = lerp(x,  x*0.3, S.aim);
+  y  = lerp(y,  y*0.3 - S.vh*0.045, S.aim);
+  rz = lerp(rz, rz*0.3, S.aim);
+  rx = lerp(rx, rx*0.3, S.aim);
+  ry = lerp(ry, ry*0.3, S.aim);
+  sc = lerp(sc, sc*1.16, S.aim);
+
+  canvas.style.transform =
+    `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,0) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+
+  // --- arka plan ---
+  const camY = -S.pitch*3.4 + jumpY*0.5 + bobY*0.25;
+  starsEl.style.transform   = `translate3d(${(-S.yaw*1.6).toFixed(1)}px,${(camY*0.35).toFixed(1)}px,0)`;
+  horizonEl.style.transform = `translate3d(0,${camY.toFixed(1)}px,0)`;
+  floorWrap.style.transform = `translate3d(0,${camY.toFixed(1)}px,0)`;
+  floorEl.style.backgroundPosition = `${(-S.yaw*2.2).toFixed(1)}px ${(S.walkDist*(S.moveY>=0?1:-1)).toFixed(1)}px`;
+
+  crossEl.style.opacity = (0.85 - S.aim*0.85 - (S.cur==='knife'?0.45:0)).toFixed(2);
+  crossEl.style.transform = `translate(-50%,-50%) scale(${(1 + S.spd*0.35 + rc*0.5).toFixed(2)})`;
+
+  if(S.fireHeld && S.cur!=='knife') fire();
+
+  requestAnimationFrame(frame);
+}
+
+// ---------- ayar paneli ----------
+const cfgMap = {cSway:'sway',cBob:'bob',cIdle:'idle',cRecoil:'recoil',cScale:'scale',
+                cOffY:'offY',cSens:'sens',cKey:'key',cRate:'rate',cLight:'light'};
+function syncCfgUI(){
+  for(const id in cfgMap){
+    $('#'+id).value = CFG[cfgMap[id]];
+    $('#v'+id.slice(1)).textContent = CFG[cfgMap[id]];
+  }
+}
+for(const id in cfgMap){
+  $('#'+id).addEventListener('input',e=>{
+    const key = cfgMap[id];
+    CFG[key] = +e.target.value;
+    $('#v'+id.slice(1)).textContent = e.target.value;
+    if(key==='scale' || key==='offY') layout();
+    if(key==='rate'){ const v=vidOf(S.cur); if(v) v.playbackRate = CFG.rate/100; }
+    saveCfg();
+  });
+}
+$('#cfgBtn').addEventListener('click',()=>{ syncCfgUI(); $('#cfg').classList.add('on'); });
+$('#cfgClose').addEventListener('click',()=>$('#cfg').classList.remove('on'));
+$('#cfgReset').addEventListener('click',()=>{
+  CFG=Object.assign({},DEF); syncCfgUI(); layout(); saveCfg();
+  const v=vidOf(S.cur); if(v) v.playbackRate=1;
+});
+
+$('#fsBtn').addEventListener('click',async()=>{
+  try{
+    if(!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+      if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
+    }else document.exitFullscreen();
+  }catch(e){}
+});
+
+addEventListener('resize', layout);
+addEventListener('orientationchange', ()=>setTimeout(layout,220));
+
+// ---------- yukleme ----------
+function fail(msg){
+  if(failed) return;
+  failed = true;
+  $('#loadTxt').textContent = 'HATA';
+  $('#errTxt').style.display = 'block';
+  $('#errTxt').textContent = msg;
+}
+let ready=0, failed=false;
+const vids = ORDER.map(k=>vidOf(k));
+vids.forEach((v,i)=>{
+  const step=()=>{
+    ready++;
+    $('#loadFill').style.width = Math.round(ready/vids.length*100)+'%';
+    if(ready>=vids.length) allReady();
+  };
+  if(v.readyState>=2) step();
+  else{
+    v.addEventListener('loadeddata', step, {once:true});
+    // <source> kullanildigi icin hata video elemanina cikar
+    v.addEventListener('error', ()=>{
+      fail(ORDER[i]+' videosu acilamadi. assets/vm/ klasoru sayfanin yaninda mi?');
+    }, {once:true});
+    // son <source> da basarisizsa video "error" atmayabilir
+    v.querySelectorAll('source').forEach((s,si,arr)=>{
+      if(si===arr.length-1) s.addEventListener('error',()=>{
+        fail(ORDER[i]+' videosu acilamadi (webm ve mp4 ikisi de olmadi).');
+      },{once:true});
+    });
+  }
+});
+setTimeout(()=>{ if(ready<vids.length && !failed)
+  fail('Videolar yuklenemedi. Dosyayi dogrudan actiysan tarayici yerel video okumayi engelliyor olabilir; kucuk bir yerel sunucudan ac.'); }, 20000);
+function allReady(){
+  $('#loadTxt').textContent = 'HAZIR';
+  $('#startBtn').style.display = 'block';
+}
+$('#startBtn').addEventListener('click',()=>{
+  try{
+    if(!initGL()){ fail('WebGL kullanilamiyor. Tarayici donanim hizlandirmasi kapali olabilir.'); return; }
+  }catch(e){ fail('WebGL baslatilamadi: '+e.message); return; }
+  // dokunma jesti icinde hepsini oynat: iOS otomatik oynatma kilidini acar
+  vids.forEach(v=>{ v.play().then(()=>{ if(vidOf(S.cur)!==v) v.pause(); }).catch(()=>{}); });
+  started = true;
+  activateWeapon();
+  $('#loading').style.display='none';
+  setTimeout(()=>{ $('#hint').style.opacity=0; }, 6000);
+});
+
+layout();
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
