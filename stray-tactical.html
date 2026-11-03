@@ -2594,21 +2594,41 @@ function defMP9(){
     anchors:{gripR:{p:[0,-.058,.031],r:[-8,0,0]}, gripL:{p:[0,-.062,-.118],r:[-6,0,8]}, muzzle:[0,.024,-.143], eject:[.02,.036,.034]} });
 }
 function defNova(){
-  const blk=M('parker','#2f3134'), poly=M('polymer','#2b2c29'), dk=M('blued','#282a2e'), P=[];
-  P.push(BX('Gövde',3.4,4.6,21,0,1.5,5.5,.4,blk));
-  P.push(LA('Namlu',[16,0, 16,1.15, 62,1.05, 62,0],20,dk,{y:2.6}));
-  P.push(CY('Şarjör tüpü',1.25,1.25,34,0,-.3,33,[90,0,0],blk,{sides:20}));
-  P.push(EX('Pompa',[26,-2.4, 42,-2.4, 43,-1.4, 43,1.4, 26,1.4, 25,-1.4],4.2,.8,poly,{role:'slide'}));
-  P.push(TR('Kelepçe',1.3,.3,0,1.2,50,[0,0,0],blk));
-  P.push(SP('Arpacık boncuğu',.28,0,3.9,61.4,M('brass')));
-  P.push(EX('Dipçik',[-5,3.6, -5,-1, -8,-6.5, -10.5,-6.8, -14,-3.6, -36,-6, -38,-6, -38,3.4, -30,4.2, -14,3.6],3.6,.8,poly));
-  P.push(EX('Tetik korkuluğu',[-3,-.8, 3.6,-.8, 3.6,-1.3, 2.6,-3.6, -1.6,-3.8, -3,-2.4],.8,0,blk,{holes:[[-2.2,-1.3, 2.8,-1.3, 2.1,-3.2, -1.2,-3.3, -2.2,-2.4]]}));
-  P.push(trigger(blk));
-  P.push(BX('Dipçik pedi',3.7,10,1,0,-1.3,-38.5,.35,M('rubber')));
+  // Benelli Nova 12 ga pump: one-piece polymer receiver + stock (semi-pistol grip, straight comb, thick recoil pad), 47 cm barrel with
+  // bead sight, magazine tube + cap and barrel clamp, ribbed pump forend on action bars (role slide), trigger guard with the pump release
+  const poly=M('polymer','#2b2c2e'), poly2=M('polymer','#232426'), grip=M('grip','#252628'), blk=M('polymer','#08080a'), barrel=M('blued','#2a2d31'),
+    steel=M('gunmetal','#7e8288'), pad=M('rubber','#151617'), P=[];
+  // receiver (polymer shell) with the top channel, ejection + loading ports
+  P.push(wcS(EX('Gövde',[-3.6,-3.0, -3.6,4.6, -3.0,5.1, 16.9,5.1, 18.2,4.3, 18.4,.2, 17.6,-2.2, 16.6,-3.0],4.3,.7,poly),35));
+  P.push(BX('Üst kanal',1.2,.1,18.8,0,5.12,7.2,.04,blk));
+  P.push(BX('Kovan penceresi',.1,2.7,7.6,2.16,2.9,10.6,.1,blk)); P.push(BX('Sürgü',.14,1.5,4.2,2.16,2.8,9.6,.1,steel));
+  P.push(BX('Doldurma ağzı',2.6,.1,8.6,0,-3.02,10.0,.05,blk));
+  for(const s of [-1,1]) for(const z of [-1.4,15.6]) P.push(CY('Pim',.32,.32,.16,s*2.17,-1.6,z,[0,0,90],steel,{sides:12}));
+  // one-piece stock: straight comb, semi-pistol grip with cap, recoil pad
+  P.push(wcS(EX('Dipçik',[-3.0,5.1, -33.6,3.9, -34.1,3.4, -34.1,-9.4, -33.4,-10.1, -17.0,-7.7, -12.0,-7.9, -9.3,-8.6, -7.0,-8.1, -5.6,-6.2, -4.6,-4.2, -3.8,-3.0, -3.0,-2.8],4.0,.9,poly),35));
+  P.push(wcS(EX('Kabza kaplaması',[-4.0,-3.4, -4.8,-4.6, -5.8,-6.4, -7.1,-8.0, -9.2,-8.5, -11.8,-7.8, -10.8,-5.6, -9.2,-3.4],4.1,.6,grip),35));
+  P.push(wcS(EX('Dipçik pedi',[-34.0,3.6, -36.5,3.8, -36.9,3.0, -36.9,-9.6, -36.2,-10.3, -34.0,-9.9],4.1,.6,pad),35));
+  for(let i=0;i<4;i++) P.push(BX('Ped oluğu',4.16,.18,1.8,0,1.6-i*3.4,-35.6,.05,M('rubber','#0d0e0f')));
+  P.push(TR('Kayış halkası',.65,.14,0,-9.2,-30.6,[0,90,0],steel));
+  // trigger guard + trigger + pump release
+  P.push(wcS(EX('Tetik korkuluğu',[-3.4,-2.6, 4.6,-2.6, 4.6,-3.4, 3.8,-5.0, 2.6,-5.7, -1.6,-5.7, -3.4,-4.4],.9,.15,poly2,{holes:[[-2.6,-3.05, 3.9,-3.05, 3.2,-4.6, 2.2,-5.15, -1.2,-5.15, -2.6,-4.2]]}),35));
+  P.push(wcS(EX('Tetik',[.3,-2.9, 1.1,-2.9, 1.0,-3.8, .6,-4.7, .2,-4.55, .55,-3.75],.55,.06,steel,{role:'trigger'}),40));
+  P.push(BX('Pompa kilidi',.9,.7,.9,0,-3.25,4.2,.2,steel));
+  // barrel (tapered, open bore), bead, magazine tube + cap, barrel clamp
+  P.push(wcS(LA('Namlu',[18.0,0, 18.0,1.25, 19.6,1.25, 20.2,1.14, 64.6,1.05, 65.0,.98, 65.0,.9, 64.0,.9, 64.0,0],22,barrel,{y:2.6}),30));
+  P.push(SP('Arpacık boncuğu',.26,0,3.75,64.3,M('brass')));
+  P.push(wcS(LA('Şarjör tüpü',[17.6,0, 17.6,1.32, 56.6,1.32, 56.6,0],22,barrel,{y:.1}),30));
+  P.push(wcS(LA('Tüp kapağı',[56.4,0, 56.4,1.45, 59.4,1.45, 60.0,1.25, 60.3,.7, 60.3,0],22,poly2,{y:.1}),35));
+  P.push(TR('Kapak kayış halkası',.6,.13,0,-1.5,59.0,[0,90,0],steel,{arc:220}));
+  P.push(wcS(wcXS('Namlu kelepçesi',[-1.0,-.9, 1.0,-.9, 1.4,.6, 1.25,2.6, .9,3.4, -.9,3.4, -1.25,2.6, -1.4,.6],1.4,.25,poly2,[0,1.25,54.2]),35));
+  // pump forend (role slide) with grip ribs, action bars running back into the receiver
+  P.push(wcS(wcXS('Pompa',[-2.4,1.9, -2.6,.4, -2.5,-1.0, -2.0,-2.1, -1.0,-2.7, 1.0,-2.7, 2.0,-2.1, 2.5,-1.0, 2.6,.4, 2.4,1.9, 1.6,2.3, -1.6,2.3],20.0,.8,poly,[0,0,36.0],{role:'slide',id:'nova_pump'}),40));
+  for(const [y,x] of [[-1.5,2.3],[-.7,2.53],[.1,2.58],[.9,2.55]]) for(const s of [-1,1]) P.push(BX('Pompa kanalı',.12,.3,16.0,s*x,y,36.0,.05,blk,{parent:'nova_pump'}));
+  for(const s of [-1,1]) P.push(BX('Hareket kolu',.18,.45,10.0,s*1.15,-.95,21.4,.04,steel,{parent:'nova_pump'}));
   return normalizeDef({ id:'nova', name:'Nova', builtin:1, type:'shotgun', slot:'primary', parts:finalizeParts(P),
     stats:{dmg:26,head:4,rpm:68,mag:8,reserve:32,reload:3.4,auto:0,spread:3.6,moveSpread:2.5,recoil:2.4,pattern:'vertical',pellets:9,scope:0,range:60,speed:.88,sound:'shotgun',draw:1,price:1050,reward:900},
     view:{pos:[.13,-.118,-.3],rot:[0,4,0]},
-    anchors:{gripR:{p:[0,-.04,.085],r:[-32,0,0]}, gripL:{p:[0,-.005,-.345],r:[90,0,-25]}, muzzle:[0,.026,-.62], eject:[.02,.025,-.08]} });
+    anchors:{gripR:{p:[0,-.046,.072],r:[-32,0,0]}, gripL:{p:[0,-.012,-.36],r:[90,0,-25]}, muzzle:[0,.026,-.65], eject:[.022,.029,-.106]} });
 }
 function defGalil(){
   const metal=M('gunmetal','#3a3d41'), poly=M('polymer','#2d2f29'), dk=M('blued','#2a2d31'), P=[];
@@ -2729,23 +2749,23 @@ function defP90(){
   const poly=M('polymer','#2a2b2e'), dk=M('polymer','#1e1f21'), grip=M('grip','#242527'), metal=M('parker','#2f3033'), blk=M('polymer','#050506'), lens=M('glass','#18232a',{emissive:'#06121a',emi:.4}),
     smoke=M('glass','#2f2a23',{metal:.1,rough:.34,emissive:'#0e0904',emi:.3,opacity:.78}), brass=M('brass','#9c7636'), P=[];
   // lower frame: butt + pistol grip + front grip + integrated trigger guard (rear thumbhole + finger opening)
-  P.push(EX('Gövde',[-25,3.4, -26.6,2.8, -27.2,.6, -27.3,-3, -26.8,-6.5, -25.6,-9.2, -24,-10.6, -21,-11.3, -15,-11.5, -11,-11.8, -9.4,-12.6, -6,-12.9, -4.2,-12.3, -2.6,-11.2, 2,-11.2, 6.6,-11.4, 9,-12, 11.6,-12.7, 12.9,-12.2, 13.1,-10.6, 12.5,-8, 13.3,-4.6, 14.8,-2.2, 16.6,-.8, 17.9,.4, 18.6,2.2, 18,3.4],3.6,.8,poly,
-    {holes:[[-8.2,-3.4, -15.6,-3.2, -19.2,-4.4, -20.4,-6.8, -19.4,-9.2, -15.6,-10, -10.8,-10, -9.6,-9.4],[-3,-3.4, 7.6,-3.4, 9.0,-4.8, 8.8,-7.2, 7.8,-9.4, 6.2,-9.9, -2.2,-9.9, -3.4,-8.8, -4,-6.4]]}));
-  P.push(EX('Kabza kaplaması',[-3.3,-3.7, -4.2,-6.4, -3.7,-8.8, -4.3,-10.2, -9.5,-10.2, -9.4,-9.3, -8.1,-3.7],3.8,.5,grip));
-  P.push(EX('Ön kabza kaplaması',[7.9,-3.7, 9.3,-4.8, 9.1,-7.2, 8.1,-9.6, 8.6,-11.4, 12.4,-12.0, 12.7,-10.6, 12.1,-8.0, 12.9,-4.6, 12.3,-3.7],3.8,.5,grip));
+  P.push(wcS(EX('Gövde',[-25,3.4, -26.6,2.8, -27.2,.6, -27.3,-3, -26.8,-6.5, -25.6,-9.2, -24,-10.6, -21,-11.3, -15,-11.5, -11,-11.8, -9.4,-12.6, -6,-12.9, -4.2,-12.3, -2.6,-11.2, 2,-11.2, 6.6,-11.4, 9,-12, 11.6,-12.7, 12.9,-12.2, 13.1,-10.6, 12.5,-8, 13.3,-4.6, 14.8,-2.2, 16.6,-.8, 17.9,.4, 18.6,2.2, 18,3.4],3.6,.8,poly,
+    {holes:[[-8.2,-3.4, -15.6,-3.2, -19.2,-4.4, -20.4,-6.8, -19.4,-9.2, -15.6,-10, -10.8,-10, -9.6,-9.4],[-3,-3.4, 7.6,-3.4, 9.0,-4.8, 8.8,-7.2, 7.8,-9.4, 6.2,-9.9, -2.2,-9.9, -3.4,-8.8, -4,-6.4]]}),35));
+  P.push(wcS(EX('Kabza kaplaması',[-3.3,-3.7, -4.2,-6.4, -3.7,-8.8, -4.3,-10.2, -9.5,-10.2, -9.4,-9.3, -8.1,-3.7],3.8,.5,grip),35));
+  P.push(wcS(EX('Ön kabza kaplaması',[7.9,-3.7, 9.3,-4.8, 9.1,-7.2, 8.1,-9.6, 8.6,-11.4, 12.4,-12.0, 12.7,-10.6, 12.1,-8.0, 12.9,-4.6, 12.3,-3.7],3.8,.5,grip),35));
   // wide upper receiver
-  P.push(EX('Üst gövde',[-25.6,4.8, 13.4,4.8, 15.2,4.2, 16.6,2.6, 16.2,.6, 14.2,-.6, -24.6,-.6, -26.4,1.2, -26.6,3.4],5.2,1.0,poly));
+  P.push(wcS(EX('Üst gövde',[-25.6,4.8, 13.4,4.8, 15.2,4.2, 16.6,2.6, 16.2,.6, 14.2,-.6, -24.6,-.6, -26.4,1.2, -26.6,3.4],5.2,1.0,poly),35));
   P.push(BX('Gövde çizgisi',5.3,.14,38,0,1.5,-5.5,0,blk));
   P.push(BX('Şarjör mandalı',3.6,1.3,1.1,0,5.5,-26.1,.35,dk));
   // translucent top magazine, rounds lying across the receiver
-  P.push(EX('Şarjör',[-24.6,4.9, 9.8,4.9, 10.4,5.6, 10.4,8.0, 9.6,8.7, -23.4,8.7, -25.2,7.8, -25.6,6.0],5.0,.45,smoke,{role:'mag',id:'p90_mag'}));
+  P.push(wcS(EX('Şarjör',[-24.6,4.9, 9.8,4.9, 10.4,5.6, 10.4,8.0, 9.6,8.7, -23.4,8.7, -25.2,7.8, -25.6,6.0],5.0,.45,smoke,{role:'mag',id:'p90_mag'}),35));
   // 50 rounds, two staggered rows; fed at the rear, so the front of the stack empties first (rnd = rounds kept longest; the viewmodel hides by ammo)
   for(let c=0;c<25;c++) for(let r=0;r<2;r++){ const f=CY('Fişek',.5,.5,3.6,0,6.15+r*1.02,-23.1+c*1.27+r*.635,[0,0,90],brass,{sides:8,parent:'p90_mag'}); f.rnd=c*2+r; P.push(f); }
   P.push(Object.assign(BX('Besleyici',4.4,2.6,.5,0,6.65,8.9,.15,dk,{parent:'p90_mag'}),{fol:1}));
   P.push(BX('Şarjör başlığı',5.1,3.9,1.5,0,6.8,9.7,.45,dk,{parent:'p90_mag'}));
   P.push(BX('Şarjör sonu',5.1,3.5,.9,0,6.75,-25.0,.4,dk,{parent:'p90_mag'}));
   // ring-sight housing bridging over the magazine front
-  P.push(EX('Nişangah gövdesi',[1.2,8.9, 2.2,10.4, 3.8,11.1, 11.2,11.1, 13.2,10.2, 14.6,8.2, 14.8,4.6, 10.8,4.6, 10.8,8.9],4.0,.8,dk));
+  P.push(wcS(EX('Nişangah gövdesi',[1.2,8.9, 2.2,10.4, 3.8,11.1, 11.2,11.1, 13.2,10.2, 14.6,8.2, 14.8,4.6, 10.8,4.6, 10.8,8.9],4.0,.8,dk),35));
   P.push(BX('Nişangah camı',2.0,1.1,.3,0,9.75,1.75,.1,lens,{rot:[-34,0,0]}));
   P.push(BX('Ön cam',2.0,1.0,.3,0,9.3,13.95,.1,lens,{rot:[45,0,0]}));
   for(const s of [-1,1]){ P.push(BX('Yedek gez',.5,1.0,1.4,s*2.05,10.1,3.0,.15,dk)); P.push(BX('Yedek arpacık',.5,.9,.8,s*2.05,10.0,12.2,.12,dk)); }
