@@ -2544,23 +2544,54 @@ function defMAC10(){
     anchors:{gripR:{p:[0,-.055,.035],r:[-4,0,0]}, gripL:{p:[0,-.03,-.088],r:[90,0,-25]}, muzzle:[0,.0175,-.156], eject:[.024,.034,.019]} });
 }
 function defMP9(){
-  const poly=M('polymer','#2b2d30'), grip=M('grip','#252628'), dk=M('blued','#292b2f'), P=[];
-  P.push(EX('Gövde',[-11,-1, 16,-1, 16,3.4, 15,4.4, -10,4.4, -11,3.6],3.2,.5,poly));
-  P.push(BX('Ray',2.0,.45,20,0,4.65,4,.05,dk,{id:'mp9_rail'}));
-  for(let i=0;i<8;i++) P.push(BX('Ray dişi',2.1,.3,.5,0,4.98,-5+i*2.4,.02,dk,{parent:'mp9_rail'}));
-  P.push(CY('Namlu',.8,.8,3.2,0,2.4,17.4,[90,0,0],dk,{sides:16}));
-  P.push(EX('Ön kabza',[7.5,-1, 10.5,-1, 10.2,-8.5, 7.8,-8.5],2.6,.6,grip));
-  P.push(EX('Kabza',[-1.5,-1, -5.5,-1, -6.8,-10, -2.6,-10.5],3.0,.55,grip));
-  P.push(EX('Tetik korkuluğu',[-1.4,-1, 4.6,-1, 4.6,-1.5, 3.6,-3.6, -.8,-3.8, -1.4,-3.0],.9,.1,poly,{holes:[[-.8,-1.5, 3.8,-1.5, 3.0,-3.2, -.4,-3.3]]}));
-  P.push(EX('Tetik',[.6,-1, 1.2,-1, 1.0,-2.0, .4,-2.9, .1,-2.7, .6,-2.0],.5,0,dk,{role:'trigger'}));
-  P.push(EX('Şarjör',[-2.2,-9.6, -5.6,-9.6, -6.9,-20, -3.4,-20],2.3,.15,dk,{role:'mag',id:'mp9_mag'})); P.push(BX('Şarjör tabanı',2.7,.7,4.2,0,-20.3,-5.2,.2,poly,{rot:[-8,0,0],parent:'mp9_mag'}));
-  P.push(EX('Dipçik',[-11,3.6, -30,3.6, -31,2.6, -31,-4.5, -30,-5.2, -28.8,-5.2, -28.8,1.6, -11,1.2],2.8,.45,poly));
-  P.push(BX('Kurma kolu',3.0,.6,1.0,0,3.8,-10.6,.2,dk,{role:'bolt'}));
-  P.push(BX('Gez',1.5,1.2,1.2,0,5.4,-6,.15,dk)); P.push(BX('Arpacık',.5,1.2,.8,0,5.4,13.6,.1,dk));
+  // B&T MP9: steel upper with a full-length top rail and T charging handle at the rear, polymer lower with the trigger guard, the
+  // raked pistol grip (magazine well) and the integral vertical front grip; translucent smoke 30-round magazine; side-folding stock extended
+  const poly=M('polymer','#2a2b2e'), poly2=M('polymer','#222326'), up=M('parker','#2e3033'), dk=M('blued','#26282c'), grip=M('grip','#232427'), blk=M('polymer','#08080a'),
+    steel=M('gunmetal','#8d9196'), smoke=M('glass','#2b2826',{metal:.1,rough:.32,emissive:'#0b0806',emi:.25,opacity:.82}), brass=M('brass','#9c7636'), P=[];
+  // upper receiver + lower frame
+  P.push(wcS(EX('Üst gövde',[-11.3,-.2, -11.3,5.3, -10.8,5.8, 11.2,5.8, 11.7,5.3, 11.7,.6, 11.2,-.2],3.7,.4,up),30));
+  P.push(wcS(EX('Alt gövde',[-11.0,.2, 11.7,.2, 11.7,-1.0, 11.2,-1.4, -10.6,-1.4, -11.0,-1.0],3.3,.35,poly),30));
+  P.push(BX('Gövde çizgisi',3.76,.12,22.4,0,2.0,.2,0,blk));
+  // ejection port (right) with the bright bolt, side slots of the rail cover
+  P.push(BX('Kovan penceresi',.1,1.7,3.8,1.86,3.6,-3.4,.05,blk)); P.push(BX('Sürgü',.14,1.0,2.6,1.86,3.55,-3.2,.08,steel));
+  for(const s of [-1,1]) for(let i=0;i<4;i++) P.push(BX('Yan yarık',.1,1.6,.5,s*1.86,3.6,3.6+i*1.9,.08,blk));
+  // top rail with cross slots
+  P.push(BX('Ray',2.1,.35,21.2,0,5.95,.4,.05,dk,{id:'mp9_rail'}));
+  for(let i=0;i<10;i++) P.push(BX('Ray dişi',2.2,.3,.95,0,6.25,-9.0+i*2.1,.05,dk,{parent:'mp9_rail'}));
+  // flip sights
+  P.push(BX('Gez tabanı',1.8,.35,2.0,0,6.6,-9.6,.1,dk)); for(const s of [-1,1]) P.push(wcS(EX('Gez kulağı',[-10.6,6.5, -8.6,6.5, -8.9,7.4, -10.3,7.6],.3,.06,dk,{x:s*.7}),40));
+  P.push(BX('Gez',.5,.9,.5,0,7.1,-9.6,.08,dk));
+  P.push(BX('Arpacık tabanı',1.8,.35,2.2,0,6.6,9.8,.1,dk)); for(const s of [-1,1]) P.push(wcS(EX('Arpacık kulağı',[8.8,6.5, 10.9,6.5, 10.5,7.4, 9.1,7.4],.3,.06,dk,{x:s*.7}),40));
+  P.push(BX('Arpacık',.32,.8,.45,0,7.05,9.8,.06,dk));
+  // T charging handle at the rear (role bolt)
+  P.push(BX('Kurma kolu',1.0,.9,3.2,0,5.0,-12.6,.25,dk,{role:'bolt',id:'mp9_ch'}));
+  P.push(wcS(BX('Kurma kolu kanadı',4.2,1.1,1.0,0,5.0,-14.6,.4,dk,{parent:'mp9_ch'}),30));
+  // barrel nut + threaded muzzle
+  P.push(wcS(LA('Namlu somunu',[11.6,0, 11.6,1.2, 12.5,1.2, 12.7,1.0, 12.7,0],20,dk,{y:2.4}),35));
+  P.push(LA('Namlu',[12.6,.72, 13.2,.72, ...wcThread(13.2,14.1,.74,.07,6), 14.3,.6, 14.3,.32, 13.6,.32, 13.6,0],16,dk,{y:2.4}));
+  // pistol grip (magazine well), trigger guard, trigger, safety
+  P.push(wcS(EX('Kabza',[-5.6,-1.2, .4,-1.2, .4,-2.4, .1,-10.6, -.4,-11.3, -5.8,-11.3, -6.3,-10.6, -6.1,-4.0, -5.8,-2.2],3.1,.55,grip),35));
+  for(const y of [-5.2,-6.4,-7.6,-8.8]) P.push(BX('Kabza oluğu',3.16,.16,4.4,0,y,-3.0,.05,poly2));
+  P.push(BX('Şarjör yuvası',2.3,.08,3.8,0,-11.32,-2.9,.03,blk));
+  P.push(wcS(EX('Tetik korkuluğu',[-.2,-.9, 7.6,-.9, 7.6,-1.4, 7.1,-3.4, 6.3,-4.1, .4,-4.1, -.2,-3.6],.9,.15,poly,{holes:[[.5,-1.35, 6.9,-1.35, 6.5,-3.1, 5.9,-3.6, .9,-3.6, .5,-3.2]]}),35));
+  P.push(wcS(EX('Tetik',[2.0,-1.3, 2.75,-1.3, 2.65,-2.2, 2.25,-3.0, 1.85,-2.85, 2.25,-2.1],.55,.06,dk,{role:'trigger'}),40));
+  for(const s of [-1,1]) P.push(CY('Emniyet',.4,.4,.25,s*1.7,-.6,-1.2,[0,0,90],dk,{sides:14}));
+  // integral vertical front grip
+  P.push(wcS(EX('Ön kabza',[9.4,-1.2, 13.4,-1.2, 13.6,-3.0, 14.1,-10.6, 13.7,-11.5, 10.4,-11.5, 9.9,-10.8, 9.5,-3.0],3.0,.6,grip),40));
+  for(const y of [-5.0,-6.4,-7.8,-9.2]) P.push(BX('Ön kabza oluğu',3.06,.16,3.6,0,y,11.8+(-y-5)*.1,.05,poly2));
+  // translucent 30-round magazine with the brass cartridges showing (role mag)
+  P.push(wcS(EX('Şarjör',[-4.9,-9.6, -1.0,-9.6, -1.2,-20.0, -5.0,-20.0],2.5,.12,smoke,{role:'mag',id:'mp9_mag'}),30));
+  for(let i=0;i<7;i++) P.push(CY('Fişek',.45,.45,2.8,0,-11.8-i*1.2,-3.0+((i%2)?.25:-.25),[90,0,0],brass,{sides:8,parent:'mp9_mag'}));
+  P.push(wcS(BX('Şarjör tabanı',2.9,.7,4.4,0,-20.3,-3.1,.25,poly2,{parent:'mp9_mag'}),40));
+  // side-folding stock, extended: hinge, straight arm, butt plate with pad
+  P.push(CY('Dipçik menteşesi',.7,.7,3.9,0,1.1,-11.4,[0,0,90],dk,{sides:16}));
+  P.push(wcS(EX('Dipçik kolu',[-11.2,2.7, -29.6,3.2, -29.9,1.3, -11.2,.2],2.2,.4,poly),35));
+  P.push(wcS(EX('Dipçik plakası',[-29.4,4.2, -30.9,4.4, -31.2,3.4, -31.2,-4.6, -30.6,-5.0, -29.6,-5.0, -29.4,-1.0],2.8,.45,poly),35));
+  P.push(BX('Dipçik pedi',2.6,8.6,.5,0,-.3,-31.35,.2,M('rubber')));
   return normalizeDef({ id:'mp9', name:'MP9', builtin:1, type:'smg', slot:'primary', parts:finalizeParts(P),
     stats:{dmg:26,head:4,rpm:857,mag:30,reserve:120,reload:2.1,auto:1,spread:.5,moveSpread:3.2,recoil:.68,pattern:'smg',pellets:1,scope:0,range:180,speed:.96,sound:'smg',draw:.9,price:1250,team:'CT',reward:600},
     view:{pos:[.12,-.11,-.31],rot:[0,4,0]},
-    anchors:{gripR:{p:[0,-.055,.035],r:[-14,0,0]}, gripL:{p:[0,-.05,-.09],r:[-4,0,8]}, muzzle:[0,.024,-.192], eject:[.017,.025,-.05]} });
+    anchors:{gripR:{p:[0,-.058,.031],r:[-8,0,0]}, gripL:{p:[0,-.062,-.118],r:[-6,0,8]}, muzzle:[0,.024,-.143], eject:[.02,.036,.034]} });
 }
 function defNova(){
   const blk=M('parker','#2f3134'), poly=M('polymer','#2b2c29'), dk=M('blued','#282a2e'), P=[];
@@ -12602,52 +12633,99 @@ function defMP7(){
     anchors:{gripR:{p:[0,-.05,.03],r:[-6,0,0]}, gripL:{p:[0,-.066,-.094],r:[-4,0,8]}, muzzle:[0,.02,-.267], eject:[.023,.036,-.04]} });
 }
 function defUMP45(){
-  const poly=M('polymer','#303236'), dk=M('blued','#26282b'), grip=M('grip','#27282b'), blk=M('polymer','#09090a'), P=[];
-  P.push(EX('Gövde',[-14,-1.2, 17.6,-1.2, 18.6,-.2, 18.6,4.0, 17.6,4.6, -13.2,4.6, -14,3.8],3.6,.5,poly));
-  for(const y of [.2,1.4,2.6]) P.push(BX('Yan oluk',3.66,.22,9.6,0,y,12.6,0,blk));
-  P.push(BX('Ray',2.0,.45,24,0,4.85,1,.05,dk,{id:'ump_rail'}));
-  for(let i=0;i<10;i++) P.push(BX('Ray dişi',2.1,.3,.5,0,5.2,-10+i*2.3,.02,dk,{parent:'ump_rail'}));
-  P.push(EX('Gez',[-11,5.0, -8.4,5.0, -8.6,7.0, -10.6,7.0],2.0,.2,dk)); P.push(BX('Gez deliği',.5,.6,1.6,0,6.5,-9.6,0,blk));
-  P.push(EX('Arpacık',[14.2,5.0, 16.8,5.0, 16.6,7.2, 14.6,7.2],2.0,.2,dk));
-  P.push(LA('Namlu',[18.4,0, 18.4,.95, 23.4,.9, 23.4,0],16,dk,{y:2.2}));
-  P.push(LA('Namlu ucu',[22.8,0, 22.8,1.15, 25.2,1.15, 25.2,.6],16,dk,{y:2.2}));
-  P.push(CY('Namlu ağzı',.55,.55,.2,0,2.2,25.25,[90,0,0],blk,{sides:14}));
-  P.push(EX('Kabza',[-3.2,-1.2, -7.4,-1.2, -9.4,-11.4, -8.8,-12.4, -4.8,-12.4, -4.0,-11.2, -3.4,-3.8],3.0,.55,grip));
-  P.push(EX('Tetik korkuluğu',[-3.4,-1.2, 3.8,-1.2, 3.8,-1.7, 2.8,-4.2, -1.8,-4.4, -3.4,-3.2],.9,.05,poly,{holes:[[-2.6,-1.7, 3.0,-1.7, 2.2,-3.7, -1.4,-3.8, -2.6,-3.0]]}));
-  P.push(trigger(dk));
-  P.push(BX('Şarjör yuvası',3.2,1.8,6.4,0,-1.9,7.4,.3,poly));
-  P.push(EX('Şarjör',[4.8,-2.0, 9.8,-2.0, 10.6,-17.0, 5.8,-17.4],2.5,.2,M('polymer','#2a2c30'),{role:'mag',id:'ump_mag'}));
-  P.push(BX('Şarjör tabanı',2.8,.7,5.2,0,-17.6,8.2,.2,poly,{rot:[4,0,0],parent:'ump_mag'}));
-  P.push(BX('Kurma kolu',1.2,1.2,1.8,-2.2,3.0,12.4,.35,dk,{role:'bolt'}));
-  P.push(EX('Dipçik',[-14,3.6, -36,3.2, -37,2, -37,-6.4, -35.6,-7.2, -34,-7.2, -34,.6, -14,.4],2.8,.5,poly,{holes:[[-17,2.6, -32.6,2.3, -32.6,1.3, -17,1.5]]}));
-  P.push(BX('Dipçik pedi',3.0,10.0,.8,0,-1.9,-37.2,.3,M('rubber')));
+  // H&K UMP45: boxy polymer receiver (69 cm, stock extended), top rail between the sloped rear-sight fin and the hooded front sight,
+  // charging handle tube on the left front, straight 25-round .45 magazine well forward of the trigger, raked grip, skeleton folding stock
+  const poly=M('polymer','#303236'), poly2=M('polymer','#26282b'), dk=M('blued','#25272a'), grip=M('grip','#27282b'), blk=M('polymer','#09090a'), steel=M('gunmetal','#8a8e94'), P=[];
+  // upper receiver: long box with the chamfered rear cap, deeper front (handguard) section
+  P.push(wcS(EX('Gövde',[-15.2,.3, -15.2,4.4, -14.3,5.6, -13.6,6.2, 27.6,6.2, 28.2,5.6, 28.2,-.9, 27.6,-1.5, 11.9,-1.5, 11.4,.3],4.6,.55,poly),35));
+  P.push(BX('Gövde dikişi',4.66,.14,15.6,0,.35,3.7,0,blk));
+  for(const s of [-1,1]){ P.push(BX('Ön yarık',.1,.42,11.0,s*2.31,3.7,21.0,.2,blk)); P.push(BX('Ön yarık',.1,.42,4.2,s*2.31,2.3,17.6,.2,blk)); }
+  for(const [z,y] of [[14.6,.8],[25.9,.8],[-12.6,2.2],[-12.6,4.4]]) for(const s of [-1,1]) P.push(CY('Pim',.32,.32,.14,s*2.33,y,z,[0,0,90],dk,{sides:12}));
+  // ejection port (right) with the bolt, charging-handle tube on the left (knob = role bolt)
+  P.push(BX('Kovan penceresi',.1,1.9,4.6,2.31,2.4,10.8,.06,blk)); P.push(BX('Sürgü',.14,1.1,3.0,2.31,2.4,11.2,.1,steel));
+  P.push(CY('Kurma tüpü',.62,.62,13.0,-2.35,4.6,19.6,[90,0,0],poly2,{sides:16}));
+  P.push(BX('Kurma kolu',1.3,.9,1.6,-3.0,4.6,24.4,.35,dk,{role:'bolt',id:'ump_ch'}));
+  P.push(wcS(CY('Kurma topuzu',.55,.55,.9,-3.7,4.6,24.4,[0,0,90],dk,{sides:14,parent:'ump_ch'}),40));
+  // top rail between the sights, sloped rear-sight fin with aperture, hooded front sight
+  P.push(BX('Ray',2.2,.45,19.6,0,6.42,3.9,.05,dk,{id:'ump_rail'}));
+  for(let i=0;i<9;i++) P.push(BX('Ray dişi',2.3,.4,.95,0,6.82,-4.6+i*2.1,.05,dk,{parent:'ump_rail'}));
+  P.push(wcS(EX('Gez kulesi',[-11.0,6.0, -5.4,6.0, -5.4,8.3, -6.0,8.5, -8.0,8.5],3.0,.35,poly),30));
+  P.push(CY('Gez deliği',.3,.3,.2,0,7.7,-5.35,[90,0,0],blk,{sides:10}));
+  P.push(wcS(EX('Arpacık kulesi',[24.6,6.0, 27.9,6.0, 27.9,8.4, 27.2,9.0, 25.4,9.0, 24.6,7.4],3.0,.35,poly),30));
+  P.push(wcS(wcXS('Arpacık siperi',[-1.2,7.6, 1.2,7.6, 1.2,9.4, -1.2,9.4],1.2,.15,poly,[0,8.4,26.3],{holes:[[-.75,7.7, .75,7.7, .75,9.0, -.75,9.0]]}),30));
+  P.push(BX('Arpacık',.3,1.1,.4,0,8.2,26.3,.05,dk));
+  // barrel nut + bird-cage flash hider
+  P.push(wcS(LA('Namlu somunu',[28.0,0, 28.0,1.45, 28.8,1.45, 29.0,1.25, 29.0,0],22,dk,{y:2.2}),35));
+  P.push(LA('Namlu',[28.9,.7, 29.6,.7, 29.6,0],16,dk,{y:2.2}));
+  P.push(wcS(LA('Alev gizleyici',[29.4,0, 29.4,1.15, 35.0,1.15, 35.3,.95, 35.3,.5, 34.4,.5, 34.4,0],18,dk,{y:2.2}),35));
+  for(const a of [0,60,120]) P.push(BX('Gizleyici yarığı',.26,2.4,3.6,0,2.2,32.9,0,blk,{rot:[0,0,a]}));
+  P.push(TR('Kayış kancası',.7,.18,0,-1.9,27.0,[0,90,0],dk,{arc:200}));
+  // lower receiver (trigger housing + magazine well), selector, trigger guard, trigger
+  P.push(wcS(EX('Alt gövde',[-8.4,.4, 11.9,.4, 11.9,-1.4, 11.5,-5.7, 6.0,-5.7, 5.8,-3.2, -8.0,-3.2, -8.4,-2.6],3.9,.4,poly2),35));
+  for(const s of [-1,1]){ P.push(CY('Seçici göbeği',.55,.55,.3,s*2.02,-.6,-4.8,[0,0,90],dk,{sides:16})); P.push(wcS(EX('Seçici',[-4.8,-.3, -3.0,.2, -2.9,-.2, -4.8,-.9],.22,.06,dk,{x:s*2.18}),40)); }
+  P.push(wcS(EX('Tetik korkuluğu',[-3.6,-3.0, 6.0,-3.0, 5.8,-4.6, 5.0,-5.3, -2.6,-5.3, -3.6,-4.4],.9,.12,poly2,{holes:[[-3.0,-3.2, 5.3,-3.2, 5.1,-4.3, 4.6,-4.8, -2.3,-4.8, -3.0,-4.2]]}),35));
+  P.push(wcS(EX('Tetik',[.4,-3.1, 1.15,-3.1, 1.05,-3.9, .7,-4.6, .3,-4.45, .65,-3.8],.55,.06,dk,{role:'trigger'}),40));
+  // raked pistol grip
+  P.push(wcS(EX('Kabza',[-8.4,-2.9, -3.4,-2.9, -3.5,-3.6, -4.9,-11.4, -5.4,-12.0, -9.6,-12.1, -10.4,-11.4, -9.2,-6.0],3.1,.6,grip),35));
+  // straight 25-round magazine (role mag)
+  P.push(wcS(EX('Şarjör',[7.4,-4.0, 11.3,-4.0, 15.3,-22.6, 11.3,-22.9],2.6,.15,poly2,{role:'mag',id:'ump_mag'}),30));
+  for(let i=0;i<5;i++) P.push(BX('Sayaç deliği',2.66,.45,.7,0,-10.0-i*2.2,9.7+i*.46,.1,blk,{parent:'ump_mag'}));
+  P.push(wcS(EX('Şarjör tabanı',[10.9,-22.6, 15.5,-22.3, 15.7,-23.1, 11.0,-23.5],3.0,.25,poly,{parent:'ump_mag'}),35));
+  // skeleton folding stock, extended
+  P.push(wcS(EX('Dipçik',[-15.0,5.3, -33.2,3.5, -33.9,2.8, -33.9,-6.2, -33.2,-6.8, -31.6,-6.8, -15.0,.0],2.9,.45,poly,
+    {holes:[[-32.6,2.25, -23.4,2.6, -22.9,2.1, -22.9,-1.3, -23.4,-1.8, -32.6,-5.4],wcEgg(-20.3,.75,1.2,1.15,0,16)]}),35));
+  P.push(BX('Dipçik pedi',2.8,9.2,.6,0,-1.75,-34.2,.25,M('rubber')));
+  P.push(CY('Dipçik menteşesi',.8,.8,3.2,0,.6,-15.3,[0,0,90],dk,{sides:16}));
   return normalizeDef({ id:'ump45', name:'UMP-45', builtin:1, type:'smg', slot:'primary', parts:finalizeParts(P),
     stats:{dmg:35,head:4,rpm:666,mag:25,reserve:100,reload:3.5,auto:1,spread:.5,moveSpread:3.4,recoil:.78,pattern:'smg',pellets:1,scope:0,range:200,speed:.92,sound:'smg',sndProfile:'ump45',draw:1.0,price:1200,team:'any',reward:600,armorPen:.65},
     view:{pos:[.13,-.112,-.3],rot:[0,4,0]},
-    anchors:{gripR:{p:[0,-.058,.068],r:[-17,0,0]}, gripL:{p:[0,-.014,-.15],r:[90,0,-25]}, muzzle:[0,.022,-.253], eject:[.02,.03,-.04]} });
+    anchors:{gripR:{p:[0,-.06,.068],r:[-22,0,0]}, gripL:{p:[0,-.026,-.2],r:[90,0,-25]}, muzzle:[0,.022,-.353], eject:[.024,.024,-.108]} });
 }
 function defMP5SD(){
-  const st=M('parker','#2b2d30'), poly=M('polymer','#26272a'), dk=M('blued','#232528'), grip=M('grip','#232426'), blk=M('polymer','#08080a'), P=[];
-  P.push(EX('Gövde',[-13,-1.0, 8.6,-1.0, 8.6,4.0, -13,4.0],3.0,.35,st));
-  P.push(CY('Kurma tüpü',.95,.95,14,0,3.5,15.4,[90,0,0],st,{sides:18}));
-  P.push(LA('Susturucu',[8.2,0, 8.2,2.05, 8.8,2.2, 34.6,2.2, 35.2,2.0, 35.2,.5],28,M('parker','#232427'),{y:1.4}));
-  P.push(EX('El kundağı',[9.0,-1.4, 21.4,-1.4, 22.2,-.4, 22.2,4.4, 9.0,4.4],5.0,1.0,poly));
-  for(const y of [-.2,.8,1.8,2.8]) P.push(BX('Kundak oluğu',5.06,.22,11,0,y,15.4,0,blk));
-  P.push(CY('Gez tamburu',1.0,1.0,2.2,0,5.2,-10.4,[0,0,90],st,{sides:16})); P.push(BX('Gez kaidesi',2.0,1.2,2.4,0,4.4,-10.4,.2,st));
-  P.push(BX('Arpacık',.5,1.6,.9,0,4.3,31.4,.1,st)); P.push(TR('Arpacık halkası',1.0,.2,0,4.9,31.4,[0,0,0],st,{arc:180}));
-  P.push(BX('Kurma kolu',1.0,1.2,1.8,-1.6,3.6,19.4,.3,dk,{role:'bolt'}));
-  P.push(EX('Kabza',[-2.6,-1.0, -6.6,-1.0, -9.8,-11.0, -9.2,-12.0, -5.2,-12.2, -4.4,-11.0, -2.8,-3.8],2.9,.6,grip));
-  P.push(EX('Tetik korkuluğu',[-3.0,-1.0, 3.6,-1.0, 3.6,-1.5, 2.6,-3.8, -1.6,-4.0, -3.0,-2.6],.8,.05,st,{holes:[[-2.2,-1.5, 2.8,-1.5, 2.0,-3.4, -1.2,-3.5, -2.2,-2.6]]}));
-  P.push(trigger(dk));
-  P.push(BX('Şarjör yuvası',3.4,2.0,5.6,0,-1.8,5.6,.3,st));
-  P.push(EX('Şarjör',[3.2,-1.6, 7.8,-1.6, 8.6,-6.4, 10.4,-11.6, 11.8,-15.8, 7.8,-17.2, 6.4,-13.0, 4.6,-7.6],2.3,.2,dk,{role:'mag',id:'mp5_mag'}));
-  P.push(BX('Şarjör tabanı',2.6,.6,4.6,0,-16.8,9.6,.2,poly,{rot:[18,0,0],parent:'mp5_mag'}));
-  P.push(EX('Dipçik',[-13,3.6, -34,3.0, -35,1.8, -35,-6.8, -33.6,-7.4, -31,-7.0, -20,-2.6, -13,-1.0],3.2,.6,poly));
-  P.push(BX('Dipçik pedi',3.4,10.0,.8,0,-1.9,-35.2,.3,M('rubber')));
+  // H&K MP5SD3: stamped receiver with the pressed side rib and rotary drum rear sight, fat ribbed SD handguard running into the integral
+  // suppressor tube, Navy trigger group with the raked grip, curved 30-round magazine, retractable A3 stock extended
+  const st=M('parker','#2b2d30'), st2=M('parker','#232528'), poly=M('polymer','#26272a'), dk=M('blued','#232528'), grip=M('grip','#232426'), blk=M('polymer','#08080a'),
+    steel=M('gunmetal','#8a8e93'), sup=M('parker','#26272a'), P=[];
+  // receiver: rounded-top stamped box, side rib, front trunnion, end cap
+  P.push(wcS(EX('Gövde',[-13.5,-1.2, -13.5,3.4, -13.0,4.1, 10.2,4.1, 10.8,3.5, 10.8,-1.2],4.6,.9,st),40));
+  P.push(wcS(EX('Yan kaburga',[-12.6,1.0, 9.6,1.0, 9.9,1.45, 9.6,1.9, -12.6,1.9, -12.9,1.45],4.75,.12,st),35));
+  P.push(wcS(wcXS('Arka kapak',[-2.3,-1.1, 2.3,-1.1, 2.3,3.4, 1.8,4.0, -1.8,4.0, -2.3,3.4],.7,.2,st2,[0,1.45,-13.75]),35));
+  for(const z of [-10.2,-3.4,8.6]) for(const s of [-1,1]) P.push(CY('Pim',.3,.3,.16,s*2.33,-.5,z,[0,0,90],dk,{sides:12}));
+  // ejection port (right) with the bolt, cocking tube slot + handle on the left (role bolt)
+  P.push(BX('Kovan penceresi',.1,1.7,4.4,2.32,2.3,2.4,.06,blk)); P.push(BX('Sürgü',.14,1.0,2.8,2.32,2.3,2.6,.1,steel));
+  P.push(wcS(EX('Kovan saptırıcı',[-.4,1.5, .4,1.5, .4,3.2, -.4,3.2],.35,.1,st,{x:2.42}),30));
+  P.push(BX('Kurma yarığı',.1,.5,6.0,-2.32,3.3,7.4,.1,blk));
+  P.push(BX('Kurma kolu',1.0,.8,1.0,-2.7,3.3,9.6,.25,dk,{role:'bolt',id:'mp5_ch'}));
+  P.push(wcS(CY('Kurma topuzu',.5,.5,.8,-3.4,3.3,9.6,[0,0,90],dk,{sides:14,parent:'mp5_ch'}),40));
+  // rotary drum rear sight on its base
+  P.push(wcS(EX('Gez kaidesi',[-8.4,3.9, -3.4,3.9, -3.9,5.3, -7.8,5.3],2.2,.3,st),30));
+  P.push(wcS(CY('Gez tamburu',1.05,1.05,2.0,0,6.1,-5.8,[0,0,90],st2,{sides:16}),40));
+  for(let i=0;i<4;i++){ const a=i*90; P.push(CY('Diyopter',.17,.17,2.04,0,6.1+Math.cos(a*DEG)*.55,-5.8+Math.sin(a*DEG)*.55,[0,0,90],blk,{sides:8})); }
+  // ribbed SD handguard (polymer), front sight ring, suppressor tube
+  P.push(wcS(LA('El kundağı',[10.6,0, 10.6,2.35, 11.3,2.95, ...wcThread(11.6,27.9,3.0,.12,52), 28.4,2.85, 28.9,2.5, 28.9,0],28,poly,{y:1.4}),30));
+  P.push(wcS(LA('Arpacık bileziği',[27.8,0, 27.8,2.62, 29.4,2.62, 29.6,2.3, 29.6,0],24,st2,{y:1.4}),35));
+  P.push(wcS(EX('Arpacık kaidesi',[27.9,3.7, 29.3,3.7, 29.1,5.6, 28.1,5.6],1.3,.2,st2),30));
+  P.push(wcS(wcXS('Arpacık siperi',[-1.1,5.2, 1.1,5.2, 1.1,7.3, -1.1,7.3],1.0,.12,st2,[0,6.25,28.6],{holes:[wcEgg(0,6.4,.75,.8,0,14)]}),30));
+  P.push(BX('Arpacık',.28,1.2,.35,0,6.1,28.6,.05,dk));
+  P.push(wcS(LA('Susturucu',[29.4,0, 29.4,2.05, 42.0,2.05, 42.5,1.75, 42.5,.45, 41.8,.45, 41.8,0],28,sup,{y:1.4}),35));
+  // Navy trigger group: housing, selector, trigger guard + trigger, raked grip
+  P.push(wcS(EX('Tetik grubu',[-6.0,-.9, 5.6,-.9, 5.6,-2.6, -5.4,-2.6, -6.0,-2.0],3.9,.35,poly),35));
+  P.push(BX('Şarjör yuvası',3.6,1.5,4.0,0,-1.6,7.5,.3,st));
+  for(const s of [-1,1]){ P.push(CY('Seçici göbeği',.55,.55,.3,s*2.0,-1.75,-3.6,[0,0,90],dk,{sides:16})); P.push(wcS(EX('Seçici',[-3.6,-1.5, -1.6,-1.0, -1.5,-1.4, -3.6,-2.1],.22,.06,dk,{x:s*2.16}),40)); }
+  P.push(wcS(EX('Tetik korkuluğu',[-.6,-2.4, 5.4,-2.4, 5.2,-4.6, 4.4,-5.5, .6,-5.5, -.6,-4.6],.9,.12,poly,{holes:[[-.05,-2.6, 4.8,-2.6, 4.6,-4.3, 4.0,-4.95, .8,-4.95, -.05,-4.3]]}),35));
+  P.push(wcS(EX('Tetik',[1.4,-2.5, 2.15,-2.5, 2.05,-3.3, 1.7,-4.1, 1.3,-3.95, 1.65,-3.25],.55,.06,dk,{role:'trigger'}),40));
+  P.push(wcS(EX('Kabza',[-4.9,-2.3, -.2,-2.3, -.1,-3.6, -1.6,-4.6, -1.9,-5.6, -3.3,-6.6, -3.6,-7.8, -5.2,-9.6, -6.0,-10.0, -9.8,-9.4, -10.6,-8.6, -8.6,-5.2],3.2,.6,grip),35));
+  // curved 30-round magazine (role mag)
+  P.push(wcS(EX('Şarjör',[6.0,-1.4, 9.0,-1.4, 9.1,-3.6, 9.5,-5.6, 10.3,-7.6, 11.4,-9.5, 12.6,-11.3, 13.7,-12.9, 11.0,-14.6, 9.6,-12.4, 8.4,-10.4, 7.4,-8.2, 6.7,-5.9, 6.3,-3.6],2.3,.15,dk,{role:'mag',id:'mp5_mag'}),30));
+  P.push(wcS(BX('Şarjör tabanı',2.7,.6,3.5,0,-14.0,12.2,.2,poly,{rot:[31,0,0],parent:'mp5_mag'}),40));
+  // retractable A3 stock, extended: rods in the receiver channels, butt cap with rubber pad
+  for(const s of [-1,1]) P.push(CY('Dipçik çubuğu',.42,.42,19.2,s*1.75,3.0,-22.9,[90,0,0],steel,{sides:12}));
+  P.push(wcS(EX('Dipçik',[-31.0,4.0, -33.2,4.2, -33.8,3.4, -33.8,-4.6, -33.2,-5.6, -31.6,-5.8, -30.9,-4.6, -31.4,-1.0, -31.0,2.4],3.6,.6,poly),35));
+  P.push(BX('Dipçik kilidi',3.0,1.4,1.4,0,3.0,-30.6,.3,dk));
   return normalizeDef({ id:'mp5sd', name:'MP5-SD', builtin:1, type:'smg', slot:'primary', parts:finalizeParts(P),
     stats:{dmg:27,head:4,rpm:750,mag:30,reserve:120,reload:3.0,auto:1,spread:.44,moveSpread:2.8,recoil:.62,pattern:'smg',pellets:1,scope:0,range:190,speed:.94,sound:'silenced',sndProfile:'mp5sd',draw:1.0,price:1500,team:'any',reward:600,armorPen:.625},
     view:{pos:[.13,-.112,-.3],rot:[0,4,0]},
-    anchors:{gripR:{p:[0,-.058,.07],r:[-16,0,0]}, gripL:{p:[0,-.016,-.155],r:[90,0,-25]}, muzzle:[0,.014,-.353], eject:[.018,.03,-.02]} });
+    anchors:{gripR:{p:[0,-.058,.064],r:[-22,0,0]}, gripL:{p:[0,-.02,-.19],r:[90,0,-25]}, muzzle:[0,.014,-.425], eject:[.024,.023,-.024]} });
 }
 function defSG553(){
   const metal=M('gunmetal','#34373b'), poly=M('polymer','#2b2d30'), dk=M('blued','#25272a'), rec=M('aluminum','#2a2c2f'), glass=M('glass','#0e1622',{emissive:'#050a14',emi:.4}),
