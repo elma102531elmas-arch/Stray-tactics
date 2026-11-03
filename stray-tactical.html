@@ -2987,7 +2987,7 @@ function getMapMat(key){
   if(D.color) m.color.set(D.color);
   if(D.tint) m.color.set(D.tint);
   if(D.double) m.side=THREE.DoubleSide;
-  if(D.dirt) addDirt(m,D.dirt,1.3);
+  mq5Surf(m,D,key);   // macro variation, detail normals, floor-relative grime (maps block)
   m.envMapIntensity=.6;
   return mapMatCache[key]=m;
 }
@@ -3287,7 +3287,7 @@ function kumVadisiData(){
 const EXTRA_MAPS=[]; // built-in map data factories registered by later blocks: EXTRA_MAPS.push(()=>normalizeMap({...}))
 async function loadMapLibrary(){
   const custom=(await Store.allMaps()).map(m=>{ try{ return normalizeMap(m); }catch(e){ return null; } }).filter(Boolean);
-  const built=[mqRestyle(avluData()),mqRestyle(kumVadisiData()),...EXTRA_MAPS.map(f=>f())], bid=new Set(built.map(m=>m.id));
+  const built=[mqRestyle(avluData()),mqRestyle(kumVadisiData()),...EXTRA_MAPS.map(f=>f())].map(mq5Settle), bid=new Set(built.map(m=>m.id));
   MAPLIB.list=[...built,...custom.filter(m=>!bid.has(m.id))];
   rebuildMapIndex();
   for(const m of custom) for(const o of m.objects) if(o.t==='model'&&o.key) await loadGLBIntoCache(o.key);
@@ -3348,6 +3348,7 @@ function setMap(id){
   Object.assign(sun.shadow.camera,{left:-S,right:S,top:S,bottom:-S,far:240}); sun.shadow.camera.updateProjectionMatrix();
   sun.target.position.copy(c); sun.position.copy(c).addScaledVector(SUN_DIR,110); sun.target.updateMatrixWorld();
   if(typeof radarPrepare==='function') radarPrepare(B);
+  mq5OnSetMap(B);
 }
 /* ---------- ray vs colliders (convex clipping in collider space) ---------- */
 function rayWorld(o,d,maxD){
@@ -10627,6 +10628,60 @@ function mq5Shot(id,p,t,opt){ opt=opt||{}; if(id==='__tut') obTutMapEnsure(); el
   renderer.setScissorTest(false); renderer.setViewport(0,0,innerWidth,innerHeight); if(MENU.agent) MENU.agent.root.visible=agentVis; return cv.toDataURL('image/jpeg',.9); }
 function mq5Report(ids){ return (ids||MQ5_MAPS).map(id=>{ const r=mq5ZScan(id,{top:0}); return r?[id,r.visible,r.exact,r.near,r.area,r.decalWeak,r.benign,r.hidden,r.tris,r.ms]:[id,null]; }); }
 gameExport({mq5ZScan,mq5Props,mq5TexMem,mq5Report,mq5Shot,MQ5_MAPS});
+
+/* ---------- mq5: world surface shading — macro variation (no visible tiling), fine detail normals, grime at the foot of every wall and contact darkening
+   on floors next to walls / props, all measured from the real floor height under the surface (nav grid -> small per-map textures) ---------- */
+const MQ5U={mqMacro:{value:null},mqDet:{value:null},mqFloor:{value:null},mqOcc:{value:null},mqFloorP:{value:new THREE.Vector3(48,96,0)}};
+function mq5SurfTex(){ if(MQ5U.mqMacro.value) return; const S=256, C=new Uint8ClampedArray(S*S*4);
+  for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const u=x/S, v=y/S, i=(y*S+x)*4; C[i]=NZ.fbm(u*4,v*4,5,4,4)*255; C[i+1]=NZ2.fbm(u*6+3,v*6,4,6,6)*255; C[i+2]=NZ.fbm(u*3+11,v*3+5,3,3,3)*255; C[i+3]=NZ2.fbm(u*16,v*16,3,16,16)*255; }
+  MQ5U.mqMacro.value=texFromRGBA(S,C,false);
+  const D=mqBuild(256,(u,v,o,x,y)=>{ o[0]=NZ.fbm(u*24,v*24,4,24,24)*.65+NZ2.fbm(u*64,v*64,2,64,64)*.3+(mqH2(x,y)-.5)*.1; o[1]=o[2]=o[3]=128; o[4]=1; },2.4);
+  MQ5U.mqDet.value=D.normalMap; D.map.dispose(); D.roughnessMap.dispose();
+  const ft=new THREE.DataTexture(new Uint8Array([0,255,255,255]),1,1); ft.needsUpdate=true; MQ5U.mqFloor.value=ft;
+  const ot=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1); ot.needsUpdate=true; MQ5U.mqOcc.value=ot; }
+/* per map: R = ground-layer floor height, G/B/A = upper floors (dm; 255 = none) and a blurred "blocked cell" field for contact darkening */
+function mq5FloorTex(B){ if(B.mq5Floor!==undefined) return B.mq5Floor; const nav=B.nav; if(!nav) return B.mq5Floor=null; const W=nav.W, N=nav.N, d=new Uint8Array(N*4), occ=new Float32Array(N), q=v=>Math.max(0,Math.min(254,Math.round(v*10)));
+  for(let k=0;k<N;k++){ d[k*4]=q(nav.floor[k]); for(let l=1;l<4;l++) d[k*4+l]=l<nav.L&&nav.ok[k+l*N]?q(nav.floor[k+l*N]):255; occ[k]=nav.ok[k]?0:1; }
+  let a=occ; for(let it=0;it<2;it++){ const b=new Float32Array(N); for(let j=0;j<W;j++) for(let i=0;i<W;i++){ let s=0, c=0; for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ const x=i+di, y=j+dj; if(x<0||y<0||x>=W||y>=W) continue; s+=a[y*W+x]; c++; } b[j*W+i]=s/c; } a=b; }
+  const o=new Uint8Array(N*4); for(let k=0;k<N;k++){ o[k*4]=Math.round(a[k]*255); o[k*4+3]=255; }
+  const t=new THREE.DataTexture(d,W,W); t.magFilter=t.minFilter=THREE.NearestFilter; t.needsUpdate=true;
+  const ot=new THREE.DataTexture(o,W,W); ot.magFilter=ot.minFilter=THREE.LinearFilter; ot.needsUpdate=true;
+  return B.mq5Floor={t,ot,S:nav.S,W}; }
+function mq5OnSetMap(B){ mq5SurfTex(); const f=B&&mq5FloorTex(B); if(f){ MQ5U.mqFloor.value=f.t; MQ5U.mqOcc.value=f.ot; MQ5U.mqFloorP.value.set(f.S,f.W,1); } else MQ5U.mqFloorP.value.set(0,1,0); }
+/* per material look: macro amplitude, grime amount / band height, detail normal strength + period */
+function mq5Surf(m,D,key){ mq5SurfTex(); const surf=D.surf||'stone', flat=!D.tex, face=D.uv==='face', glassy=key==='glass'||key==='water'||key==='lampE';
+  const amp=glassy?0:flat?.07:surf==='metal'?.1:surf==='sand'?.2:.16, dirt=glassy?0:D.dirt!==undefined?D.dirt:surf==='metal'?.16:surf==='wood'?.14:surf==='cloth'||surf==='sand'?.06:.22;
+  const ds=(CFG.quality==='low'||flat||face||glassy)?0:surf==='sand'?.45:surf==='metal'?.16:surf==='wood'?.22:.32, dk=D.tile?Math.max(1,D.tile/.55):1, occ=glassy?0:.32;
+  const F=v=>v.toFixed(3);
+  m.onBeforeCompile=sh=>{ Object.assign(sh.uniforms,MQ5U);
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vMqW; varying vec3 vMqN;')
+      .replace('#include <project_vertex>','#include <project_vertex>\nvMqW=(modelMatrix*vec4(transformed,1.)).xyz; vMqN=mat3(modelMatrix)*objectNormal;');
+    let fs=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D mqMacro,mqDet,mqFloor,mqOcc; uniform vec3 mqFloorP; varying vec3 vMqW; varying vec3 vMqN; float mqGr=0., mqVv=0.;')
+      .replace('#include <map_fragment>',`#include <map_fragment>
+      { vec3 mqN=normalize(vMqN), an=abs(mqN); vec2 wuv=an.y>max(an.x,an.z)?vMqW.xz:(an.x>an.z?vMqW.zy:vMqW.xy);
+        vec4 ma=texture2D(mqMacro,wuv*.037), mb=texture2D(mqMacro,wuv*.0093+vec2(.31,.67));
+        mqVv=(ma.r-.5)+(mb.g-.5)*1.3; diffuseColor.rgb*=1.+mqVv*${F(amp)}; diffuseColor.rgb*=mix(vec3(1.),vec3(1.05,1.,.92),(mb.b-.5)*${F(amp*3)});
+        float fy=0.; if(mqFloorP.z>.5){ vec2 fq=(vMqW.xz+mqN.xz*.55+mqFloorP.x)/mqFloorP.y; vec4 fl=texture2D(mqFloor,fq)*25.5; fy=fl.r;
+          if(fl.g<25.4&&vMqW.y>fl.g-.3) fy=fl.g; if(fl.b<25.4&&vMqW.y>fl.b-.3) fy=fl.b; if(fl.a<25.4&&vMqW.y>fl.a-.3) fy=fl.a; }
+        float hg=vMqW.y-fy, band=1.15*(.7+.6*ma.g);
+        mqGr=(1.-smoothstep(0.,band,hg))*step(-.08,hg)*(1.-an.y)*(.75+.5*ma.a);
+        diffuseColor.rgb*=1.-${F(dirt)}*mqGr; diffuseColor.rgb=mix(diffuseColor.rgb,vec3(dot(diffuseColor.rgb,vec3(.3,.55,.15)))*vec3(.98,.94,.88),${F(dirt)}*mqGr*.5);
+        if(mqFloorP.z>.5&&mqN.y>.7&&hg<.2&&hg>-.1){ float oc=texture2D(mqOcc,(vMqW.xz+mqFloorP.x)/mqFloorP.y).r; diffuseColor.rgb*=1.-${F(occ)}*smoothstep(.12,.75,oc); } }`)
+      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor*(1.+mqVv*.22)+mqGr*.12,.04,1.);');
+    if(ds>0) fs=fs.replace('#include <normal_fragment_maps>',THREE.ShaderChunk.normal_fragment_maps.replace('mapN.xy *= normalScale;','mapN.xy *= normalScale; mapN.xy+=(texture2D(mqDet,vNormalMapUv*'+F(dk)+').xy*2.-1.)*'+F(ds)+';'));
+    sh.fragmentShader=fs; };
+  m.customProgramCacheKey=()=>'mq5|'+[amp,dirt,ds,dk,occ].join('|'); }
+/* test helper: contact sheet of the generated world textures (albedo) -> PNG data URL */
+function mq5TexSheet(keys,sz,cols){ sz=sz||192; keys=keys||Object.keys(TEX).filter(k=>TEX[k]&&TEX[k].map); cols=cols||6; const rows=Math.ceil(keys.length/cols), cv=document.createElement('canvas'); cv.width=cols*sz; cv.height=rows*(sz+14); const x=cv.getContext('2d'); x.fillStyle='#111'; x.fillRect(0,0,cv.width,cv.height); x.font='11px monospace'; x.fillStyle='#ff0';
+  keys.forEach((k,i)=>{ const T=TEX[k]||mqTex(k), c=T&&T.map&&T.map.source.data; if(!c) return; const X=(i%cols)*sz, Y=Math.floor(i/cols)*(sz+14); x.drawImage(c,X,Y+14,sz,sz); x.fillText(k+' '+c.width,X+2,Y+11); }); return cv.toDataURL('image/jpeg',.9); }
+gameExport({mq5TexSheet});
+/* stacked crates / containers sit exactly on the one below (the upper one's height was authored for a crate standing on y=0) */
+function mq5Settle(m){ const O=m.objects||[], top=o=>o.p[1]+o.s[1]+(o.t==='container'?.08:0);
+  for(const o of O){ if((o.t!=='crate'&&o.t!=='container')||!(o.p[1]>0)) continue; let best=null;
+    for(const b of O){ if(b===o||b.t!==o.t||b.p.length<3) continue; const hw=b.s[0]/2+.05, hd=b.s[2]/2+.05, rot=b.r&&Math.abs(Math.round(b.r[1]))%180===90;
+      if(Math.abs(o.p[0]-b.p[0])>(rot?hd:hw)||Math.abs(o.p[2]-b.p[2])>(rot?hw:hd)) continue; const t=top(b); if(t<o.p[1]+1.2&&t>o.p[1]-2.2&&b.p[1]<o.p[1]&&(!best||t>top(best))) best=b; }
+    if(best) o.p[1]=+top(best).toFixed(3); }
+  return m; }
 
 
 /* @@BLOCK:net — code from the net work goes right below this line */
