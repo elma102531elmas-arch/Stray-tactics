@@ -5053,7 +5053,6 @@ function impactSnd(kind, R, v, k) {
     addClick(out, 20, { f: 1400 * (1 - 0.15 * hv), g: 0.6, ring: 0.6, n: 7, poly: 0.6, thud: 0.3, thudF: 250 }, R);
     addGrains(out, 40, { n: 40, t0: 0.005, t1: 0.35, shape: 1.5, f: [1500, 8000], Q: [2, 6], len: [0.0002, 0.0012], amp: 0.2, decay: 2.5 }, R);
     addBurst(out, 60, 0.1, { att: 0.002, tau: 0.06, seed: R.seed(), f: [['hp', 3000, 0.7]] });
-    if (k & 1) { Lx = new Float32Array(N); Rx = new Float32Array(N); addWhine(Lx, Rx, ns(0.01), R.r(3800, 4500), R.r(2200, 2800), 0.28, 0.12, R.n() * 0.3, R.n(), R); }
   } else if (kind === 'sand') {
     addThud(out, 20, { f: 160, tau: 0.02, g: 0.6, lp: 500 }, R);
     const sp = burst({ att: 0.005, tau: 0.08 * (1 + 0.3 * hv), color: 'p', am: 0.6, amT: 0.004, seed: R.seed(), f: [['lp', 3000 * (1 + 0.3 * sh), 0.7], ['hp', 300, 0.7]] });
@@ -5065,7 +5064,6 @@ function impactSnd(kind, R, v, k) {
     addBurst(out, 20, 0.7, { tau: 0.002, seed: R.seed(), f: [['hp', 2500, 0.7]] });
     addModes(out, 20, [[f * 1.26, 0.05, 0.3], [f * 1.267, 0.045, 0.15], [f * 1.95, 0.035, 0.25], [f * 2.95, 0.025, 0.2]].map((m) => [m[0], m[1] * (1 + 0.3 * hv), m[2]]), 1, R);
     addGrains(out, 30, { n: 18, t0: 0, t1: 0.07, shape: 1.6, f: [3000, 10000], Q: [2, 6], len: [0.0002, 0.0008], amp: 0.12, decay: 2 }, R);   // sparks / spall
-    if (k === 0) { Lx = new Float32Array(N); Rx = new Float32Array(N); addWhine(Lx, Rx, ns(0.015), R.r(3500, 4200), R.r(1500, 1900), 0.3, 0.18, R.n() * 0.3, R.n(), R); }
   } else if (kind === 'wood') {
     addClick(out, 20, { f: 600 * (1 - 0.1 * hv + 0.1 * sh), g: 0.8, ring: 1.2, n: 6, poly: 0.85, thud: 0.6, thudF: 220 }, R);
     addModes(out, 20, [[420, 0.03, 0.4], [870, 0.025, 0.3], [1430, 0.02, 0.2]], 1, R);
@@ -5544,6 +5542,8 @@ for (const k of ['draw', 'key', 'planted', 'beep', 'defusestart', 'defusing', 'd
   def('c4:' + k, (R, v, n) => c4Snd(k, R, v, n), { vars: k === 'key' ? 7 : 1, loop: k === 'defusing' });
 for (const k of ['helmet', 'head', 'body', 'kevlar', 'self']) def('hit:' + k, (R, v) => hitSnd(k, R, v), { vars: 3 });
 for (const k of ['stone', 'sand', 'metal', 'wood', 'flesh']) def('impact:' + k, (R, v, n) => impactSnd(k, R, v, n), { vars: 4 });
+// ricochet whine: only a small share of hard-surface hits (see impactSound), never on every shot
+def('ricochet', (R, v, n) => { const N = ns(0.5), L = new Float32Array(N), Rr = new Float32Array(N); addWhine(L, Rr, ns(0.01), R.r(3400, 4400), R.r(1500, 2600), 0.26, 0.14, R.n() * 0.3, R.n(), R); return finish(L, Rr, 0.4); }, { vars: 4 });
 def('whiz', (R, v, n) => whizSnd(R, v, n), { vars: 4 });
 def('death', (R, v) => deathSnd(R, v), { vars: 2 });
 for (const k of ['stone', 'sand', 'metal', 'wood']) {
@@ -5704,7 +5704,8 @@ function hitSound(victim,zone,point){
   sndPlay(id,{pos:point,ref:6,roll:.7,bus:'fx',vol:1.15}); touchHaptic(zone==='head'?'head':'hit');
 }
 function impactSound(p,surf){ if(!SFX_LIB||!p) return; const now=performance.now(); if(now-SND.lastImpact<45) return; const d=p.distanceTo(camera.position); if(d>34) return; SND.lastImpact=now;
-  sndPlay('impact:'+(['stone','sand','metal','wood','flesh'].includes(surf)?surf:'stone'),{pos:p,ref:2.5,roll:1.1,bus:'fx',vol:.9}); }
+  sndPlay('impact:'+(['stone','sand','metal','wood','flesh'].includes(surf)?surf:'stone'),{pos:p,ref:2.5,roll:1.1,bus:'fx',vol:.9});
+  if((surf==='stone'||surf==='metal')&&d>3&&now-(SND.lastRic||0)>2500&&Math.random()<(surf==='metal'?.08:.04)){ SND.lastRic=now; sndPlay('ricochet',{pos:p,ref:2,roll:1.1,bus:'fx',vol:.55}); } }
 function whizSound(p){ if(SFX_LIB) sndPlay('whiz',{pos:p,ref:1.5,roll:1,bus:'fx',vol:1}); }
 function sndInstallHooks(){
   if(!SFX_LIB) return;
@@ -13094,11 +13095,13 @@ function obFireInit(){ const el=$('fireBtn'); if(!el) return;
   // capture listeners run before bindFire's: they take the touch only in scope mode with a scoped weapon, otherwise bindFire handles it as before
   el.addEventListener('touchstart',e=>{ if(TE.on||OBF.hold||!obBigScope()||!player.alive||match.state!=='live') return; e.preventDefault(); e.stopImmediatePropagation(); ensureAudio();
     const t=e.changedTouches[0], P=player, d=curDef(); OBF.hold={id:t.identifier,x:t.clientX,y:t.clientY,wasSc:P.scope>0,def:d}; OBF.rel=null; OBF.unsc=0; el.classList.add('down');
-    if(P.scope===0&&canAct()&&!P.reloading&&!P.pendingThrow){ setScope(1); P.rescope=0; if(SFX_LIB) weaponSound(d,'zoomin'); else sfx.click(); } },{passive:false,capture:true});
+    if(P.scope===0&&canAct()&&!P.reloading&&!P.pendingThrow){ setScope(1); P.rescope=0; if(SFX_LIB) weaponSound(d,'zoomin'); else sfx.click(); }
+    if(d.stats.auto){ OBF.hold.auto=true; firing=true; tryFire(true); } },{passive:false,capture:true});
   el.addEventListener('touchmove',e=>{ const H=OBF.hold; if(!H) return; e.preventDefault(); e.stopImmediatePropagation();
     for(const t of e.changedTouches){ if(t.identifier!==H.id) continue; if(gameInput()) touchLook(t.clientX-H.x,t.clientY-H.y,+CFG.touch.fireLook||.85); H.x=t.clientX; H.y=t.clientY; } },{passive:false,capture:true});
   const end=e=>{ const H=OBF.hold; if(!H) return; let mine=false; for(const t of e.changedTouches) if(t.identifier===H.id) mine=true; if(!mine) return;
     e.stopImmediatePropagation(); if(e.cancelable) e.preventDefault(); OBF.hold=null; el.classList.remove('down');
+    if(H.auto){ firing=false; if(!H.wasSc&&player.scope>0) setScope(0); return; }
     if(e.type==='touchcancel'){ if(!H.wasSc&&player.scope>0) setScope(0); return; }
     OBF.rel={t:.7,wasSc:H.wasSc,def:H.def}; obReleaseShot(); };
   el.addEventListener('touchend',end,{passive:false,capture:true}); el.addEventListener('touchcancel',end,{capture:true});
