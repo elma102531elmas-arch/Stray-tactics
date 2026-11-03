@@ -2706,40 +2706,101 @@ function defSSG08(){
     view:{pos:[.135,-.135,-.34],rot:[0,4,0]},
     anchors:{gripR:{p:[0,-.074,.094],r:[-12,0,0]}, gripL:{p:[0,-.008,-.2],r:[90,0,-25]}, muzzle:[0,.027,-.705], eject:[.018,.03,-.02]} });
 }
-function nadeDef(id,name,nade,price,team,P){
+function nadeDef(id,name,nade,price,team,P,o){ o=o||{};
   return normalizeDef({ id, name, builtin:1, type:'grenade', slot:'grenade', parts:finalizeParts(P),
     stats:{dmg:0,head:1,rpm:60,mag:1,reserve:0,reload:0,auto:0,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:0,speed:1,sound:'pistol',draw:.5,price,team:team||'any',reward:300,nade},
-    view:{pos:[.12,-.115,-.3],rot:[8,10,0]},
-    anchors:{gripR:{p:[0,-.005,.008],r:[-12,0,0]}, gripL:null, muzzle:[0,0,0], eject:[0,0,0]} });
+    view:o.view||{pos:[.12,-.115,-.3],rot:[8,10,0]},
+    anchors:{gripR:o.gripR||{p:[0,-.005,.008],r:[-12,0,0]}, gripL:null, muzzle:[0,0,0], eject:[0,0,0]} });
 }
-function defHE(){ const P=[], olive=M('paint','#4b5233'), metal=M('gunmetal','#5a5d62');
-  P.push(SP('Gövde',3.2,0,0,0,olive)); P.push(CY('Fünye',.9,1.15,2.2,0,3.6,0,[0,0,0],metal)); P.push(BX('Mandal',1.3,6.2,.35,0,1.4,-1.0,.15,metal,{rot:[18,0,0]}));
-  P.push(TR('Pim halkası',1.0,.14,1.6,4.4,0,[0,90,0],metal)); P.push(TR('Gövde bandı',3.22,.12,0,0,0,[90,0,0],M('polymer','#2b2e22')));
+function defHE(){
+  // M67-style fragmentation grenade: smooth olive steel sphere with the threaded neck and yellow HE marking, M213 fuze, spoon hugging the body, pin + pull ring
+  const olive=M('paint','#4d5436',{rough:.55}), metal=M('gunmetal','#6c7075'), ring=M('steel','#b9bdc2'), yel=M('paint','#c9a227'), P=[];
+  const body=[]; for(let i=0;i<=14;i++){ const t=(-90+i*11.5)*DEG; body.push(+(3.15*Math.sin(t)).toFixed(3),+(3.15*Math.cos(t)).toFixed(3)); }
+  P.push(wcS(wcLV('Gövde',[...body, 3.05,1.0, 3.4,1.0, 3.4,0],24,olive),50));
+  P.push(TR('Sarı çizgi',2.02,.06,0,2.42,0,[90,0,0],yel)); P.push(TR('Sarı çizgi',3.16,.05,0,-.2,0,[90,0,0],yel));
+  wcFuze(P,3.35,[.55,5.72, -.3,5.8, -.95,5.55, -1.15,4.9, -1.2,4.0, -1.5,3.1, -2.33,2.33, -2.91,1.55, -3.23,.69, -3.29,-.23, -3.15,-.75],metal,{ring,id:'he'});
   return nadeDef('he','HE el bombası','he',300,'any',P); }
-function defFlash(){ const P=[], grey=M('aluminum','#7d8186'), dk=M('gunmetal','#3e4146');
-  P.push(CY('Gövde',1.9,1.9,9,0,0,0,[0,0,0],grey,{sides:24})); [-3,0,3].forEach(y=>P.push(TR('Delik halkası',1.92,.16,0,y,0,[90,0,0],dk)));
-  P.push(CY('Fünye',.9,1.1,2,0,5.4,0,[0,0,0],dk)); P.push(BX('Mandal',1.2,7,.3,0,1.6,-1.2,.12,dk,{rot:[10,0,0]})); P.push(TR('Pim halkası',1.0,.14,1.6,6.1,0,[0,90,0],dk));
+function defFlash(){
+  // M84-style stun grenade: perforated aluminium body (two rows of windows over the dark charge tube), steel end caps with a blue band, fuze kit
+  const al=M('aluminum','#9ba0a6',{rough:.32}), dk=M('gunmetal','#45484d'), core=M('polymer','#111214'), blue=M('paint','#3d78b8'), ring=M('steel','#b9bdc2'), P=[];
+  P.push(CY('İç gövde',1.78,1.78,8.0,0,0,0,[0,0,0],core,{sides:16}));
+  P.push(wcS(wcLV('Alt kapak',[-5.3,0, -5.3,1.85, -5.12,2.15, -3.9,2.15, -3.75,2.0, -3.75,0],24,dk),40));
+  P.push(wcS(wcLV('Orta bant',[-.6,0, -.6,2.0, -.45,2.15, .45,2.15, .6,2.0, .6,0],24,al),40));
+  P.push(wcS(wcLV('Üst kapak',[3.75,0, 3.75,2.0, 3.9,2.15, 4.85,2.15, 5.15,1.75, 5.3,1.05, 5.3,0],24,dk),40));
+  for(const yc of [-2.175,2.175]) for(let i=0;i<6;i++){ const a=i*60+30; P.push(BX('Kafes',1.05,3.2,.32,Math.sin(a*DEG)*1.98,yc,-Math.cos(a*DEG)*1.98,.1,al,{rot:[0,a,0]})); }
+  P.push(TR('Mavi bant',2.16,.08,0,4.3,0,[90,0,0],blue));
+  wcFuze(P,5.3,[.55,7.67, -.3,7.75, -.95,7.5, -1.15,6.85, -1.2,5.95, -1.6,5.35, -2.28,4.7, -2.3,-1.4, -2.1,-2.0],dk,{ring,id:'fl'});
   return nadeDef('flash','Flaş bombası','flash',200,'any',P); }
-function defSmoke(){ const P=[], g=M('paint','#56604e'), dk=M('gunmetal','#3e4146');
-  P.push(CY('Gövde',2.2,2.2,10,0,0,0,[0,0,0],g,{sides:24})); P.push(TR('Bant',2.22,.25,0,2.6,0,[90,0,0],M('paint','#d9d4c4')));
-  P.push(CY('Fünye',.9,1.1,2,0,6,0,[0,0,0],dk)); P.push(BX('Mandal',1.2,7.6,.3,0,1.9,-1.4,.12,dk,{rot:[9,0,0]})); P.push(TR('Pim halkası',1.0,.14,1.6,6.7,0,[0,90,0],dk));
+function defSmoke(){
+  // M18-style smoke canister: rolled rims, four emission holes on the top, light stencilled label band, fuze kit
+  const g=M('paint','#56604f',{rough:.5}), dk=M('gunmetal','#45484d'), lab=M('paint','#d8d2bf',{rough:.6}), ink=M('paint','#26282a'), blk=M('polymer','#0b0b0c'), ring=M('steel','#b9bdc2'), P=[];
+  P.push(wcS(wcLV('Gövde',[-5.6,0, -5.6,2.25, -5.45,2.5, 5.0,2.5, 5.2,2.35, 5.3,2.0, 5.3,0],32,g),40));
+  P.push(TR('Alt kenar',2.44,.13,0,-5.3,0,[90,0,0],g)); P.push(TR('Üst kenar',2.4,.12,0,5.08,0,[90,0,0],g));
+  P.push(wcLV('Etiket',[-1.3,2.53, 2.5,2.53],32,lab));
+  for(const s of [-1,1]) for(const [y,w] of [[1.7,1.3],[1.0,.9],[.3,1.2],[-.5,.7]]) P.push(BX('Yazı',w,.3,.06,0,y,s*2.55,0,ink));
+  for(let i=0;i<4;i++){ const a=(i*90+45)*DEG; P.push(CY('Duman deliği',.36,.36,.06,Math.sin(a)*1.45,5.31,Math.cos(a)*1.45,[0,0,0],blk,{sides:12})); }
+  wcFuze(P,5.3,[.55,7.67, -.3,7.75, -.95,7.5, -1.15,6.85, -1.2,5.95, -1.7,5.5, -2.6,5.2, -2.63,-.5, -2.45,-1.0],dk,{ring,id:'sm'});
   return nadeDef('smoke','Sis bombası','smoke',300,'any',P); }
-function defMolotov(){ const P=[];
-  P.push(mkPart('lathe','Şişe',{pts:[[-9.5,0],[-9.5,3.2],[-9.2,3.4],[1,3.4],[3,2.2],[5,1.2],[8,1.1],[8.4,1.25],[9,0]].map(p=>[p[0]/100,p[1]/100]),sides:24},[0,.02,0],[90,0,0],M('glass','#3f6b3a',{emissive:'#0b1a08',emi:.3,rough:.06,metal:.3}),{}));
-  P.push(CY('Bez',1.0,1.3,3,0,11.6,0,[0,0,0],M('fabric','#b7a27a'))); P.push(mkPart('cone','Bez ucu',{r:.012,h:.03,sides:8},[.004,.135,0],[0,0,20],M('fabric','#a08a62'),{}));
-  P.push(CY('Sıvı',3.25,3.25,7,0,-4,0,[0,0,0],M('glass','#c97a1c',{emissive:'#301402',emi:.4,rough:.1,metal:0})));
+function defMolotov(){
+  // glass bottle (hollow, green tint, punted base, paper label) a bit under half full of amber fuel; a cloth rag stuffed in the neck, tied with
+  // string and draped over the shoulder. NO pin / ring. A Zippo-style lighter rides along hidden (role 'lighter'; its lid sits on a hinge group
+  // 'Çakmak kapağı', the flame 'Çakmak alevi' is hidden) for the light-the-rag animation pass.
+  const glass=M('glass','#5f8150',{metal:.1,rough:.05,emissive:'#071003',emi:.12,opacity:.4}), fuel=M('glass','#c98a2a',{metal:0,rough:.1,emissive:'#3a1a02',emi:.35,opacity:.72}),
+    lab=M('paint','#d6cba9',{rough:.7}), ink=M('paint','#7a2a1c'), rag=M('fabric','#bdae8e'), rag2=M('fabric','#9a8763'), str=M('fabric','#3d3426'),
+    chrome=M('chrome','#d0d3d6'), blk=M('polymer','#111'), flame=M('emissive','#ffb347',{emissive:'#ff8a1e',emi:3,opacity:.85}), P=[];
+  P.push(wcS(wcLV('Şişe',[-9.5,0, -9.5,2.95, -9.35,3.25, -9.0,3.36, .6,3.36, 2.2,3.05, 3.6,2.25, 4.9,1.5, 5.6,1.24, 8.3,1.2, 8.35,1.42, 9.05,1.42, 9.15,1.2, 9.15,.98,
+    5.6,1.02, 4.8,1.3, 3.5,2.05, 2.1,2.85, .55,3.14, -8.95,3.14, -9.15,2.9, -9.15,.65, -8.6,0],28,glass),40));
+  P.push(wcS(wcLV('Yakıt',[-8.55,0, -9.08,.7, -9.08,2.85, -8.9,3.1, -1.2,3.1, -1.2,0],28,fuel),40));
+  P.push(wcLV('Etiket',[-6.2,3.39, -1.6,3.39],28,lab));
+  for(const s of [-1,1]) for(const [y,w] of [[-2.6,1.6],[-3.6,2.2],[-4.4,1.2]]) P.push(BX('Etiket yazısı',w,.35,.05,0,y,s*3.41,0,ink));
+  // rag: plug in the neck, bunched top, tail draped down the neck and over the shoulder, string tie
+  P.push(CY('Bez',.9,.9,3.4,0,8.0,0,[0,0,0],rag,{sides:10}));
+  P.push(wcS(wcLV('Bez düğümü',[9.0,0, 9.0,1.05, 9.5,1.3, 10.2,1.18, 10.8,.75, 11.05,0],10,rag),55));
+  P.push(wcS(EX('Bez ucu',wcStrip([.5,10.5, 1.3,10.2, 1.72,9.3, 1.75,8.0, 1.55,6.8, 1.62,5.6, 2.05,4.6, 2.6,3.6, 3.15,2.6, 3.5,1.7],.28),2.0,.1,rag2),50));
+  P.push(TR('İp',1.32,.1,0,7.7,0,[90,0,0],str)); P.push(TR('İp',1.3,.09,0,7.4,0,[90,0,0],str));
+  // hidden Zippo-style lighter (stowed inside the bottle outline so it never widens icons / bounds)
+  P.push(wcV(EM('Çakmak',0,-4.0,0,{id:'molo_lighter',role:'lighter'})));
+  P.push(BX('Çakmak gövdesi',1.25,3.6,3.7,0,-5.3,0,.3,chrome,{parent:'molo_lighter'}));
+  P.push(EM('Çakmak kapağı',0,-3.5,-1.85,{id:'molo_lid',parent:'molo_lighter'}));
+  P.push(BX('Çakmak kapak kabuğu',1.25,1.7,3.7,0,-2.65,0,.3,chrome,{parent:'molo_lid'}));
+  P.push(BX('Çakmak bacası',.95,1.2,1.7,0,-2.95,.6,.05,chrome,{parent:'molo_lighter'}));
+  P.push(CY('Çakmak çarkı',.36,.36,.55,0,-2.75,-.75,[0,0,90],M('gunmetal','#55585c'),{sides:12,parent:'molo_lighter'}));
+  P.push(CY('Çakmak fitili',.12,.12,.5,0,-2.25,.6,[0,0,0],blk,{sides:6,parent:'molo_lighter'}));
+  P.push(wcV(mkPart('cone','Çakmak alevi',{r:.0035,h:.022,sides:10},[0,-.009,-.006],[0,0,0],flame,{parent:'molo_lighter'})));
   return nadeDef('molotov','Molotof','molotov',400,'T',P); }
-function defIncGren(){ const P=[], g=M('aluminum','#6d7176'), dk=M('gunmetal','#3e4146');
-  P.push(CY('Gövde',2.1,2.1,9.6,0,0,0,[0,0,0],g,{sides:24})); P.push(TR('Kırmızı bant',2.12,.3,0,2,0,[90,0,0],M('paint','#a3262b')));
-  P.push(CY('Fünye',.9,1.1,2,0,5.7,0,[0,0,0],dk)); P.push(BX('Mandal',1.2,7.2,.3,0,1.7,-1.3,.12,dk,{rot:[9,0,0]})); P.push(TR('Pim halkası',1.0,.14,1.6,6.4,0,[0,90,0],dk));
+function defIncGren(){
+  // AN-M14 style incendiary canister: grey body, red band and stencil, rolled rims, fuze kit with pin + ring
+  const g=M('aluminum','#83878b',{rough:.42}), dk=M('gunmetal','#45484d'), red=M('paint','#a3262b'), ink=M('paint','#1c1d1f'), ring=M('steel','#b9bdc2'), P=[];
+  P.push(wcS(wcLV('Gövde',[-5.8,0, -5.8,2.15, -5.65,2.4, 5.1,2.4, 5.3,2.25, 5.4,1.9, 5.4,0],32,g),40));
+  P.push(TR('Alt kenar',2.34,.13,0,-5.5,0,[90,0,0],g)); P.push(TR('Üst kenar',2.3,.12,0,5.18,0,[90,0,0],g));
+  P.push(wcLV('Kırmızı bant',[.6,2.43, 2.1,2.43],32,red)); P.push(wcLV('Kırmızı çizgi',[-4.4,2.43, -4.1,2.43],32,red));
+  for(const s of [-1,1]) for(const [y,w] of [[-.4,1.4],[-1.1,1.0],[-1.8,1.25]]) P.push(BX('Yazı',w,.32,.06,0,y,s*2.45,0,ink));
+  wcFuze(P,5.4,[.55,7.77, -.3,7.85, -.95,7.6, -1.15,6.95, -1.2,6.05, -1.65,5.6, -2.5,5.3, -2.53,-.5, -2.35,-1.0],dk,{ring,id:'inc'});
   return nadeDef('incgren','Yangın bombası','molotov',500,'CT',P); }
 function defC4(){
-  const tan=M('paint','#bfae84',{rough:.85,metal:0}), tape=M('fabric','#3b3a33'), blk=M('polymer','#16171a'), P=[];
-  for(const x of [-3.1,0,3.1]) P.push(BX('Patlayıcı',3,3.6,15,x,0,0,.5,tan));
-  for(const z of [-4.5,4.5]) P.push(BX('Bant',9.6,3.8,1.6,0,0,z,.4,tape));
-  P.push(BX('Tuş takımı',6,1.0,7,0,2.3,-1,.3,blk)); P.push(BX('Ekran',4.4,.25,1.8,0,2.85,1.4,.05,M('emissive','#3fae4c',{emissive:'#2f9a3c',emi:.55})));
-  for(let i=0;i<3;i++) for(let j=0;j<3;j++) P.push(BX('Tuş',1.1,.3,1.0,-1.6+i*1.6,2.85,-2+j*-1.5,.15,M('polymer','#3a3c40')));
-  P.push(TR('Kablo',2.2,.18,1.8,1.6,5.5,[0,90,0],M('paint','#b8232b'),{arc:180})); P.push(TR('Kablo',2.6,.18,-1.6,1.6,5.8,[0,90,0],M('paint','#2350b8'),{arc:180}));
+  // CS2-style C4: three wrapped explosive blocks with printed labels bundled by grey duct tape, a timer / keypad unit strapped on top
+  // (LCD with digits, 12 keys named 'Tuş' for the plant typing, status LED), coloured wires running to detonators pushed into the block ends
+  const tan=M('paint','#bfae84',{rough:.85,metal:0}), lab=M('paint','#a99a72',{rough:.8,metal:0}), ink=M('paint','#3b3428',{rough:.8}), tape=M('fabric','#5c5e5b'),
+    blk=M('polymer','#16171a'), blk2=M('polymer','#24262a'), key=M('polymer','#4a4d52'), lcd=M('emissive','#4fbf5a',{emissive:'#2f9a3c',emi:.55}), seg=M('polymer','#0f2a14'),
+    led=M('emissive','#ff3b30',{emissive:'#ff2015',emi:1.2}), alu=M('aluminum','#a7abb0'), P=[];
+  for(const x of [-3.1,0,3.1]) P.push(BX('Patlayıcı',3.0,3.6,15,x,0,0,.45,tan));
+  for(const s of [-1,1]){ P.push(BX('Etiket',.06,2.5,6.4,s*4.6,0,-3.2,.03,lab)); for(const [y,w] of [[.7,4.6],[0,3.4],[-.7,4.0]]) P.push(BX('Etiket yazısı',.07,.32,w,s*4.6,y,-3.2-(4.6-w)/2,.0,ink)); }
+  for(const z of [-5.0,4.6]) P.push(wcS(wcXS('Bant',[-4.85,-2.05, 4.85,-2.05, 4.85,2.05, -4.85,2.05],2.4,.12,tape,[0,0,z],{holes:[[-4.58,-1.78, 4.58,-1.78, 4.58,1.78, -4.58,1.78]]}),30));
+  // timer / keypad unit
+  P.push(BX('Kart',6.6,.42,8.4,0,2.0,-.6,.15,blk2));
+  P.push(wcS(BX('Zamanlayıcı',6.2,1.3,7.8,0,2.8,-.6,.4,blk),30));
+  P.push(BX('Ekran çerçevesi',4.9,.14,2.3,0,3.5,1.65,.08,blk2));
+  P.push(BX('Ekran',4.4,.08,1.75,0,3.57,1.65,.04,lcd));
+  for(let i=0;i<7;i++) P.push(BX('Rakam',.34,.04,.95,-1.8+i*.6,3.62,1.65,0,seg));
+  for(let j=0;j<4;j++) for(let i=0;i<3;i++) P.push(BX('Tuş',1.1,.3,.85,-1.6+i*1.6,3.5,-.1-j*1.15,.15,key));
+  P.push(SP('Durum ışığı',.24,2.55,3.5,1.65,led));
+  P.push(BX('Pil',1.6,1.1,3.2,3.4,2.5,-3.4,.2,M('paint','#c9b13a')));
+  // wires to the detonators in the block ends
+  for(const x of [-3.1,0,3.1]) P.push(CY('Detonatör',.32,.32,2.2,x*.6,.6,8.1,[90,0,0],alu,{sides:10}));
+  wcTube(P,'Kablo',[-1.4,3.2,3.2, -1.6,3.7,5.0, -1.8,2.6,7.6, -1.86,.6,9.1],.11,M('paint','#b8232b'));
+  wcTube(P,'Kablo',[0,3.2,3.2, .1,3.9,5.2, .05,2.8,7.8, 0,.6,9.1],.11,M('paint','#d4b52a'));
+  wcTube(P,'Kablo',[1.4,3.2,3.2, 1.7,3.6,4.8, 1.85,2.5,7.5, 1.86,.6,9.1],.11,M('paint','#2350b8'));
+  wcTube(P,'Kablo',[3.4,2.6,-1.8, 3.6,3.2,-.6, 3.0,3.3,.8, 2.6,3.2,1.4],.1,M('paint','#1a1a1a'));
   return normalizeDef({ id:'c4', name:'C4', builtin:1, type:'c4', slot:'c4', parts:finalizeParts(P),
     stats:{dmg:0,head:1,rpm:60,mag:0,reserve:0,reload:0,auto:0,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:0,speed:1,sound:'pistol',draw:.6,price:0},
     view:{pos:[.1,-.185,-.4],rot:[46,-10,0]}, anchors:{gripR:{p:[.05,-.02,.03],r:[0,0,-80]}, gripL:{p:[-.05,-.02,.03],r:[0,0,80]}, muzzle:[0,0,0], eject:[0,0,0]} });
@@ -2867,12 +2928,15 @@ function defAUG(){
     view:{pos:[.13,-.122,-.40],rot:[0,4,0]},
     anchors:{gripR:{p:[0,-.066,.068],r:[-14,0,0]}, gripL:{p:[0,-.058,-.126],r:[-2,0,8]}, muzzle:[0,.024,-.364], eject:[.026,.02,.22], boltHand:[-.028,0,0]} });
 }
-function defDecoy(){ const P=[], body=M('aluminum','#a4a8ad'), band=M('paint','#e3a12a'), dk=M('gunmetal','#3a3c40'), blk=M('polymer','#121315');
-  P.push(CY('Gövde',1.7,1.7,8.2,0,-.4,0,[0,0,0],body,{sides:24})); P.push(CY('Alt kapak',1.55,1.72,.9,0,-4.9,0,[0,0,0],dk,{sides:24}));
-  P.push(TR('Sarı bant',1.72,.32,0,1.4,0,[90,0,0],band)); P.push(TR('Sarı bant',1.72,.18,0,-2.6,0,[90,0,0],band));
-  P.push(CY('Üst kapak',1.35,1.72,1.4,0,4.4,0,[0,0,0],dk,{sides:24}));
-  for(let i=0;i<8;i++){ const a=i*45, r=a*DEG; P.push(CY('Hoparlör deliği',.26,.26,.2,-Math.cos(r)*1.7,3.0,-Math.sin(r)*1.7,[0,a,90],blk,{sides:10})); }
-  P.push(CY('Fünye',.8,1.0,1.8,0,5.9,0,[0,0,0],dk)); P.push(BX('Mandal',1.1,7.0,.3,0,2.3,-1.86,.12,dk,{rot:[3,0,0]})); P.push(TR('Pim halkası',1.0,.14,1.5,6.5,0,[0,90,0],dk));
+function defDecoy(){
+  // decoy: light grey body with yellow bands, tapered speaker cap with a ring of grille slots, dark base cap, fuze kit
+  const body=M('aluminum','#a4a8ad',{rough:.38}), band=M('paint','#e3a12a'), dk=M('gunmetal','#3a3c40'), blk=M('polymer','#121315'), ring=M('steel','#b9bdc2'), P=[];
+  P.push(wcS(wcLV('Gövde',[-4.5,0, -4.5,1.85, -4.35,2.0, 3.0,2.0, 3.1,1.9, 3.1,0],28,body),40));
+  P.push(wcS(wcLV('Alt kapak',[-5.3,0, -5.3,1.7, -5.1,1.95, -4.4,2.05, -4.3,0],28,dk),40));
+  P.push(wcS(wcLV('Hoparlör kapağı',[3.0,0, 3.0,2.02, 3.3,2.02, 4.4,1.45, 4.6,1.2, 4.6,0],28,dk),40));
+  for(let i=0;i<10;i++){ const a=i*36; P.push(BX('Hoparlör yarığı',.32,.95,.14,Math.sin(a*DEG)*1.74,3.85,-Math.cos(a*DEG)*1.74,.06,blk,{rot:wcRotYX(a,-27)})); }
+  P.push(wcLV('Sarı bant',[1.0,2.03, 1.8,2.03],28,band)); P.push(wcLV('Sarı bant',[-3.0,2.03, -2.6,2.03],28,band));
+  wcFuze(P,4.6,[.55,6.97, -.3,7.05, -.95,6.8, -1.15,6.15, -1.2,5.25, -1.6,4.6, -2.1,3.2, -2.15,-1.8, -1.95,-2.4],dk,{ring,id:'dc'});
   return nadeDef('decoy','Dekoy bombası','decoy',50,'any',P); }
 const BUILTIN=[defAK47(),defM4A1S(),defM4A4(),defAUG(),defGalil(),defFAMAS(),defAWP(),defSSG08(),defMAC10(),defMP9(),defP90(),defNova(),defDeagle(),defUSPS(),defGlock(),defTec9(),defP250(),defKnife(),defHE(),defFlash(),defSmoke(),defMolotov(),defIncGren(),defDecoy(),defC4()];
 const LIB={ list:[], byId:{} };
@@ -12103,7 +12167,7 @@ function anThrowPose(R,dt){ const t=R.throwT/.62, P=R===VM?player.pendingThrow:n
     AP[3]+=(Math.sin(b*23)*.003+Math.sin(b*31)*.002)*k; AP[0]+=Math.sin(b*19)*.001*k; AP[2]-=.012*k; }   // arm tension: drawn back a touch, fine tremor
   R.hideGun=t>.5; anThrowHand(R,t);
   if(!R.ringL){ const m=new THREE.Mesh(new THREE.TorusGeometry(.011,.0017,6,18),makeMaterial({preset:'gunmetal',color:'#9aa0a6'})); m.frustumCulled=false; m.rotation.y=Math.PI/2; R.armL.hand.add(m); R.ringL=m; }
-  R.ringL.visible=t>=.3&&t<.95&&R.armLvis; if(R.ringL.visible){ const c=R.armL.curl||.0305; R.ringL.position.set(0,.031,-c+.002); R.ringL.rotation.z=Math.sin(b*3.1)*.3; } }
+  R.ringL.visible=!!R.ring&&t>=.3&&t<.95&&R.armLvis; if(R.ringL.visible){ const c=R.armL.curl||.0305; R.ringL.position.set(0,.031,-c+.002); R.ringL.rotation.z=Math.sin(b*3.1)*.3; } }
 
 /* ---------- respawn: nothing from the last life survives (timers, locks, springs, flash cover, plant/defuse, holster, shell reload) ---------- */
 function anRespawn(R){ if(!R) return; R.hol=null; R.noHol=true; R.spawnDraw=true; R.reloadT=0; R.inspectT=-1; R.knifeT=-1; R.rechamberT=-1; R.throwT=-1; R.silT=-1; R.silSlot=null; R.silFlip=false;
@@ -12799,27 +12863,39 @@ function defZeus(){
 }
 // healthshot: +50 HP over 2 s; type c4 (no reload / scope / throw paths), slot 'heal' (key X)
 function defHealthshot(){
-  const body=M('polymer','#d9dde2'), dk=M('polymer','#2a2c30'), liq=M('glass','#3ee86a',{emissive:'#1aa83a',emi:.6,opacity:.85,rough:.1,metal:0}), steel=M('steel'), red=M('paint','#d0262f'), P=[];
-  P.push(CY('Gövde',1.25,1.25,8.4,0,0,0,[90,0,0],body,{sides:20}));
-  P.push(CY('Sıvı',1.28,1.28,4.6,0,0,1.2,[90,0,0],liq,{sides:20}));
-  P.push(TR('Bilezik',1.27,.2,0,0,-1.6,[0,0,0],dk));
-  P.push(CY('Uç',1.0,.45,1.8,0,0,5.1,[90,0,0],dk,{sides:16}));
-  P.push(CY('İğne',.07,.05,2.0,0,0,6.9,[90,0,0],steel,{sides:8}));
-  P.push(CY('Piston',1.0,1.0,2.6,0,0,-5.4,[90,0,0],dk,{sides:18,id:'hs_pist'}));
-  P.push(CY('Basma başlığı',1.2,1.2,.5,0,0,-6.9,[90,0,0],red,{sides:18,parent:'hs_pist'}));
-  P.push(BX('Haç',.1,1.2,.4,1.26,0,-2.9,0,red)); P.push(BX('Haç',.1,.4,1.2,1.26,0,-2.9,0,red));
+  // healthshot: medical auto-injector — clear barrel with green serum and dose marks, label band with a red cross, finger flange, plunger rod +
+  // red press cap (the 'Piston' part slides forward on use), needle hub and needle
+  const clear=M('glass','#cfd8de',{metal:.05,rough:.08,emissive:'#0a1012',emi:.1,opacity:.38}), liq=M('glass','#3ee86a',{emissive:'#1aa83a',emi:.6,opacity:.85,rough:.1,metal:0}),
+    body=M('polymer','#d9dde2'), dk=M('polymer','#2a2c30'), steel=M('steel'), red=M('paint','#d0262f'), blk=M('polymer','#111214'), P=[];
+  P.push(wcS(LA('Gövde',[-4.6,0, -4.6,1.25, 3.4,1.25, 3.9,1.1, 4.4,.75, 4.4,0],24,clear),40));
+  P.push(wcS(LA('Sıvı',[-2.2,0, -2.2,1.12, 3.3,1.12, 3.75,.95, 4.1,.6, 4.1,0],24,liq),40));
+  P.push(LA('Etiket',[-4.4,1.28, -2.6,1.28],24,body));
+  P.push(BX('Haç',.1,1.0,.32,1.31,0,-3.5,0,red)); P.push(BX('Haç',.1,.32,1.0,1.31,0,-3.5,0,red));
+  P.push(BX('Haç',.1,1.0,.32,-1.31,0,-3.5,0,red)); P.push(BX('Haç',.1,.32,1.0,-1.31,0,-3.5,0,red));
+  for(let i=0;i<6;i++) P.push(BX('Ölçek çizgisi',.5,.05,.06,0,1.27,-1.6+i*.95,0,dk));
+  P.push(wcS(wcXS('Parmak tutamağı',[-2.6,-.8, 2.6,-.8, 2.9,-.4, 2.9,.4, 2.6,.8, -2.6,.8, -2.9,.4, -2.9,-.4],.5,.15,dk,[0,0,-4.85]),35));
+  P.push(wcS(LA('Uç',[4.3,0, 4.3,.82, 5.0,.6, 5.7,.32, 5.7,0],16,dk),40));
+  P.push(CY('İğne',.06,.04,2.2,0,0,6.8,[90,0,0],steel,{sides:8}));
+  // plunger (anim: 'Piston' moves forward 2.2 cm), rubber stopper inside the barrel rides on it
+  P.push(CY('Piston',.42,.42,4.6,0,0,-5.0,[90,0,0],dk,{sides:14,id:'hs_pist'}));
+  P.push(wcS(LA('Tıpa',[-2.6,0, -2.6,1.12, -2.25,1.12, -2.2,.9, -2.2,0],20,blk,{parent:'hs_pist'}),40));
+  P.push(wcS(LA('Basma başlığı',[-7.75,0, -7.75,1.05, -7.5,1.25, -7.2,1.25, -7.1,1.0, -7.1,0],20,red,{parent:'hs_pist'}),40));
   return normalizeDef({ id:'healthshot', name:'Sağlık iğnesi', builtin:1, type:'c4', slot:'heal', parts:finalizeParts(P),
     stats:{dmg:0,head:1,rpm:60,mag:1,reserve:0,reload:0,auto:0,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:0,speed:1,sound:'pistol',draw:.6,price:400,team:'any',heal:1},
     view:{pos:[.11,-.107,-.33],rot:[4,12,-8]},
     anchors:{gripR:{p:[0,-.004,.022],r:[72,0,0]}, gripL:null, muzzle:[0,0,-.08], eject:[0,0,0]} });
 }
 // tactical awareness grenade: sticks where it lands, pings after 2 s, shows enemies within 15 m through walls
-function defTAGrenade(){ const P=[], body=M('aluminum','#3c4148'), band=M('paint','#2f8fd8'), dk=M('gunmetal','#2a2c30'), led=M('emissive','#ff3a3a',{emissive:'#ff2020',emi:.9}), pad=M('rubber');
-  P.push(CY('Gövde',1.8,1.8,8.0,0,0,0,[0,0,0],body,{sides:24}));
-  P.push(TR('Mavi bant',1.82,.3,0,2.2,0,[90,0,0],band)); P.push(TR('Mavi bant',1.82,.3,0,-2.2,0,[90,0,0],band));
-  P.push(CY('Yapışkan taban',1.9,1.6,1.0,0,-4.5,0,[0,0,0],pad,{sides:24}));
-  P.push(CY('Fünye',.85,1.05,1.8,0,4.9,0,[0,0,0],dk)); P.push(BX('Mandal',1.1,6.6,.3,0,1.9,-1.95,.12,dk,{rot:[3,0,0]})); P.push(TR('Pim halkası',1.0,.14,1.5,5.5,0,[0,90,0],dk));
-  P.push(SP('LED',.34,0,.2,1.8,led));
+function defTAGrenade(){
+  // tactical awareness grenade: dark anodised body, blue bands, sensor window and the blinking 'LED' (blinked by the TA code), sticky rubber base, fuze kit
+  const body=M('aluminum','#3c4148',{rough:.36}), band=M('paint','#2f8fd8'), dk=M('gunmetal','#2a2c30'), led=M('emissive','#ff3a3a',{emissive:'#ff2020',emi:.9}), pad=M('rubber'),
+    win=M('glass','#16222c',{emissive:'#05101a',emi:.4}), ring=M('steel','#b9bdc2'), P=[];
+  P.push(wcS(wcLV('Gövde',[-4.2,0, -4.2,1.7, -4.05,1.85, 3.6,1.85, 3.85,1.6, 4.0,1.1, 4.0,0],28,body),40));
+  P.push(wcLV('Mavi bant',[1.9,1.88, 2.5,1.88],28,band)); P.push(wcLV('Mavi bant',[-2.5,1.88, -1.9,1.88],28,band));
+  P.push(wcS(wcLV('Yapışkan taban',[-5.2,0, -5.2,1.6, -5.0,1.9, -4.15,1.9, -4.1,0],28,pad),40));
+  P.push(wcS(wcXS('Sensör penceresi',[-.7,-.9, .7,-.9, .7,.9, -.7,.9],.3,.12,win,[0,.2,-1.78]),30));
+  P.push(SP('LED',.3,0,.2,-1.95,led));
+  wcFuze(P,4.0,[.55,6.37, -.3,6.45, -.95,6.2, -1.15,5.55, -1.2,4.65, -1.55,4.15, -1.95,3.6, -1.98,-1.5, -1.8,-2.1],dk,{ring,id:'ta'});
   return nadeDef('tagrenade','TA bombası','ta',600,'any',P); }
 BUILTIN.push(defHKP2000(),defFiveSeven(),defCZ75(),defMP7(),defUMP45(),defMP5SD(),defSG553(),defZeus(),defHealthshot(),defTAGrenade());
 
@@ -13546,6 +13622,30 @@ function wcXT(name,pts,thick,bevel,mat,at,o){ const f=a=>a.map((v,i)=>i%2?-v:v);
 function wcThread(a0,a1,r,dep,n){ const o=[]; for(let i=0;i<=n;i++){ const t=a0+(a1-a0)*i/n; o.push(t,r); if(i<n) o.push(t+(a1-a0)/n*.5,r-dep); } return o; }
 // closed egg / teardrop outline (flat cm list), narrow end up: straps, loops, holes
 function wcEgg(cx,cy,rx,ry,pinch,n){ const o=[]; for(let i=0;i<n;i++){ const t=i/n*Math.PI*2, k=1-pinch*(1+Math.cos(t))/2; o.push(cx+rx*Math.sin(t)*k,cy+ry*Math.cos(t)); } return o; }
+// vertical lathe (pts: flat [y, radius] cm list, absolute heights), centred on x / zf
+function wcLV(name,pts,sides,mat,o){ o=o||{}; let a=1e9,b=-1e9; for(let i=0;i<pts.length;i+=2){ a=Math.min(a,pts[i]); b=Math.max(b,pts[i]); }
+  return wcAt(LA(name,pts,sides,mat,Object.assign({},o,{rot:[90,0,0]})),o.x||0,(a+b)/2,o.zf||0); }
+// thicken a centre line (flat [fwd, y] cm list) into a closed strip outline for EX: grenade spoons, rags, straps
+function wcStrip(pts,th){ const n=pts.length/2, L=[], R=[];
+  for(let i=0;i<n;i++){ const p=Math.max(0,i-1), q=Math.min(n-1,i+1); let dx=pts[q*2]-pts[p*2], dy=pts[q*2+1]-pts[p*2+1]; const l=Math.hypot(dx,dy)||1; dx/=l; dy/=l;
+    L.push(pts[i*2]-dy*th/2,pts[i*2+1]+dx*th/2); R.unshift(pts[i*2]+dy*th/2,pts[i*2+1]-dx*th/2); }
+  return L.concat(R); }
+// Euler XYZ degrees (the part format) for 'tilt about x by ax, then turn about y by ay'
+function wcRotYX(ay,ax){ const e=new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromEuler(new THREE.Euler(ax*DEG,ay*DEG,0,'YXZ'))); return [e.x/DEG,e.y/DEG,e.z/DEG].map(v=>Math.round(v*1e3)/1e3); }
+// a cable / wire as a chain of thin cylinders through [x, y, zf] cm points
+function wcTube(P,name,pts,r,mat,o){ o=o||{}; const up=new THREE.Vector3(0,1,0), d=new THREE.Vector3(), q=new THREE.Quaternion(), e=new THREE.Euler();
+  for(let i=0;i+5<pts.length;i+=3){ const x0=pts[i],y0=pts[i+1],z0=-pts[i+2], x1=pts[i+3],y1=pts[i+4],z1=-pts[i+5]; d.set(x1-x0,y1-y0,z1-z0); const L=d.length(); if(L<1e-4) continue;
+    q.setFromUnitVectors(up,d.normalize()); e.setFromQuaternion(q);
+    P.push(CY(name,r,r,L+r*.9,(x0+x1)/2,(y0+y1)/2,-(z0+z1)/2,[e.x/DEG,e.y/DEG,e.z/DEG],mat,Object.assign({sides:8},o))); } }
+// grenade fuze kit (M201 / M213 style) seated at y = top: fuze body + striker head, the spoon (centre line [fwd, y], down the back),
+// the safety pin through the head riding on its pull ring (named 'Pim halkası': the throw animation pulls it with the left hand)
+function wcFuze(P,top,spoon,mat,o){ o=o||{}; const k=o.id||'nz', rm=o.ring||mat;
+  P.push(wcS(wcLV('Fünye',[top-.05,0, top-.05,.98, top+1.2,.98, top+1.35,.86, top+1.35,0],18,mat),40));
+  P.push(wcS(wcLV('Fünye başı',[top+1.3,0, top+1.3,.8, top+1.85,.74, top+2.12,.48, top+2.2,0],16,mat),45));
+  P.push(BX('Fünye pimi yuvası',2.3,.42,.6,.1,top+1.0,0,.12,mat));
+  P.push(wcS(EX('Mandal',wcStrip(spoon,.24),1.25,.05,mat),35));
+  P.push(TR('Pim halkası',1.05,.13,2.55,top+.95,.15,[0,-12,0],rm,{id:k+'_ring'}));
+  P.push(CY('Pim teli',.09,.09,2.4,.4,top+1.0,0,[0,0,90],rm,{sides:8,parent:k+'_ring'})); }
 
 
 /* @@BLOCK:test — STRIKE POINT TEST-only features (zombies, skins, extra knives); everything here must check TEST_BUILD */
