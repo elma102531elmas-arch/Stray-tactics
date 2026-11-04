@@ -13248,8 +13248,8 @@ function wpnAK47(){
   P.push(BX('Halka tabanı',.25,.8,1.6,-1.82,-.1,-13.6,.12,gm));
   return normalizeDef({ id:'ak47', name:'AK-47', builtin:1, type:'rifle', slot:'primary', parts:finalizeParts(P),
     stats:{dmg:36,head:4,rpm:600,mag:30,reserve:90,reload:2.45,auto:1,spread:.22,moveSpread:7,recoil:1,pattern:'ak',pellets:1,scope:0,range:300,speed:.86,sound:'ak',draw:1.0,price:2700,team:'T',armorPen:.775},
-    view:{pos:[.116,-.142,-.33],rot:[3.5,5,-2]},
-    anchors:{gripR:{p:[0,-.066,.066],r:[-17,0,0]}, gripL:{p:[0,.01,-.255],r:[90,0,-25]}, muzzle:[0,.023,-.546], eject:[.016,.026,-.055]} });
+    view:{pos:[.114,-.144,-.335],rot:[3.5,6.5,-2.5]},
+    anchors:{gripR:{p:[0,-.066,.066],r:[-17,0,0]}, gripL:{p:[0,.01,-.24],r:[90,0,-25]}, muzzle:[0,.023,-.546], eject:[.016,.026,-.055]} });
 }
 
 /* ---------------- AR-15 family: M4A4 (RIS quad rail, A2 front sight + flash hider) / M4A1-S (slim free-float tube, long suppressor) — ref: M4 carbine ---------------- */
@@ -13327,7 +13327,7 @@ function wpnAR(kind){
   const def={ id:kind, name:S?'M4A1-S':'M4A4', builtin:1, type:'rifle', slot:'primary', parts:finalizeParts(P),
     stats:S?{dmg:38,head:4,rpm:600,mag:20,reserve:80,reload:3.05,auto:1,spread:.16,moveSpread:6.5,recoil:.72,pattern:'m4',pellets:1,scope:0,range:300,speed:.9,sound:'silenced',draw:1.0,price:2900,team:'CT',silencer:1}
       :{dmg:33,head:4,rpm:666,mag:30,reserve:90,reload:3.1,auto:1,spread:.2,moveSpread:6.5,recoil:.9,pattern:'m4',pellets:1,scope:0,range:300,speed:.9,sound:'rifle',draw:1,price:3100,team:'CT',reward:300},
-    view:{pos:[.118,-.142,-.33],rot:[3.5,5,-2]},
+    view:{pos:[.116,-.144,-.335],rot:[3.5,6.5,-2.5]},
     anchors:{gripR:{p:[0,-.058,.049],r:[-19,0,0]}, gripL:{p:[0,.023,-.25],r:[90,0,-25]}, muzzle:S?[0,.026,-.663]:[0,.026,-.527], eject:[.018,.036,-.06]} };
   if(S) def.anchors.muzzleU=[0,.026,-.444];
   return normalizeDef(def);
@@ -13354,7 +13354,7 @@ function wpnEyepiece(){
   const g=new THREE.Group(); g.name='augEyepiece';
   const rub=new THREE.MeshStandardMaterial({color:0x232427,roughness:.86,metalness:.04,envMapIntensity:1.2,side:THREE.DoubleSide});
   const met=new THREE.MeshStandardMaterial({color:0x4b4e53,roughness:.38,metalness:.7,envMapIntensity:1.4,side:THREE.DoubleSide});
-  const bod=new THREE.MeshStandardMaterial({color:0x3a3d41,roughness:.52,metalness:.42,envMapIntensity:1.5});
+  const bod=new THREE.MeshStandardMaterial({color:0x2f3236,roughness:.55,metalness:.42,envMapIntensity:1.5});
   const blk=new THREE.MeshStandardMaterial({color:0x08090a,roughness:.75,metalness:.2,side:THREE.DoubleSide});
   const add=(geo,m,x,y,z)=>{ const o=new THREE.Mesh(geo,m); o.position.set(x||0,y||0,z||0); g.add(o); return o; };
   const lathe=(pts,m,n)=>{ const ge=new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),n||72); ge.rotateX(Math.PI/2); return add(ge,m); };
@@ -13370,7 +13370,7 @@ function wpnEyepiece(){
   const hex=new THREE.CylinderGeometry(.04,.04,.012,6); hex.rotateX(Math.PI/2);
   const wa=new THREE.TorusGeometry(.112,.014,10,36), bc=new THREE.SphereGeometry(.15,28,14,0,TAU,0,Math.PI/2); bc.rotateX(Math.PI/2);
   for(let i=0;i<4;i++){ const a=(45+i*90)*DEG, x=Math.cos(a)*.73, y=Math.sin(a)*.73;
-    add(boss,bod,x,y,-.2); const c=add(bc,bod,x,y,-.05); c.scale.set(1,1,.35); add(head,met,x,y,-.018); add(hex,blk,x,y,.006); add(wa,met,x,y,-.04); }
+    add(boss,bod,x,y,-.2); const c=add(bc,bod,x,y,-.05); c.scale.set(1,1,.35); add(head,met,x,y,.016); add(hex,blk,x,y,.04); add(wa,met,x,y,.0); }
   // side lobes (rounded) at 3 and 9 o'clock, mount below / turret base above (mostly off screen)
   for(const s of [-1,1]) add(new RoundedBoxGeometry(.2,.46,.3,4,.08),bod,s*.83,0,-.21);
   add(new RoundedBoxGeometry(.6,.42,.32,4,.12),bod,0,-.93,-.24); add(new RoundedBoxGeometry(.5,.36,.3,4,.12),bod,0,.9,-.22);
@@ -13468,8 +13468,8 @@ function wpnGalil(){
   P.push(wEX('Gövde sağ',rcv,.2,.06,blu,{x:1.4,holes:[wRnd([1.6,-1.2, 12.4,-1.2, 12.4,.8, 1.6,.8],.3),wRnd([2.0,1.35, 10.0,1.35, 10.0,2.5, 2.0,2.5],.2)],sm:0}));
   P.push(wEX('Toz kapağı',wRnd([-12.4,2.6, 15.0,2.6, 15.0,4.1, -11.6,4.1, -12.4,3.6],[.2,.1,.4,.7,.4]),3.1,.7,blu,{bs:3}));
   P.push(BX('Gez kaidesi',2.2,1.1,2.8,0,4.5,-11.0,.3,dk));
-  for(const s of [-1,1]) P.push(wEX('Gez kulağı',wRnd([-12.4,4.4, -9.6,4.4, -10.0,7.6, -11.0,7.8, -12.0,6.0],[0,0,.3,.3,.3]),.3,.08,dk,{x:s*.75}));
-  P.push(BX('Gez',.9,2.4,.35,0,6.0,-10.9,.1,dk,{rot:[-8,0,0]}));
+  for(const s of [-1,1]) P.push(wEX('Gez kulağı',wRnd([-12.4,4.4, -9.6,4.4, -10.0,6.6, -11.0,6.8, -12.0,5.6],[0,0,.3,.3,.3]),.3,.08,dk,{x:s*.75}));
+  P.push(BX('Gez',.9,1.8,.35,0,5.7,-10.9,.1,dk,{rot:[-8,0,0]}));
   // wooden handguard with vent grooves, metal end cap, gas tube, gas block + tall front sight
   P.push(wEX('El kundağı',wRnd([16.0,4.9, 32.2,4.9, 32.2,.5, 31.6,-.1, 16.6,-.4, 16.0,.2],[.3,.4,.6,.8,.8,.3]),4.4,1.15,wood,{bs:4}));
   for(const s of [-1,1]) for(const y of [1.3,2.5,3.7]) P.push(BX('Havalandırma',.12,.42,9.6,s*2.18,y,24.2,.1,blk));
@@ -13508,7 +13508,7 @@ function wpnGalil(){
   P.push(wEX('Dipçik plakası',wRnd([-33.6,.8, -35.4,.6, -35.6,-10.0, -34.6,-10.8, -33.4,-10.4],[.3,.5,.6,.5,.3]),3.4,.6,rub,{bs:3}));
   return normalizeDef({ id:'galil', name:'Galil AR', builtin:1, type:'rifle', slot:'primary', parts:finalizeParts(P),
     stats:{dmg:30,head:4,rpm:666,mag:35,reserve:90,reload:3.0,auto:1,spread:.3,moveSpread:6.5,recoil:.85,pattern:'ak',pellets:1,scope:0,range:280,speed:.86,sound:'rifle',draw:1,price:1800,team:'T',reward:300},
-    view:{pos:[.116,-.142,-.33],rot:[3.5,5,-2]},
+    view:{pos:[.114,-.144,-.335],rot:[3.5,6.5,-2.5]},
     anchors:{gripR:{p:[0,-.07,.062],r:[-14,0,0]}, gripL:{p:[0,.016,-.24],r:[90,0,-25]}, muzzle:[0,.023,-.606], eject:[.022,.026,-.06]} });
 }
 
@@ -13559,7 +13559,7 @@ function wpnSG553(){
 
 /* ---------------- AWP (AI Arctic Warfare: green thumbhole stock on a black chassis, cheek piece, heavy barrel + brake, big 10x optic) — ref: AI AW/AWM ---------------- */
 function wpnAWP(){
-  const green=M('paint','#4b583b'), metal=M('oxide','#2c3035'), blk=M('aluminum','#232427'), dk=M('oxide','#202326'), poly=M('polymer','#1b1c1e'), glass=M('glass'), rub=M('rubber','#141516'), stl=M('steel','#8a8e94'), P=[];
+  const green=M('paint','#4b583b'), metal=M('oxide','#2c3035'), blk=M('aluminum','#232427'), dk=M('oxide','#202326'), poly=M('polymer','#1b1c1e'), glass=M('glass','#0c1320',{emissive:'#03070e',emi:.35}), rub=M('rubber','#141516'), stl=M('steel','#8a8e94'), P=[];
   P.push(wEX('Şasi',wRnd([27.2,1.25, 27.2,-1.6, 25.8,-2.95, 7.0,-3.0, 6.2,-1.7, -3.4,-1.7, -4.6,-3.4, -6.6,-11.6, -7.4,-13.0, -10.8,-13.4, -12.2,-12.0, -14.6,-11.4, -34.0,-11.4, -42.0,-12.4, -45.6,-12.6, -46.6,-11.6, -46.6,3.0, -45.4,4.1, -36,4.2, -28,4.0, -20,3.2, -13.4,2.4, -9.0,2.2, -8.0,1.3],
     [.3,.6,1.0,.6,.4,.4,.8,1.2,.8,.8,.8,1.2,2,1.5,.8,.6,.6,.8,.8,1.5,2,1.5,.6,.3]),4.4,1.2,green,{bs:3,holes:[wRnd([-12.4,-1.0, -20.4,-.4, -21.4,-4.6, -19.6,-8.6, -13.6,-9.2, -11.6,-7.2],[1,1.6,1.8,1.6,1.2,1.2])]}));
   P.push(wEX('Gövde yatağı',wRnd([27.0,1.0, 27.0,2.15, 14.0,2.35, -8.6,2.35, -8.6,1.0],[.3,.3,0,.3,.3]),4.55,.35,blk,{sm:0}));
@@ -13603,7 +13603,7 @@ function wpnAWP(){
 
 /* ---------------- SSG 08 (slim dark-olive polymer stock with cheek riser, free-float fore-end, fluted barrel + brake, slim optic) — ref: Steyr SSG 04 ---------------- */
 function wpnSSG08(){
-  const stock=M('polymer','#2d3229'), metal=M('oxide','#2a2e33'), blk=M('aluminum','#222326'), dk=M('oxide','#1f2124'), poly=M('polymer','#17181a'), glass=M('glass'), rub=M('rubber','#141516'), stl=M('steel','#8a8e94'), P=[];
+  const stock=M('polymer','#2d3229'), metal=M('oxide','#2a2e33'), blk=M('aluminum','#222326'), dk=M('oxide','#1f2124'), poly=M('polymer','#17181a'), glass=M('glass','#0c1320',{emissive:'#03070e',emi:.35}), rub=M('rubber','#141516'), stl=M('steel','#8a8e94'), P=[];
   P.push(wEX('Şasi',wRnd([44.6,4.9, 44.6,2.2, 43.8,1.2, 2.0,-1.8, -5.6,-1.8, -6.6,-2.6, -8.8,-7.0, -9.4,-7.5, -14.8,-7.6, -15.6,-6.6, -16.6,-3.8, -18,-3.4, -31.5,-6.6, -36.4,-8.5, -37.6,-8.0, -37.6,2.0, -36.8,3.4, -18.6,3.4, -11.6,2.4, -6.2,3.8, -4.4,4.9],
     [.5,.6,.8,2,.5,.6,1.2,.6,.6,.8,1.2,1.2,1.5,1.0,.6,.6,.6,1.6,1.8,1.2,.4]),3.4,1.0,stock,{bs:3}));
   P.push(wEX('Yanak desteği',wRnd([-31.2,3.2, -19.0,3.2, -18.6,5.4, -30.6,5.6],[.3,.3,.8,.8]),3.0,.7,poly,{bs:3}));
