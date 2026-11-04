@@ -3287,6 +3287,7 @@ function applyMapSettings(st){
   if(WORLD.ground){ WORLD.ground.material=getMapMat(MAPMAT[st.ground]?st.ground:'sand'); }
   if(key!==WORLD.settingsKey&&envTex){ WORLD.settingsKey=key; envTex.dispose(); buildEnvironment(); }
   WORLD.settingsKey=key;
+  mq5Light(st);
 }
 function setMap(id){
   const B=id==='range'?WORLD.maps.range:ensureMapBuilt(id);
@@ -9968,7 +9969,7 @@ function kadimData(){
   for(const [x,z] of [[0,-35],[3,-35],[6,-35],[1.5,-32],[4.5,-32]]) O.push({t:'spawnCT',p:[x,1.6,z],r:[0,180,0]});
   O.push({t:'skyline',style:'jungle',seed:419,s:[54,1,84],c:0});
   O.push({t:'siteA',p:[-25,1.2,-26],s:[26,3.5,20]}); O.push({t:'siteB',p:[28,1.2,-18],s:[20,3.5,24]});
-  return normalizeMap({id:'kadim',name:'Kadim',builtin:1,settings:{size:42,sky:0,ground:'jground',sunAz:34,sunEl:52,fog:.0062,mode:'bomb',preview:{p:[34,32,46],t:[-2,0,-4]}},objects:O});
+  return normalizeMap({id:'kadim',name:'Kadim',builtin:1,settings:{size:42,sky:0,ground:'jground',sunAz:34,sunEl:56,fog:.0048,mode:'bomb',preview:{p:[34,32,46],t:[-2,0,-4]}},objects:O});
 }
 EXTRA_MAPS.push(()=>alevData(), ()=>kadimData());
 
@@ -10663,10 +10664,14 @@ const MQ5_WGEN={
 };
 const MQ5_WNS={sandstone:2.4,plaster:1.3,concrete:1.3,metalSheet:3,crate:2};
 function mq5WorldTex(name,S){ const t0=performance.now(), T=mqBuild(S,MQ5_WGEN[name](mqFields()),MQ5_WNS[name]); MQT.ms+=performance.now()-t0; return T; }
+/* per-map light balance (readability): sun / sky fill multipliers and haze colour; maps not listed keep the defaults */
+const MQ5_LIGHT={kadim:{sun:1.06,hemi:1.75,fog:0xaab49e,sky:0xb4cce8,gnd:0x6f6a4a},reaktor:{hemi:1.25,fog:0xb9bcbc},alev:{hemi:1.15,fog:0xc8bcaa}};
+function mq5Light(st){ const B=WORLD.active, L=(B&&B.data&&MQ5_LIGHT[B.data.id])||{}; sun.intensity=3.4*(L.sun||1); hemi.intensity=.35*(L.hemi||1);
+  scene.fog.color.setHex(L.fog||0xc4b8a2); hemi.color.setHex(L.sky||0xa9c6ff); hemi.groundColor.setHex(L.gnd||0x8a6a48); }
 /* stacked crates / containers sit exactly on the one below (the upper one's height was authored for a crate standing on y=0) */
 function mq5Settle(m){ const O=m.objects||[], top=o=>o.p[1]+o.s[1]+(o.t==='container'?.08:0);
-  for(const o of O){ if((o.t!=='crate'&&o.t!=='container')||!(o.p[1]>0)) continue; let best=null;
-    for(const b of O){ if(b===o||b.t!==o.t||b.p.length<3) continue; const hw=b.s[0]/2+.05, hd=b.s[2]/2+.05, rot=b.r&&Math.abs(Math.round(b.r[1]))%180===90;
+  for(const o of O.slice().sort((x,y)=>x.p[1]-y.p[1])){ if((o.t!=='crate'&&o.t!=='container')||!(o.p[1]>0)) continue; let best=null;
+    for(const b of O){ if(b===o||b.t!==o.t||b.p.length<3||o.s[0]>b.s[0]+.01||b.p[1]>o.p[1]-.05) continue;   /* only onto an equal / bigger one below */ const hw=b.s[0]/2+.05, hd=b.s[2]/2+.05, rot=b.r&&Math.abs(Math.round(b.r[1]))%180===90;
       if(Math.abs(o.p[0]-b.p[0])>(rot?hd:hw)||Math.abs(o.p[2]-b.p[2])>(rot?hw:hd)) continue; const t=top(b); if(t<o.p[1]+1.2&&t>o.p[1]-2.2&&b.p[1]<o.p[1]&&(!best||t>top(best))) best=b; }
     if(best) o.p[1]=+top(best).toFixed(3); }
   return m; }
