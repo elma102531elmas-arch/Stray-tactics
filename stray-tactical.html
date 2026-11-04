@@ -2404,7 +2404,7 @@ function defAWP(){
 function defDeagle(){
   // Desert Eagle Mark XIX (traced from a side photo), two-tone: dark slide + long fixed polygon barrel with a slotted top rail, satin stainless frame with the long tang,
   // slanted forward serrations, slide-mounted safety, spur hammer, wraparound rubber grips, big magazine base
-  const sl=M('parker','#2b2d31',{rough:.38,metal:.65}), fr=M('steel','#a9adb3',{rough:.36,metal:.82}), rub=M('grip','#141516',{rough:.85}), blk=M('polymer','#070707'), dk=M('gunmetal','#2a2c30'), P=[];
+  const sl=M('parker','#2b2d31',{rough:.38,metal:.65}), fr=M('steel','#8f9399',{rough:.44,metal:.75}), rub=M('grip','#141516',{rough:.85}), blk=M('polymer','#070707'), dk=M('gunmetal','#2a2c30'), P=[];
   const G=wbGrooves(-.45,-.33,10,.17,.28,2.5,.25);
   wbSlide(P,'de_sl','Sürgü',[-8.78,0, -8.89,1.27, -8.55,2.19, -7.97,2.89, -7.74,3.07, .07,3.07, .25,2.89, .25,0],[-8.48,.12, -8.55,1.27, -8.24,2.15, -7.74,2.7, 0,2.75, .07,.12],3.0,.35,sl,G);
   P.push(BX('Fişek çıkış yuvası',.95,.03,2.5,.42,3.082,-1.6,0,blk,{parent:'de_sl'})); P.push(BX('Kovan yatağı',.75,.035,2.0,.42,3.1,-1.5,.01,M('gunmetal','#585c61'),{parent:'de_sl'}));
