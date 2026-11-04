@@ -2721,15 +2721,14 @@ function defHE(){
   wcFuze(P,3.35,[.55,5.72, -.3,5.8, -.95,5.55, -1.15,4.9, -1.2,4.0, -1.5,3.1, -2.33,2.33, -2.91,1.55, -3.23,.69, -3.29,-.23, -3.15,-.75],metal,{ring,id:'he'});
   return nadeDef('he','HE el bombası','he',300,'any',P); }
 function defFlash(){
-  // M84-style stun grenade: perforated aluminium body (two rows of windows over the dark charge tube), steel end caps with a blue band, fuze kit
-  const al=M('aluminum','#9ba0a6',{rough:.32}), dk=M('gunmetal','#45484d'), core=M('polymer','#111214'), blue=M('paint','#3d78b8'), ring=M('steel','#b9bdc2'), P=[];
-  P.push(CY('İç gövde',1.78,1.78,8.0,0,0,0,[0,0,0],core,{sides:16}));
-  P.push(wcS(wcLV('Alt kapak',[-5.3,0, -5.3,1.85, -5.12,2.15, -3.9,2.15, -3.75,2.0, -3.75,0],24,dk),40));
-  P.push(wcS(wcLV('Orta bant',[-.6,0, -.6,2.0, -.45,2.15, .45,2.15, .6,2.0, .6,0],24,al),40));
-  P.push(wcS(wcLV('Üst kapak',[3.75,0, 3.75,2.0, 3.9,2.15, 4.85,2.15, 5.15,1.75, 5.3,1.05, 5.3,0],24,dk),40));
-  for(const yc of [-2.175,2.175]) for(let i=0;i<6;i++){ const a=i*60+30; P.push(BX('Kafes',1.05,3.2,.32,Math.sin(a*DEG)*1.98,yc,-Math.cos(a*DEG)*1.98,.1,al,{rot:[0,a,0]})); }
-  P.push(TR('Mavi bant',2.16,.08,0,4.3,0,[90,0,0],blue));
-  wcFuze(P,5.3,[.55,7.67, -.3,7.75, -.95,7.5, -1.15,6.85, -1.2,5.95, -1.6,5.35, -2.28,4.7, -2.3,-1.4, -2.1,-2.0],dk,{ring,id:'fl'});
+  // M84-style stun grenade: perforated steel body (rows of round vents over the dark charge), blue band in the middle, hexagonal end caps, fuze kit
+  const body=M('paint','#5f6352',{rough:.5,metal:.35}), dk=M('gunmetal','#3f4246'), blk=M('polymer','#0c0c0d'), blue=M('paint','#3f7fc4'), ring=M('steel','#b9bdc2'), P=[];
+  P.push(wcS(wcLV('Gövde',[-3.9,0, -3.9,2.05, 3.9,2.05, 3.9,0],28,body),40));
+  P.push(wcS(wcLV('Alt kapak',[-5.3,0, -5.3,1.95, -5.1,2.3, -3.85,2.3, -3.7,2.0, -3.7,0],6,dk),20));
+  P.push(wcS(wcLV('Üst kapak',[3.7,0, 3.7,2.0, 3.85,2.3, 4.85,2.3, 5.15,1.8, 5.3,1.05, 5.3,0],6,dk),20));
+  P.push(wcLV('Mavi bant',[-.55,2.08, .55,2.08],28,blue));
+  for(const [y,o] of [[2.85,0],[1.45,30],[-1.45,0],[-2.85,30]]) for(let i=0;i<6;i++){ const a=i*60+o; P.push(CY('Delik',.46,.46,.12,Math.sin(a*DEG)*2.04,y,-Math.cos(a*DEG)*2.04,wcRotYX(a,90),blk,{sides:12})); }
+  wcFuze(P,5.3,[.55,7.67, -.3,7.75, -.95,7.5, -1.15,6.85, -1.2,5.95, -1.6,5.4, -2.36,4.9, -2.38,-1.4, -2.18,-2.0],dk,{ring,id:'fl'});
   return nadeDef('flash','Flaş bombası','flash',200,'any',P); }
 function defSmoke(){
   // M18-style smoke canister: rolled rims, four emission holes on the top, light stencilled label band, fuze kit
@@ -2770,7 +2769,7 @@ function defMolotov(){
   return nadeDef('molotov','Molotof','molotov',400,'T',P); }
 function defIncGren(){
   // AN-M14 style incendiary canister: grey body, red band and stencil, rolled rims, fuze kit with pin + ring
-  const g=M('aluminum','#83878b',{rough:.42}), dk=M('gunmetal','#45484d'), red=M('paint','#a3262b'), ink=M('paint','#1c1d1f'), ring=M('steel','#b9bdc2'), P=[];
+  const g=M('paint','#8b8e90',{rough:.4,metal:.45}), dk=M('gunmetal','#45484d'), red=M('paint','#a3262b'), ink=M('paint','#1c1d1f'), ring=M('steel','#b9bdc2'), P=[];
   P.push(wcS(wcLV('Gövde',[-5.8,0, -5.8,2.15, -5.65,2.4, 5.1,2.4, 5.3,2.25, 5.4,1.9, 5.4,0],32,g),40));
   P.push(TR('Alt kenar',2.34,.13,0,-5.5,0,[90,0,0],g)); P.push(TR('Üst kenar',2.3,.12,0,5.18,0,[90,0,0],g));
   P.push(wcLV('Kırmızı bant',[.6,2.43, 2.1,2.43],32,red)); P.push(wcLV('Kırmızı çizgi',[-4.4,2.43, -4.1,2.43],32,red));
@@ -2930,7 +2929,7 @@ function defAUG(){
 }
 function defDecoy(){
   // decoy: light grey body with yellow bands, tapered speaker cap with a ring of grille slots, dark base cap, fuze kit
-  const body=M('aluminum','#a4a8ad',{rough:.38}), band=M('paint','#e3a12a'), dk=M('gunmetal','#3a3c40'), blk=M('polymer','#121315'), ring=M('steel','#b9bdc2'), P=[];
+  const body=M('paint','#a9adb1',{rough:.38,metal:.45}), band=M('paint','#e3a12a'), dk=M('gunmetal','#3a3c40'), blk=M('polymer','#121315'), ring=M('steel','#b9bdc2'), P=[];
   P.push(wcS(wcLV('Gövde',[-4.5,0, -4.5,1.85, -4.35,2.0, 3.0,2.0, 3.1,1.9, 3.1,0],28,body),40));
   P.push(wcS(wcLV('Alt kapak',[-5.3,0, -5.3,1.7, -5.1,1.95, -4.4,2.05, -4.3,0],28,dk),40));
   P.push(wcS(wcLV('Hoparlör kapağı',[3.0,0, 3.0,2.02, 3.3,2.02, 4.4,1.45, 4.6,1.2, 4.6,0],28,dk),40));
