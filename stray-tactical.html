@@ -13508,6 +13508,10 @@ function wbSights(P,par,rx,fx,top,o){ o=o||{}; const st=o.mat||M('parker','#1f20
   if(!o.noDot) P.push(SP('Arpacık noktası',.065,0,top+fh*.62,fx-fl/2+.025,dot,{parent:par})); }
 // stadium (rounded slot) polygon from x0 to x1 centred at height yc, height h (cm)
 function wbSlot(x0,x1,yc,h,n){ n=n||6; const r=h/2, o=[]; for(let i=0;i<=n;i++){ const a=-Math.PI/2+Math.PI*i/n; o.push(r5(x1-r+Math.cos(a)*r),r5(yc+Math.sin(a)*r)); } for(let i=0;i<=n;i++){ const a=Math.PI/2+Math.PI*i/n; o.push(r5(x0+r+Math.cos(a)*r),r5(yc+Math.sin(a)*r)); } return o; }
+// cubic Bézier samples (flat cm array) from p0 to p3; t0..t1 sub-range
+function wbBez(p0,c1,c2,p3,n,t0,t1){ t0=t0||0; t1=t1===undefined?1:t1; const o=[]; for(let i=0;i<=n;i++){ const t=t0+(t1-t0)*i/n, u=1-t; o.push(r5(u*u*u*p0[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*p3[0]),r5(u*u*u*p0[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*p3[1])); } return o; }
+function wbRev(a){ const o=[]; for(let i=a.length-2;i>=0;i-=2) o.push(a[i],a[i+1]); return o; }
+function wbCircle(cx,cy,r,n){ n=n||12; const o=[]; for(let i=0;i<n;i++){ const a=i/n*Math.PI*2; o.push(r5(cx+Math.cos(a)*r),r5(cy+Math.sin(a)*r)); } return o; }
 // polygon inset (cm flat array, counter-clockwise or clockwise), miter joins; used for raised grip panels
 function wbInset(a,d){ const n=a.length/2, p=[]; for(let i=0;i<n;i++) p.push([a[i*2],a[i*2+1]]); let ar=0; for(let i=0;i<n;i++){ const q=p[i], r=p[(i+1)%n]; ar+=q[0]*r[1]-r[0]*q[1]; } const s=ar>0?1:-1, o=[];
   for(let i=0;i<n;i++){ const a0=p[(i+n-1)%n], b=p[i], c=p[(i+1)%n]; let e1x=b[0]-a0[0], e1y=b[1]-a0[1], e2x=c[0]-b[0], e2y=c[1]-b[1]; const l1=Math.hypot(e1x,e1y)||1, l2=Math.hypot(e2x,e2y)||1; e1x/=l1; e1y/=l1; e2x/=l2; e2y/=l2;
@@ -13688,27 +13692,42 @@ function tpSkinsPage(G,I){ tpsEnsure(); const U=TPS.ui; if(!U.draft) U.draft=dee
   tpsPreview(); }
 function tpsDel(id){ TPS.list=TPS.list.filter(s=>s.id!==id); for(const k in TPS.equip) if(TPS.equip[k]===id){ delete TPS.equip[k]; tpsRefresh(k); } tpsSave(); TPS.ui.draft=deepClone(TPS.list[0]||tpsNew()); uiSound('back'); renderInventory(); }
 /* ---------------- KNIVES: karambit (curved claw + finger ring) and kelebek / butterfly (two handles swinging about the blade pins) ---------------- */
-function tpDefKarambit(){ const steel=M('steel','#cfd3d8'), handle=M('grip','#1b1c1f'), metal=M('gunmetal','#3c3f44'), P=[];
-  // profile x: + = finger-ring end (index finger side), - = blade end below the little finger (reverse grip)
-  P.push(EX('Sap',[3,-1.25, 5,-1.5, 7,-1.25, 9,-1.5, 10.4,-1.3, 11.3,-.85, 11.3,.85, 10.4,1.3, 7,1.45, 3,1.3],1.75,.35,handle));
-  P.push(TR('Parmak halkası',1.55,.42,0,0,12.75,[0,90,0],metal));
-  P.push(EX('Bıçak',[4.2,1.1, 1,1.05, -1.7,.45, -4.1,-.8, -6,-2.6, -7.3,-4.8, -7.8,-7.3, -6.7,-5.6, -5.3,-3.7, -3.5,-2.3, -1.3,-1.45, 1.3,-1.1, 4.2,-1],.42,.12,steel,{role:'blade',id:'kr_bl'}));
-  P.push(EX('Sırt',[1,1.05, -1.7,.45, -4.1,-.8, -4.3,-.45, -1.8,.8, 1,1.32],.5,.08,M('steel','#8f959d'),{parent:'kr_bl'}));
-  for(const z of [4.6,9.6]) P.push(CY('Perçin',.34,.34,1.95,0,0,z,[0,0,90],metal));
+function tpDefKarambit(){ const steel=M('steel','#c4c9cf',{rough:.24}), edge=M('steel','#e4e7eb',{rough:.08}), scale=M('grip','#18191b',{rough:.85}), metal=M('gunmetal','#3a3d42'), dk=M('polymer','#08080a'), P=[];
+  // profile x: + = finger-ring end (index finger side), - = blade end below the little finger (reverse grip). Steel tang between textured G10 scales, flat ring, claw blade with a ground inner edge and spine jimping
+  const H=[2.6,-1.2, 3.6,-1.55, 4.6,-1.25, 5.8,-1.6, 7.0,-1.3, 8.2,-1.62, 9.5,-1.35, 10.6,-1.05, 11.3,-.8, 11.3,.85, 10.2,1.35, 7.0,1.5, 4.0,1.42, 2.6,1.28];
+  P.push(EX('Sap gövdesi',wbInset(H,-.07),.44,.05,steel));
+  for(const s of [-1,1]) P.push(wbEX('Sap plakası',H,.6,.22,scale,{x:s*.52,sm:45}));
+  for(const z of [4.0,7.2,10.0]){ P.push(CY('Vida',.22,.22,1.7,0,.05,z,[0,0,90],metal,{sides:14})); P.push(CY('Vida yuvası',.1,.1,1.72,0,.05,z,[0,0,90],dk,{sides:6})); }
+  P.push(wbEX('Parmak halkası',wbCircle(12.75,0,1.95,28),.5,.14,metal,{holes:[wbCircle(12.75,0,1.15,24)],sm:45}));
+  const sp=[[4.2,1.1],[-3.0,1.5],[-7.3,-1.8],[-7.8,-7.3]], ed=[[-7.8,-7.3],[-6.0,-3.3],[-2.4,-1.25],[4.2,-1.0]];
+  P.push(EX('Bıçak',wbBez(sp[0],sp[1],sp[2],sp[3],14,0,.96).concat(wbBez([-7.45,-6.75],[-5.75,-3.05],[-2.25,-.92],[3.9,-.62],12)),.42,.04,steel,{role:'blade',id:'kr_bl'}));
+  P.push(EX('Bıçak ağzı',wbBez(ed[0],ed[1],ed[2],ed[3],14).concat(wbRev(wbBez([-7.6,-6.55],[-5.6,-2.95],[-2.1,-.6],[3.6,-.35],12)).slice(0)),.38,.24,edge,{parent:'kr_bl'}));
+  const j=[.4,1.0]; for(let i=0;i<8;i++){ const x=.5+i*.32; j.push(r5(x+.12),1.3, r5(x+.32),1.14); } j.push(3.2,1.0);
+  P.push(EX('Sırt tırtığı',j,.38,.02,steel,{parent:'kr_bl'}));
   return normalizeDef({ id:'karambit', name:'Karambit', builtin:1, tpKnife:'karambit', type:'knife', slot:'melee', parts:finalizeParts(P),
     stats:{dmg:40,head:1,rpm:120,mag:0,reserve:0,reload:0,auto:1,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:1.7,speed:1,sound:'knife',draw:1.0},
     view:{pos:[.13,-.115,-.36],rot:[58,24,-18]},
     anchors:{gripR:{p:[0,0,-.075],r:[-90,0,0]}, gripL:null, muzzle:[0,-.06,.07], eject:[0,0,0]} }); }
-function tpDefButterfly(){ const K=1.25, k=a=>a.map(v=>v*K), steel=M('steel','#d3d7dc'), al=M('aluminum','#2a2d33'), pin=M('steel','#9aa1a8'), P=[], sl=[[-2.2,.5, -5.6,.5, -5.6,.78, -2.2,.78],[-6.6,.5, -10,.5, -10,.78, -6.6,.78]].map(k);
-  // open pose: blade forward from pin A (y +.55, held "safe" handle side), handle B hangs from pin B (y -.55) on the blade tang; both handles point back into the fist
-  P.push(EX('Sap A',k([1,.08, 1,1.1, .3,1.18, -11.2,1.12, -11.9,.85, -11.9,.08]),1.1,.18,al,{holes:sl}));
-  P.push(CY('Pim A',.25,.25,1.35,0,.55*K,0,[0,0,90],pin));
+function tpDefButterfly(){ const K=1.25, k=a=>a.map(v=>r5(v*K)), ky=a=>a.map((v,i)=>r5(i%2?-v*K:v*K)), steel=M('steel','#c9cdd2',{rough:.22}), edge=M('steel','#e6e9ec',{rough:.08}), hs=M('steel','#9aa0a7',{rough:.36,metal:.9}),
+    pin=M('steel','#b3b9bf'), dk=M('polymer','#08080a'), P=[];
+  // open pose: blade forward from pin A (y +.55, held "safe" handle side), handle B hangs from pin B (y -.55) on the blade tang; both handles point back into the fist.
+  // skeletonised channel handles (two drilled side plates + spine, end cap and pivot block), pins with torx heads, latch on handle B, clip-point blade with a ground edge
+  const HA=[1,.08, 1,1.1, .3,1.18, -11.2,1.12, -11.9,.85, -11.9,.08], holes=[]; for(let i=0;i<11;i++){ const big=i%2===0; holes.push(wbCircle(-1.7-i*.88,.6,big?.26:.15,big?12:8)); }
+  const handle=(f,name,par)=>{ for(const s of [-1,1]) P.push(EX(name+' plakası',f(HA),.2,.04,hs,{x:s*.45,holes:holes.map(f),parent:par}));
+    P.push(EX(name+' sırtı',f([1,.86, 1,1.1, .3,1.18, -11.2,1.12, -11.9,.85, -11.9,.86, -11.2,.9, .3,.94]),.72,.03,hs,{parent:par}));
+    P.push(EX(name+' kapağı',f([-11.0,.08, -11.9,.08, -11.9,.88, -11.0,.95]),.72,.03,hs,{parent:par}));
+    P.push(EX(name+' pivot bloğu',f([1,.08, 1,.95, -.7,.95, -.7,.08]),.72,.03,hs,{parent:par})); };
+  handle(k,'Sap A',null);
+  P.push(CY('Pim A',.25,.25,1.35,0,.55*K,0,[0,0,90],pin)); P.push(CY('Pim başı',.33,.33,1.2,0,.55*K,0,[0,0,90],pin,{sides:16})); P.push(CY('Torx',.13,.13,1.22,0,.55*K,0,[0,0,90],dk,{sides:6}));
   P.push(EM('Bıçak ekseni',0,.55*K,0,{id:'bf_bp'}));
-  P.push(EX('Bıçak',k([-1,.7, 7.5,.72, 10.6,.1, 10.2,-.35, 8,-.72, -1,-.72]),.34,.1,steel,{role:'blade',parent:'bf_bp'}));
+  P.push(EX('Bıçak',k([-1.15,.5, -.9,.72, 6.8,.72, 8.4,.55, 10.4,.12, 9.6,-.2, 8.0,-.48, 1.0,-.5, .7,-.62, .4,-.72, -.9,-.72, -1.15,-.5]),.34,.03,steel,{role:'blade',parent:'bf_bp',id:'bf_bl'}));
+  P.push(EX('Bıçak ağzı',k([.9,-.38, 8.0,-.36, 9.7,-.15, 10.8,.05, 9.8,-.45, 8.0,-.72, .9,-.72]),.3,.13,edge,{parent:'bf_bl'}));
+  P.push(EX('Sırt yivi',k([7.0,.72, 8.4,.55, 10.4,.12, 8.6,.47]),.3,.1,edge,{parent:'bf_bl'}));
   P.push(CY('Pim B',.25,.25,1.35,0,-.55*K,0,[0,0,90],pin,{parent:'bf_bp'}));
   P.push(EM('Sap B ekseni',0,-.55*K,0,{id:'bf_hp',parent:'bf_bp'}));
-  P.push(EX('Sap B',k([1,-.08, -11.9,-.08, -11.9,-.85, -11.2,-1.12, .3,-1.18, 1,-1.1]),1.1,.18,al,{parent:'bf_hp',holes:sl.map(h=>h.map((v,i)=>i%2?-v:v))}));
-  P.push(BX('Mandal',.55,.5,1.8,0,-.9*K,-11.4*K,.1,pin,{parent:'bf_hp'}));
+  handle(ky,'Sap B','bf_hp');
+  P.push(CY('Pim başı',.33,.33,1.2,0,-.55*K,0,[0,0,90],pin,{sides:16,parent:'bf_hp'})); P.push(CY('Torx',.13,.13,1.22,0,-.55*K,0,[0,0,90],dk,{sides:6,parent:'bf_hp'}));
+  P.push(EX('Mandal',ky([-9.4,.12, -12.3,.12, -12.55,.32, -12.3,.5, -9.6,.36]),.5,.08,pin,{parent:'bf_hp'})); P.push(CY('Mandal pimi',.12,.12,1.24,0,-.68*K,-11.5*K,[0,0,90],pin,{sides:10,parent:'bf_hp'}));
   return normalizeDef({ id:'butterfly', name:'Kelebek Bıçak', builtin:1, tpKnife:'butterfly', type:'knife', slot:'melee', parts:finalizeParts(P),
     stats:{dmg:40,head:1,rpm:120,mag:0,reserve:0,reload:0,auto:1,spread:0,moveSpread:0,recoil:0,pattern:'none',pellets:1,scope:0,range:1.7,speed:1,sound:'knife',draw:1.05},
     view:{pos:[.14,-.13,-.36],rot:[18,12,-38]},
