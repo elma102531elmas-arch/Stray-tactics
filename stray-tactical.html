@@ -1939,35 +1939,7 @@ const hex2rgb=h=>{ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseI
 const TEX={};
 function genWorldTextures(){
   const S=TEX_SIZE();
-  // sandstone blocks: 2m tile, 5 rows of 0.4m, ~0.8m blocks, staggered
-  TEX.sandstone=fieldTextures(S,(u,v)=>{
-    const row=Math.floor(v*5), rv=v*5-row, off=(row%2)*.5+NZ.h(row,7)*.2;
-    const bx=(u*3+off), col=Math.floor(bx), cu=bx-col;
-    const edge=Math.min(cu,1-cu)*.667, ev=Math.min(rv,1-rv)*.4;
-    const m=Math.min(edge*2.4,ev*2.4);
-    const mortar=smooth(clamp(m/0.035,0,1));
-    const n=NZ.fbm(u*16,v*16,5,16,16), n2=NZ2.fbm(u*5,v*5,3,5,5);
-    const chip=clamp((n2-.62)*6,0,1)*mortar*.6;
-    return mortar*(.75+n*.25)-chip*.4+NZ.fbm(u*64,v*64,2,64,64)*.06;
-  },(u,v,h)=>{
-    const row=Math.floor(v*5), off=(row%2)*.5+NZ.h(row,7)*.2, col=Math.floor(u*3+off)%3;
-    const bt=NZ.h(col&255,row+31);
-    let c=mixc([196,160,112],[214,182,133],bt); c=mixc(c,[176,138,92],NZ2.fbm(u*8,v*8,4,8,8)*.6);
-    if(h<.45) c=mixc([150,124,92],c,clamp(h/.45,0,1));
-    const st=clamp((NZ.fbm(u*3,v*9,4,3,9)-.55)*3,0,1); c=mixc(c,[120,96,70],st*.35);
-    const k=.86+h*.18; return [c[0]*k,c[1]*k,c[2]*k];
-  },(u,v,h)=>clamp(.95-h*.12,0,1),2.2);
-  // plaster
-  TEX.plaster=fieldTextures(S,(u,v)=>{
-    const n=NZ.fbm(u*12,v*12,5,12,12), crack=Math.abs(NZ2.fbm(u*4,v*4,4,4,4)-.5)<.008?-.4:0;
-    const patch=clamp((NZ2.fbm(u*3+3,v*3,4,3,3)-.64)*8,0,1);
-    return n*.5+crack-patch*.25;
-  },(u,v,h)=>{
-    let c=mixc([222,206,176],[236,224,198],NZ.fbm(u*6,v*6,4,6,6));
-    const patch=clamp((NZ2.fbm(u*3+3,v*3,4,3,3)-.64)*8,0,1); c=mixc(c,[176,140,100],patch*.8);
-    const stain=clamp((NZ.fbm(u*2,v*7,4,2,7)-.5)*2.5,0,1); c=mixc(c,[160,138,104],stain*.45);
-    return c;
-  },(u,v,h)=>.88,1.4);
+  TEX.sandstone=mq5WorldTex('sandstone',S); TEX.plaster=mq5WorldTex('plaster',S);   // rebuilt generators (maps block, MQ5_WGEN)
   // floor stone slabs 4m tile, 4x4 slabs
   TEX.slabs=fieldTextures(S,(u,v)=>{
     const gx=u*4, gy=v*4, fx=gx-Math.floor(gx), fy=gy-Math.floor(gy);
@@ -1985,30 +1957,7 @@ function genWorldTextures(){
     let c=mixc([190,158,112],[214,184,138],h); c=mixc(c,[160,130,92],clamp((NZ2.fbm(u*3,v*3,4,3,3)-.45)*2,0,1)*.5);
     const peb=NZ.h(Math.floor(u*300)&255,Math.floor(v*300)&255)>.985?.6:0; return mixc(c,[120,104,86],peb);
   },(u,v,h)=>.97,1.2);
-  // concrete
-  TEX.concrete=fieldTextures(S,(u,v)=>{
-    const gx=u*2, fx=gx-Math.floor(gx), e=Math.min(fx,1-fx); const seam=e<.006?-.5:0;
-    return NZ.fbm(u*24,v*24,5,24,24)*.4+seam+(NZ2.h(Math.floor(u*400)&255,Math.floor(v*400)&255)>.97?-.25:0);
-  },(u,v,h)=>{
-    let c=mixc([128,128,124],[156,154,148],NZ.fbm(u*5,v*5,4,5,5)); c=mixc(c,[96,94,90],clamp((NZ2.fbm(u*3,v*3,5,3,3)-.5)*3,0,1)*.6);
-    return c;
-  },(u,v,h)=>.85+h*.1,1.2);
-  // corrugated painted metal (containers)
-  TEX.metalSheet=fieldTextures(S,(u,v)=>{
-    const r=Math.sin(u*TAU*10); return r*.5+.5+NZ.fbm(u*30,v*30,3,30,30)*.08;
-  },(u,v,h)=>{
-    let c=[54,92,120]; const rust=clamp((NZ.fbm(u*4,v*12,5,4,12)-.5)*3+(1-v)*.3*NZ2.fbm(u*20,v*2,3,20,2),0,1);
-    c=mixc(c,[120,72,40],rust*.85); c=mixc(c,[40,40,40],NZ2.fbm(u*8,v*8,3,8,8)*.2); return c;
-  },(u,v,h)=>.55+clamp((NZ.fbm(u*4,v*12,5,4,12)-.5)*3,0,1)*.4,3);
-  // crate (per-face UV): frame + planks
-  TEX.crate=fieldTextures(S,(u,v)=>{
-    const fr=Math.min(u,1-u,v,1-v)<.1; const diag=Math.abs(u-v)<.06||Math.abs(u-(1-v))<.06;
-    const plank=(u*5)%1; const pg=Math.min(plank,1-plank)<.03;
-    let h=fr||diag?.85:(pg?.2:.6); return h+NZ.fbm(u*3,v*40,4,3,40)*.12;
-  },(u,v,h)=>{
-    let c=mixc([120,84,48],[156,112,66],NZ.fbm(u*3,v*30,4,3,30)); if(h>.8) c=mixc(c,[100,70,40],.4);
-    c=mixc(c,[70,52,34],NZ2.fbm(u*6,v*6,4,6,6)*.4); return c;
-  },(u,v,h)=>.75,2);
+  TEX.concrete=mq5WorldTex('concrete',S); TEX.metalSheet=mq5WorldTex('metalSheet',S); TEX.crate=mq5WorldTex('crate',S);
   // wooden door planks with iron bands
   TEX.door=fieldTextures(S,(u,v)=>{
     const p=(u*6)%1, g=Math.min(p,1-p)<.04; const band=Math.abs(v-.2)<.035||Math.abs(v-.8)<.035;
@@ -2961,7 +2910,7 @@ const MAPMAT={
   metal:{tex:'metalSheet',tile:2.6,surf:'metal',metal:.3},
   crate:{tex:'crate',uv:'face',surf:'wood'},
   door:{tex:'door',uv:'face',surf:'wood'},
-  wood:{tex:'door',tile:1.4,surf:'wood'},
+  wood:{tex:'planks',tile:1.6,surf:'wood',tint:'#d8b48c'},
   cloth:{tex:'cloth',uv:'face',surf:'cloth',double:true},
   sandbag:{tex:'sand',tile:.8,surf:'sand',tint:'#b7a58a'},
   darkmetal:{color:'#36322e',surf:'metal',rough:.55,metal:.6},
@@ -3089,7 +3038,7 @@ function palmGroup(h,lean,seed){
   const curve=new THREE.CatmullRomCurve3(pts); const trunkG=new THREE.TubeGeometry(curve,24,.2,9); const tp=trunkG.attributes.position;
   for(let i=0;i<tp.count;i++){ const y=tp.getY(i); const k=1-.25*(y/h)+.06*Math.sin(y*14); const c=curve.getPointAt(clamp(y/h,0,1)); tp.setX(i,c.x+(tp.getX(i)-c.x)*k); tp.setZ(i,c.z+(tp.getZ(i)-c.z)*k); }
   trunkG.computeVertexNormals(); applyBoxUV(trunkG,IDENT);
-  const trunk=new THREE.Mesh(trunkG,getMapMat('wood')); trunk.castShadow=true; trunk.receiveShadow=true; grp.add(trunk);
+  const trunk=new THREE.Mesh(trunkG,getMapMat(MAPMAT.bark?'bark':'wood')); trunk.castShadow=true; trunk.receiveShadow=true; grp.add(trunk);
   const top=curve.getPointAt(1);
   _leafMat=_leafMat||new THREE.MeshStandardMaterial({map:TEX.leaf,alphaTest:.45,side:THREE.DoubleSide,roughness:.8});
   for(let i=0;i<10;i++){ const L=2.6+R()*.8; const g=new THREE.PlaneGeometry(1.1,L,2,8); g.translate(0,-L/2,0); g.rotateX(Math.PI/2);
@@ -10675,6 +10624,45 @@ function mq5Surf(m,D,key){ mq5SurfTex(); const surf=D.surf||'stone', flat=!D.tex
 function mq5TexSheet(keys,sz,cols){ sz=sz||192; keys=keys||Object.keys(TEX).filter(k=>TEX[k]&&TEX[k].map); cols=cols||6; const rows=Math.ceil(keys.length/cols), cv=document.createElement('canvas'); cv.width=cols*sz; cv.height=rows*(sz+14); const x=cv.getContext('2d'); x.fillStyle='#111'; x.fillRect(0,0,cv.width,cv.height); x.font='11px monospace'; x.fillStyle='#ff0';
   keys.forEach((k,i)=>{ const T=TEX[k]||mqTex(k), c=T&&T.map&&T.map.source.data; if(!c) return; const X=(i%cols)*sz, Y=Math.floor(i/cols)*(sz+14); x.drawImage(c,X,Y+14,sz,sz); x.fillText(k+' '+c.width,X+2,Y+11); }); return cv.toDataURL('image/jpeg',.9); }
 gameExport({mq5TexSheet});
+
+/* ---------- mq5: rebuilt base world textures (sandstone, plaster, concrete, container metal, crate) — one pass over the shared noise fields, crisper detail,
+   per-block / per-plank variation, no large repeating stain blots (the large scale variation now comes from the world-space macro shader) ---------- */
+const MQ5_WGEN={
+  // sandstone ashlar (tile 2 m: 5 courses of 40 cm, 3 blocks per course): chipped arrises, bedding layers, pits, per-block tone
+  sandstone:F=>(u,v,o,x,y)=>{ const row=Math.floor(v*5), rv=v*5-row, off=(row%2)*.5+mqH(row,7)*.2, bx=u*3+off, col=Math.floor(bx), cu=bx-col, cid=((col%3)+3)%3;
+    const d=Math.min(Math.min(cu,1-cu)*.667,Math.min(rv,1-rv)*.4), a=mqL(F.A,u*2,v*2), c=mqL(F.C,u*4,v*4), g=mqH2(x,y), ch=clamp((mqL(F.C,u*3+.5,v*3)-.52)*3,0,1);
+    const face=smooth(clamp((d-.005-ch*.007)/.011,0,1)), pit=clamp((c-.7)*7,0,1)*face, lay=Math.sin((v*40+mqL(F.A,u*3,v*3)*2.2)*TAU)*.5+.5, t=mqH(cid*7+row*3,row+31), t2=mqH2(cid*5+row,row*3+7);
+    o[0]=.18+face*(.62+a*.1+(g-.5)*.05+lay*.03-pit*.25);
+    let r=198+t*26-t2*10, gg=164+t*24-t2*8, b=118+t*22-t2*4; const k=(.9+a*.14)*(.95+(g-.5)*.07)*(.97+lay*.05)*(1-pit*.22)*(.86+.14*face);
+    r*=k; gg*=k; b*=k; const m=1-face; r+=(150-r)*m*.85; gg+=(128-gg)*m*.85; b+=(98-b)*m*.85; o[1]=r; o[2]=gg; o[3]=b; o[4]=.9-face*.05+pit*.05; },
+  // lime plaster (tile 3 m): sand grain, trowel waves, faint hairline cracks, soft discolouration and vertical weathering, a few repaired patches
+  plaster:F=>(u,v,o,x,y)=>{ const a=mqL(F.A,u*2,v*2), b=mqL(F.B,u,v), c=mqL(F.C,u*4,v*4), st=mqL(F.D,u*2,v), g=mqH2(x,y), tw=mqL(F.A,u*3+v*2,v*3);
+    mqWorley(u,v,6,.9,41); const ce=MQW.d2-MQW.d1, crack=ce<.006&&b>.64?(1-ce/.006)*clamp((b-.64)*8,0,1):0, patch=smooth(clamp((mqL(F.B,u*2,v*2)-.72)*9,0,1));
+    o[0]=.6+tw*.12+(c-.5)*.16+(g-.5)*.08-crack*.3+patch*.05;
+    const k=(.94+a*.08)*(.96+(g-.5)*.06)*(1-crack*.28); let r=232*k, gg=220*k, bl=196*k; const s=clamp((st-.52)*2.2,0,1)*.16+clamp((b-.6)*2.5,0,1)*.08;
+    r+=(186-r)*s; gg+=(168-gg)*s; bl+=(140-bl)*s; r+=(244-r)*patch*.5; gg+=(238-gg)*patch*.5; bl+=(222-bl)*patch*.5; o[1]=r; o[2]=gg; o[3]=bl; o[4]=.86+(g-.5)*.06-patch*.06; },
+  // cast concrete (tile 4 m): fine aggregate, pores, slab joints every 2 m, damp patches, faint rain streaks
+  concrete:F=>(u,v,o,x,y)=>{ const a=mqL(F.A,u*2,v*2), b=mqL(F.B,u,v), c=mqL(F.C,u*4,v*4), st=mqL(F.D,u*2,v), g=mqH2(x,y), g2=mqH(x*3+1,y*5+2), pu=(u*2)%1;
+    const seam=Math.min(pu,1-pu)<.003, agg=g2>.9?(g2-.9)*10:0, pore=g>.986, damp=clamp((b-.6)*4,0,1)*.2, s=clamp((st-.55)*2.4,0,1)*.12;
+    o[0]=.55+a*.1+(c-.5)*.16+agg*.04-(pore?.3:0)-(seam?.35:0);
+    const k=(.88+a*.16)*(.95+(c-.5)*.1)*(1-damp)*(1-s); let r=152*k, gg=151*k, bl=146*k; if(agg){ const q=mqH2(x+5,y)>.5?1.12:.84; r*=q; gg*=q; bl*=q; } if(pore||seam){ r*=.55; gg*=.55; bl*=.55; }
+    o[1]=r; o[2]=gg; o[3]=bl; o[4]=.86+damp*.3-agg*.04; },
+  // corrugated, painted container steel (tile 2.6 m, 10 ribs): rib shading, paint wear on the crests, rust creeping up from the bottom, scuffs
+  metalSheet:F=>(u,v,o,x,y)=>{ const rb=Math.sin(u*TAU*10), a=mqL(F.A,u*2,v*2), b=mqL(F.B,u,v), st=mqL(F.D,u*2,v), c=mqL(F.C,u*4,v*4), g=mqH2(x,y);
+    const crest=clamp((rb-.75)*4,0,1), rs=clamp((b*1.1+st*.7-1.08)*3.2+clamp(.2-v,0,1)*4*a,0,1), wear=crest*clamp((a-.5)*2.5,0,1)*.35+crest*.08, scuff=clamp((mqL(F.D,v*2,u)-.7)*5,0,1)*.4;
+    o[0]=rb*.5+.5+a*.04-rs*g*.06;
+    const k=(.9+a*.14)*(.92+rb*.07)*(.97+(g-.5)*.05); let r=50*k, gg=88*k, bl=118*k; r+=(150-r)*wear; gg+=(150-gg)*wear; bl+=(146-bl)*wear; r+=(96-r)*scuff; gg+=(104-gg)*scuff; bl+=(108-bl)*scuff;
+    r+=(124+a*30-r)*rs; gg+=(70+a*18-gg)*rs; bl+=(40+a*10-bl)*rs; o[1]=r; o[2]=gg; o[3]=bl; o[4]=.5+rs*.4+scuff*.1-wear*.12; },
+  // wooden crate face (0..1 per face): frame, diagonal brace, 5 boards with grain, nail heads, edge wear, dirt at the bottom
+  crate:F=>(u,v,o,x,y)=>{ const e=Math.min(u,1-u,v,1-v), fr=e<.1, dg=Math.abs(u-v)<.055||Math.abs(u-(1-v))<.055, pi=Math.floor(u*5), pl=u*5-pi, pg=Math.min(pl,1-pl)<.02, g=mqH2(x,y);
+    const horiz=fr&&(v<.1||v>.9), gr=horiz?mqL(F.D,v*2+.3,u):mqL(F.D,u*2+pi*.37,v), tone=fr||dg?mqH(7,horiz?1:2):mqH(pi*5+3,9), nail=(fr&&Math.hypot(((u*10)%1)-.5,((v*10)%1)-.5)<.12&&(e<.06))?1:0;
+    const raised=fr||dg, ew=raised?clamp(1-Math.min(Math.abs(e-.1),dg?Math.min(Math.abs(Math.abs(u-v)-.055),Math.abs(Math.abs(u-(1-v))-.055)):9)/.012,0,1):0;
+    o[0]=raised?.85:pg?.18:.6; o[0]+=gr*.1+(g-.5)*.03-nail*.1;
+    let r=148+tone*30, gg=104+tone*22, b=62+tone*14; const k=(.72+gr*.5)*(.95+(g-.5)*.08)*(raised?.9:1)*(pg?.45:1)*(.82+.18*clamp(v*4,0,1));
+    r*=k; gg*=k; b*=k; r+=(176-r)*ew*.35; gg+=(140-gg)*ew*.35; b+=(96-b)*ew*.35; if(nail){ r=70; gg=66; b=62; } o[1]=r; o[2]=gg; o[3]=b; o[4]=nail?.45:.78+(g-.5)*.06; }
+};
+const MQ5_WNS={sandstone:2.4,plaster:1.3,concrete:1.3,metalSheet:3,crate:2};
+function mq5WorldTex(name,S){ const t0=performance.now(), T=mqBuild(S,MQ5_WGEN[name](mqFields()),MQ5_WNS[name]); MQT.ms+=performance.now()-t0; return T; }
 /* stacked crates / containers sit exactly on the one below (the upper one's height was authored for a crate standing on y=0) */
 function mq5Settle(m){ const O=m.objects||[], top=o=>o.p[1]+o.s[1]+(o.t==='container'?.08:0);
   for(const o of O){ if((o.t!=='crate'&&o.t!=='container')||!(o.p[1]>0)) continue; let best=null;
