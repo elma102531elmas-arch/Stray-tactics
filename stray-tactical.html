@@ -13715,7 +13715,7 @@ function tpsScratch(S){ const c=document.createElement('canvas'); c.width=c.heig
 // one shared wear texture: R chip noise (domain-warped, a few mm), G scratches, B large patches, A grime; each skin reads it rotated / shifted by its seed
 function tpsWearTex(){ if(TPS.wearTex) return TPS.wearTex; const S=512, D=new Uint8Array(S*S*4), sc=tpsScratch(S);
   for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const u=x/S, v=y/S, i=(y*S+x)*4, wx=NZ.fbm(u*5,v*5,3,5,5), wy=NZ2.fbm(u*5+9,v*5,3,5,5);
-    const ch=NZ.fbm(u*28+wx*2.6,v*28+wy*2.6,4,28,28)*.78+NZ2.vn(u*112,v*112,112,112)*.22;
+    const ch=NZ.fbm(u*20+wx*2.4,v*20+wy*2.4,3,20,20)*.85+NZ2.vn(u*80,v*80,80,80)*.15;
     D[i]=clamp((ch-.5)*1.9+.5,0,1)*255; D[i+1]=sc[i]; D[i+2]=clamp((NZ2.fbm(u*4+3,v*4+wx*.8,4,4,4)-.5)*1.8+.5,0,1)*255; D[i+3]=clamp((NZ.fbm(u*7+wy,v*7+13,4,7,7)-.5)*1.8+.5,0,1)*255; }
   const t=new THREE.DataTexture(D,S,S,THREE.RGBAFormat); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.magFilter=THREE.LinearFilter; t.minFilter=THREE.LinearMipmapLinearFilter; t.generateMipmaps=true; t.anisotropy=4; t.needsUpdate=true;
   return TPS.wearTex=t; }
@@ -13749,9 +13749,9 @@ const TPS_FS_HEAD='uniform sampler2D uTpWT; uniform float uTpF; uniform vec4 uTp
 // m = wear mask (fixed per weapon + seed), th(float) = threshold: paint goes where m > th; primer at the chip rim, bare metal / polymer inside
 const TPS_FS=`#include <metalnessmap_fragment>
 { float f=uTpF; vec4 tw=texture2D(uTpWT,vTpUv), tb=texture2D(uTpWT,vTpUv*.23+vec2(.31,.67));
-  float ed=min(min(vTpE.x,vTpE.y),vTpE.z), eT=exp(-ed*210.0);
-  float m=.56*eT+.36*vTpW+.34*(tw.r-.5)+.3*(tb.b-.5);
-  float th=1.2-1.08*sqrt(f)+(1.0-uTpK.x)*.42;
+  float ed=min(min(vTpE.x,vTpE.y),vTpE.z), eT=exp(-ed*120.0);
+  float m=.7*eT+.45*vTpW+.3*(tw.r-.5)+.28*(tb.b-.5);
+  float th=1.16-pow(f,.55)+(1.0-uTpK.x)*.42;
   float chip=uTpK.x>.01?smoothstep(th,th+.016,m):0.0, core=smoothstep(th+.035,th+.11,m);
   float sth=1.0-pow(f,1.15)*1.15*uTpK.y-.08*vTpW, scr=smoothstep(sth,sth+.035,tw.g)*step(.03,tw.g)*clamp(f*7.0,.0,1.0);
   float pol=uTpK.w*smoothstep(.25,.85,(.65*eT+.45*vTpW+.25*(tw.r-.5))*(.45+f*1.2));
