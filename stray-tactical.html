@@ -13749,8 +13749,8 @@ const TPS_FS_HEAD='uniform sampler2D uTpWT; uniform float uTpF; uniform vec4 uTp
 // m = wear mask (fixed per weapon + seed), th(float) = threshold: paint goes where m > th; primer at the chip rim, bare metal / polymer inside
 const TPS_FS=`#include <metalnessmap_fragment>
 { float f=uTpF; vec4 tw=texture2D(uTpWT,vTpUv), tb=texture2D(uTpWT,vTpUv*.23+vec2(.31,.67));
-  float ed=min(min(vTpE.x,vTpE.y),vTpE.z), eT=exp(-ed*120.0);
-  float m=.7*eT+.45*vTpW+.3*(tw.r-.5)+.28*(tb.b-.5);
+  float ed=min(min(vTpE.x,vTpE.y),vTpE.z), eT=exp(-ed*(150.0-75.0*f));
+  float m=.7*eT+.62*vTpW+.3*(tw.r-.5)+.28*(tb.b-.5);
   float th=1.16-pow(f,.55)+(1.0-uTpK.x)*.42;
   float chip=uTpK.x>.01?smoothstep(th,th+.016,m):0.0, core=smoothstep(th+.035,th+.11,m);
   float sth=1.0-pow(f,1.15)*1.15*uTpK.y-.08*vTpW, scr=smoothstep(sth,sth+.035,tw.g)*step(.03,tw.g)*clamp(f*7.0,.0,1.0);
