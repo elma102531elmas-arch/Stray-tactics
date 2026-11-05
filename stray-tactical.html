@@ -14951,7 +14951,7 @@ function c6ZMats(zt){ const L=C6_ZLOOK[zt], sd=zt.charCodeAt(0)*31, D=THREE.Doub
     eye:new THREE.MeshStandardMaterial({color:'#000000',emissive:L.eye,emissiveIntensity:zt==='b'?3.2:1.8,roughness:.3}), mouth:new THREE.MeshBasicMaterial({color:'#170806'}),
     glow:new THREE.MeshStandardMaterial({color:L.glow||'#ffffff',emissive:L.glow||'#000000',emissiveIntensity:1.4,roughness:.4}) };
   B.glove=skin; B.gpad=B.inner;
-  return {B,K:{ shirt:['shirt'], pants:['pants'], skin:['skin'], inner:['inner'], eye:['eye'], mouth:['mouth'], glow:['glow'], tooth:['fab','#c9bf9a'], bone:['fab',L.bone||'#cfc6ae'],
+  return {B,K:{ shirt:['shirt'], pants:['pants'], skin:['skin'], inner:['inner'], eye:['eye'], mouth:['mouth'], glow:['glow'], tooth:['fab','#c9bf9a'], bone:['fab',L.bone||'#cfc6ae'], rib:['fab','#9c8f76'],
     belt:['fab','#2a241c'], metal:['hard','#2a2a2a'], boot:['fab',L.boot], sole:['hard','#141210'], strap:['fab','#2a241c'], plate:['hard',L.plate||'#2b2f33'], hair:['hard','#1b1611'] }}; }
 // extra zombie parts: skin under the torn clothes, ears, open jaw + teeth, hair tufts, per type: armour scraps (tank), pustules (exploder), bone spikes + ribs (boss)
 function c6ZParts(zt,ad,head){ const sk=(P,a,t)=>{ P[0]*=.94; P[2]*=.94; };
@@ -14966,7 +14966,7 @@ function c6ZParts(zt,ad,head){ const sk=(P,a,t)=>{ P[0]*=.94; P[2]*=.94; };
   if(zt==='e'){ const R=mulberry(91); for(let i=0;i<16;i++){ const a=R()*TAU, y=.04+R()*.4, r=.006+R()*.016; ad('spine','glow',c6Sph(r,r,r,Math.sin(a)*.17,y,-Math.cos(a)*.12,8,6)); }
     for(let i=0;i<4;i++){ const a=R()*TAU, r=.006+R()*.01; ad('head','glow',c6Sph(r,r,r,Math.sin(a)*.08,.06+R()*.12,-Math.cos(a)*.085,7,5)); }
     for(let i=0;i<5;i++){ const r=.008+R()*.01; ad('up','glow',c6Sph(r,r,r,.05,-.05-R()*.2,(R()-.5)*.06,7,5)); } }
-  if(zt==='b'){ for(let i=0;i<5;i++){ const y=.18+i*.06; ad('spine','bone',c6Strap([[-.12,y,-.105],[-.06,y+.01,-.13],[0,y+.012,-.135],[.06,y+.01,-.13],[.12,y,-.105]],.014,.012,[0,y,0])); }
+  if(zt==='b'){ for(let i=0;i<4;i++){ const y=.2+i*.065; for(const s of [-1,1]) ad('spine','rib',c6Strap([[s*.015,y+.012,-.136],[s*.06,y+.008,-.13],[s*.11,y-.004,-.112],[s*.15,y-.02,-.085]],.011,.008,[0,y,0])); } ad('spine','rib',c6Box(.022,.24,.012,.004,0,.29,-.137));
     for(const s of [-1,1]) for(let i=0;i<3;i++) ad('spine','bone',c6X(new THREE.ConeGeometry(.022-i*.004,.11-i*.02,8),s*(.13+i*.035),.5-i*.04,.04+i*.03,-.5,0,-s*(.7+i*.2)));
     for(let i=0;i<5;i++) ad('spine','bone',c6X(new THREE.ConeGeometry(.018,.08,8),0,.12+i*.08,.12,1.25,0,0));
     for(const s of [-1,1]) ad('head','bone',c6X(new THREE.ConeGeometry(.016,.09,8),s*.055,.215,.01,-.35,0,-s*.55)); } }
@@ -15480,12 +15480,16 @@ class ZmMate extends TeamBot{
   update(dt){ const C=this.char;
     if(this.zmDown){ this.vel.set(0,0,0); zmDownPose(C,dt,0); zmMateFx(this); return; }
     if(!this.alive){ C.update(dt); zmMateFx(this); return; }
-    const R=this.revGoal=zmReviveGoal(this); super.update(dt);
+    const R=this.revGoal=zmReviveGoal(this); super.update(dt); zmKite(this,dt);
     if(R&&!this.target&&R.zmDown&&Math.hypot(R.pos.x-this.pos.x,R.pos.z-this.pos.z)<1.5&&Math.abs(R.pos.y-this.pos.y)<1.3){ this.revT=(this.revT||0)+dt; if(this.revT>=3){ this.revT=0; zmRevive(R,this); } } else this.revT=0;
     zmMateFx(this); } }
 class ZmNetMate extends NetAgent{
   constructor(look,name,nid,human){ super(look,name,nid,human); this.team='CT'; this.mate=true; }
   update(dt){ super.update(dt); if(this.zmDown&&this.alive) zmDownPose(this.char,dt,this.spd); zmMateFx(this); } }
+// bot mates back off from zombies inside lunge range while they keep shooting (pistol start: no trading melee hits)
+function zmKite(b,dt){ if(!b.alive||b.zmDown||!b.onGround) return; let ax=0, az=0;
+  for(const z of bots){ if(!z.zombie||!z.alive||Math.abs(z.pos.y-b.pos.y)>1.5) continue; const dx=b.pos.x-z.pos.x, dz=b.pos.z-z.pos.z, d=Math.hypot(dx,dz), r=(z.reach||1.5)+2.2; if(d<r&&d>.01){ const k=(r-d)/r; ax+=dx/d*k; az+=dz/d*k; } }
+  const L=Math.hypot(ax,az); if(L<.05) return; const sp=Math.min(1,L)*3.4, v=b.vel, sx=v.x, sy=v.y, sz=v.z; v.set(ax/L*sp,0,az/L*sp); moveBody(b,dt); v.set(sx,sy,sz); }
 function zmMateFx(a){ const C=a.char; if(!C||!C.tag) return; const st=!a.alive?0:a.zmDown?2:1;
   if(a._tagSt!==st){ a._tagSt=st; if(st===2) C.setTag('▼ '+a.name,'#ff5a4d'); else if(st===1) C.setTag(a.name,'#78b4ff'); }
   C.tag.visible=st>0&&match.state!=='over'; C.tag.position.y=st===2?1.0:2.12; }
@@ -15516,9 +15520,9 @@ function zmFlow(){ const nav=WORLD.active&&WORLD.active.nav; if(!nav) return; co
 function zmStep(z){ const nav=WORLD.active&&WORLD.active.nav, F=ZM.flow; if(!nav||!F) return null; const n=navNearest(nav,z.pos.x,z.pos.z,z.pos.y); if(n<0||F[n]>=1e8) return null;
   let b1=-1, v1=F[n]; navNbrs(nav,n,m=>{ if(F[m]<v1){ v1=F[m]; b1=m; } }); if(b1<0) return null;
   let b2=-1, v2=F[b1]; navNbrs(nav,b1,m=>{ if(F[m]<v2){ v2=F[m]; b2=m; } }); const p2=b2>=0?navPos(nav,b2):null; return p2&&navClear(nav,z.pos,p2)?p2:navPos(nav,b1); }
-// stuck watchdog: a zombie that has not closed in on anyone for 9 s and is out of every survivor's sight is moved to a fresh spawn point (no wave stalls on an unreachable zombie)
+// stuck watchdog: a zombie that has not closed in on anyone for 7 s and is out of every survivor's sight is moved to a fresh spawn point (no wave stalls on an unreachable zombie)
 function zmProgress(z,G,dt){ const d=G?Math.hypot(G.pos.x-z.pos.x,G.pos.z-z.pos.z):1e9; if(G!==z._pg){ z._pg=G; z.bestD=d; z.progT=0; }
-  if(d<z.bestD-1||d<z.reach+.8||z.atkT>=0){ z.bestD=Math.min(z.bestD,d); z.progT=0; return; } z.progT=(z.progT||0)+dt; if(z.progT<9) return; z.progT=6;
+  if(d<z.bestD-1||d<z.reach+.8||z.atkT>=0){ z.bestD=Math.min(z.bestD,d); z.progT=0; return; } z.progT=(z.progT||0)+dt; if(z.progT<7) return; z.progT=5;
   for(const a of zmSurv()){ if(!a.alive) continue; const e=agentEye(a,_zv1), t=_zv2.set(z.pos.x,z.pos.y+1.2,z.pos.z).sub(e), L=t.length(); if(L<50&&!rayWorld(e,t.multiplyScalar(1/L),L-.3)) return; }
   const p=zmSpawnPoint(); if(!p) return; z.pos.copy(p); z.vel.set(0,0,0); z.wp=null; z.char._lpOk=false; z.bestD=1e9; z.progT=0; }
 function zmLos(z,G){ const e=_zv1.set(z.pos.x,z.pos.y+1.5,z.pos.z), t=agentChest(G,_zv2), d=t.sub(e), L=d.length(); if(L<.1) return true; d.multiplyScalar(1/L); return !rayWorld(e,d,L-.2); }
@@ -15558,7 +15562,7 @@ function zmDown(v,killer){ if(v.zmDown) return; v.alive=true; v.hp=zmDownHp(ZM.b
   if(v===player) zmLocalDown(true,ZM.bleed); else if(v.char) v.char.gunRoot.visible=false;
   zmSend({k:'down',id:netIdOf(v),bt:ZM.bleed}); if(!zmSurv().some(a=>a.alive&&!a.zmDown)) zmGameOver(); }
 function zmLocalDown(on,bt){ const P=player, was=!!P.zmDown; P.zmDown=!!on; P.crouch=!!on; $('zmDownOv')&&$('zmDownOv').classList.toggle('hidden',!on);
-  if(on&&!was){ firing=false; setScope(0); if(buyOpen) toggleBuy(false); P.zmBleedT=bt||ZM.bleed; P.spawnProt=1e15; if(P.slots.secondary&&P.cur!=='secondary'){ P.last=P.cur; P.cur='secondary'; equipCurrent(); } tpSnd('heart',{vol:.8}); showBanner('YERE DÜŞTÜN','Takım arkadaşın seni kaldırabilir',1800,'#ff6b78'); }
+  if(on&&!was){ firing=false; setScope(0); if(buyOpen) toggleBuy(false); P.zmBleedT=bt||ZM.bleed; P.spawnProt=1e15; if(P.slots.secondary&&P.cur!=='secondary'){ P.last=P.cur; P.cur='secondary'; equipCurrent(); } tpSnd('heart',{vol:.8}); showBanner('YERE DÜŞTÜN','Takım arkadaşın seni kaldırabilir',1800,'#ff6b78'); P.hp=zmDownHp(P.zmBleedT); zmHpTick(); }
   if(!on&&was){ P.spawnProt=performance.now()+1500; } }
 function zmDownHp(bt){ return Math.max(1,Math.ceil(25*clamp(bt/ZM.bleed,0,1))); }   // downed: 25 -> 1 with the bleed-out timer (the HUD shows it red)
 function zmHpTick(){ const v=Math.round(player.hp); if(zmHpTick.v!==v){ zmHpTick.v=v; updateHUD(); } }
