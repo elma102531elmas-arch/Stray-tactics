@@ -6459,7 +6459,7 @@ function kf(t,keys){ if(t<=keys[0][0]) return keys[0][1];
 const SH_R=new THREE.Vector3(.24,-.36,.2), SH_L=new THREE.Vector3(-.2,-.34,.06);
 /* a rig = arms + weapon + animation state; the game uses one (VM), the editor's Game view uses another */
 function createRig(light){
-  const R={ rig:new THREE.Group(), gunRoot:new THREE.Group(), w:null, def:null, armR:makeArm(false), armL:makeArm(true), light:light||null,
+  const R={ rig:new THREE.Group(), gunRoot:new THREE.Group(), w:null, def:null, armR:hvMakeArm(false), armL:hvMakeArm(true), light:light||null,
     drawT:0, drawDur:.8, reloadT:0, reloadDur:0, inspectT:-1, inspectDur:3.4, knifeT:-1, knifeKind:0,
     kickZ:new Spring(260,26), kickX:new Spring(220,22), kickY:new Spring(200,22), kickR:new Spring(200,20),
     sway:new THREE.Vector2(), swayT:new THREE.Vector2(), bob:0, slideT:1, rechamberT:-1, hammerT:1, flashT:0, trigHeld:0, fireHeld:false,
@@ -6516,6 +6516,7 @@ function updateRig(R,dt,mv){
   if(!R.w) return;
   if(R.hol){ R.holT+=dt; if(R.holT>=R.holDur||R.throwT>=0) anHolsterFlush(R); }
   R.time+=dt; const D=R.def, T=D.type, w=R.w;
+  if(R.armR.v2){ const lk=R===VM&&player.team==='T'?'T':'CT'; hvSetLook(R.armR,lk); hvSetLook(R.armL,lk); }   // CT / T gloves and sleeves
   if(R.drawT>0) R.drawT=Math.max(0,R.drawT-dt);
   if(R.flashT>0){ R.flashT-=dt; if(R.flashT<=0) R.flash.visible=false; }
   R.slideT=Math.min(1,R.slideT+dt/.1); R.hammerT=Math.min(1,R.hammerT+dt/.14);
@@ -6573,7 +6574,7 @@ function updateRig(R,dt,mv){
   if(R.hR.k>0){ _a1.copy(A.gripR.p).lerp(R.hR.p,R.hR.k); _aq.copy(A.gripR.q).slerp(R.hR.q,R.hR.k); } else { _a1.copy(A.gripR.p); _aq.copy(A.gripR.q); }
   _hp.copy(_a1).applyMatrix4(R.gunRoot.matrix); _hq.copy(_gq).multiply(_aq);
   if(R.hRr.k>0){ _hp.lerp(R.hRr.p,R.hRr.k); _hq.slerp(R.hRr.q,R.hRr.k); }
-  anHandSafe(R,R.armR,_hp,_hq); poseArm(R.armR,SH_R,_hp,_hq,POLE_R);
+  anHandSafe(R,R.armR,_hp,_hq); (R.armR.v2?hvPoseArm:poseArm)(R.armR,SH_R,_hp,_hq,POLE_R);
   R.pointer.visible=R.typeK>.3; R.pliers.visible=R.hRr.k>.5&&R.dfK>.5&&R===VM&&!!player.kit;
   // left hand: support grip / reload path / suppressor / overrides
   const showL=!!A.gripL||R.armLvis||R.hL.k>.01; R.armL.group.visible=showL;
@@ -6584,7 +6585,7 @@ function updateRig(R,dt,mv){
       _hp.copy(_a2).applyMatrix4(R.gunRoot.matrix); _hq.copy(_gq).multiply(lq); }
     else { anV('restL',_hp); anQ('rest',_hq); if(R.hL.k>0){ _a2.copy(R.hL.p).applyMatrix4(R.gunRoot.matrix); _aq.copy(_gq).multiply(R.hL.q); _hp.lerp(_a2,R.hL.k); _hq.slerp(_aq,R.hL.k); } }
     if(R.hLr.k>0){ _hp.lerp(R.hLr.p,R.hLr.k); _hq.slerp(R.hLr.q,R.hLr.k); }
-    anHandSafe(R,R.armL,_hp,_hq); poseArm(R.armL,SH_L,_hp,_hq,POLE_L);
+    anHandSafe(R,R.armL,_hp,_hq); (R.armL.v2?hvPoseArm:poseArm)(R.armL,SH_L,_hp,_hq,POLE_L);
   }
   if(R.light){ R.flash.getWorldPosition(_v2); R.light.position.copy(_v2); R.light.intensity=R.flashT>0&&!isSuppressed(D,R)?2.2:0; }
 }
@@ -11636,8 +11637,7 @@ function anInitRig(R){
     hR:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hL:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hLr:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()}, hRr:{k:0,p:new THREE.Vector3(),q:new THREE.Quaternion()},
     lp:[], gsq:new THREE.Quaternion(), gsp:new THREE.Vector3(), gsPv:new THREE.Vector3(), gsPiv:false, slideTop:null, c4keys:null});
   for(let i=0;i<9;i++) R.lp.push(new THREE.Vector3());
-  const gm=armMats().glove;
-  const pt=new THREE.Mesh(capsuleBetween(new THREE.Vector3(.03,.031,.004),new THREE.Vector3(.03,.031,-.072),.0094),gm); pt.visible=false; pt.frustumCulled=false; R.armR.hand.add(pt); R.pointer=pt;
+  const pt=new THREE.Object3D(); pt.visible=false; R.armR.hand.add(pt); R.pointer=pt;   // pointing index: a hand pose of the v2 hand (typeK)
   const sh=new THREE.Group(), sb=new THREE.Mesh(new THREE.CylinderGeometry(.0098,.0098,.052,12),makeMaterial({preset:'polymer',color:'#a3231b',rough:.5})), sm=new THREE.Mesh(new THREE.CylinderGeometry(.0102,.0102,.016,12),makeMaterial({preset:'brass',color:'#c8a050'}));
   sb.position.y=.034; sm.position.y=.004; sh.add(sb,sm); sh.visible=false; sh.traverse(o=>{ o.frustumCulled=false; }); R.armL.hand.add(sh); R.shellM=sh;
   const pl=new THREE.Group(), red=makeMaterial({preset:'polymer',color:'#b3261e',rough:.45}), met=makeMaterial({preset:'gunmetal',color:'#5a5e63'});
@@ -11727,7 +11727,8 @@ function anPose(R,dt,mv,rp){
   for(let i=0;i<6;i++) AP[i]=0;
   const D=R.def, T=D.type, C=anCls(D), w=R.w;
   R.hR.k=0; R.hL.k=0; R.hLr.k=0; R.hRr.k=0; R.boltU=-1; R.hideGun=false; R.armLvis=false; R.gsq.identity(); R.gsp.set(0,0,0); R.gsPiv=false; R.pump=0; R.slideX=0; R.boltX=0; R.magX=0;
-  R.lAtGrip=rp<0&&R.silT<0; R.lCurl=.038; R.boltNow=0; R.slideNow=0; R.mRot=0; R.rCurl=0; R.typeK=0;
+  R.lAtGrip=rp<0&&R.silT<0; R.lCurl=.038; R.lMode=0; R.boltNow=0; R.slideNow=0; R.mRot=0; R.rCurl=0; R.typeK=0; R._dt=dt;
+  const trg=rp<0&&R.inspectT<0&&!R.hol&&!(R.drawT>0&&R.drawX)&&R.silT<0&&R.throwT<0&&R.knifeT<0&&!R.sh.ph?1:0; R.trigK=R.trigK===undefined?trg:R.trigK+(trg-R.trigK)*Math.min(1,dt*(trg?7:12));   // index on the trigger / along the frame
   if(R===VM){ anScopeTick(dt); anGashTick(dt); }
   anRoundsTick(R,rp);
   anMove(R,dt,mv);
@@ -11774,9 +11775,9 @@ function anPose(R,dt,mv,rp){
 }
 function anTrig(R){ const t=R.w.roles.trigger[0]; return t?_a3.copy(t.pos).setY(t.pos.y+.012):_a3.copy(R.w.anchors.gripR.p); }
 // support hand on the slide (press check / first-draw rack) or on the charging handle: same model points as the reloads
-function anSlideHand(R,hk,pull){ const w=R.w; if(!w.roles.slide.length) return anBoltHand(R,hk,pull); R.slideX=Math.max(R.slideX,pull); R.lCurl=anRlPt(R,'sld',R.hL.p,R.hL.q); R.hL.k=Math.max(R.hL.k,hk); }
-function anBoltHand(R,hk,pull){ const K=R.rk||anRlKit(R); if(!K.hdl) return; R.boltX=Math.max(R.boltX,pull); R.lCurl=anRlPt(R,'hdl',R.hL.p,R.hL.q); R.hL.k=Math.max(R.hL.k,hk); }
-function anMagHand(R,hk){ R.lCurl=anRlPt(R,'mag',R.hL.p,R.hL.q); R.hL.k=Math.max(R.hL.k,hk); }
+function anSlideHand(R,hk,pull){ const w=R.w; if(!w.roles.slide.length) return anBoltHand(R,hk,pull); R.slideX=Math.max(R.slideX,pull); R.lCurl=anRlPt(R,'sld',R.hL.p,R.hL.q); R.lMode=1; R.hL.k=Math.max(R.hL.k,hk); }
+function anBoltHand(R,hk,pull){ const K=R.rk||anRlKit(R); if(!K.hdl) return; R.boltX=Math.max(R.boltX,pull); R.lCurl=anRlPt(R,'hdl',R.hL.p,R.hL.q); R.lMode=1; R.hL.k=Math.max(R.hL.k,hk); }
+function anMagHand(R,hk){ R.lCurl=anRlPt(R,'mag',R.hL.p,R.hL.q); R.lMode=1; R.hL.k=Math.max(R.hL.k,hk); }
 function anThrowHand(R,t){ const w=R.w; R.armLvis=t<.95; const hk=kq(t,K_TH_HK);
   const rg=R.ring?R.ringP:_a5.set(.016,.044,0);
   if(t<.3){ R.hL.k=hk; R.hL.p.copy(rg).add(anV('pin',_a4)); const pull=kq(t,K_TH_PULL); R.hL.p.x+=pull*.05; R.hL.p.y+=pull*.07; R.hL.p.z+=pull*.03; anQ('pin',R.hL.q);
@@ -12099,16 +12100,17 @@ function anFitHand(L,A,left,oth){ let best=null;
   for(const a of [-.4,-.2,0,.2,.4]) for(const c of cs) for(let ox=-.006;ox<=.0061;ox+=.003) for(let oz=-.006;oz<=.0061;oz+=.003) tryP(c,b.ox+ox,b.oy,b.oz+oz,a);
   return best; }
 const AN_FITC=new WeakMap();
-function anFitFor(w){ const d=w.def, A=d.anchors, sig=JSON.stringify([A.gripR,A.gripL,d.parts.length]); let f=AN_FITC.get(d); if(f&&f.sig===sig) return f;
+function anFitFor(w){ const d=w.def, A=d.anchors, sig=JSON.stringify([A.gripR,A.gripL,d.parts.length,'h2']); let f=AN_FITC.get(d); if(f&&f.sig===sig) return f;
   const L=anWUpdate(w,true); f={sig,R:null,L:null};
-  const T=AN_FITTAB[d.id], fr=(o)=>({o:new THREE.Vector3(o[0],o[1],o[2]),c:o[3],rot:o[4],pen:o[5]});
+  const T=AN_FITTAB[d.id], fr=o=>({o:new THREE.Vector3(o[0],o[1],o[2]),c:o[3],rot:o[4],pen:o[5],A:o.length>=26?Float32Array.from(o.slice(6,26)):null,Ao:o.length>=30?Float32Array.from(o.slice(26,30)):null});
   if(T&&T[0]===sig){ f.R=fr(T[1]); f.L=T[2]?fr(T[2]):null; AN_FITC.set(d,f); return f; }   // built-in guns: baked
-  const AR=w.anchors.gripR; f.R=anFitHand(L,AR,false,null);
-  if(w.anchors.gripL){ const H=anHandGeo(f.R.c), oth=[], q=AR.q.clone().multiply(_rlQ.setFromAxisAngle(AX_Y,f.R.rot)); _wp2.copy(AR.p).add(f.R.o); for(const s of H.sph) oth.push({c:s.p.clone().applyQuaternion(q).add(_wp2),r:s.r}); f.L=anFitHand(L,w.anchors.gripL,true,oth); }
+  const AR=w.anchors.gripR; f.R=hvFitHand(L,AR,false,null,w,'R');
+  if(w.anchors.gripL){ const q=AR.q.clone().multiply(_rlQ.setFromAxisAngle(AX_Y,f.R.rot)), p=AR.p.clone().add(f.R.o), oth=[]; for(let i=0;i<64;i++) oth.push({c:new THREE.Vector3(),r:0});
+    oth.length=hvSpheres(f.R.A,p,q,false,oth,0); f.L=hvFitHand(L,w.anchors.gripL,true,oth,w,'L'); }
   AN_FITC.set(d,f); return f; }
 const AN_FITTAB={"ak47":["[{\"p\":[0,-0.058,0.072],\"r\":[-17,0,0]},{\"p\":[0,0.009,-0.262],\"r\":[90,0,-25]},32]",[-0.002,-0.0191,-0.0078,0.038,-0.2,0],[-0.0002,0.012,0.0067,0.056,-0.2,0]],"m4a1s":["[{\"p\":[0,-0.058,0.062],\"r\":[-18,0,0]},{\"p\":[0,0.026,-0.24],\"r\":[90,0,-25]},37]",[-0.002,-0.0116,-0.0099,0.038,-0.4,0],[-0.0039,0.0075,-0.0048,0.038,-0.4,0]],"m4a4":["[{\"p\":[0,-0.058,0.062],\"r\":[-18,0,0]},{\"p\":[0,0.026,-0.24],\"r\":[90,0,-25]},38]",[-0.002,-0.0116,-0.0099,0.038,-0.4,0],[-0.0039,0.0075,-0.0048,0.038,-0.4,0]],"aug":["[{\"p\":[0,-0.066,0.068],\"r\":[-14,0,0]},{\"p\":[0,-0.058,-0.126],\"r\":[-2,0,8]},64]",[-0.014,-0.0179,-0.0058,0.043,0.4,0.0078],[0.0053,-0.0055,-0.0043,0.038,0.2,0.0005]],"galil":["[{\"p\":[0,-0.058,0.072],\"r\":[-17,0,0]},{\"p\":[0,0.012,-0.25],\"r\":[90,0,-25]},23]",[-0.005,-0.02,-0.0106,0.038,-0.2,0],[-0.0136,0,0.0063,0.049,0,0]],"famas":["[{\"p\":[0,-0.058,0.052],\"r\":[-18,0,0]},{\"p\":[0,0.004,-0.11],\"r\":[90,0,-25]},15]",[0.003,-0.0177,-0.0027,0.038,-0.2,0.0055],[-0.0136,-0.0015,0.0063,0.056,0.2,0]],"awp":["[{\"p\":[0,-0.074,0.094],\"r\":[-12,0,0]},{\"p\":[0,-0.008,-0.2],\"r\":[90,0,-25]},23]",[-0.005,-0.0017,-0.0078,0.049,-0.2,0],[-0.015,0.0075,0.007,0.056,0.2,0]],"ssg08":["[{\"p\":[0,-0.074,0.094],\"r\":[-12,0,0]},{\"p\":[0,-0.008,-0.2],\"r\":[90,0,-25]},19]",[-0.005,-0.0023,-0.0108,0.043,-0.2,0.0003],[-0.0043,0.015,0.0086,0.038,0,0.0051]],"mac10":["[{\"p\":[0,-0.052,0.032],\"r\":[-6,0,0]},{\"p\":[0,-0.012,-0.15],\"r\":[90,0,-25]},19]",[-0.016,-0.0182,-0.0202,0.049,-0.2,0.0002],[-0.0093,0.033,-0.0023,0.049,0,0]],"mp9":["[{\"p\":[0,-0.055,0.035],\"r\":[-14,0,0]},{\"p\":[0,-0.05,-0.09],\"r\":[-4,0,8]},21]",[-0.016,-0.0182,-0.0068,0.043,0,0],[-0.0289,-0.0094,0.0112,0.043,0,0.001]],"p90":["[{\"p\":[0,-0.076,0.07],\"r\":[-12,0,0]},{\"p\":[0,-0.07,-0.107],\"r\":[-2,0,8]},81]",[-0.01,-0.0202,-0.0182,0.043,0,0.0063],[0.0142,-0.0035,0.0166,0.064,-0.4,0]],"nova":["[{\"p\":[0,-0.04,0.085],\"r\":[-32,0,0]},{\"p\":[0,-0.005,-0.345],\"r\":[90,0,-25]},10]",[-0.01,0.0167,0.0155,0.056,-0.2,0.0071],[-0.0025,0.0075,-0.0054,0.049,-0.2,0]],"deagle":["[{\"p\":[0,-0.068,0.058],\"r\":[-22,0,0]},{\"p\":[-0.006,-0.082,0.046],\"r\":[-22,0,-8]},19]",[-0.014,-0.0201,-0.007,0.049,0,0.0001],[-0.0244,0.0212,0.027,0.056,0,0]],"usps":["[{\"p\":[0,-0.062,0.052],\"r\":[-16,0,0]},{\"p\":[-0.006,-0.076,0.04],\"r\":[-16,0,-8]},21]",[-0.016,-0.0121,-0.0132,0.049,0,0],[-0.0008,0.0026,0.0305,0.056,0,0]],"glock":["[{\"p\":[0,-0.06,0.058],\"r\":[-20,0,0]},{\"p\":[-0.006,-0.074,0.044],\"r\":[-20,0,-8]},15]",[-0.01,-0.013,-0.0123,0.043,-0.4,0.0001],[-0.0172,-0.0019,0.0055,0.064,-0.2,0]],"tec9":["[{\"p\":[0,-0.06,0.06],\"r\":[-12,0,0]},{\"p\":[0,-0.1,-0.063],\"r\":[3,-20,8]},62]",[0.008,-0.0051,0.0144,0.056,-0.2,0],[0.0083,-0.005,0.0012,0.043,-0.4,0]],"p250":["[{\"p\":[0,-0.06,0.056],\"r\":[-18,0,0]},{\"p\":[-0.006,-0.074,0.042],\"r\":[-18,0,-8]},16]",[-0.008,-0.011,-0.008,0.043,0,0],[-0.0045,0.0029,0.0069,0.064,0,0]],"knife":["[{\"p\":[0,0,0.064],\"r\":[-90,0,0]},null,13]",[0,0,0,0.0305,-0.4,0],0],"he":["[{\"p\":[0,-0.005,0.008],\"r\":[-12,0,0]},null,5]",[-0.008,0.0025,-0.0169,0.049,0,0],0],"flash":["[{\"p\":[0,-0.005,0.008],\"r\":[-12,0,0]},null,7]",[-0.008,-0.0033,-0.0157,0.038,0,0],0],"smoke":["[{\"p\":[0,-0.005,0.008],\"r\":[-12,0,0]},null,5]",[-0.008,-0.0027,-0.0127,0.043,0,0],0],"molotov":["[{\"p\":[0,-0.005,0.008],\"r\":[-12,0,0]},null,4]",[-0.008,-0.0017,-0.0078,0.056,0,0],0],"incgren":["[{\"p\":[0,-0.005,0.008],\"r\":[-12,0,0]},null,5]",[-0.002,0.0036,-0.012,0.038,-0.4,0],0],"decoy":["[{\"p\":[0,-0.005,0.008],\"r\":[-12,0,0]},null,16]",[-0.008,-0.0112,-0.014,0.038,0,0],0],"c4":["[{\"p\":[0.05,-0.02,0.03],\"r\":[0,0,-80]},{\"p\":[-0.05,-0.02,0.03],\"r\":[0,0,80]},18]",[0.0005,-0.003,0,0.056,-0.2,0],[0.003,-0.0173,-0.003,0.043,0.4,0]]};   // id -> [sig, [ox,oy,oz,curl,rot,pen] right, left] (filled from the fit, see anFitDump)
 function anFitDump(){ const o={}; for(const d of LIB.list) if(d.builtin&&d.anchors&&d.anchors.gripR){ const w=buildWeaponObject(d,{}); AN_FITC.delete(d); const T=AN_FITTAB[d.id]; delete AN_FITTAB[d.id]; const f=anFitFor(w); if(T) AN_FITTAB[d.id]=T;
-  const r=v=>v?[+v.o.x.toFixed(4),+v.o.y.toFixed(4),+v.o.z.toFixed(4),v.c,v.rot,+v.pen.toFixed(4)]:0; o[d.id]=[f.sig,r(f.R),r(f.L)]; disposeWeaponObject(w); } return o; }
+  const a3=x=>+(+x).toFixed(3), r=v=>v?[+v.o.x.toFixed(4),+v.o.y.toFixed(4),+v.o.z.toFixed(4),v.c,+v.rot.toFixed(3),+v.pen.toFixed(4),...Array.from(v.A||[],a3),...Array.from(v.Ao||[],a3)]:0; o[d.id]=[f.sig,r(f.R),r(f.L)]; disposeWeaponObject(w); } return o; }
 function anApplyFit(w){ if(!w||w.fitted) return w&&w.fit; const f=anFitFor(w); w.fitted=true; w.fit=f; const A=w.anchors;
   if(f.R){ A.gripR.p.add(f.R.o); if(f.R.rot) A.gripR.q.multiply(_rlQ.setFromAxisAngle(AX_Y,f.R.rot)); }
   if(f.L&&A.gripL){ A.gripL.p.add(f.L.o); if(f.L.rot) A.gripL.q.multiply(_rlQ.setFromAxisAngle(AX_Y,f.L.rot)); } return f; }
@@ -12123,7 +12125,7 @@ function anHandPush(L,S,P,Q,oth,acc){ let worst=0; acc.set(0,0,0); const e=.0012
     _wg.set(anHDist(L,_wp2.copy(_wp).setX(_wp.x+e),.05,oth)-anHDist(L,_wp2.copy(_wp).setX(_wp.x-e),.05,oth), anHDist(L,_wp2.copy(_wp).setY(_wp.y+e),.05,oth)-anHDist(L,_wp2.copy(_wp).setY(_wp.y-e),.05,oth), anHDist(L,_wp2.copy(_wp).setZ(_wp.z+e),.05,oth)-anHDist(L,_wp2.copy(_wp).setZ(_wp.z-e),.05,oth));
     const gl=_wg.length(); if(gl>1e-9) acc.addScaledVector(_wg,pen/gl); if(pen>worst) worst=pen; }
   return worst; }
-function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const left=arm===R.armL, f=w.fit;
+function anHandSafe(R,arm,hp,hq){ if(arm.v2) return hvHandSafe(R,arm,hp,hq); const w=R.w; if(!w||R.noSafe) return; const left=arm===R.armL, f=w.fit;
   if(!left){ R._sdfOk=false; }
   if(!R._sdfOk){ anWUpdate(w,false); _hsI.copy(R.gunRoot.matrix).invert(); _hsGQ.copy(R.gunRoot.quaternion).invert(); R._sdfOk=true; }
   const atGrip=left?(R.hL.k<.2&&R.hLr.k<.2&&R.lAtGrip):(R.hR.k<.2&&R.hRr.k<.2);
@@ -12150,6 +12152,276 @@ function anHandSafe(R,arm,hp,hq){ const w=R.w; if(!w||R.noSafe) return; const le
     if(!found) break; P.copy(_hsE); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; if(pen0<best){ best=pen0; _hsB.copy(P); } }
   if(moved) P.copy(_hsB); O.subVectors(P,_wo); if(left) R.hsKL=best>.0008; else R.hsKR=best>.0008; if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1),arm.curl];
   if(!left){ let n=0; for(const s of H.sph){ if(n>=AN_RHS.length) break; AN_RHS[n].c.copy(s.p).applyQuaternion(Q).add(P); AN_RHS[n].r=s.r; n++; } R._rhsN=n; }
+  if(moved) hp.copy(P).applyMatrix4(R.gunRoot.matrix); }
+
+/* =====================================================================
+   FIRST-PERSON ARMS v2 (createRig): shaped forearm + sleeve per side (CT long sleeve / T rolled sleeve over a bare forearm), skinned glove with a palm,
+   thumb and four 3-segment fingers. Finger joints close on the weapon until they touch it (grip fit, cached) and stay clear of it every frame.
+   hand frame (unchanged): y = held axis (index side +), back of the hand +x (palm faces -x), straight fingers point -z, wrist +z; left hand = mirror image
+   digit pose: [abd, f0, f1, f2] per digit (fingers 0-3 index..pinky, 4 thumb); f = flexion of the 3 joints, abd = spread (thumb: + = towards the fingers)
+   ===================================================================== */
+const HV_F=[{k:[.0365,.0292,.0005],sp:.085,tw:.13,L:[.0435,.0255,.0205],r:.0099},{k:[.0372,.0094,-.0035],sp:.015,tw:.02,L:[.0475,.0285,.0215],r:.0104},
+  {k:[.0365,-.0106,-.0006],sp:-.07,tw:-.08,L:[.0445,.027,.0205],r:.0098},{k:[.0345,-.0284,.0074],sp:-.17,tw:-.19,L:[.0345,.0205,.0185],r:.0088}];
+const HV_TB={k:[.031,.021,.07],d:[-.83,.2,-.52],up:[0,-1,0],L:[.041,.032,.0245],r:[.0158,.0122,.0108,.0098]};
+const HV_WRIST=new THREE.Vector3(.034,-.004,.112);
+const HV={D:null,rest:null,geo:{},mats:null,pre:new Map(),palmS:null};
+const HV_LIM={lo:[-.3,-.35,-.05,-.15],hi:[.35,1.65,1.95,1.4],tlo:[-1.1,-.7,-.3,-.35],thi:[.6,1.25,1.35,1.45]};
+const HV_OPEN=[0,.14,.2,.1, 0,.16,.22,.12, 0,.18,.24,.13, 0,.2,.27,.15, -.12,.05,.18,.1];
+const HV_FIST=[0,1.55,1.85,1.2, 0,1.55,1.85,1.2, 0,1.55,1.85,1.2, 0,1.55,1.85,1.2, -.05,.3,1.3,1.05];
+const _hq1=new THREE.Quaternion(), _hq2=new THREE.Quaternion(), _hv1=new THREE.Vector3(), _hv2=new THREE.Vector3(), _hv3=new THREE.Vector3(), _hm1=new THREE.Matrix4(), _hm2=new THREE.Matrix4();
+// digit table: base position / orientation (hand space), segment lengths, radii at the joints and the tip, joint limits
+function hvDigits(){ if(HV.D) return HV.D; const D=[];
+  for(const F of HV_F){ const q=new THREE.Quaternion().setFromAxisAngle(AX_X,F.sp).multiply(new THREE.Quaternion().setFromAxisAngle(AX_Z,F.tw));
+    D.push({p:new THREE.Vector3(...F.k),q,L:F.L,r:[F.r,F.r*.93,F.r*.87,F.r*.82],lo:HV_LIM.lo,hi:HV_LIM.hi,th:false}); }
+  const T=HV_TB, Z=new THREE.Vector3(...T.d).normalize().negate(), Y=new THREE.Vector3(...T.up), X=new THREE.Vector3();
+  Y.addScaledVector(Z,-Y.dot(Z)).normalize(); X.crossVectors(Y,Z);
+  D.push({p:new THREE.Vector3(...T.k),q:new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X,Y,Z)),L:T.L,r:T.r,lo:HV_LIM.tlo,hi:HV_LIM.thi,th:true});
+  return HV.D=D; }
+// forward kinematics of one digit: joints J[0..3] (hand space) and segment orientations Q[0..2]
+const HV_J=[], HV_Q=[]; for(let i=0;i<5;i++){ HV_J.push([0,1,2,3].map(()=>new THREE.Vector3())); HV_Q.push([0,1,2].map(()=>new THREE.Quaternion())); }
+function hvFK(A,i){ const D=hvDigits()[i], b=i*4, J=HV_J[i], Q=HV_Q[i];
+  Q[0].copy(D.q).multiply(_hq2.setFromAxisAngle(AX_X,A[b])).multiply(_hq1.setFromAxisAngle(AX_Y,A[b+1]));
+  Q[1].copy(Q[0]).multiply(_hq2.setFromAxisAngle(AX_Y,A[b+2])); Q[2].copy(Q[1]).multiply(_hq2.setFromAxisAngle(AX_Y,A[b+3]));
+  J[0].copy(D.p); for(let s=0;s<3;s++) J[s+1].set(0,0,-D.L[s]).applyQuaternion(Q[s]).add(J[s]); return J; }
+
+/* ---------- geometry: superellipse tubes (rings along an axis), skinned rigidly to one bone (optional blend to a second) ---------- */
+function hvGB(){ return {p:[],n:[],u:[],si:[],sw:[],ix:[]}; }
+// rings [s, ca, cb, ra, rb, w2] along local axis 'z' (section x=a, y=b) or 'y' (section x=a, z=b); M: matrix into mesh space; bones [b1,b2]
+function hvTube(G,M,rings,ax,bones,e,N){ N=N||14; e=e||2; const base=G.p.length/3, P=[], R=rings.length, pe=2/e;
+  const pt=(s,ca,cb,ra,rb,th)=>{ const c=Math.cos(th), sn=Math.sin(th), a=ca+ra*Math.sign(c)*Math.pow(Math.abs(c),pe), b=cb+rb*Math.sign(sn)*Math.pow(Math.abs(sn),pe); return ax==='y'?new THREE.Vector3(a,s,b):new THREE.Vector3(a,b,s); };
+  for(let i=0;i<R;i++){ const r=rings[i], row=[]; for(let j=0;j<N;j++) row.push(pt(r[0],r[1],r[2],r[3],r[4],j/N*TAU)); P.push(row); }
+  const axv=ax==='y'?new THREE.Vector3(0,1,0):new THREE.Vector3(0,0,1), dir=Math.sign(rings[R-1][0]-rings[0][0])||1, nm=new THREE.Matrix3().getNormalMatrix(M);
+  const T1=new THREE.Vector3(), T2=new THREE.Vector3(), n=new THREE.Vector3(), cen=new THREE.Vector3();
+  let vS=0; for(let i=0;i<R;i++){ if(i) vS+=Math.hypot(rings[i][0]-rings[i-1][0],rings[i][3]-rings[i-1][3]); const r=rings[i], per=TAU*Math.sqrt((r[3]*r[3]+r[4]*r[4])/2);
+    cen.copy(ax==='y'?_hv3.set(r[1],r[0],r[2]):_hv3.set(r[1],r[2],r[0]));
+    for(let j=0;j<=N;j++){ const jj=j%N, p=P[i][jj];
+      if(r[3]<1e-5&&r[4]<1e-5) n.copy(axv).multiplyScalar(i===0?-dir:dir);
+      else { T1.subVectors(P[i][(jj+1)%N],P[i][(jj+N-1)%N]); T2.subVectors(P[Math.min(R-1,i+1)][jj],P[Math.max(0,i-1)][jj]); n.crossVectors(T1,T2);
+        if(n.lengthSq()<1e-14) n.copy(axv).multiplyScalar(i===0?-dir:dir); else { n.normalize(); if(n.dot(_hv2.subVectors(p,cen))<0) n.negate(); } }
+      _hv1.copy(p).applyMatrix4(M); G.p.push(_hv1.x,_hv1.y,_hv1.z); _hv1.copy(n).applyMatrix3(nm).normalize(); G.n.push(_hv1.x,_hv1.y,_hv1.z);
+      G.u.push(j/N*per,vS); const w2=r[5]||0; G.si.push(bones[0],bones[1]||0,0,0); G.sw.push(1-w2,w2,0,0); } }
+  const flip=dir<0;
+  for(let i=0;i<R-1;i++) for(let j=0;j<N;j++){ const a=base+i*(N+1)+j, b=a+1, c=a+N+1, d=c+1; if(flip) G.ix.push(a,c,b,b,c,d); else G.ix.push(a,b,c,b,d,c); }
+  return G; }
+// ellipsoid (rings along z) with radii rx ry rz at c
+function hvBlob(G,M,c,rx,ry,rz,bones,N){ const R=[]; for(let k=0;k<=8;k++){ const a=-Math.PI/2+k/8*Math.PI, s=Math.sin(a), co=Math.cos(a); R.push([c[2]+rz*s,c[0],c[1],rx*co,ry*co]); } return hvTube(G,M,R,'z',bones,2,N||12); }
+function hvGeo(G){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(G.p,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(G.n,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(G.u,2)); g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(G.si,4)); g.setAttribute('skinWeight',new THREE.Float32BufferAttribute(G.sw,4)); g.setIndex(G.ix);
+  g.computeBoundingSphere(); return g; }
+// finger / thumb segment in its bone frame (along -z): joint bulge at both ends, slight waist; tip = rounded pad
+function hvSeg(L,r0,r1,tip,fl){ const k=fl||.9, R=[]; const cap=(z0,r,sgn)=>{ for(const [f,s] of [[.42,.92],[.72,.7],[.9,.44],[1,0]]) R.push([z0+sgn*f*r,0,0,r*s*k,r*s]); };
+  const pre=[]; for(const [f,s] of [[1,0],[.9,.44],[.72,.7],[.42,.92]]) pre.push([f*r0*.95,0,0,r0*s*k,r0*s]); R.push(...pre);
+  R.push([0,0,0,r0*k,r0],[-.3*L,0,0,(r0*.97)*k,r0*.97],[-.62*L,0,0,((r0+r1)/2*.95)*k,(r0+r1)/2*.95],[-L,0,0,r1*k*1.01,r1*1.01]);
+  if(tip){ R.push([-L-.45*r1,0,0,r1*.9*k,r1*.92],[-L-.75*r1,0,0,r1*.66*k,r1*.72],[-L-.93*r1,0,0,r1*.33*k,r1*.4],[-L-r1,0,0,0,0]); }
+  else cap(-L,r1,-1);
+  return R; }
+// rest pose bone matrices (hand space): 0 root, 1+3i+s digit i joint s
+function hvRest(){ if(HV.rest) return HV.rest; const D=hvDigits(), M=[new THREE.Matrix4()];
+  for(let i=0;i<5;i++){ let m=new THREE.Matrix4().compose(D[i].p,D[i].q,new THREE.Vector3(1,1,1)); M.push(m);
+    for(let s=1;s<3;s++){ m=m.clone().multiply(new THREE.Matrix4().makeTranslation(0,0,-D[i].L[s-1])); M.push(m); } }
+  return HV.rest=M; }
+// hand geometry per look: {matKey: BufferGeometry} (shared by both hands; the left one is mirrored by its group)
+function hvHandGeo(look){ if(HV.geo[look]) return HV.geo[look]; const D=hvDigits(), M=hvRest(), I=new THREE.Matrix4(), T=look==='T', G={};
+  const g=k=>G[k]||(G[k]=hvGB());
+  // palm: rounded superellipse block from the knuckles to the wrist
+  hvTube(g('glove'),I,[[-.0128,.0365,.001,.003,.02],[-.0095,.0365,.001,.0085,.033],[-.0035,.0362,.001,.0125,.0398],[.007,.0358,.0012,.0138,.0418],[.03,.0352,.0015,.0143,.0414],
+    [.055,.0349,.0012,.0147,.0394],[.08,.0346,0,.0149,.0356],[.1,.0343,-.0015,.0148,.0322],[.118,.034,-.003,.0143,.0302],[.13,.034,-.004,.0125,.0275],[.136,.034,-.004,0,0]],'z',[0],2.7,18);
+  for(let i=0;i<4;i++){ const k=HV_F[i].k; hvBlob(g('glove'),I,[k[0]+.0082,k[1],k[2]+.002],.0062,HV_F[i].r*.92,.0095,[0]); }   // knuckles (metacarpal heads)
+  hvBlob(g('glove'),I,[.0265,-.021,.088],.0085,.0135,.022,[0]);   // hypothenar (heel, pinky side)
+  for(let i=0;i<5;i++){ const d=D[i]; for(let s=0;s<3;s++){ const bi=1+i*3+s, last=s===2; let mk='glove';
+      if(T&&(i<4?s>=1:s===2)) mk='skin';
+      const rr=d.th&&s===0?hvSeg(d.L[0],d.r[0],d.r[1],false,.82).map(r=>[r[0],r[1],r[2],r[3],r[4],clamp((r[0]+d.L[0]*.6)/(d.L[0]*.6+.012),0,1)*.7]):hvSeg(d.L[s],d.r[s],d.r[s+1],last,d.th?.9:.88);
+      hvTube(g(mk),M[bi],rr,'z',d.th&&s===0?[bi,0]:[bi],2.25,14);
+      if(T&&(i<4?s===0:s===1)) hvTube(g('glove'),M[bi],[[-d.L[s]*.62,0,0,d.r[s+1]*.98,d.r[s+1]*1.08],[-d.L[s]*.66,0,0,d.r[s+1]*1.03,d.r[s+1]*1.13],[-d.L[s]*.93,0,0,d.r[s+1]*1.0,d.r[s+1]*1.1],[-d.L[s]*.97,0,0,d.r[s+1]*.93,d.r[s+1]*1.02]],'z',[bi],2.2,14);   // fingerless glove edge
+      if(T&&last) hvTube(g('nail'),M[bi],[[-d.L[2]+.0045,d.r[2]*.78,0,.0002,d.r[2]*.42],[-d.L[2]+.002,d.r[2]*.86,0,.0011,d.r[2]*.6],[-d.L[2]-d.r[3]*.55,d.r[3]*.72,0,.0011,d.r[3]*.62],[-d.L[2]-d.r[3]*.75,d.r[3]*.55,0,.0002,d.r[3]*.45]],'z',[bi],2.4,10);
+      if(!T&&s===0&&i<4) hvTube(g('pad'),M[bi],[[-d.L[0]*.22,d.r[0]*.82,0,.0003,d.r[0]*.55],[-d.L[0]*.28,d.r[0]*.9,0,.0022,d.r[0]*.72],[-d.L[0]*.62,d.r[0]*.86,0,.0022,d.r[0]*.72],[-d.L[0]*.68,d.r[0]*.78,0,.0003,d.r[0]*.55]],'z',[bi],3.5,12);   // finger pads (CT)
+    } }
+  // cuff / wrist strap
+  if(!T){ hvTube(g('glove'),I,[[.091,.0342,-.0035,.0168,.0335],[.099,.0342,-.004,.0218,.0348],[.15,.0342,-.004,.0248,.036],[.157,.0342,-.004,.0238,.0348],[.158,.0342,-.004,.016,.026]],'z',[0],2.4,18);
+    hvTube(g('strap'),I,[[.1,.0342,-.004,.0222,.0348],[.102,.0342,-.004,.0238,.0362],[.124,.0342,-.004,.0242,.0366],[.126,.0342,-.004,.0226,.035]],'z',[0],2.4,18);
+    // knuckle armour: two rounded bars over the back of the hand + palm patch
+    { const R=[]; for(let k=0;k<=14;k++){ const y=-.0375+.075*k/14, f=Math.sqrt(Math.max(0,1-Math.pow(Math.abs(y)/.0375,6))); R.push([y+.001,.0504-y*y*1.6,.0115-y*.08,.0042*f,.0175*f]); } hvTube(g('pad'),I,R,'y',[0],3.4,14); }   // knuckle plate
+    hvTube(g('palm'),I,[[.012,.0222,.004,.0003,.022],[.016,.0205,.004,.0018,.03],[.05,.0198,.001,.0018,.03],[.088,.0193,-.001,.0018,.027],[.094,.021,-.001,.0003,.02]],'z',[0],3.2,14); }
+  else { hvTube(g('strap'),I,[[.095,.0342,-.004,.0175,.0318],[.098,.0342,-.004,.0198,.0336],[.128,.0342,-.004,.0198,.0336],[.131,.0342,-.004,.0172,.0312]],'z',[0],2.4,18); }
+  const out={}; for(const k in G) out[k]=hvGeo(G[k]); return HV.geo[look]=out; }
+// materials per side: CT full tactical glove (knuckle armour, palm patch) + blue-grey uniform sleeve · T fingerless leather glove, bare forearm, rolled sleeve
+function hvMats(){ if(HV.mats) return HV.mats; const M=makeMaterial;
+  HV.mats={ CT:{glove:M({preset:'fabric',color:'#2e3033',rough:.9}), pad:M({preset:'polymer',color:'#1b1c1e',rough:.48}), palm:M({preset:'rubber',color:'#45423d',rough:.82}), strap:M({preset:'polymer',color:'#25282c',rough:.66}),
+      sleeve:M({preset:'fabric',skin:{type:'digital',scale:.13,c1:'#4a5563',c2:'#343c47',c3:'#626d79'}}), hem:M({preset:'fabric',color:'#2f3741',rough:.93})},
+    T:{glove:M({preset:'polymer',color:'#3a2a20',rough:.68}), pad:M({preset:'polymer',color:'#2a1f18',rough:.55}), strap:M({preset:'polymer',color:'#1f1a16',rough:.6}), skin:M({preset:'polymer',color:'#b48262',rough:.6}), nail:M({preset:'polymer',color:'#d4ad97',rough:.32}),
+      sleeve:M({preset:'fabric',color:'#6c5f45',rough:.95}), roll:M({preset:'fabric',color:'#5d523c',rough:.96})} };
+  return HV.mats; }
+// forearm (canonical: wrist at y=0, elbow at y=.3; section x = width (hand y), z = thickness (hand x)); bones 0 wrist, 1 elbow
+const HV_FA=[[-.04,.0262,.0192],[-.02,.0276,.02],[0,.0286,.0206],[.03,.0306,.022],[.07,.0342,.0262],[.12,.0388,.031],[.17,.0418,.034],[.22,.0424,.0354],[.27,.041,.0358],[.31,.0392,.0356]];
+const hvFaR=y=>{ let i=1; while(i<HV_FA.length-1&&y>HV_FA[i][0]) i++; const a=HV_FA[i-1], b=HV_FA[i], t=clamp((y-a[0])/(b[0]-a[0]),0,1); return [a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]; };
+const hvFaW=y=>smooth(clamp((y-.02)/.16,0,1));   // weight of the elbow bone along the forearm
+function hvForeGeo(look){ const key='fa'+look; if(HV.geo[key]) return HV.geo[key]; const I=new THREE.Matrix4(), G={}, g=k=>G[k]||(G[k]=hvGB());
+  const ring=(y,add,ex,cz)=>{ const r=hvFaR(y); return [y,0,cz||0,r[0]+add+(ex||0),r[1]+add+(ex||0),hvFaW(y)]; };
+  if(look==='CT'){ const R=[ring(.017,0,-.004),ring(.019,.0105),ring(.024,.0118),ring(.046,.0118),ring(.05,.0092)];
+      for(let y=.06;y<=.335;y+=.0125) R.push(ring(y,.0085+.0016*Math.sin(y*61)+.001*Math.sin(y*23+1)));
+      hvTube(g('hem'),I,R.slice(0,5),'y',[0,1],2.15,20); hvTube(g('sleeve'),I,R.slice(4),'y',[0,1],2.15,20); }
+  else { const S=[]; for(const y of [-.042,-.03,-.015,0,.02,.045,.07,.095,.12,.14,.15]) S.push(ring(y,0)); S[0][3]*=.85; S[0][4]*=.85;
+      hvTube(g('skin'),I,S,'y',[0,1],2.1,18);
+      const R=[ring(.128,0,-.002)]; for(const [y,a] of [[.131,.012],[.135,.0175],[.143,.0205],[.152,.021],[.161,.0185],[.167,.016],[.172,.0175],[.179,.0182],[.186,.0158],[.192,.0128]]) R.push(ring(y,a));
+      hvTube(g('roll'),I,R,'y',[0,1],2.1,20); const U=[ring(.19,.0128)]; for(let y=.205;y<=.335;y+=.016) U.push(ring(y,.0118+.0014*Math.sin(y*57)));
+      hvTube(g('sleeve'),I,U,'y',[0,1],2.1,20); }
+  const out={}; for(const k in G) out[k]=hvGeo(G[k]); return HV.geo[key]=out; }
+// one arm: upper sleeve (rigid), elbow, skinned forearm (wrist + elbow bones), skinned hand (16 bones); both looks built, one shown
+function hvMakeArm(left){ const g=new THREE.Group(), D=hvDigits(), Mr=hvRest(), mats=hvMats();
+  const upper=unitSeg(.052,.046,mats.CT.sleeve), elbow=new THREE.Mesh(new THREE.SphereGeometry(.047,14,10),mats.CT.sleeve);
+  const hand=new THREE.Group(), bones=[new THREE.Bone()]; hand.add(bones[0]);
+  for(let i=0;i<5;i++){ let par=bones[0]; for(let s=0;s<3;s++){ const b=new THREE.Bone(); if(!s){ b.position.copy(D[i].p); b.quaternion.copy(D[i].q); } else b.position.set(0,0,-D[i].L[s-1]); par.add(b); bones.push(b); par=b; } }
+  const hsk=new THREE.Skeleton(bones,Mr.map(m=>m.clone().invert()));
+  const bW=new THREE.Bone(), bE=new THREE.Bone(); bE.position.set(0,.3,0); g.add(bW,bE);
+  const fsk=new THREE.Skeleton([bW,bE],[new THREE.Matrix4(),new THREE.Matrix4().makeTranslation(0,-.3,0)]);
+  const looks={};
+  for(const lk of ['CT','T']){ const L=[], add=(G,par,sk)=>{ for(const k in G){ const m=new THREE.SkinnedMesh(G[k],mats[lk][k]); m.bind(sk,new THREE.Matrix4()); m.frustumCulled=false; par.add(m); L.push(m); } };
+    add(hvHandGeo(lk),hand,hsk); add(hvForeGeo(lk),g,fsk); looks[lk]=L; }
+  if(left) hand.scale.x=-1;
+  g.add(upper,elbow,hand); g.traverse(o=>{ o.frustumCulled=false; });
+  const A=new Float32Array(HV_OPEN), arm={group:g,upper,elbow,hand,left,v2:true,bones,bW,bE,looks,look:null,A,At:new Float32Array(HV_OPEN),curl:.038,
+    fore:{material:null},roll:{material:null}};
+  hvSetLook(arm,'CT'); hvApply(arm); return arm; }
+function hvSetLook(arm,lk){ if(arm.look===lk) return; arm.look=lk; for(const k in arm.looks) for(const m of arm.looks[k]) m.visible=k===lk; const m=hvMats()[lk]; arm.upper.material=arm.elbow.material=lk==='T'?m.sleeve:m.sleeve; }
+// joint angles -> bones
+function hvApply(arm){ const D=hvDigits(), A=arm.A, B=arm.bones;
+  for(let i=0;i<5;i++){ const b=i*4; B[1+i*3].quaternion.copy(D[i].q).multiply(_hq2.setFromAxisAngle(AX_X,A[b])).multiply(_hq1.setFromAxisAngle(AX_Y,A[b+1]));
+    B[2+i*3].quaternion.setFromAxisAngle(AX_Y,A[b+2]); B[3+i*3].quaternion.setFromAxisAngle(AX_Y,A[b+3]); } }
+// IK arm (two bones, pole) + forearm twist from the hand, wrist bent partly into the forearm
+const _hvM=new THREE.Matrix4(), HV_QH=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0)));
+function hvPoseArm(arm,shoulder,hp,hq,pole){ arm.hand.position.copy(hp); arm.hand.quaternion.copy(hq);
+  const wl=_ik.wl.copy(HV_WRIST); if(arm.left) wl.x*=-1; const W=_ik.w.copy(wl).applyQuaternion(hq).add(hp);
+  const dir=_ik.d.subVectors(W,shoulder); let d=dir.length(); const maxD=(L1+L2)*.995; const sh=_ik.sh.copy(shoulder);
+  if(d>maxD){ sh.addScaledVector(dir,(d-maxD)/d); dir.subVectors(W,sh); d=maxD; } if(d<.05) d=.05;
+  const dn=_ik.dn.copy(dir).multiplyScalar(1/Math.max(1e-5,dir.length())), a=(L1*L1-L2*L2+d*d)/(2*d), h=Math.sqrt(Math.max(0,L1*L1-a*a));
+  const bend=_ik.b.copy(pole).sub(sh); bend.addScaledVector(dn,-bend.dot(dn)); if(bend.lengthSq()<1e-8) bend.set(0,-1,0); else bend.normalize();
+  const E=_ik.e.copy(sh).addScaledVector(dn,a).addScaledVector(bend,h);
+  setSeg(arm.upper,sh,E); arm.elbow.position.copy(E);
+  const u=_hv1.subVectors(E,W).normalize(), X=_hv2.set(0,1,0).applyQuaternion(hq); X.addScaledVector(u,-X.dot(u)); if(X.lengthSq()<1e-8) X.set(1,0,0); X.normalize();
+  const Z=_hv3.crossVectors(X,u); _hvM.makeBasis(X,u,Z); arm.bE.quaternion.setFromRotationMatrix(_hvM); arm.bE.position.copy(E);
+  arm.bW.quaternion.copy(hq).multiply(HV_QH); arm.bW.quaternion.slerp(arm.bE.quaternion,.62); arm.bW.position.copy(W); arm.elbowP=E; }
+/* ---------- finger contact: sample spheres per segment vs a distance function (gun space: weapon parts + the other hand; hand space: preset rods) ---------- */
+const HV_SU=[[.5,.95],[.45,.9],[.4,.8,1]], HV_SUT=[.85];
+const HV_PALM=(()=>{ const S=[]; for(const y of [-.026,-.009,.008,.025]) for(const z of [.008,.032,.056,.08]) S.push([.0345,y,z,.0128]);
+  S.push([.031,-.019,.1,.013],[.031,.015,.1,.013],[.026,.023,.064,.0125],[.024,.03,.048,.0105]); return S.map(a=>({p:new THREE.Vector3(a[0],a[1],a[2]),r:a[3]})); })();
+const HV_PALML=HV_PALM.map(s=>({p:new THREE.Vector3(-s.p.x,s.p.y,s.p.z),r:s.r}));
+const _hc=new THREE.Vector3();
+function hvSegPen(i,s,ctx){ const D=hvDigits()[i], J=HV_J[i], U=i===4&&s===0?HV_SUT:HV_SU[s]; let w=-1;
+  for(let k=0;k<U.length;k++){ const u=U[k]; _hc.copy(J[s]).lerp(J[s+1],u); const r=D.r[s]+(D.r[s+1]-D.r[s])*u; if(ctx.Q){ if(ctx.mir) _hc.x=-_hc.x; _hc.applyQuaternion(ctx.Q).add(ctx.P); }
+    const p=r-ctx.d(_hc,r); if(p>w) w=p; }
+  return w; }
+// open the joints just enough that every segment is clear (distal joint first, then the ones before it)
+function hvClear(A,i,ctx){ const b=i*4; hvFK(A,i);
+  for(let s=0;s<3;s++){ let p0=hvSegPen(i,s,ctx); if(p0<=ctx.tol) continue;
+    for(let j=s;j>=0;j--){ const ix=b+1+j, cur=A[ix], op=Math.min(cur,HV_OPEN[ix]-.25); if(cur-op<1e-3) continue;
+      A[ix]=op; hvFK(A,i); const p1=hvSegPen(i,s,ctx);
+      if(p1<=ctx.tol){ let lo=op, hi=cur; for(let it=0;it<5;it++){ const m=(lo+hi)/2; A[ix]=m; hvFK(A,i); if(hvSegPen(i,s,ctx)>ctx.tol) hi=m; else lo=m; } A[ix]=lo; hvFK(A,i); break; }
+      if(p1>=p0-2e-4){ A[ix]=cur; hvFK(A,i); } else p0=p1; } }
+  return A; }
+// close towards T: a joint stops once its segment or one after it touches (proximal joints stop, distal ones keep wrapping)
+const HV_RATE=[.05,.065,.045];
+function hvClose(A,i,ctx,T,steps){ const b=i*4, D=hvDigits()[i], lock=[0,0,0];
+  const hit=s=>{ for(let t=s;t<3;t++) if(hvSegPen(i,t,ctx)>ctx.tol) return true; return false; };
+  for(let k=0;k<(steps||48);k++){ let mv=false;
+    for(let s=0;s<3;s++){ if(lock[s]) continue; const j=b+1+s, prev=A[j], tg=Math.min(T[j],D.hi[1+s]); if(prev>=tg-1e-5){ lock[s]=1; continue; }
+      A[j]=Math.min(tg,prev+HV_RATE[s]); hvFK(A,i);
+      if(hit(s)){ let lo=prev, hi=A[j]; for(let it=0;it<4;it++){ const m=(lo+hi)/2; A[j]=m; hvFK(A,i); if(hit(s)) hi=m; else lo=m; } A[j]=lo; hvFK(A,i); lock[s]=1; } else mv=true; }
+    if(!mv) break; }
+  return A; }
+// reach: put a point of the distal segment (pad, distal-frame offset) on target Tp (hand space) without penetrating; mask = which of [abd,f0,f1,f2] may move
+function hvReach(A,i,ctx,Tp,pad,reg,wr,mask){ const b=i*4, D=hvDigits()[i];
+  const cost=()=>{ hvFK(A,i); _hv1.copy(pad).applyQuaternion(HV_Q[i][2]).add(HV_J[i][2]); let c=_hv1.distanceToSquared(Tp), pen=-1; for(let s=0;s<3;s++) pen=Math.max(pen,hvSegPen(i,s,ctx));
+    if(pen>ctx.tol){ const e=pen-ctx.tol; c+=e*e*500+e*.03; } for(let k=0;k<4;k++){ const dd=A[b+k]-reg[k]; c+=wr*dd*dd; } return c; };
+  let best=cost();
+  for(const st of [.24,.12,.06,.03,.015,.008]) for(let it=0;it<14;it++){ let imp=false;
+    for(let k=0;k<4;k++){ if(mask&&!mask[k]) continue; const ix=b+k, v=A[ix];
+      for(const sg of [1,-1]){ const nv=clamp(v+sg*st,D.lo[k],D.hi[k]); if(nv===v) continue; A[ix]=nv; const c=cost(); if(c<best-1e-10){ best=c; imp=true; break; } A[ix]=v; } }
+    if(!imp) break; }
+  hvFK(A,i); return Math.sqrt(Math.max(0,best)); }
+// preset hand shapes (hand space): fingers + thumb closed on a rod of radius rho along the held axis; 'point' = index straight
+function hvRod(rho){ rho=clamp(Math.round(rho*1e3)/1e3,.006,.07); const key='r'+rho; let A=HV.pre.get(key); if(A) return A;
+  A=new Float32Array(HV_OPEN); const x0=Math.min(0,.02-rho), ctx={tol:0,d:p=>Math.hypot(p.x-x0,p.z)-rho}; for(let i=0;i<5;i++){ hvClear(A,i,ctx); hvClose(A,i,ctx,HV_FIST,60); }
+  HV.pre.set(key,A); return A; }
+function hvPreset(n){ let A=HV.pre.get(n); if(A) return A;
+  if(n==='point'){ A=new Float32Array(hvRod(.012)); A.set([.04,.06,.05,.02],0); }
+  else if(n==='flat'){ A=new Float32Array(HV_OPEN); for(let i=0;i<4;i++) A.set([0,.05,.08,.04],i*4); A.set([-.45,-.2,.05,.05],16); }
+  else A=new Float32Array(HV_OPEN);
+  HV.pre.set(n,A); return A; }
+// hand sample spheres (palm + digits) in gun space, for the other hand / tests
+function hvSpheres(A,P,Q,mir,out,n0){ let n=n0||0; const pal=mir?HV_PALML:HV_PALM;
+  for(const s of pal){ if(n>=out.length) break; out[n].c.copy(s.p).applyQuaternion(Q).add(P); out[n].r=s.r; n++; }
+  const D=hvDigits(); for(let i=0;i<5;i++){ hvFK(A,i); const J=HV_J[i]; for(let s=0;s<3;s++) for(const u of (i===4&&s===0?HV_SUT:HV_SU[s])){ if(n>=out.length) return n;
+    _hc.copy(J[s]).lerp(J[s+1],u); if(mir) _hc.x=-_hc.x; out[n].c.copy(_hc).applyQuaternion(Q).add(P); out[n].r=D[i].r[s]+(D[i].r[s+1]-D[i].r[s])*u; n++; } }
+  return n; }
+/* ---------- grip fit v2: palm placement on the weapon at rest, fingers closed on it; right hand: index on the trigger (+ off-trigger pose along the frame), pistol thumbs forward ---------- */
+function hvSurf(L,y,z,side,r,oth){ for(let k=0;k<90;k++){ const x=side*(.07-k*.001); _hc.set(x,y,z); if(anHDist(L,_hc,.05,oth)<r) return x+side*.0004; } return side*.02; }   // first x (from outside, +1 right / -1 left) where a sphere of radius r touches
+function hvBox(w,role){ const r=w.roles[role]&&w.roles[role][0]; if(!r) return null; const b=anBoxRel(r.node,w.root,new THREE.Box3()); return b.isEmpty()?null:b; }
+function hvFitHand(L,A0,left,oth,w,role){
+  const S=left?HV_PALML:HV_PALM, Q0=A0.q, Qt=new THREE.Quaternion(), Pt=new THREE.Vector3();
+  const evalP=(ox,oy,oz,rot)=>{ Qt.copy(Q0); if(rot) Qt.multiply(_rlQ.setFromAxisAngle(AX_Y,rot)); Pt.set(ox,oy,oz).applyQuaternion(Q0).add(A0.p); let pen=0, gap=1;
+    for(const s of S){ _hc.copy(s.p).applyQuaternion(Qt).add(Pt); const d=anHDist(L,_hc,s.r+.03,oth)-s.r; if(-d>pen) pen=-d; if(d<gap) gap=d; }
+    return {J:pen*14+Math.max(0,gap-.0008)*2.2+Math.hypot(ox,oy,oz)*.2+Math.abs(rot)*.004,ox,oy,oz,rot,pen,gap}; };
+  anWNear(L,A0.p,.2); if(!L.some(P=>P.near)) return {o:new THREE.Vector3(),c:.0305,pen:0,rot:0,A:new Float32Array(hvRod(.02))};
+  const R1=left?.03:.018, S1=left?.0075:.006; let best=null;
+  for(let ox=-R1;ox<=R1+1e-6;ox+=S1) for(let oz=-R1;oz<=R1+1e-6;oz+=S1) for(const oy of [-.012,-.006,0,.006]){ const c=evalP(ox,oy,oz,0); if(!best||c.J<best.J) best=c; }
+  for(const st of [.003,.0015]){ const b=best; for(const rot of [-.3,-.15,0,.15,.3]) for(let dx=-2;dx<=2;dx++) for(let dz=-2;dz<=2;dz++) for(const dy of [-st,0,st]){ const c=evalP(b.ox+dx*st,b.oy+dy,b.oz+dz*st,st<.002?b.rot+rot*.3:rot); if(c.J<best.J) best=c; } }
+  const Q=new THREE.Quaternion().copy(Q0).multiply(_rlQ.setFromAxisAngle(AX_Y,best.rot)), P=new THREE.Vector3(best.ox,best.oy,best.oz).applyQuaternion(Q0).add(A0.p);
+  const ctx={P,Q,mir:left,tol:.0003,d:(p,r)=>anHDist(L,p,r+.02,oth)}, A=new Float32Array(HV_OPEN);
+  for(let i=0;i<5;i++){ hvClear(A,i,ctx); hvClose(A,i,ctx,HV_FIST,60); }
+  const res={o:new THREE.Vector3(best.ox,best.oy,best.oz).applyQuaternion(Q0),c:left?.043:.038,rot:best.rot,pen:best.pen,A,Ao:null};
+  const toH=v=>{ const h=v.clone().sub(P).applyQuaternion(Q.clone().invert()); if(left) h.x=-h.x; return h; }, D=hvDigits(), pist=w.def.type==='pistol';
+  const tb=role==='R'?hvBox(w,'trigger'):null, sb=hvBox(w,'slide');
+  if(tb){ const r2=D[0].r[2], Tt=new THREE.Vector3((tb.min.x+tb.max.x)/2,tb.min.y+(tb.max.y-tb.min.y)*.42,tb.min.z-r2*.9);
+    const Ai=new Float32Array(A); Ai.set([0,.35,.35,.2],0); hvReach(Ai,0,ctx,toH(Tt),new THREE.Vector3(0,0,-D[0].L[2]*.55),[0,.6,.7,.45],.0004,null);
+    const yo=tb.max.y+.009, zo=tb.min.z-.03, To=new THREE.Vector3(hvSurf(L,yo,zo,1,D[0].r[1]*1.05,null),yo,zo), Ao=new Float32Array(A); Ao.set([0,.12,.08,.04],0);
+    hvReach(Ao,0,ctx,toH(To),new THREE.Vector3(0,0,-D[0].L[2]*.4),[0,.1,.06,.03],.002,null); hvClear(Ao,0,ctx);
+    A.set(Ai.subarray(0,4),0); res.Ao=Ao.slice(0,4); }
+  if(pist&&(role==='R'||role==='L')&&(sb||tb)){ const yT=sb?sb.min.y+.004:(tb?tb.max.y+.026:A0.p.y+.05), zT=(tb?tb.min.z:A0.p.z-.04)+(role==='L'?-.018:-.002), y=role==='L'?yT-.019:yT;
+    const Tt=new THREE.Vector3(hvSurf(L,y,zT,-1,D[4].r[2],oth),y,zT); hvReach(A,4,ctx,toH(Tt),new THREE.Vector3(0,0,-D[4].L[2]*.75),[-.2,.2,.9,.15],.0006,null); hvClear(A,4,ctx); }
+  return res; }
+/* ---------- per frame (viewmodel, v2 arms): palm pushed out of the gun (and the left palm out of the right hand), then the fingers posed: grip fit at the anchors,
+   otherwise a preset or a grab that closes until contact; every segment is kept clear of the gun every frame ---------- */
+const HV_PTMODE={grip:1,mag:1,top:1,topPush:1,hdl:1,hdlP:1,sld:1,sldP:1,stop:1,rel:2,slap:2,slapP:2};   // 1 grab (close on contact) · 2 flat palm (slap / release)
+const _hvT=new Float32Array(20), HV_OTH=[]; for(let i=0;i<64;i++) HV_OTH.push({c:new THREE.Vector3(),r:0});
+function hvTarget(R,arm,left,atGrip,f){ const T=_hvT;
+  if(atGrip&&f&&(left?f.L:f.R)&&(left?f.L:f.R).A){ const F=left?f.L:f.R; T.set(F.A);
+    if(!left&&F.Ao){ const k=R.trigK===undefined?1:R.trigK; for(let j=0;j<4;j++) T[j]=F.Ao[j]+(F.A[j]-F.Ao[j])*k; const p=(R.trigHeld||0)*k; T[2]+=.16*p; T[3]+=.1*p; }
+    return T; }
+  if(left){ if(R.shellM&&R.shellM.visible){ T.set(hvRod(.0115)); return T; }
+    if(R.hLr.k>.3){ T.set(hvPreset(R.blK>.2?'flat':'point')); return T; }
+    const m=R.lMode|0; if(m===1){ T.set(HV_FIST); return T; } if(m===2){ T.set(hvPreset('flat')); return T; }
+    T.set(hvRod((R.lCurl||.038)-.0105)); return T; }
+  if(R.typeK>.3){ T.set(hvPreset('point')); return T; }
+  if(R.rCurl){ T.set(hvRod(R.rCurl-.0105)); return T; }
+  if(R.hR.k>.2){ T.set(HV_FIST); return T; }
+  T.set(hvRod(.02)); return T; }
+function hvHandSafe(R,arm,hp,hq){ const w=R.w, left=arm===R.armL, dt=R._dt||1/60;
+  if(!w||R.noSafe){ hvApply(arm); return; } const f=w.fit;
+  if(!left) R._sdfOk=false;
+  if(!R._sdfOk){ anWUpdate(w,false); _hsI.copy(R.gunRoot.matrix).invert(); _hsGQ.copy(R.gunRoot.quaternion).invert(); R._sdfOk=true; }
+  const atGrip=left?(R.hL.k<.2&&R.hLr.k<.2&&R.lAtGrip):(R.hR.k<.2&&R.hRr.k<.2&&!R.typeK);
+  arm.curl=left?(R.lCurl||.038):(R.rCurl||.0305);
+  const L=w._sdf, S=left?HV_PALML:HV_PALM, P=_hsP.copy(hp).applyMatrix4(_hsI), Q=_hsQ.copy(_hsGQ).multiply(hq);
+  anWNear(L,P,.17); let oth=null; if(left&&R._rhsN){ HV_OTH.length=0; for(let i=0;i<R._rhsN;i++) HV_OTH.push(AN_RHS[i]); oth=HV_OTH; }
+  let moved=false; _wo.copy(P);
+  if(!(R.gsPiv&&!left)){
+    const O=left?(R.hsOL||(R.hsOL=new THREE.Vector3())):(R.hsOR||(R.hsOR=new THREE.Vector3()));
+    const fg=f&&(left?f.L:f.R), wedged=atGrip&&fg&&fg.pen>.002;
+    if(wedged){ O.multiplyScalar(.85); if(O.lengthSq()<1e-8) O.set(0,0,0); P.copy(_wo).add(O); moved=O.lengthSq()>0; }
+    else { let pen0=anHandPush(L,S,P,Q,oth,_wacc); const pen1=pen0;
+      if(O.lengthSq()>1e-10){ _hsC.copy(_wo).addScaledVector(O,.85); const pw=anHandPen(L,S,_hsC,Q,oth); if(pw<=pen0+.0003){ P.copy(_hsC); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; } }
+      let best=pen0; _hsB.copy(P);
+      for(let it=0;it<6&&pen0>.0008;it++){ let bp=pen0, found=false; const g=_wacc.lengthSq()>1e-12; if(g) _hsD.copy(_wacc).normalize();
+        for(let c=g?0:1;c<7;c++){ const dir=c?AN_DIRS[c-1]:_hsD;
+          for(const m of (c?[1]:[1,2])){ _hsC.copy(P).addScaledVector(dir,pen0*m+.0005); if(_hsC.distanceTo(_wo)>.06) _hsC.sub(_wo).setLength(.06).add(_wo); const pn=anHandPen(L,S,_hsC,Q,oth); if(pn<bp-1e-5){ bp=pn; _hsE.copy(_hsC); found=true; } } }
+        if(!found) break; P.copy(_hsE); pen0=anHandPush(L,S,P,Q,oth,_wacc); moved=true; if(pen0<best){ best=pen0; _hsB.copy(P); } }
+      if(moved) P.copy(_hsB); O.subVectors(P,_wo); if(R.dbg) R.dbg[left?1:0]=[+(pen1*1e3).toFixed(1),+(best*1e3).toFixed(1),+(P.distanceTo(_wo)*1e3).toFixed(1)]; } }
+  // fingers: towards the target (rate limited), then out of anything they would sink into
+  const T=hvTarget(R,arm,left,atGrip,f), A=arm.A, k=Math.min(1,dt*18), mx=dt*12;
+  for(let j=0;j<20;j++){ const d=T[j]-A[j]; A[j]+=clamp(d*k,-mx,mx); }
+  const ctx={P,Q,mir:left,tol:.0004,d:(p,r)=>anHDist(L,p,r+.012,oth)}; for(let i=0;i<5;i++) hvClear(A,i,ctx);
+  hvApply(arm);
+  if(!left) R._rhsN=hvSpheres(A,P,Q,false,AN_RHS,0);
   if(moved) hp.copy(P).applyMatrix4(R.gunRoot.matrix); }
 
 /* ---------- reloads per weapon: the support hand goes to the model's own magazine, charging handle / bolt / slide (anchors from the parts, not constants) ----------
@@ -12235,7 +12507,7 @@ const _rlP1=new THREE.Vector3(), _rlQ1=new THREE.Quaternion(), _rlP2=new THREE.V
 function anRlHand(R,rp,lp,lqOut){ const L=anRlKeys(R); let i=1; while(i<L.length-1&&rp>L[i][0]) i++;
   const a=L[i-1], b=L[i], k=smooth(clamp((rp-a[0])/Math.max(1e-6,b[0]-a[0]),0,1));
   const c1=anRlPt(R,a[1],_rlP1,_rlQ1), c2=anRlPt(R,b[1],_rlP2,_rlQ2);
-  lp.copy(_rlP1).lerp(_rlP2,k); lqOut.copy(_rlQ1).slerp(_rlQ2,k); R.lCurl=k<.5?c1:c2; return lqOut; }
+  lp.copy(_rlP1).lerp(_rlP2,k); lqOut.copy(_rlQ1).slerp(_rlQ2,k); R.lCurl=k<.5?c1:c2; R.lMode=HV_PTMODE[k<.5?a[1]:b[1]]||0; return lqOut; }
 // magazine / bolt / slide motion per style (gun space offsets)
 const AN_RLX={rear:TRK({pz:[[.68,0],[.73,-.14],[.88,-.14],[.95,0]],px:[[.68,0],[.73,.03],[.88,.03],[.95,0]],ry:[[.68,0],[.73,-.3],[.88,-.3],[.95,0]],rx:[[.68,0],[.73,-.1],[.88,-.1],[.95,0]]}),
   top:TRK({pz:[[.68,0],[.73,-.12],[.88,-.12],[.95,0]],ry:[[.68,0],[.73,-.2],[.88,-.2],[.95,0]],py:[[.68,0],[.73,-.02],[.88,-.02],[.95,0]]}),
@@ -12289,7 +12561,7 @@ const K_FX_TOSS=[[0,0],[.12,0],[.42,.09,1],[.72,0,2],[.78,-.004],[.84,0]], K_FX_
 const _ptQ=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0,0,-1),new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0)));
 // support hand along a key path (u 0..1) of named model points (anRlPt); starts and ends on the grip so blends stay continuous
 function anKeyHand(R,u,L){ let i=1; while(i<L.length-1&&u>L[i][0]) i++; const a=L[i-1], b=L[i], k=smooth(clamp((u-a[0])/Math.max(1e-6,b[0]-a[0]),0,1));
-  const c1=anRlPt(R,a[1],_rlP1,_rlQ1), c2=anRlPt(R,b[1],_rlP2,_rlQ2); R.hL.p.copy(_rlP1).lerp(_rlP2,k); R.hL.q.copy(_rlQ1).slerp(_rlQ2,k); R.hL.k=1; R.lCurl=k<.5?c1:c2; }
+  const c1=anRlPt(R,a[1],_rlP1,_rlQ1), c2=anRlPt(R,b[1],_rlP2,_rlQ2); R.hL.p.copy(_rlP1).lerp(_rlP2,k); R.hL.q.copy(_rlQ1).slerp(_rlQ2,k); R.hL.k=1; R.lCurl=k<.5?c1:c2; R.lMode=HV_PTMODE[k<.5?a[1]:b[1]]||0; }
 const IN_K={mag:[[0,'grip'],[.16,'gripLo'],[.28,'mag'],[.72,'mag'],[.84,'gripLo'],[1,'grip']], tap:[[0,'grip'],[.16,'gripLo'],[.28,'slap'],[.72,'slap'],[.84,'gripLo'],[1,'grip']],
   top:[[0,'grip'],[.16,'topPre'],[.28,'top'],[.72,'top'],[.84,'topPre'],[1,'grip']], bolt:[[0,'grip'],[.16,'hdlPre'],[.28,'hdl'],[.72,'hdl'],[.84,'hdlOut'],[.93,'ret'],[1,'grip']],
   slide:[[0,'grip'],[.16,'sldPre'],[.28,'sld'],[.72,'sld'],[.84,'sldOut'],[1,'grip']], off:[[0,'grip'],[.12,'gripLo'],[.26,'away'],[.8,'away'],[.92,'gripLo'],[1,'grip']]};
@@ -12430,6 +12702,19 @@ function anGash(p,n,dir,kind,surf,tint){
 function anGashTick(dt){ if(!KG.list.length) return; const off=match.state==='menu'||match.state==='over';
   for(const g of KG.list){ if(!g.m.visible) continue; g.t+=dt; if(off||g.t>14){ g.m.visible=false; continue; } if(g.t>10) g.m.material.opacity=1-(g.t-10)/4; } }
 
+/* ---------- test probe: visible penetration of the hands / forearms into the gun (rendered vertices, skinned, vs the weapon distance field) + how close the arms come to the eye ---------- */
+const _pp1=new THREE.Vector3(), _ppI=new THREE.Matrix4(), _ppR=new THREE.Matrix4();
+function anPenProbe(R,step){ const w=R.w; if(!w||!w.root.visible) return null; const L=anWUpdate(w,false); R.rig.updateMatrixWorld(true); _ppI.copy(R.gunRoot.matrixWorld).invert(); _ppR.copy(R.rig.matrixWorld).invert(); const out={near:9};
+  const th=Math.tan(vmCam.fov*DEG/2), as=vmCam.aspect||1.78;
+  for(const k of ['R','L']){ const arm=k==='R'?R.armR:R.armL; if(!arm.group.visible){ out[k]=null; continue; } const S={max:0,n:0,cnt:0,arm:0};
+    arm.group.traverseVisible(o=>{ if(!o.isMesh||!o.geometry||!o.geometry.attributes.position) return; let inHand=false; for(let q=o;q;q=q.parent) if(q===arm.hand){ inHand=true; break; }
+      const pa=o.geometry.attributes.position, st=step||Math.max(1,Math.floor(pa.count/700));
+      for(let i=0;i<pa.count;i+=st){ o.getVertexPosition(i,_pp1); _pp1.applyMatrix4(o.matrixWorld); _a5.copy(_pp1).applyMatrix4(_ppR);   // rig (camera) space: arm near the eye inside the view?
+        const dz=-_a5.z; if(dz>.01&&Math.abs(_a5.y)<dz*th&&Math.abs(_a5.x)<dz*th*as&&dz<out.near) out.near=dz;
+        _pp1.applyMatrix4(_ppI); anWNear(L,_pp1,.002); const d=anWDist(L,_pp1,.01); S.cnt++; if(d<0){ S.n++; if(inHand){ if(-d>S.max) S.max=-d; } else if(-d>S.arm) S.arm=-d; } } });
+    out[k]=S; }
+  return out; }
+gameExport({ anPen:(R,s)=>anPenProbe(R||VM,s), HVT:{HV,hvMakeArm,hvApply,hvRod,hvPreset,hvPoseArm,hvSetLook,hvDigits,hvFK,HV_J,HV_OPEN,HV_FIST,anFitFor:w=>anFitFor(w),AN_FITC} });
 gameExport({ ANIM:{kq,AP,ANQ,ANP,AN_DRAW,AN_INSP,AN_KICK,anShellTimes,vmShell,anCls,AN_DEATH,vmKnife},
   WQ:{SC,KG,anKnifeTarget,anGash,anKnifeWall,anRoundsTick,anDrawSnd,doKnifeHit:k=>doKnifeHit(k),KN_REACH,rayWorld:(o,d,m)=>rayWorld(o,d,m)},
   anInput:(k,v)=>{ if(k==='fire2') firing2=v; else if(k==='fire') firing=v; else keys[k]=v; },   // test helper: simulated buttons
