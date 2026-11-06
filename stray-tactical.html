@@ -6619,7 +6619,7 @@ class Character{
   }
   setWeapon(def){
     if(this.def===def&&this.w) return; const had=!!this.w; if(this.w) disposeWeaponObject(this.w);
-    this.def=def; this.w=buildWeaponObject(def,{shadows:true}); this.gunRoot.add(this.w.root);
+    this.def=def; this.w=c6TPWeapon(def)||buildWeaponObject(def,{shadows:true}); this.gunRoot.add(this.w.root);   // shared merged third-person copy (@@BLOCK:chars6)
     c6Weapon(this,def,had); this.armL.group.visible=true;
   }
   muzzleWorld(out){ if(!this.w) return out.copy(this.pos).setY(1.4); return out.copy(muzzleOf(this.w)).applyMatrix4(this.w.root.matrixWorld); }
@@ -14523,7 +14523,7 @@ function c6Mat(o){ const m=makeMaterial(Object.assign({preset:'fabric'},o.m||{})
   if(o.side) m.side=o.side; if(o.alpha) m.alphaTest=o.alpha; if(o.emi){ m.emissive.set(o.emi); m.emissiveIntensity=o.ei||1; if(o.emiMap) m.emissiveMap=o.emiMap; } return m; }
 function c6Skin(col,rough,map){ const m=new THREE.MeshStandardMaterial({color:col,roughness:rough||.62,metalness:0,envMapIntensity:.8}); if(map){ m.map=map; } return m; }
 // shemagh: sand cloth with a woven check (scaled in metres: the loft UVs are in metres)
-function c6Shemagh(base,line){ return c6Tex(77,128,(x,S)=>{ x.fillStyle=base; x.fillRect(0,0,S,S); x.strokeStyle=line; x.globalAlpha=.75; x.lineWidth=4;
+function c6Shemagh(base,line){ return c6Tex(77,128,(x,S)=>{ x.fillStyle=base; x.fillRect(0,0,S,S); x.strokeStyle=line; x.globalAlpha=.6; x.lineWidth=3;
   for(let i=0;i<S;i+=32){ x.beginPath(); x.moveTo(i+8,0); x.lineTo(i+8,S); x.moveTo(0,i+8); x.lineTo(S,i+8); x.stroke(); }
   x.globalAlpha=.3; x.lineWidth=1; for(let i=0;i<S;i+=32){ x.beginPath(); x.moveTo(i+14,0); x.lineTo(i+14,S); x.moveTo(0,i+14); x.lineTo(S,i+14); x.stroke(); }
   x.globalAlpha=.12; for(let i=0;i<1500;i++){ x.fillStyle=i%2?'#000':'#fff'; x.fillRect((i*37)%S,(i*91)%S,1,1); } x.globalAlpha=1; }); }
@@ -14590,6 +14590,7 @@ function c6Parts(look){ const B={}, T=look==='T', Z=look[0]==='Z', zt=Z?look[1]:
     for(const x of [-.11,-.04,.04,.11]) ad('spine','strap',c6Bend(c6Box(.066,.03,.056,.008,x,.272,-.168,.1),.9));
     for(const s of [-1,1]) ad('spine','strap',c6Strap([[s*.12,.27,-.13],[s*.13,.4,-.122],[s*.13,.5,-.065],[s*.12,.53,.01],[s*.08,.45,.112],[-s*.02,.33,.126],[-s*.11,.22,.118]],.04,.01,[0,.32,0]));
     ad('spine','strap',c6Loft([[.165,.158,.1,.104],[.19,.16,.1,.106]],{n:16,a0:Math.PI*.55,a1:Math.PI*1.45}));
+    ad('spine','pouch',c6Bend(c6Box(.13,.15,.045,.016,0,.29,.135,-.06),-.8)); ad('spine','strap',c6Bend(c6Box(.135,.03,.05,.008,0,.355,.137,-.06),-.8));
     for(const s of [-1,1]){ ad('spine','shirt',c6Bend(c6Box(.09,.1,.014,.006,s*.085,.35,-.117),.6)); ad('spine','shirt',c6Bend(c6Box(.096,.032,.018,.006,s*.085,.395,-.118),.6)); }
     ad('spine','wrap',c6Loft([[.465,.09,.078,.08,0,.012],[.49,.104,.092,.088,0,.013],[.525,.1,.09,.084,0,.015],[.56,.087,.08,.072,0,.017],[.585,.068,.064,.06,0,.017]],{n:20,fn:(P,a,t)=>{ const k=1+.07*Math.sin(a*3+t*45)+.03*Math.sin(a*7); P[0]*=k; P[2]=P[2]*k; }}));
     ad('spine','wrap',c6Loft([[.5,.05,.016,.016,.0,-.098],[.44,.042,.013,.013,.006,-.122],[.39,.016,.01,.01,.012,-.13]],{n:10})); }
@@ -14706,7 +14707,7 @@ function c6Init(C){
     dType:0,dSide:1,dT:0,dSet:false,gunVy:0,gunQ:new THREE.Quaternion(),dhL:new THREE.Vector3(),dhR:new THREE.Vector3(),dqL:new THREE.Quaternion(),dqR:new THREE.Quaternion()});
   C.hips.rotation.order='YXZ'; C.spine.rotation.order='YXZ'; C.head.rotation.order='YXZ'; }
 function c6Weapon(C,def,had){ C.info=c6WeaponInfo(C.w,def); if(had&&C.deathT<0) C.drawT=.45;
-  const f=anApplyFit(C.w); if(f){ anSetHand(C.armR,f.R?f.R.c:.0305); anSetHand(C.armL,f.L?f.L.c:.0305); } }
+  const f=anApplyFit(C.w); c6SetHand(C,C.armR,f&&f.R?f.R.c:.0305); c6SetHand(C,C.armL,f&&f.L?f.L.c:.0305); C.handHi=!!(C.idleFx||C.tpLocal); }
 function c6Fire(C){ if(C.deathT>=0||!C.def) return; const T=C.def.type;
   if(T==='knife'){ C.slashT=0; return; } if(T==='grenade'||T==='c4') return;
   const K=T==='pistol'?[.03,.22,.5]:T==='sniper'?[.07,.2,.3]:T==='shotgun'?[.07,.22,.4]:T==='smg'?[.016,.05,.15]:[.026,.075,.2];
@@ -14736,7 +14737,7 @@ function c6Foot(C,Lg,g,pitch,yaw,kx){ const A=c6Ankle(_g6.a,g,pitch,yaw), hp=C.h
   _g6.q.setFromEuler(_g6.eu.set(pitch,yaw,0,'YXZ')); _g6.q.premultiply(_g6.qi);
   _g6.kd.set(Lg.s*kx,0,-1).applyAxisAngle(AX_Y,yaw).applyQuaternion(_g6.qi);
   c6PoseLeg(Lg,A,_g6.kd,_g6.q); }
-function c6Live(C,dt){
+function c6Live(C,dt){ c6HandMode(C);
   const t=(C.t+=dt), w=C.w, def=C.def, I=C.info, cy=Math.cos(C.yaw), sy=Math.sin(C.yaw), T=def?def.type:'knife';
   // motion in root space (x right, -z forward)
   const lx=C.vx*cy-C.vz*sy, lz=C.vx*sy+C.vz*cy; let v=Math.hypot(lx,lz); if((C.speed||0)<.05&&v<.3) v=0;
@@ -14844,6 +14845,44 @@ function c6ReloadHand(C,u,out){ const w=C.w, A=w.anchors, gl=A.gripL.p, mb=w.mag
   const hold=ph>=1&&ph<5, vis=!(ph>2.85&&ph<3.15)&&!(pistol&&ph>1.55&&ph<2.9);
   for(const r of mags){ r.node.position.copy(r.pos); if(hold){ if(pistol&&ph<2.9) r.node.position.y-=.5*smooth(clamp(ph-1,0,1)); else r.node.position.add(e.copy(out).sub(mb).add(_g6.b.set(0,.015,0))); } r.node.visible=vis&&r.vis!==false; }
   return A.gripL.q; }
+/* ---------- third-person weapons: one merged template per weapon definition (static parts merged per material, magazine / suppressor groups stay movable),
+   characters get light clones that share every buffer (a rifle drops from ~100 draw calls to a handful). TEST builds keep per-owner objects (skins). ---------- */
+const C6_TPW=new Map();
+function c6WMerge(L){ const G=L.map(g=>{ const x=g.index?g.toNonIndexed():g; for(const k of Object.keys(x.attributes)) if(k!=='position'&&k!=='normal'&&k!=='uv') x.deleteAttribute(k);
+    if(!x.attributes.uv) x.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(x.attributes.position.count*2),2)); x.morphAttributes={}; return x; });
+  const m=mergeGeometries(G,false); G.forEach(g=>g.dispose()); if(!m) throw new Error('merge'); m.computeBoundingSphere(); return m; }
+function c6TPWeapon(def){ if(TEST_BUILD||!def||!def.parts) return null; const key=defHash(def); let T=C6_TPW.get(key);
+  if(T===undefined){ T=null; let src=null;
+    try{ src=buildWeaponObject(def,{shadows:true}); src.root.updateMatrixWorld(true);
+      const keep=new Set(), root=new THREE.Group(), groups=[{node:src.root,out:root,role:null}], rinv=new THREE.Matrix4().copy(src.root.matrixWorld).invert();
+      for(const k of ['mag','suppressor']) for(const r of src.roles[k]||[]) keep.add(r.node);
+      for(const k of ['mag','suppressor']) for(const r of src.roles[k]||[]){ const g=new THREE.Group(); new THREE.Matrix4().multiplyMatrices(rinv,r.node.matrixWorld).decompose(g.position,g.quaternion,g.scale); root.add(g); groups.push({node:r.node,out:g,role:k,vis:r.vis}); }
+      for(const G of groups){ const inv=new THREE.Matrix4().copy(G.node.matrixWorld).invert(), by=new Map();
+        G.node.traverse(o=>{ if(!o.isMesh||!o.geometry||!o.visible) return; if(Array.isArray(o.material)||o.isSkinnedMesh||o.isInstancedMesh) throw new Error('multi');
+          let own=null; for(let q=o;q&&q!==src.root;q=q.parent) if(keep.has(q)){ own=q; break; } if(G.role?own!==G.node:own!==null) return;
+          const g=o.geometry.clone(); g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld)); const m=o.material; if(!by.has(m)) by.set(m,[]); by.get(m).push(g); });
+        for(const [m,L] of by){ const mesh=new THREE.Mesh(c6WMerge(L),m); mesh.castShadow=true; mesh.receiveShadow=true; mesh.userData.sharedGeo=1; G.out.add(mesh); } }
+      const fit=anApplyFit(src);
+      T={root,groups:groups.slice(1),anchors:src.anchors,magBox:src.magBox,magBottom:src.magBottom,supBox:src.supBox,fit};
+    }catch(e){ T=null; }
+    if(src) disposeWeaponObject(src); C6_TPW.set(key,T); }
+  if(!T) return null;
+  const root=T.root.clone(), roles={mag:[],slide:[],bolt:[],trigger:[],hammer:[],blade:[],suppressor:[]};
+  T.groups.forEach((G,i)=>{ const n=root.children[i]; roles[G.role].push({node:n,pos:n.position.clone(),rot:n.rotation.clone(),vis:G.vis}); });
+  const A=T.anchors, cl=a=>a&&{p:a.p.clone(),q:a.q.clone()};
+  return {root,nodes:{},roles,anchors:{gripR:cl(A.gripR),gripL:cl(A.gripL),muzzle:A.muzzle,eject:A.eject,muzzleU:A.muzzleU},magBox:T.magBox,magBottom:T.magBottom,supBox:T.supBox,def,silOn:true,fitted:true,fit:T.fit}; }
+/* ---------- third-person hands: low-poly fist (finger wrap ring + thumb + cuff, ~300 tris instead of ~6400) for in-game agents; menu / loadout close-ups keep the detailed hands ---------- */
+C6.hand=new Map();
+function c6Cap(a,b,r){ const A=new THREE.Vector3().fromArray(a), B=new THREE.Vector3().fromArray(b), d=B.clone().sub(A), L=d.length(), g=new THREE.CapsuleGeometry(r,Math.max(.001,L),2,6);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize())); g.translate((A.x+B.x)/2,(A.y+B.y)/2,(A.z+B.z)/2); return g; }
+function c6HandLow(R){ const key=Math.round(R*1e4); let H=C6.hand.get(key); if(H) return H; const dR=R-.0305;
+  const f=new THREE.TorusGeometry(R,.0102,5,8,Math.min(3.05,.09/R)); f.rotateX(-Math.PI/2); f.rotateY(.1); f.scale(1,3.6,1); f.translate(0,-.001,.002);
+  const gl=[c6Box(.027,.088,.082,.01,.037+dR,-.001,.032),c6Box(.03,.042,.044,.01,.026+dR,.016,.05),f,c6Cap([.03+dR,.028,.048],[.002+dR*.5,.038,.046],.011),c6Cap([.002+dR*.5,.038,.046],[-.02-dR*.3,.038,.026],.0102),c6Cyl(.031,.033,.06,.034+dR,-.004,.09,Math.PI/2,0,0,10)];
+  const pd=[c6Box(.012,.078,.02,.004,.047+dR,-.001,-.004),c6Box(.008,.06,.042,.003,.0525+dR,.003,.026),c6Cyl(.0345,.0345,.016,.034+dR,-.004,.103,Math.PI/2,0,0,10)];
+  H={glove:c6WMerge(gl),pads:c6WMerge(pd),dR}; C6.hand.set(key,H); return H; }
+function c6SetHand(C,arm,c){ arm.c6c=c; const hi=!!(C.idleFx||C.tpLocal);
+  if(hi){ anSetHand(arm,c); return; } const key=-Math.round(c*1e4)-1; if(arm.curl===key) return; const H=c6HandLow(c), k=arm.hand.children; k[0].geometry=H.glove; k[1].geometry=H.pads; arm.curl=key; arm.wdx=H.dR; arm.hg=null; }
+function c6HandMode(C){ const hi=!!(C.idleFx||C.tpLocal); if(C.handHi===hi) return; C.handHi=hi; for(const a of [C.armR,C.armL]) c6SetHand(C,a,a.c6c||.0305); }
 /* ---------- deaths: 0 back (chest from the front) · 1 forward (from behind) · 2 sideways (mirrored) · 3 headshot snap · 4 knees then forward · 5 HE blast · 6 running stumble
    keys: bx bz body pitch/roll at the feet pivot · px py pz body offset (+z = back) · hy hips height · tL tR / kL kR thigh / knee · fL fR ankle · sx sz spine · hx hz head; land = body down ---------- */
 const C6_DEATH=[
@@ -15019,7 +15058,7 @@ function c6DownPose(C,dt,spd){ const t=(C._dpt=(C._dpt||0)+dt*(spd>.3?3.2:.7)), 
   c6PoseArm(C.armR,C6_SHR,_g6.hp.set(.24,.86+s*.06,-.12-Math.max(0,s)*.1),C6_QR,C6_POLE_R); c6PoseArm(C.armL,C6_SHL,_g6.pl.set(-.24,.86-s*.06,-.12-Math.max(0,-s)*.1),C6_QL,C6_POLE_L);
   C.gunRoot.visible=false; }
 // zombie dressing after construction: open clawed hands, type proportions (bulk via mesh scale; the skeleton stays the same so hitboxes keep matching)
-function c6ZDress(C,z,type){ C.zOwner=z; C.zLive=c6ZLive; C.gunRoot.visible=false; anSetHand(C.armR,.064); anSetHand(C.armL,.064);
+function c6ZDress(C,z,type){ C.zOwner=z; C.zLive=c6ZLive; C.gunRoot.visible=false; c6SetHand(C,C.armR,.064); c6SetHand(C,C.armL,.064); C.handHi=false;
   const bulk=type==='t'?[1.22,1.05,1.18]:type==='b'?[1.16,1.04,1.12]:type==='e'?[1.16,1.02,1.25]:type==='r'?[.92,1,.92]:[1,1,1], arm=type==='t'?1.35:type==='b'?1.25:type==='r'?.88:1;
   for(const m of C.spine.children) if(m.isMesh&&m.material!==HITMAT) m.scale.set(bulk[0],bulk[1],bulk[2]);
   C.zShW=bulk[0]; for(const a of [C.armR,C.armL]) for(const p of [a.upper,a.fore]) for(const m of p.children) m.scale.set(arm,1,arm);
@@ -15458,7 +15497,7 @@ class ZmZombie extends TeamBot{
     this.stuckT+=dt; if(this.stuckT>1.3){ if(wish.lengthSq()>0&&this.lastP.distanceTo(this.pos)<.35){ this.wp=null; if(this.onGround) v.y=JUMPV*.85; } this.lastP.copy(this.pos); this.stuckT=0; }
     const hs=Math.hypot(v.x,v.z); let ty=null; if(face) ty=Math.atan2(-(face.x-this.pos.x),-(face.z-this.pos.z)); else if(hs>.3) ty=Math.atan2(-v.x,-v.z);
     if(ty!==null){ let d=ty-this.yaw; while(d>Math.PI) d-=TAU; while(d<-Math.PI) d+=TAU; this.yaw+=d*Math.min(1,dt*(this.zt==='r'?9:5)); }
-    this.noise=hs>.5?1:0; zmGroan(this,dt); zmAnim(this,dt); } }
+    this.noise=1; zmGroan(this,dt); zmAnim(this,dt); } }   // always audible (groans, shuffling): bot mates notice zombies behind them within 18 m
 /* ---- zombie mirror (online clients): interpolated from the host's snapshots ---- */
 class ZmZombieMirror extends NetAgent{
   constructor(type,id){ zmMats(type); super('Z'+type,ZM_TYPES[type].n,id,false); zmZInit(this,type); zmDress(this.char,type,this); this.seen=performance.now(); }
