@@ -15605,8 +15605,8 @@ function zmStep(z){ const nav=WORLD.active&&WORLD.active.nav, F=ZM.flow; if(!nav
   let b1=-1, v1=F[n]; navNbrs(nav,n,m=>{ if(F[m]<v1){ v1=F[m]; b1=m; } }); if(b1<0) return null;
   let b2=-1, v2=F[b1]; navNbrs(nav,b1,m=>{ if(F[m]<v2){ v2=F[m]; b2=m; } }); const p2=b2>=0?navPos(nav,b2):null; return p2&&navClear(nav,z.pos,p2)?p2:navPos(nav,b1); }
 // stuck watchdog: a zombie that has not closed in on anyone for 7 s and is out of every survivor's sight is moved to a fresh spawn point (no wave stalls on an unreachable zombie)
-function zmProgress(z,G,dt){ const d=G?Math.hypot(G.pos.x-z.pos.x,G.pos.z-z.pos.z):1e9; if(G!==z._pg){ z._pg=G; z.bestD=d; z.progT=0; }
-  if(d<z.bestD-1||d<z.reach+.8||z.atkT>=0||z.barT>0){ z.bestD=Math.min(z.bestD,d); z.progT=0; return; } z.progT=(z.progT||0)+dt; if(z.progT<7) return; z.progT=5;
+function zmProgress(z,G,dt){ const d=G?Math.hypot(G.pos.x-z.pos.x,G.pos.z-z.pos.z):1e9; if(G!==z._pg){ z._pg=G; z.bestD=d; }   // a target switch is no progress (mates trading aggro kept the timer at 0)
+  if(d<z.bestD-1||d<z.reach+.8||z.atkT>=0||z.barT>0){ z.bestD=Math.min(z.bestD,d); z.progT=0; z.noProg=0; return; } z.progT=(z.progT||0)+dt; z.noProg=(z.noProg||0)+dt; if(z.progT<7) return; z.progT=5; if(z.noProg>25){ z.noProg=0; const q=zmSpawnPoint(); if(q){ z.pos.copy(q); z.vel.set(0,0,0); z.wp=null; z.char._lpOk=false; z.bestD=1e9; } return; }   // stuck for 25 s even in sight: respawn
   for(const a of zmSurv()){ if(!a.alive) continue; const e=agentEye(a,_zv1), t=_zv2.set(z.pos.x,z.pos.y+1.2,z.pos.z).sub(e), L=t.length(); if(L<50&&!rayWorld(e,t.multiplyScalar(1/L),L-.3)) return; }
   const p=zmSpawnPoint(); if(!p) return; z.pos.copy(p); z.vel.set(0,0,0); z.wp=null; z.char._lpOk=false; z.bestD=1e9; z.progT=0; }
 function zmLos(z,G){ const e=_zv1.set(z.pos.x,z.pos.y+1.5,z.pos.z), t=agentChest(G,_zv2), d=t.sub(e), L=d.length(); if(L<.1) return true; d.multiplyScalar(1/L); return !rayWorld(e,d,L-.2); }
@@ -15676,13 +15676,13 @@ function zmResults(R){ if(match.state==='over') return; match.state='over'; ZM.p
   $('sbInner2').parentNode.classList.remove('hidden'); $('btnRematch').classList.toggle('hidden',NET.on); $('btnLobby').textContent=NET.on&&NET.kind==='custom'?'LOBİYE DÖN':'MENÜYE DÖN'; $('matchEnd').classList.remove('hidden'); sfx.lose();
   if(NET.host&&NET.inMatch){ NET.inMatch=false; if(NET.lobby){ NET.lobby.started=0; NET.lobby.startAt=0; netLobbyChanged(); } } if(NET.client) NET.inMatch=false; }
 /* ---- waves ---- */
-function zmWaveStart(){ ZM.wave++; const w=ZM.wave, S=zmSurv(), n=S.length, k=1+.35*(n-1);
+function zmWaveStart(){ ZM.wave++; const w=ZM.wave, S=zmSurv(), n=S.length, k=1+.3*(n-1);
   ZM.toSpawn=Math.round((5+2.2*w+1.5*Math.floor(w/3))*k*([.8,1,1.15][ZM.diff]||1)); ZM.bossLeft=w%5===0?1:0; ZM.toSpawn+=ZM.bossLeft; ZM.left=ZM.total=ZM.toSpawn; ZM.phase='live'; ZM.t=0; ZM.spawnT=1.2; ZM.liveT=0; ZM.wKills=ZM.kills; ZM.stallT=0;
   ZM.maxAlive=Math.min(CFG.quality==='low'?12:18,4+2*n+w); S.forEach((a,i)=>{ if(!a.alive) zmSpawnSurvivor(a,i,false); }); if(buyOpen&&match.zm) toggleBuy(false);
   for(const b of S) if(b.isBot&&!b.isRemote&&b.alive&&b.zmInv&&b.zmInv.zmmine>0){ const sp=zmPlaceSpot(b,'zmmine'); if(sp){ b.zmInv.zmmine--; zmItemAdd('zmmine',sp.p,sp.y,b); } }   // bots lay their mine where they stand
   zmWaveFx(w,ZM.bossLeft,ZM.total); zmSend({k:'wave',w,b:ZM.bossLeft,n:ZM.total}); ZM.flowT=0; }
 function zmWaveFx(w,boss,n){ zmCard('DALGA '+w,(n?n+' zombi · ':'')+(boss?'BOSS DALGASI!':'hayatta kal'),zmTypesFor(w,boss),boss?'#ff5a3c':'#ffb648',3600); tpSnd('wave',{vol:.9}); }
-function zmWaveEnd(){ const w=ZM.wave, bon=250+40*w, dur=ZM.liveT, kl=ZM.kills-ZM.wKills; ZM.phase='buy'; ZM.t=NET.on?ZM.buyT+6:ZM.buyT;
+function zmWaveEnd(){ const w=ZM.wave, bon=300+50*w, dur=ZM.liveT, kl=ZM.kills-ZM.wKills; ZM.phase='buy'; ZM.t=NET.on?ZM.buyT+6:ZM.buyT;
   if(ZM.sim){ const M=zmSurv().filter(a=>a!==player); ZM.sim.waves.push({w,n:ZM.total,sec:Math.round(dur),downs:M.reduce((s,a)=>s+(a.zmDowns|0),0),dead:M.filter(a=>!a.alive).length,hp:Math.round(M.filter(a=>a.alive).reduce((s,a)=>s+a.hp,0)/Math.max(1,M.filter(a=>a.alive).length)),money:Math.round(M.reduce((s,a)=>s+(a.money|0),0)/Math.max(1,M.length)),guns:M.map(a=>a.slots.primary?a.slots.primary.def.id:a.slots.secondary?a.slots.secondary.def.id:'-').join(',')}); }
   for(const a of zmSurv()){ if(a.zmDown) zmRevive(a,null); if(a.alive) addMoney(a,bon); }
   zmSurv().filter(a=>a.isBot&&!a.isRemote).forEach(zmBotBuy); zmClearFx(w,bon,dur,kl); zmSend({k:'clear',w,bon,d:Math.round(dur),n:kl}); }
