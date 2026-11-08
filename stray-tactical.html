@@ -819,6 +819,8 @@ body.touch #vitals{transform:translateX(-50%) scale(var(--hs));transform-origin:
 }
 @media (prefers-reduced-motion:reduce){ .navBtn{transition:none;} #cbTime.bomb{animation:none;} }
 /* @@CSS:maps — styles from the maps work go right below this line */
+/* op7: phones — the money box shows only the amount (its reason line ran under the score bar on narrow screens) */
+body.touch #moneyNote{display:none;} body.touch #moneyBox{width:auto;}
 
 
 /* @@CSS:net — styles from the net work go right below this line */
@@ -6804,7 +6806,7 @@ function updatePlayer(dt){
   const umv=unsupMul(def,slotState()), rcv=(s.recoil||0)*(umv?umv.rc:1);
   const tx=P.sprayIdx<=0?0:lerp(pat[i0][0],pat[Math.min(pat.length-1,i0+1)][0],fr)*rcv, ty=P.sprayIdx<=0?0:lerp(pat[i0][1],pat[Math.min(pat.length-1,i0+1)][1],fr)*rcv;
   P.punch.x=lerp(P.punch.x,tx,Math.min(1,dt*22)); P.punch.y=lerp(P.punch.y,ty,Math.min(1,dt*22));
-  camera.position.set(P.pos.x,P.pos.y+P.eye,P.pos.z);
+  camera.position.set(P.pos.x,op7EyeY(P,dt),P.pos.z);
   const shake=Math.max(P.dmgShake||0,COMP.shake||0); P.dmgShake=Math.max(0,(P.dmgShake||0)-dt*3);
   camera.rotation.set(P.pitch+P.punch.y*.5*DEG+Math.sin(VM.time*40)*shake*.006,P.yaw-P.punch.x*.5*DEG,Math.sin(VM.time*33)*shake*.005);
   moveState.speed=hs/MAXSPD; moveState.onGround=P.onGround; moveState.vy=P.vel.y; moveState.crouch=P.h===CROUCH_H; moveState.strafe=lerp(moveState.strafe,mx*Math.min(1,hs/3),Math.min(1,dt*6));
@@ -10857,6 +10859,8 @@ function op7Frame(raw){ OP7P.t-=raw; if(OP7P.t>0) return; OP7P.t=.25; const cp=c
   if(B&&OP7P.map!==B){ OP7P.map=B; if(!B._op7small&&B.name!=='range') op7MapPrep(B); }
   if(B&&B._op7small) for(const s of B._op7small) s.o.layers.set(s.p.distanceToSquared(cp)>3025?3:0);
   for(const b of bots) op7BotLOD(b,cp); }
+/* stair steps: the view follows a step up / down over ~70 ms instead of jumping (CS-style); airborne, teleports and big drops snap */
+function op7EyeY(P,dt){ const y=P.pos.y; if(P._fy===undefined||!P.onGround||Math.abs(y-P._fy)>.62) P._fy=y; else { P._fy+=(y-P._fy)*Math.min(1,dt*15); if(Math.abs(y-P._fy)<.002) P._fy=y; } return P._fy+P.eye; }
 gameExport({get op7I(){ return {THREE,mq5Sources,MQ5ScanB,mq5Data,mq5Dispose,makeCol,colContains,colTop,toLocal,overlapC,moveBody,blockedAtR,supportAt,rayWorld,navPos,navNbrs,navNearest,buildNav,getMapMat,MAPMAT,STEP,HW,STAND_H,EYE_S,rgBuildRange,obTutMapData,obTutMapEnsure,normalizeMap,addSkyline,tick,renderMain}; }});
 
 /* @@BLOCK:net — code from the net work goes right below this line */
@@ -11741,16 +11745,16 @@ function anMove(R,dt,mv){
   R.spd=lerp(R.spd,sp,Math.min(1,dt*8)); const s=Math.min(1,R.spd);
   if(onG&&s>.03) R.bob+=dt*(6.4+4.2*s);
   const A=s*bsc, sb=Math.sin(R.bob), ab=Math.abs(Math.cos(R.bob));
-  AP[0]+=sb*.011*A; AP[1]+=(.0065-ab*.013)*A; AP[3]+=(ab-.5)*.02*A; AP[4]+=sb*.012*A; AP[5]+=sb*.016*A;
+  AP[0]+=sb*.008*A; AP[1]+=(.005-ab*.01)*A; AP[3]+=(ab-.5)*.014*A; AP[4]+=sb*.009*A; AP[5]+=sb*.01*A;   // op7: subtler CS2-like figure-eight
   // near full weapon speed for a moment: carry the gun lower and canted (any shot snaps it back up)
   const ws=D.stats.speed||1, full=onG&&!mv.crouch&&sp/ws>.9; R.sprT=full?R.sprT+dt:0;
   const sk=R.sprT>.3&&R.sinceFire>.45&&R.reloadT<=0&&R.inspectT<0&&R.knifeT<0&&R.throwT<0&&!R.sh.ph?1:0;
   R.sprK=lerp(R.sprK,sk,Math.min(1,dt*(sk?4.5:14))); const k=R.sprK*Math.min(1,bsc+.3);
-  AP[0]-=.014*k; AP[1]-=.032*k; AP[2]+=.016*k; AP[3]-=.2*k; AP[4]+=.13*k; AP[5]+=.17*k;
-  const st=mv.strafe||0; AP[5]-=st*.09; AP[0]-=st*.008; AP[4]+=st*.022;
+  AP[0]-=.009*k; AP[1]-=.02*k; AP[2]+=.01*k; AP[3]-=.1*k; AP[4]+=.065*k; AP[5]+=.085*k;
+  const st=mv.strafe||0; AP[5]-=st*.05; AP[0]-=st*.006; AP[4]+=st*.015;
   AP[0]+=R.sway.x*.035; AP[1]+=R.sway.y*.03; AP[3]+=R.sway.y*.08; AP[4]-=R.sway.x*.12; AP[5]+=R.sway.x*.08;
-  if(R.wasG&&!onG&&vy>1) R.air.v-=.45;
-  if(!R.wasG&&onG) R.ld.v-=clamp(-R.lastVy,0,16)*.05;
+  if(R.wasG&&!onG&&vy>1) R.air.v-=.34;
+  if(!R.wasG&&onG) R.ld.v-=clamp(-R.lastVy,0,14)*.04;
   R.wasG=onG; R.lastVy=vy; R.landT=0;
   const air=R.air.step(dt,onG?0:clamp(-vy*.0035,-.025,.025)+.006), ld=R.ld.step(dt,0);
   AP[1]+=air+ld; AP[3]+=air*1.4+ld*2.2; AP[2]-=ld*.3; AP[5]+=ld*.6;
