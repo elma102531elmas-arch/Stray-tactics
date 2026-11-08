@@ -1386,6 +1386,62 @@ body.touchEditing #fireBtnL::after{top:100%;left:0;margin-top:4px;}
   #obModal .obRow{margin:5px 0;} #obModal .obChoice button{padding:7px 9px;} #obModal .obChoice small{font-size:11px;} #obModal .obBtns{margin-top:8px;} #obModal .seg button{height:28px;} }
 
 
+/* @@CSS:chat — chat wheel, radio feed, ping markers, Settings > SOHBET ÇARKI */
+#cw7Wheel{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+#cw7Wheel.hidden{display:none;}
+#cw7Wheel.sticky{pointer-events:auto;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.18),rgba(0,0,0,0) 60%);}
+#cw7Wheel .cw7Box{position:relative;width:min(400px,82vmin);height:min(400px,82vmin);}
+.cw7Svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 8px 22px rgba(0,0,0,.5));}
+.cw7Hub{fill:rgba(8,10,14,.6);stroke:rgba(255,255,255,.07);stroke-width:1.5;}
+.cw7Seg{fill:rgba(12,15,20,.62);stroke:rgba(255,255,255,.06);stroke-width:1;transition:fill .07s;}
+.cw7Seg.on{fill:rgba(84,94,110,.72);}
+.cw7Arc{fill:none;stroke:transparent;stroke-width:4;stroke-linecap:round;}
+.cw7Arc.on{stroke:#eef3f8;}
+.cw7Ic{color:rgba(225,231,240,.62);transition:color .07s;} .cw7Ic.on{color:#fff;}
+.cw7Ic *,.cw7I *,.cw7FI *,.cw7MI *{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
+.cw7Ic text,.cw7I text,.cw7FI text,.cw7MI text{fill:currentColor;stroke:none;font:900 8px 'Barlow Condensed','Arial Narrow',sans-serif;text-anchor:middle;}
+.cw7Ptr{fill:rgba(255,255,255,.9);transition:opacity .1s;}
+.cw7Ctr{position:absolute;left:50%;top:50%;width:33%;transform:translate(-50%,-50%);text-align:center;color:#fff;pointer-events:none;}
+.cw7Ph{font:700 clamp(12px,3.6vmin,15px)/1.15 var(--f-ui);text-shadow:0 1px 3px #000;min-height:2.4em;display:flex;align-items:center;justify-content:center;}
+.cw7Ph.dim{color:rgba(255,255,255,.5);font-weight:600;font-size:clamp(10px,3vmin,12px);}
+.cw7Nm{font:700 10px var(--f-cs);letter-spacing:.2em;color:rgba(255,255,255,.55);margin-top:4px;}
+.cw7Dots{display:flex;gap:5px;justify-content:center;margin-top:6px;} .cw7Dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.22);} .cw7Dots i.on{background:#fff;}
+#cw7Feed{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:150px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;max-width:min(560px,62vw);pointer-events:none;}
+.cw7Ln{display:flex;align-items:center;gap:6px;font:600 14px/1.25 var(--f-ui);color:#f2f4f7;text-shadow:0 1px 2px #000,0 0 4px rgba(0,0,0,.6);background:linear-gradient(90deg,rgba(0,0,0,.45),rgba(0,0,0,0));padding:2px 14px 2px 6px;transition:opacity .5s;animation:cw7In .18s ease-out;}
+.cw7Ln.out{opacity:0;} .cw7Ln i{color:#c9d2dc;font-style:normal;}
+.cw7Tg{color:#9fd36b;font-weight:800;letter-spacing:.04em;font-size:12px;}
+.cw7FI{width:16px;height:16px;flex:none;color:#fff;}
+@keyframes cw7In{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+body.touch #cw7Feed{bottom:auto;top:max(150px,calc(env(safe-area-inset-top) + 144px));max-width:52vw;} body.touch .cw7Ln{font-size:12px;}
+#cw7Marks{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.cw7Mk{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;color:var(--c);filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));will-change:transform;}
+.cw7Mk .pin{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:rgba(10,12,16,.72);border:2px solid var(--c);display:flex;align-items:center;justify-content:center;animation:cw7Pop .25s ease-out;}
+.cw7MI{width:17px;height:17px;transform:rotate(45deg);}
+.cw7Mk b{font:700 11px var(--f-cs);color:#fff;margin-top:5px;letter-spacing:.06em;}
+@keyframes cw7Pop{from{transform:rotate(-45deg) scale(1.8);opacity:0;}to{transform:rotate(-45deg) scale(1);opacity:1;}}
+#chatBtnTouch .ti{width:56%;height:56%;}
+#settingsScreen.cw7S .sInfo{display:none;}
+.cw7Pg{display:grid;grid-template-columns:minmax(300px,460px) minmax(0,1fr);gap:22px;padding:4px 2px 30px;}
+.cw7Tabs{display:flex;gap:6px;margin:8px 0 12px;}
+.cw7Tab{flex:1;height:36px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--m-txt2,#b3bbc6);font:700 13px var(--f-cs);letter-spacing:.16em;cursor:pointer;}
+.cw7Tab.on{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3);}
+.cw7Lay{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cw7Slot{display:flex;align-items:center;gap:9px;padding:8px 10px;min-height:46px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);color:#e8edf3;font:600 13px/1.2 var(--f-ui);cursor:pointer;text-align:left;}
+.cw7Slot:hover{background:rgba(255,255,255,.09);} .cw7Slot.c{grid-column:1 / 3;justify-self:center;width:calc(50% - 4px);}
+.cw7Slot.sel{border-color:var(--m-acc,#f0a63a);background:rgba(240,166,58,.12);box-shadow:inset 0 0 0 1px var(--m-acc,#f0a63a);}
+.cw7Slot.dz{outline:2px dashed var(--m-acc,#f0a63a);outline-offset:2px;}
+.cw7Slot .cw7I,.cw7It .cw7I{width:22px;height:22px;flex:none;color:#fff;}
+.cw7Hint{font:500 12.5px/1.45 var(--f-ui);color:var(--m-mut,#77818e);margin:12px 2px;} .cw7Hint kbd{font:700 11px var(--f-mono,monospace);color:#fff;background:rgba(255,255,255,.12);padding:1px 6px;border-radius:3px;}
+.cw7Btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.cw7R{display:flex;flex-direction:column;min-width:0;}
+.cw7Q{width:100%;height:38px;margin:8px 0 6px;padding:0 12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);color:#fff;font:500 14px var(--f-ui);}
+.cw7List{max-height:calc(100vh - 210px);overflow:auto;padding-right:4px;}
+.cw7Cat{font:700 12px var(--f-cs);letter-spacing:.22em;color:var(--m-mut,#77818e);margin:14px 0 4px;}
+.cw7It{display:flex;align-items:center;gap:10px;padding:7px 8px 7px 10px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.04);cursor:grab;color:#e8edf3;font:500 13.5px var(--f-ui);}
+.cw7It:hover{background:rgba(255,255,255,.09);} .cw7It.used{color:var(--m-acc,#f0a63a);} .cw7It small{margin-left:auto;color:var(--m-mut,#77818e);font-size:11px;white-space:nowrap;}
+.cw7Pv{flex:none;width:26px;height:24px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:10px;cursor:pointer;}
+@media (max-width:760px){ .cw7Pg{grid-template-columns:1fr;} .cw7List{max-height:none;} }
+
 /* @@CSS:test — styles for TEST-only features */
 .tpBadge{display:inline-block;margin-left:.45em;padding:.12em .45em .1em;border-radius:3px;background:#e0452f;color:#fff;font:800 .42em/1.15 var(--f-ui,sans-serif);letter-spacing:.14em;vertical-align:.55em;box-shadow:0 1px 6px rgba(0,0,0,.35);}
 .tpBadge.sm{font-size:10px;vertical-align:2px;}
@@ -1536,6 +1592,7 @@ body.zmMode #scorebar{display:none;}
     <button class="pTab" data-stab="input">KLAVYE / FARE</button>
     <button class="pTab" data-stab="crosshair">NİŞANGAH</button>
     <button class="pTab" data-stab="hud">HUD</button>
+    <button class="pTab" data-stab="chat">SOHBET ÇARKI</button>
     <span class="tnGrow"></span>
     <button class="cBtn ghost sm" id="sReset">VARSAYILANLAR</button>
     <button class="sClose" id="settingsBack" title="Kapat">✕</button>
@@ -1703,6 +1760,7 @@ body.zmMode #scorebar{display:none;}
   <div id="scoreBtnTouch" class="tbtn hidden">TAB</div>
   <div id="pauseBtnTouch" class="tbtn">II</div>
   <div id="buyBtnTouch" class="tbtn hidden">$</div>
+  <div id="chatBtnTouch" class="tbtn">TELSİZ</div>
   <div id="nadeWheel" class="hidden"></div>
 </div>
 <div id="touchEd" class="hidden">
@@ -6240,7 +6298,7 @@ function verTag(v){ return isPackVer(v)?v:'V'+v; }
 function packSetOn(v){ CFG.packOn=v?1:0; saveCfg(); if(v) packBoot(); packRefreshUI(); }
 function sndWeapons(){ return LIB.list.filter(d=>['primary','secondary','melee'].includes(d.slot)); }
 function renderSoundWorkshop(){
-  const list=sndWeapons(); if(sndSel!=='__voice'&&sndSel!=='__pack'&&(!sndSel||!LIB.byId[sndSel])) sndSel=(list.find(d=>d.id===CFG.loadout.primary)||list[0]).id;
+  const list=sndWeapons(); if(sndSel!=='__voice'&&sndSel!=='__pack'&&sndSel!=='__radio'&&(!sndSel||!LIB.byId[sndSel])) sndSel=(list.find(d=>d.id===CFG.loadout.primary)||list[0]).id;
   const L=$('sndList'); L.innerHTML=''; const pn=packCount(); $('sndAllP').classList.toggle('hidden',!PACK.slots.size||CFG.packOn===0);
   L.appendChild(el('div',{class:'tGrp'},'SES PAKETİ')); const rp=el('div',{class:'tRow'+(sndSel==='__pack'?' sel':''),id:'sndPackRow'}); rp.style.paddingLeft='10px';
   rp.innerHTML='<span class="nm">Paket ('+pn+' ses)</span><span class="edBadge">'+(!pn?'boş':CFG.packOn===0?'kapalı':'açık')+'</span>'; rp.addEventListener('click',()=>{ sndSel='__pack'; PACK_UI.clr=0; renderSoundWorkshop(); }); L.appendChild(rp);
@@ -6248,10 +6306,11 @@ function renderSoundWorkshop(){
   for(const [slot,lb] of groups){ L.appendChild(el('div',{class:'tGrp'},lb)); for(const d of list.filter(x=>x.slot===slot)){ const r=el('div',{class:'tRow'+(d.id===sndSel?' sel':'')}); r.style.paddingLeft='10px';
       const ic=weaponIcon(d); r.innerHTML=(ic?'<img alt="" src="'+ic+'">':'')+'<span class="nm">'+esc(d.name)+'</span><span class="edBadge">'+(d.type==='knife'?[['fire','knife:slash'],['draw','knife:draw']].map(([g,k])=>pkHas(k)?'P':verTag(soundVer(d,g))):['fire','draw','reload'].map(g=>verTag(soundVer(d,g)))).join(' ')+'</span>';   // knives: shared pack knife:* sounds override
       r.addEventListener('click',()=>{ sndSel=d.id; renderSoundWorkshop(); }); L.appendChild(r); } }
-  L.appendChild(el('div',{class:'tGrp'},'SPİKER')); const rv=el('div',{class:'tRow'+(sndSel==='__voice'?' sel':'')}); rv.style.paddingLeft='10px'; rv.innerHTML='<span class="nm">Anonslar</span><span class="edBadge">'+(CFG.voiceLang==='off'?'kapalı':CFG.voiceLang.toUpperCase())+'</span>'; rv.addEventListener('click',()=>{ sndSel='__voice'; renderSoundWorkshop(); }); L.appendChild(rv);
+  L.appendChild(el('div',{class:'tGrp'},'SPİKER')); const rv=el('div',{class:'tRow'+(sndSel==='__voice'?' sel':'')}); rv.style.paddingLeft='10px'; rv.innerHTML='<span class="nm">Anonslar</span><span class="edBadge">'+(CFG.voiceLang==='off'?'kapalı':CFG.voiceLang.toUpperCase())+'</span>'; rv.addEventListener('click',()=>{ sndSel='__voice'; renderSoundWorkshop(); }); L.appendChild(rv); cw7SndRow(L);
   const M=$('sndMain'); M.innerHTML='';
   if(sndSel==='__voice'){ renderVoiceWorkshop(M); return; }
   if(sndSel==='__pack'){ renderPackPage(M); return; }
+  if(sndSel==='__radio'){ cw7RadioPage(M); return; }
   const d=LIB.byId[sndSel], ic=weaponIcon(d), prof=sndProfile(d), P=sndProfiles(), knife=d.type==='knife', pkOn=CFG.packOn!==0, pg=knife?null:packGroups(d.id);
   const unsup=!knife&&d.stats.silencer?' · susturucusuz: '+(P[sndProfile(d,{unsup:true})]||''):'';
   M.insertAdjacentHTML('beforeend','<div class="sndHead">'+(ic?'<img alt="" src="'+ic+'">':'')+'<div><h3>'+esc(d.name)+'</h3><small>Ses profili: '+esc(knife?'Bıçak':(P[prof]||prof))+esc(unsup)+' · seçimin hemen oyuna uygulanır</small></div></div>');
@@ -7008,6 +7067,7 @@ class TeamBot{
     return new THREE.Vector3(dx/L,0,dz/L);
   }
   objective(){
+    const cw=cw7Goal(this); if(cw!==undefined) return cw;   // radio orders (chat block)
     const B=WORLD.active, bomb=COMP.bomb;
     if(match.mode!=='comp'){ if(this.known&&this.lostT<6) return this.known; if(!this.roam||this.roam.distanceTo(this.pos)<2) this.roam=navRandom(B.nav); return this.roam; }
     if(COMP.phase==='freeze') return null;
@@ -7198,12 +7258,12 @@ function buyItem(a,id){
 function inBuyZone(a){ const sp=WORLD.active.spawns[a.team]; return sp.some(s=>Math.hypot(s.pos.x-a.pos.x,s.pos.z-a.pos.z)<14); }
 function buyAllowed(){ return match.mode==='comp'&&player.alive&&(COMP.phase==='freeze'||(COMP.phase==='live'&&COMP.liveT<COMP.buyTime))&&inBuyZone(player); }
 function botBuy(b){
-  if(b.isRemote) return;
+  if(b.isRemote) return; cw7Snap(b);   // chat block: pre-buy snapshot for 'We should save'
   const T=b.team==='T', r=COMP.round, half=COMP.maxRounds/2, pistolRound=r===1||r===half+1;
   loBotBuyGuns(b,T,pistolRound);   // per-side pools (loadout block)
   if(b.money>=1000&&(!b.helmet||b.armor<60)) buyItem(b,'helmet'); else if(b.money>=650&&b.armor<60) buyItem(b,'kevlar');
   if(!T&&b.money>=400&&Math.random()<.45) buyItem(b,'kit');
-  b.equipBest(true);
+  cw7Util(b); b.equipBest(true);
 }
 /* ---- match setup ---- */
 function teamDefault(team){ return getWeapon(team==='T'?'glock':'usps'); }
@@ -7664,6 +7724,7 @@ function drawRadar(){
   for(const a of allAgents()){ if(a===me||!a.alive) continue; const mate=a.team===player.team; if(!mate&&!(COMP.spotted[a.id]&&now-COMP.spotted[a.id]<1600)) continue; x.globalAlpha=radarAlpha(a,me); dot(a.pos,mate?(a.team==='T'?'#f0c04a':'#78b4ff'):'#ff3b4d',4.5,true); } x.globalAlpha=1;
   for(const p of radarDecoys()) dot(p,'#ff3b4d',4.5,true);
   const B=COMP.bomb; if(match.mode==='comp'&&B&&(B.state==='dropped'||(B.state==='planted'&&(player.team==='T'||true)))){ x.fillStyle=B.state==='planted'?'#ff3b4d':'#ffcc33'; const bx=(B.pos.x-me.pos.x)*ppm, bz=(B.pos.z-me.pos.z)*ppm; x.fillRect(bx-4,bz-3,8,6); }
+  cw7Radar(x,me,ppm);
   x.restore();
   x.save(); x.translate(R,R); x.scale(W/200,W/200); if(!CFG.hud.radarRotate) x.rotate(-yaw); x.fillStyle='#fff'; x.beginPath(); x.moveTo(0,-7); x.lineTo(5,6); x.lineTo(0,3); x.lineTo(-5,6); x.closePath(); x.fill(); x.restore();
   radarLevelTag(x,W,me); x.strokeStyle='rgba(255,255,255,.25)'; x.lineWidth=2; x.beginPath(); x.arc(R,R,R-2,0,TAU); x.stroke();
@@ -8036,6 +8097,7 @@ function renderSettings(){
   $('chBox').classList.toggle('on',sTab==='crosshair'); if(sTab==='crosshair') renderCrosshair($('chPreview'));
   const info=(t,d)=>{ $('sInfoT').textContent=t; $('sInfoD').textContent=d||''; };
   info(S_TAB_NAMES[sTab],S_TAB_DESC[sTab]);
+  if(cw7Settings(L)) return;   // SOHBET ÇARKI page (chat block)
   for(const it of sDefs(sTab)){
     if(it.sec){ L.appendChild(el('div',{class:'sSec'},esc(it.sec))); continue; }
     const row=el('div',{class:'sRow'}), lab=el('label',null,esc(it.l)), ctl=el('div',{class:'sCtl'}); row.append(lab,ctl); L.appendChild(row);
@@ -8071,7 +8133,7 @@ $('sReset').addEventListener('click',async()=>{ if(!(await confirmBox('Varsayıl
   if(sTab==='audio'){ for(const k of ['vol','volW','volFx','volVoice','volMusic','volUi','voiceLang','radioFx','nadeCalls','svDefault','packOn','voiceName','voiceRate','voicePitch','voiceRadio','acoustics']) CFG[k]=D[k]; applyVolumes(); packBoot(); }
   if(sTab==='video'){ CFG.fov=D.fov; applyQuality(CFG.isTouch?'med':'high'); CFG.video.scale=1; CFG.video.exposure=D.video.exposure; renderer.toneMappingExposure=CFG.video.exposure; applyVideo(); }
   if(sTab==='input'){ CFG.sens=D.sens; CFG.zoomSens=D.zoomSens; CFG.invertY=D.invertY; CFG.keys=Object.assign({},KEY_DEF); }
-  if(sTab==='crosshair') CFG.ch=D.ch; if(sTab==='hud'){ CFG.hud=D.hud; applyHud(); }
+  if(sTab==='crosshair') CFG.ch=D.ch; if(sTab==='hud'){ CFG.hud=D.hud; applyHud(); } if(sTab==='chat') cw7Reset();
   saveCfg(); refreshCrosshair(); renderSettings(); });
 function applyVmFov(){ vmCam.fov=csFovToV(CFG.vmFov); vmCam.updateProjectionMatrix(); }
 function applyHand(){ if(VM) VM.rig.scale.x=CFG.leftHand?-1:1; }
@@ -9232,6 +9294,7 @@ function tick(raw,doRender){
   updateDmgNums(raw);
   if(TEST_BUILD) tpTick(dt,raw);   // STRIKE POINT TEST: zombie mode
   loTick(dt);   // loadout block: DM gun menu, Zeus recharge, healthshot, TA reveal
+  cw7Tick(dt);   // chat block: pings, bot radio
   skyMat.uniforms.time.value+=raw;
   player.dmgAcc=Math.max(0,(player.dmgAcc||0)-raw*.8);
   if(gradePass){ gradePass.uniforms.time.value=(gradePass.uniforms.time.value+raw)%100; gradePass.uniforms.dmg.value=player.dmgAcc; }
@@ -11057,6 +11120,7 @@ function netHostTick(dt){
   if(NET.inMatch&&!CFG.showFps) $('netPing').textContent='HOST · '+(NET.conns.size+1)+' OYUNCU'; }
 function netHostMsg(nid,d){
   const a=netAgent(nid);
+  if(d.t==='radio'){ cw7NetHost(nid,d); return; }   // chat block
   switch(d.t){
     case 'ping': netSendTo(nid,{t:'pong',s:d.s}); return;
     case 'pong': { const L=NET.lobby, p=L&&L.players.find(x=>x.id===nid); if(p) p.ping=Math.round(performance.now()-d.s); return; }
@@ -11113,6 +11177,7 @@ function netClientAttach(c,kind){
   c.on('data',d=>{ try{ netClientData(d); }catch(e){ console.warn('net',e); } }); c.on('close',netHostGone); c.on('error',netHostGone); }
 function netClientData(d){
   if(!d||!d.t) return;
+  if(d.t==='radio'){ cw7NetIn(d); return; }   // chat block
   switch(d.t){
     case 'welcome': NET.myId=d.you; NET.lobby=d.lobby; NET.chat=(d.chat||[]).slice(); NET.status=''; if(NET.kind==='custom'){ NET.view='lobby'; showScreen('roomScreen'); } renderLobby(); return;
     case 'reject': NET.status={ver:'Sürüm uyuşmuyor: oyunu yenile (Ctrl+F5).',full:'Oda dolu.',started:'Maç zaten başladı.',kind:'Oda bu modu oynamıyor.',closed:'Oda kapalı.'}[d.why]||'Reddedildi.'; return;
@@ -15065,6 +15130,382 @@ function c6ZDress(C,z,type){ C.zOwner=z; C.zLive=c6ZLive; C.gunRoot.visible=fals
   for(const m of C.spine.children) if(m.isMesh&&m.material!==HITMAT) m.scale.set(bulk[0],bulk[1],bulk[2]);
   C.zShW=bulk[0]; for(const a of [C.armR,C.armL]) for(const p of [a.upper,a.fore]) for(const m of p.children) m.scale.set(arm,1,arm);
   C.root.scale.setScalar(ZM_TYPES[type].sc); }
+
+/* @@BLOCK:chat — CS2-style chat wheel: 3 assignable radio wheels (hold Z), team radio feed + radio voice, pings (3D + radar), bots that understand and use the radio, online relay */
+const CW7_CATS=[['move','Hareket'],['prep','Hazırlık'],['cmd','Komutlar'],['rep','Rapor'],['bomb','Bomba durumu'],['resp','Yanıtlar'],['nade','Bombalar']];
+const CW7_P={};
+// [id, category, Turkish text, CS name, spoken EN, spoken TR, icon, ping ('aim' crosshair | 'self' | 'A' | 'B' | 'M' | 'bomb'), add location]
+[['pingA','move','A Bölgesini İşaretle','Ping Site A','A site.','A bölgesi.','pinA','A'],['pingB','move','B Bölgesini İşaretle','Ping Site B','B site.','B bölgesi.','pinB','B'],
+ ['pingM','move','Orta Bölgeyi İşaretle','Ping Middle','Mid.','Orta.','pinM','M'],['go','move','Hadi, hadi, hadi!','Go go go!','Go, go, go!','Hadi, hadi, hadi!','go'],
+ ['onmyway','move','Yoldayım','On my way','On my way.','Yoldayım.','run'],['followme','move','Beni takip et','Follow me','Follow me.','Beni takip edin.','follow'],
+ ['following','move','Seni takip ediyorum','Following you','Right behind you.','Seni takip ediyorum.','steps'],
+ ['save','prep','Ekonomi yapmalıyız','We should save','We should save this round.','Bu raunt ekonomi yapalım.','save'],['buy','prep','Satın almalıyız','We should buy','We should buy this round.','Bu raunt silah alalım.','cart'],
+ ['reqgun','prep','Silah iste','Request a weapon','Can someone drop me a weapon?','Bana bir silah atar mısınız?','gun'],['plan','prep','Plan nedir?','What\'s the plan?','What\'s the plan?','Plan nedir?','question'],
+ ['lead','prep','Kim liderlik edecek?','Who will lead?','Who\'s calling it?','Kim liderlik edecek?','crown'],
+ ['regroup','cmd','Toplan / bana doğru dön','Rotate to me','Rotate to me','Bana doğru gelin','rotate','self',1],['together','cmd','Birlikte kalın','Stay together','Stick together, team.','Birlikte kalın.','group'],
+ ['spread','cmd','Dağılın','Spread out','Spread out.','Dağılın.','spread'],['fallback','cmd','Geri çekilin','Fall back','Fall back!','Geri çekilin!','back'],
+ ['hold','cmd','Bu pozisyonu koru','Hold this position','Hold this position','Bu pozisyonu tutun','hand','aim',1],['quiet','cmd','Sessiz olun','Need quiet','Quiet, please.','Sessiz olun.','hush'],
+ ['attack','cmd','Saldırıyorum','Attacking','I\'m going in!','Saldırıyorum!','attack','aim'],['checkhost','cmd','Rehineyi kontrol et','Check the Hostage','Check the hostage.','Rehineyi kontrol et.','hostage'],
+ ['gethost','cmd','Rehineleri alın','Get the hostages','Get the hostages.','Rehineleri alın.','hostage'],
+ ['noise','rep','Ses duydum','Heard noise','I heard something','Ses duydum','ear','aim',1],['enemy','rep','Düşman görüldü','Enemy spotted','Enemy spotted','Düşman görüldü','eye','aim',1],
+ ['oneenemy','rep','Burada bir düşman var','One enemy here','One enemy here','Burada bir düşman var','one','aim',1],['multi','rep','Burada birden fazla düşman var','Multiple enemies here','Multiple enemies here','Burada birden fazla düşman var','multi','aim',1],
+ ['backup','rep','Destek lazım','Need Backup','I need backup','Destek lazım','sos','self',1],['sniper','rep','Keskin nişancı görüldü','Sniper spotted','Sniper','Keskin nişancı var','scope','aim',1],
+ ['carrier','rep','Bomba taşıyıcısı görüldü','Bomb carrier spotted','Bomb carrier spotted','Bomba taşıyıcısı görüldü','bomb','aim',1],['inpos','rep','Pozisyondayım','In position','I\'m in position','Pozisyondayım','flag','',1],
+ ['cover','rep','Seni koruyorum','Covering you','I\'ve got you covered.','Seni koruyorum.','shield'],['clear','rep','Bölge temiz','Area clear','Area clear','Bölge temiz','check','',1],
+ ['siteclear','rep','Bomba alanı temiz','Bombsite clear','Bombsite clear','Bomba alanı temiz','check','',1],['guardA','rep','A\'yı koruyorum','I\'m guarding A','I\'m holding A.','A\'yı tutuyorum.','shield'],
+ ['guardB','rep','B\'yi koruyorum','I\'m guarding B','I\'m holding B.','B\'yi tutuyorum.','shield'],['hosttaken','rep','Rehineler kaçırılıyor','The hostages are being taken','They\'re taking the hostages!','Rehineleri kaçırıyorlar!','hostage'],
+ ['pingbomb','bomb','Bombayı İşaretle','Ping Bomb','The bomb is here','Bomba burada','bomb','bomb',1],['iplant','bomb','Bombayı ben kuracağım/çözeceğim','I\'ll De/Activate Bomb','','','bombme'],
+ ['uplant','bomb','Bombayı sen kur/çöz','You De/Activate Bomb','','','bombyou'],['dropped','bomb','Bomba düşürüldü','Bomb was dropped','The bomb is down','Bomba düştü','bomb','bomb',1],
+ ['guardbomb','bomb','Düşen bombayı koruyorum','Guarding the Bomb','I\'m guarding the bomb.','Bombayı koruyorum.','shield','bomb'],['pickedup','bomb','Bomba alındı','Bomb picked up','I\'ve got the bomb.','Bomba bende.','bomb'],
+ ['planted','bomb','Bombayı kurduk','We planted the bomb','Bomb is planted','Bomba kuruldu','bomb','bomb',1],['plantingA','bomb','A\'ya kuruyorum','I\'m planting at A','Planting at A!','A\'ya kuruyorum!','bomb','A'],
+ ['plantingB','bomb','B\'ye kuruyorum','I\'m planting at B','Planting at B!','B\'ye kuruyorum!','bomb','B'],['plantedA','bomb','A\'ya kurdum','I planted at A','Bomb planted at A!','A\'ya kurdum!','bomb','A'],
+ ['plantedB','bomb','B\'ye kurdum','I planted at B','Bomb planted at B!','B\'ye kurdum!','bomb','B'],
+ ['yes','resp','Evet','Yes','Affirmative.','Anlaşıldı.','check'],['no','resp','Hayır','No','Negative.','Olmaz.','x'],['nice','resp','Güzel!','Nice!','Nice one!','Güzel!','thumb'],
+ ['thanks','resp','Teşekkürler!','Thanks!','Thanks!','Sağ ol!','heart'],['cheer','resp','Tezahürat','Cheer','Yeah! Let\'s go!','Haydi be!','mega'],
+ ['pep','resp','Moral konuşması','Pep talk','Come on team, we\'ve got this.','Hadi takım, bu raundu alıyoruz.','mega'],['sorry','resp','Üzgünüm','Sorry','Sorry, my bad.','Kusura bakmayın.','sad'],
+ ['lost','resp','Bu raundu kaybettik','Lost this round','This round is lost. Save your guns.','Bu raunt gitti, silahları kurtarın.','sad'],['killsniper','resp','Keskin nişancıyı öldürdüm','I killed sniper','Sniper down!','Keskin nişancıyı indirdim!','scope'],
+ ['hs','resp','Kafadan vurdum','I got a headshot','Headshot!','Kafadan vurdum!','skull'],['sawhs','resp','Kafadan vuruşunu gördüm','Saw your headshot','Nice headshot!','Güzel kafa!','skull'],
+ ['needsmoke','nade','Sis bombası lazım','Need Smokes','Need a smoke here!','Buraya sis lazım!','smoke','aim'],['needflash','nade','Flaş bombası lazım','Need Flashbangs','Flash it for me!','Buraya flaş lazım!','flash','aim'],
+ ['needhe','nade','El bombası lazım','Need Frag Grenades','Need a frag here!','Buraya el bombası lazım!','frag','aim'],['needmolly','nade','Molotof lazım','Need Molotovs','Need a molly here!','Buraya molotof lazım!','fire','aim'],
+ ['needdecoy','nade','Yanıltıcı bomba lazım','Need Decoys','Throw a decoy!','Yanıltıcı bomba at!','decoy','aim']
+].forEach(([id,c,tr,en,sEn,sTr,ic,p,l])=>{ CW7_P[id]={id,c,tr,en,sEn:sEn||en,sTr:sTr||tr,ic,p:p||'',l:l|0}; });
+// side-dependent lines: [text, spoken EN, spoken TR]
+const CW7_VAR={ iplant:{T:['Bombayı ben kuracağım','I\'ll plant the bomb.','Bombayı ben kuracağım.'],CT:['Bombayı ben çözeceğim','I\'ll defuse it.','Bombayı ben çözeceğim.']},
+  uplant:{T:['Bombayı sen kur','You plant the bomb, I\'ll cover you.','Bombayı sen kur, ben koruyorum.'],CT:['Bombayı sen çöz','You defuse, I\'ll cover you.','Sen çöz, ben koruyorum.']} };
+const CW7_LOC={A:['A Bölgesi','A site','A bölgesi'],B:['B Bölgesi','B site','B bölgesi'],M:['Orta','mid','orta'],T:['T Başlangıcı','T spawn','T başlangıcı'],CT:['AT Başlangıcı','CT spawn','AT başlangıcı']};
+// default wheels (CS2 order: slot 0 = top, clockwise)
+const CW7_DEFW=[['buy','reqgun','pingB','following','pingM','followme','pingA','save'],['enemy','backup','sniper','clear','go','fallback','hold','noise'],['yes','thanks','needsmoke','needflash','no','sorry','nice','uplant']];
+const CW7_IC={ pin:'<path d="M12 21.5s-6.5-6.4-6.5-11.5a6.5 6.5 0 0 1 13 0c0 5.1-6.5 11.5-6.5 11.5z"/>',
+  go:'<path d="M4 6l6 6-6 6M12 6l6 6-6 6"/>', run:'<path d="M3 12h12M11 7l5 5-5 5"/><circle cx="20" cy="12" r="1.6"/>',
+  follow:'<circle cx="7.5" cy="6" r="2.5"/><path d="M7.5 9v6M4.5 21l3-6 3 6M13 12h8M18 9l3 3-3 3"/>',
+  steps:'<path d="M7 3.5c1.5 0 2.2 1.6 2.2 3.8S8.5 11 7 11 4.8 9.5 4.8 7.3 5.5 3.5 7 3.5zM5.6 13h2.8l-.5 3.2H6.1zM16.5 8c1.5 0 2.2 1.6 2.2 3.8s-.7 3.7-2.2 3.7-2.2-1.5-2.2-3.7S15 8 16.5 8zM15.1 17.5h2.8l-.5 3h-1.8z"/>',
+  cart:'<path d="M3 4h2.5l2.2 10.5h10l2-7.5H6.4"/><circle cx="9" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/>',
+  save:'<ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6M5 10v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4M5 14v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4"/>',
+  gun:'<path d="M2 9.5h14.5l1.5-1.5H22v3h-3.5l-1.5 1.5H11l-1.6 5H6l1.2-5H2z"/>', question:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5M12 17v.2"/>',
+  crown:'<path d="M3 19h18M4.5 16L3 7l5 4 4-6 4 6 5-4-1.5 9z"/>', rotate:'<path d="M12 3v6M12 21v-6M3 12h6M21 12h-6M9.5 6.5L12 9l2.5-2.5M9.5 17.5L12 15l2.5 2.5M6.5 9.5L9 12l-2.5 2.5M17.5 9.5L15 12l2.5 2.5"/>',
+  group:'<circle cx="8" cy="8" r="2.6"/><circle cx="16" cy="8" r="2.6"/><path d="M3 19c0-3 2.2-5 5-5s5 2 5 5M11 19c0-3 2.2-5 5-5s5 2 5 5"/>',
+  spread:'<path d="M10 10L4 4M14 10l6-6M10 14l-6 6M14 14l6 6M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>', back:'<path d="M9 5L3 11l6 6M3 11h11a7 7 0 0 1 7 7v1"/>',
+  hand:'<path d="M7.5 12V6a1.5 1.5 0 0 1 3 0v5M10.5 11V4.5a1.5 1.5 0 0 1 3 0V11M13.5 11V5.5a1.5 1.5 0 0 1 3 0V12M16.5 12V8.5a1.5 1.5 0 0 1 3 0V14c0 4-3 7-7 7-3 0-5-1.6-6.5-4.2L3.6 13a1.5 1.5 0 0 1 2.6-1.5L7.5 14"/>',
+  hush:'<path d="M4 9h4l5-4v14l-5-4H4zM16.5 9.5l5 5M21.5 9.5l-5 5"/>', attack:'<path d="M5 19L19 5M19 5h-8M19 5v8M3 13l8 8"/>',
+  hostage:'<circle cx="12" cy="7" r="3"/><path d="M6 21v-3.5a6 6 0 0 1 12 0V21M9 13l3 3 3-3"/>', ear:'<path d="M7.5 9a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-5.6 1.5M10.5 10a2 2 0 0 1 4 0c0 1.5-1.5 2-1.5 3.5"/>',
+  eye:'<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/>', one:'<circle cx="10" cy="7" r="3"/><path d="M4 21v-3a6 6 0 0 1 12 0v3M19.5 4v7M18 5.5L19.5 4"/>',
+  multi:'<circle cx="12" cy="6.5" r="2.4"/><circle cx="5.5" cy="9" r="2"/><circle cx="18.5" cy="9" r="2"/><path d="M7.5 20c0-2.8 2-4.8 4.5-4.8s4.5 2 4.5 4.8M1.5 19c0-2.4 1.6-4 4-4M22.5 19c0-2.4-1.6-4-4-4"/>',
+  sos:'<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.2v.2"/>', scope:'<circle cx="12" cy="12" r="7.5"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/>',
+  bomb:'<rect x="3" y="7.5" width="14.5" height="10.5" rx="1.5"/><path d="M6 11h5v3.5H6zM17.5 10.5h2l1.5-3"/>', bombme:'<rect x="2.5" y="10" width="12" height="9" rx="1.5"/><path d="M5 13h4v3H5zM18.5 3v8M15.5 8l3 3 3-3"/>',
+  bombyou:'<rect x="2.5" y="10" width="12" height="9" rx="1.5"/><path d="M5 13h4v3H5zM17 3l4 4-4 4M21 7h-6"/>',
+  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>', check:'<path d="M4 12.5l5 5L20 6.5"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  thumb:'<path d="M7 11v10H3V11zM7 11l4-8c1.7 0 2.5 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.3 7.5A2.5 2.5 0 0 1 17.2 21H7"/>',
+  heart:'<path d="M12 20s-8-4.8-8-10.2A4.3 4.3 0 0 1 12 7.5a4.3 4.3 0 0 1 8 2.3C20 15.2 12 20 12 20z"/>', mega:'<path d="M3 10v4h3l9 5V5L6 10zM18 9a4 4 0 0 1 0 6M20.5 6.5a7.5 7.5 0 0 1 0 11"/>',
+  sad:'<circle cx="12" cy="12" r="9"/><path d="M8 16.5a5 5 0 0 1 8 0M9 9.8v.4M15 9.8v.4"/>',
+  skull:'<path d="M12 3a8 8 0 0 0-8 8c0 2.6 1.2 4.4 3 5.5V20h10v-3.5c1.8-1.1 3-2.9 3-5.5a8 8 0 0 0-8-8z"/><circle cx="9" cy="11.5" r="1.6"/><circle cx="15" cy="11.5" r="1.6"/><path d="M10.5 20v-2M13.5 20v-2"/>',
+  smoke:'<path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 .5 9.5z"/>', flash:'<path d="M13 2L5 13.5h6L10 22l8-11.5h-6z"/>',
+  frag:'<circle cx="11" cy="14.5" r="6"/><path d="M9 8.5V6h4v2.5M13 6l3.5-2.5M16.5 3.5l2 2"/>', fire:'<path d="M12 22c-4 0-7-2.8-7-6.5 0-3.5 2.5-5.5 4-8.5.5 2 1.5 3 3 3.5C12 7 13 4.5 15 2c.5 3.5 4 6.5 4 12 0 4.5-3 8-7 8z"/>',
+  decoy:'<circle cx="12" cy="13.5" r="6"/><path d="M9 7.5v-2h6v2M12 10.5v3l2 1.5"/>', radio:'<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M8 8l8-5M8 14h.1M12 14h4"/>' };
+for(const k of ['A','B','M']) CW7_IC['pin'+k]=CW7_IC.pin+'<text x="12" y="13">'+(k==='M'?'O':k)+'</text>';
+const cw7Svg=(ic,cls)=>'<svg viewBox="0 0 24 24" class="'+(cls||'cw7I')+'">'+(CW7_IC[ic]||CW7_IC.pin)+'</svg>';
+const CW7={ open:false, touch:false, sticky:false, wh:0, sel:-1, vx:0, vy:0, tid:null, tx:0, ty:0, sent:[], nr:{}, marks:[], auto:{}, round:-1, lastBomb:'', tt:0 };
+// ---- config + key ----
+const CW7_CFG_DEF={wheels:deepClone(CW7_DEFW),voice:1,lang:CFG.voiceLang==='tr'?'tr':'en',vol:1,gender:'m',voiceName:''};
+CFG_DEF.cw7=deepClone(CW7_CFG_DEF);
+{ let c=CFG.cw7; if(!c||typeof c!=='object'||Array.isArray(c)) c=CFG.cw7={}; for(const k in CW7_CFG_DEF) if(c[k]===undefined) c[k]=deepClone(CW7_CFG_DEF[k]);
+  if(!Array.isArray(c.wheels)||c.wheels.length!==3) c.wheels=deepClone(CW7_DEFW); c.wheels=c.wheels.map((w,i)=>Array.from({length:8},(_,k)=>w&&CW7_P[w[k]]?w[k]:CW7_DEFW[i][k])); }
+KEY_DEF.chatwheel='KeyZ'; CFG_DEF.keys.chatwheel='KeyZ'; if(CFG.keys.chatwheel===undefined) CFG.keys.chatwheel='KeyZ'; KEY_LABELS.chatwheel='Sohbet çarkı (basılı tut)';
+S_TAB_NAMES.chat='Sohbet çarkı'; S_TAB_DESC.chat='Telsiz cümlelerini 3 çarka ata; oyunda tuşu basılı tut, fareyle yön seç, bırakınca gönderilir.';
+function cw7Reset(){ CFG.cw7=deepClone(CW7_CFG_DEF); CFG.keys.chatwheel='KeyZ'; saveCfg(); }
+// ---- text, map places ----
+function cw7Txt(id,team){ const v=CW7_VAR[id]; if(v&&(team==='T'||team==='CT')) return v[team][0]; return CW7_P[id]?CW7_P[id].tr:id; }
+function cw7Lang(){ return CFG.cw7.lang==='tr'?'tr':'en'; }
+function cw7SayTxt(id,team,lang,loc){ const p=CW7_P[id], v=CW7_VAR[id], tr=lang==='tr'; let s=v?v[team==='CT'?'CT':'T'][tr?2:1]:(tr?p.sTr:p.sEn);
+  if(loc&&CW7_LOC[loc]) s=s.replace(/[.!?]+$/,'')+', '+CW7_LOC[loc][tr?2:1]+'!'; else if(!/[.!?]$/.test(s)) s+='!'; return s; }
+function cw7Site(n){ const S=WORLD.active&&WORLD.active.sites; return S?S.find(s=>s.name===n)||null:null; }
+function cw7SpawnC(team){ const L=WORLD.active&&WORLD.active.spawns&&WORLD.active.spawns[team]; if(!L||!L.length) return null; const c=new THREE.Vector3(); for(const s of L) c.add(s.pos); return c.multiplyScalar(1/L.length); }
+function cw7Mid(){ const a=cw7SpawnC('T'), b=cw7SpawnC('CT'); return a&&b?a.add(b).multiplyScalar(.5):null; }
+function cw7Loc(p){ if(!p||!WORLD.active) return ''; let best='', bd=1e9; const C=[['A',cw7Site('A')&&cw7Site('A').center],['B',cw7Site('B')&&cw7Site('B').center],['M',cw7Mid()],['T',cw7SpawnC('T')],['CT',cw7SpawnC('CT')]];
+  for(const [k,c] of C){ if(!c) continue; const d=Math.hypot(c.x-p.x,c.z-p.z)*(k==='M'?1.15:1); if(d<bd){ bd=d; best=k; } } return best; }
+function cw7NavPt(p,r){ try{ return randomNear(p,r||1.5); }catch(e){ return p.clone(); } }
+function cw7Aim(){ const d=new THREE.Vector3(); camera.getWorldDirection(d); const h=rayWorld(camera.position,d,150); return h?h.point.clone():camera.position.clone().addScaledVector(d,35); }
+function cw7PosFor(ph,src,aim){ switch(ph.p){ case 'aim': return aim||null; case 'self': return src.pos.clone(); case 'A': case 'B': { const s=cw7Site(ph.p); return s?s.center.clone():null; } case 'M': return cw7Mid();
+  case 'bomb': { const B=COMP.bomb; if(match.mode!=='comp'||!B) return null; if(B.state==='dropped'||B.state==='planted') return B.pos.clone(); if(B.state==='carried'&&B.carrier) return B.carrier.pos.clone(); return null; } } return null; }
+const cw7Arr=p=>p?[Math.round(p.x*100)/100,Math.round(p.y*100)/100,Math.round(p.z*100)/100]:null;
+const cw7V3=a=>Array.isArray(a)&&a.length>=3&&a.slice(0,3).every(v=>isFinite(+v)&&Math.abs(+v)<5000)?new THREE.Vector3(+a[0],+a[1],+a[2]):null;
+const cw7Col=t=>t==='T'?'#f0c04a':t==='CT'?'#78b4ff':'#e8edf3';
+// ---- sending / receiving ----
+function cw7Can(keep){ return match.state==='live'&&match.mode!=='none'&&player.alive&&!buyOpen&&!conOpen&&!TE.on&&(keep||pointerLocked||CFG.isTouch); }
+function cw7Send(id){ const P=player, ph=CW7_P[id]; if(!ph||!P.alive) return false;
+  const now=performance.now(); CW7.sent=CW7.sent.filter(t=>now-t<5000); if(CW7.sent.length>=3){ toast('Telsiz: çok sık mesaj — biraz bekle',1400); uiSound('deny'); return false; } CW7.sent.push(now);
+  const aim=cw7Aim(), pos=cw7PosFor(ph,P,aim), loc=ph.l?cw7Loc(pos||P.pos):'', m={id,n:P.name||CFG.name||'SEN',tm:P.team,p:cw7Arr(pos),loc};
+  cw7Recv(m);
+  if(NET.client){ netSendHost({t:'radio',id,p:m.p,q:cw7Arr(aim),loc}); return true; }
+  if(NET.host) cw7Relay(m,NET.myId);
+  cw7Command(P,id,pos,aim); return true; }
+function cw7Relay(m,from){ if(!NET.host||!NET.inMatch) return; const o=Object.assign({t:'radio'},m); for(const [cid,c] of NET.conns){ if(cid===from) continue; const a=netAgent(cid); if(a&&a.team===m.tm) netSendC(c,o); } }
+function cw7NetHost(nid,d){ const a=netAgent(nid); if(!a||!a.alive||!CW7_P[d.id]||!NET.inMatch) return; const now=performance.now(), R=CW7.nr[nid]=(CW7.nr[nid]||[]).filter(t=>now-t<5000); if(R.length>=4) return; R.push(now);
+  const p=cw7V3(d.p), m={id:d.id,n:a.name,tm:a.team,p:cw7Arr(p),loc:CW7_LOC[d.loc]?d.loc:''}; if(player.team===a.team) cw7Recv(m); cw7Relay(m,nid); cw7Command(a,d.id,p,cw7V3(d.q)); }
+function cw7NetIn(d){ if(!CW7_P[d.id]) return; cw7Recv({id:d.id,n:String(d.n||'').slice(0,24),tm:String(d.tm||'').slice(0,4),p:cw7V3(d.p)?d.p:null,loc:CW7_LOC[d.loc]?d.loc:''}); }
+function cw7BotSay(b,id,pos){ const ph=CW7_P[id]; if(!ph||!b||!b.alive||match.state!=='live') return; const p=pos||cw7PosFor(ph,b,null), m={id,n:b.name,tm:b.team,p:cw7Arr(p),loc:ph.l?cw7Loc(p||b.pos):''};
+  if(b.team===player.team) cw7Recv(m); if(NET.host) cw7Relay(m,null); }
+function cw7Reply(b,id,delay,pos){ const now=performance.now(); if(!b||now-(b._cw7r||0)<1200) return; b._cw7r=now; setTimeout(()=>{ if(b.alive&&bots.includes(b)) cw7BotSay(b,id,pos); },(delay||rand(.6,1.3))*1000); }
+function cw7Recv(m){ if(!CW7_P[m.id]) return; cw7FeedAdd(m); cw7Speak(m); const p=cw7V3(m.p); if(p) cw7Mark(p,m.id,m.tm); }
+function cw7FeedEl(){ let f=$('cw7Feed'); if(!f){ f=el('div',{id:'cw7Feed'}); $('hud').appendChild(f); } return f; }
+function cw7FeedAdd(m){ const f=cw7FeedEl(), ph=CW7_P[m.id], ln=el('div',{class:'cw7Ln'});
+  ln.innerHTML='<span class="cw7Tg">[TELSİZ]</span>'+cw7Svg(ph.ic,'cw7FI')+'<span><b style="color:'+cw7Col(m.tm)+'">'+esc(m.n)+'</b>: '+esc(cw7Txt(m.id,m.tm))+(m.loc&&CW7_LOC[m.loc]?'<i> — '+esc(CW7_LOC[m.loc][0])+'</i>':'')+'</span>';
+  f.appendChild(ln); while(f.children.length>5) f.firstChild.remove(); setTimeout(()=>{ ln.classList.add('out'); setTimeout(()=>ln.remove(),600); },7500); }
+// ---- pings: 3D markers (screen-projected) + radar ----
+function cw7Mark(p,id,team){ const ph=CW7_P[id], col=ph.c==='rep'&&ph.p==='aim'?'#ff5a4d':ph.c==='bomb'?'#ffb648':cw7Col(team);
+  const box=$('cw7Marks')||(()=>{ const b=el('div',{id:'cw7Marks'}); $('hud').appendChild(b); return b; })(), e=el('div',{class:'cw7Mk'});
+  e.style.setProperty('--c',col); e.innerHTML='<div class="pin">'+cw7Svg(ph.ic,'cw7MI')+'</div><b></b>'; box.appendChild(e);
+  CW7.marks.push({pos:p.clone(),t0:performance.now(),col,e}); while(CW7.marks.length>6){ const o=CW7.marks.shift(); o.e.remove(); } }
+function cw7ClearMarks(){ for(const m of CW7.marks) m.e.remove(); CW7.marks.length=0; }
+const _cw7v=new THREE.Vector3();
+function cw7MarksTick(now){ const W=innerWidth, H=innerHeight;
+  for(let i=CW7.marks.length-1;i>=0;i--){ const m=CW7.marks[i], a=(now-m.t0)/1000; if(a>4.2){ m.e.remove(); CW7.marks.splice(i,1); continue; }
+    _cw7v.copy(m.pos); _cw7v.y+=.15; _cw7v.project(camera); let x=(_cw7v.x*.5+.5)*W, y=(-_cw7v.y*.5+.5)*H; const back=_cw7v.z>1, off=back||x<0||x>W||y<0||y>H;
+    if(back){ x=W-x; y=H-y; } if(off){ const cx=W/2, cy=H/2, dx=x-cx, dy=y-cy, k=Math.min((W/2-30)/Math.max(1e-3,Math.abs(dx)),(H/2-40)/Math.max(1e-3,Math.abs(dy))); x=cx+dx*k; y=cy+dy*k; }
+    m.e.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px) translate(-50%,-100%)'+(off?' scale(.8)':''); m.e.style.opacity=String(Math.min(1,a*6,(4.2-a)/.5));
+    const d=Math.round(m.pos.distanceTo(camera.position)), b=m.e.lastChild; if(b._d!==d){ b._d=d; b.textContent=d+' m'; } } }
+function cw7Radar(x,me,ppm){ if(!CW7.marks.length) return; const now=performance.now();
+  for(const m of CW7.marks){ const a=(now-m.t0)/1000, px=(m.pos.x-me.pos.x)*ppm, pz=(m.pos.z-me.pos.z)*ppm, f=(a*1.6)%1;
+    x.globalAlpha=1-f; x.strokeStyle=m.col; x.lineWidth=2; x.beginPath(); x.arc(px,pz,4+f*10,0,TAU); x.stroke(); x.globalAlpha=1;
+    x.fillStyle=m.col; x.beginPath(); x.arc(px,pz,3.6,0,TAU); x.fill(); x.strokeStyle='#000'; x.lineWidth=1.2; x.stroke(); } }
+// ---- wheel UI ----
+function cw7WheelDom(){ let w=$('cw7Wheel'); if(w) return w; w=el('div',{id:'cw7Wheel',class:'hidden'});
+  const R1=76, R2=168, R3=175, P=(r,a)=>(r*Math.sin(a)).toFixed(1)+' '+(-r*Math.cos(a)).toFixed(1), A=d=>d*Math.PI/180; let s='<div class="cw7Box"><svg viewBox="-200 -200 400 400" class="cw7Svg"><circle r="'+(R1-7)+'" class="cw7Hub"/>';
+  for(let k=0;k<8;k++){ const a0=A(k*45-22.5+1.1), a1=A(k*45+22.5-1.1), am=A(k*45);
+    s+='<path class="cw7Seg" data-k="'+k+'" d="M'+P(R1,a0)+'L'+P(R2,a0)+'A'+R2+' '+R2+' 0 0 1 '+P(R2,a1)+'L'+P(R1,a1)+'A'+R1+' '+R1+' 0 0 0 '+P(R1,a0)+'Z"/>'
+      +'<path class="cw7Arc" data-k="'+k+'" d="M'+P(R3,a0)+'A'+R3+' '+R3+' 0 0 1 '+P(R3,a1)+'"/><g class="cw7Ic" data-k="'+k+'" transform="translate('+P(122,am)+') scale(1.6) translate(-12 -12)"></g>'; }
+  s+='<path class="cw7Ptr" d="M0 '+(-R1+1)+'l-8 12h16z"/></svg><div class="cw7Ctr"><div class="cw7Ph"></div><div class="cw7Nm"></div><div class="cw7Dots"><i></i><i></i><i></i></div></div></div>';
+  w.innerHTML=s; document.body.appendChild(w);
+  w.addEventListener('touchstart',e=>{ if(!CW7.open||!CW7.sticky) return; e.preventDefault(); e.stopPropagation(); const t=e.changedTouches[0], r=w.querySelector('.cw7Box').getBoundingClientRect(), x=t.clientX-(r.left+r.width/2), y=t.clientY-(r.top+r.height/2), d=Math.hypot(x,y)*400/r.width;
+    if(d<70){ cw7SetWheel((CW7.wh+1)%3); return; } if(d>205){ cw7Close(false); return; } cw7SetVec(x*400/r.width,y*400/r.width); cw7Close(true); },{passive:false});
+  w.addEventListener('mousedown',e=>{ if(!CW7.open||!CW7.sticky) return; e.preventDefault(); const r=w.querySelector('.cw7Box').getBoundingClientRect(), x=e.clientX-(r.left+r.width/2), y=e.clientY-(r.top+r.height/2), d=Math.hypot(x,y)*400/r.width;
+    if(d<70){ cw7SetWheel((CW7.wh+1)%3); return; } if(d>205){ cw7Close(false); return; } cw7SetVec(x*400/r.width,y*400/r.width); cw7Close(true); });
+  return w; }
+function cw7Draw(){ const w=$('cw7Wheel'); if(!w) return; const ids=CFG.cw7.wheels[CW7.wh], sel=CW7.sel;
+  w.querySelectorAll('.cw7Seg,.cw7Arc').forEach(s=>s.classList.toggle('on',+s.dataset.k===sel));
+  w.querySelectorAll('.cw7Ic').forEach(g=>{ const k=+g.dataset.k, ic=(CW7_P[ids[k]]||{}).ic||'pin'; if(g._ic!==ic){ g._ic=ic; g.innerHTML=CW7_IC[ic]; } g.classList.toggle('on',k===sel); });
+  const ph=w.querySelector('.cw7Ph'); ph.textContent=sel>=0?cw7Txt(ids[sel],player.team):(CW7.touch?(CW7.sticky?'Bir cümleye dokun':'Parmağını bir yöne kaydır'):'Fareyi bir yöne kaydır'); ph.classList.toggle('dim',sel<0);
+  w.querySelector('.cw7Nm').textContent='SOHBET ÇARKI '+(CW7.wh+1); w.querySelectorAll('.cw7Dots i').forEach((d,i)=>d.classList.toggle('on',i===CW7.wh));
+  const p=w.querySelector('.cw7Ptr'); p.style.opacity=Math.hypot(CW7.vx,CW7.vy)>10?'1':'0'; p.setAttribute('transform','rotate('+(Math.atan2(CW7.vx,-CW7.vy)*180/Math.PI).toFixed(1)+')'); }
+function cw7Open(touch,force){ if(!force&&!cw7Can()) return false; const w=cw7WheelDom(); CW7.open=true; CW7.touch=!!touch; CW7.sticky=false; CW7.vx=CW7.vy=0; CW7.sel=-1;
+  w.classList.remove('hidden','sticky'); cw7Draw(); uiSound('hover'); return true; }
+function cw7Close(send){ if(!CW7.open) return; const id=CW7.sel>=0?CFG.cw7.wheels[CW7.wh][CW7.sel]:null; CW7.open=false; CW7.sticky=false; CW7.tid=null; const w=$('cw7Wheel'); if(w){ w.classList.add('hidden'); w.classList.remove('sticky'); }
+  const b=$('chatBtnTouch'); if(b) b.classList.remove('down'); if(send&&id) cw7Send(id); }
+function cw7SetWheel(i){ CW7.wh=((i%3)+3)%3; uiSound('tab'); cw7Draw(); }
+function cw7SetVec(x,y){ const L=Math.hypot(x,y); if(L>150){ x*=150/L; y*=150/L; } CW7.vx=x; CW7.vy=y; const sel=Math.hypot(x,y)>26?((Math.round(Math.atan2(x,-y)/(Math.PI/4))%8)+8)%8:-1;
+  if(sel!==CW7.sel){ CW7.sel=sel; if(sel>=0) uiSound('hover'); } cw7Draw(); }
+addEventListener('keydown',e=>{ const K=CFG.keys.chatwheel;
+  if(CW7.open){ const m=/^(Digit|Numpad)([123])$/.exec(e.code); if(m){ e.preventDefault(); e.stopImmediatePropagation(); cw7SetWheel(+m[2]-1); return; }
+    if(e.code==='Escape'){ e.stopImmediatePropagation(); cw7Close(false); return; } if(e.code===K){ e.preventDefault(); e.stopImmediatePropagation(); return; } }
+  if(K&&e.code===K&&!e.repeat&&!isTyping(e)&&cw7Can()){ e.preventDefault(); e.stopImmediatePropagation(); cw7Open(false); } },true);
+addEventListener('keyup',e=>{ if(CW7.open&&!CW7.touch&&e.code===CFG.keys.chatwheel){ e.stopImmediatePropagation(); cw7Close(true); } },true);
+addEventListener('mousemove',e=>{ if(!CW7.open||CW7.touch) return; e.stopImmediatePropagation(); cw7SetVec(CW7.vx+e.movementX*.9,CW7.vy+e.movementY*.9); },true);
+addEventListener('mousedown',e=>{ if(CW7.open&&!CW7.touch) e.stopImmediatePropagation(); },true);
+addEventListener('wheel',e=>{ if(!CW7.open) return; e.stopImmediatePropagation(); e.preventDefault(); cw7SetWheel(CW7.wh+(e.deltaY>0?1:-1)); },{capture:true,passive:false});
+addEventListener('blur',()=>{ if(CW7.open) cw7Close(false); });
+// touch: TELSİZ button — hold + drag toward a slot, release sends; a tap keeps the wheel open (tap a slot to send, the centre to switch wheels)
+TI.chat='<path d="M4 4.5h16v11H10l-5 4.5v-4.5H4z"/><path d="M8 9h8M8 12h5"/>';
+TOUCH_DEF.chatBtnTouch=['chat','rt',258,32,40,'TELSİZ','chat'];
+function cw7TouchInit(){ const b=$('chatBtnTouch'); if(!b) return;
+  b.addEventListener('touchstart',e=>{ e.preventDefault(); e.stopPropagation(); if(TE.on) return; ensureAudio(); if(CW7.open){ cw7Close(false); return; } if(!cw7Can()) return;
+    const t=e.changedTouches[0]; CW7.tid=t.identifier; CW7.tx=t.clientX; CW7.ty=t.clientY; if(cw7Open(true)) b.classList.add('down'); },{passive:false});
+  b.addEventListener('touchmove',e=>{ e.preventDefault(); if(!CW7.open||CW7.tid===null) return; for(const t of e.changedTouches) if(t.identifier===CW7.tid) cw7SetVec((t.clientX-CW7.tx)*2.4,(t.clientY-CW7.ty)*2.4); },{passive:false});
+  const fin=e=>{ for(const t of e.changedTouches) if(t.identifier===CW7.tid){ CW7.tid=null; b.classList.remove('down'); if(!CW7.open) return; if(CW7.sel>=0) cw7Close(true); else { CW7.sticky=true; $('cw7Wheel').classList.add('sticky'); cw7Draw(); } } };
+  b.addEventListener('touchend',fin); b.addEventListener('touchcancel',fin); }
+touchMarkup(); touchApplyLayout(); cw7TouchInit();
+// ---- voice: your recording > sound pack (CS radio names) > best installed voice through a radio chain ----
+const CW7V={ q:[], busy:0, to:0, bed:null, nb:null, vc:{} };
+const CW7_MALE=/\b(Male|Daniel|Arthur|Oliver|George|Ryan|Guy|Christopher|Eric|Davis|Andrew|Brian|Roger|Steffan|Thomas|Liam|William|Tony|Jason|Aaron|Rishi|Alex|Tom|Lee|Evan|Nathan|Gordon|Reed|Jacob|James|Ahmet|Tolga|Cem|Emre|Mark|David|Paul|Richard|Sean|Connor|Mitchell|Prabhat|Ravi)\b/i;
+const CW7_FEM=/(Female|Zira|Hazel|Susan|Samantha|Karen|Moira|Tessa|Fiona|Victoria|Aria|Jenny|Libby|Sonia|Emma|Ava|Michelle|Serena|Kate|Martha|Allison|Nicky|Emel|Yelda|Seda|Filiz|Sara|Natasha|Clara|Jane|Joanna|Salli|Kimberly|Ivy|Heera|Linda|Catherine|Elsa|Nora)/i;
+function cw7Voices(lang){ const key=lang+CFG.cw7.gender+(CFG.cw7.voiceName||''), c=CW7V.vc[key]; if(c&&c.n===(speechSynthesis.getVoices()||[]).length) return c.L;
+  const male=CFG.cw7.gender!=='f', L=voiceList(lang).map(v=>{ const n=v.name||''; let s=voiceScore(v,lang); if(/Premium|Enhanced|Siri/i.test(n)) s+=45; if(/Natural|Neural/i.test(n)) s+=10;
+    if(CW7_MALE.test(n)) s+=male?24:-20; if(CW7_FEM.test(n)) s+=male?-30:24; if(CFG.cw7.voiceName&&n===CFG.cw7.voiceName) s+=500; return {v,s}; }).sort((a,b)=>b.s-a.s);
+  CW7V.vc[key]={n:(speechSynthesis.getVoices()||[]).length,L}; return L; }
+function cw7VoiceFor(name,lang){ const L='speechSynthesis' in window?cw7Voices(lang):[]; let h=7; for(const ch of String(name||'')) h=(h*31+ch.charCodeAt(0))|0; h=Math.abs(h);
+  const me=name===(player.name||CFG.name), top=L.length?L.filter(x=>x.s>=L[0].s-22).slice(0,3):[], v=top.length?(me||CFG.cw7.voiceName?top[0]:top[h%top.length]).v:null, nat=v&&/Natural|Neural|Online|Google|Premium|Enhanced|Siri/i.test(v.name);
+  return {v,rate:(me?1.1:1.06+(h%11)/100)*(nat?1:.97),pitch:me?1:.9+((h>>4)%15)/100}; }
+function cw7NoiseBufs(){ if(CW7V.nb||!AUD.ctx) return CW7V.nb; const c=AUD.ctx, sr=c.sampleRate, mk=(dur,env)=>{ const b=c.createBuffer(1,Math.max(1,Math.round(sr*dur)),sr), d=b.getChannelData(0); let lp=0;
+    for(let i=0;i<d.length;i++){ const t=i/d.length; lp+=((Math.random()*2-1)-lp)*.5; const cr=Math.random()<.003?(Math.random()*2-1)*2:0; d[i]=(lp*.8+cr)*env(t); } return b; };
+  CW7V.nb={a:mk(.1,t=>Math.min(1,t*14)*(1-t)),b:mk(.16,t=>Math.min(1,t*10)*Math.pow(1-t,1.5)),bed:mk(1.3,()=>1)}; return CW7V.nb; }
+function cw7Static(k,vol){ const N=cw7NoiseBufs(); if(N) sndPlay('',{buf:N[k],bus:'voice',radio:true,vol:.3*vol,jit:0}); }
+function cw7Speak(m,force){ if(!CFG.cw7.voice&&!force) return; ensureAudio(); if(!AUD.ctx) return; const slot='radio:'+m.id, buf=SND.custom.get(slot)||(CFG.packOn!==0&&packHas(slot,'any')?packPick(slot,'P'):null);
+  if(force) { CW7V.q.length=0; } CW7V.q.push({id:m.id,tm:m.tm,n:m.n,loc:m.loc,buf}); if(CW7V.q.length>3) CW7V.q.shift(); cw7Pump(); }
+function cw7Pump(){ if(CW7V.busy||!CW7V.q.length) return; if(VOICE.busy){ setTimeout(cw7Pump,250); return; }
+  const it=CW7V.q.shift(), tok=CW7V.busy=performance.now()+Math.random(), vol=clamp(+CFG.cw7.vol||0,0,1.5);
+  const done=()=>{ if(CW7V.busy!==tok) return; CW7V.busy=0; clearTimeout(CW7V.to); if(CW7V.bed){ CW7V.bed.stop(.06); CW7V.bed=null; } setTimeout(cw7Pump,140); };
+  const sq=on=>{ sndPlay(on?'radio:in':'radio:out',{bus:'voice',vol:.5*vol,jit:0}); cw7Static(on?'a':'b',vol); };
+  if(it.buf){ sq(true); sndPlay('',{buf:it.buf,bus:'voice',radio:!!CFG.radioFx,vol:vol,delay:.08,jit:0}); CW7V.to=setTimeout(()=>{ sq(false); CW7V.to=setTimeout(done,200); },(it.buf.duration+.1)*1000); return; }
+  if(!('speechSynthesis' in window)){ done(); return; }
+  const lang=cw7Lang(), txt=cw7SayTxt(it.id,it.tm,lang,it.loc), V=cw7VoiceFor(it.n,lang);
+  try{ const u=new SpeechSynthesisUtterance(txt); u.lang=lang==='tr'?'tr-TR':'en-US'; if(V.v){ u.voice=V.v; u.lang=V.v.lang; } u.rate=clamp(V.rate,.5,2); u.pitch=clamp(V.pitch,0,2); u.volume=clamp(CFG.vol*CFG.volVoice*vol,0,1);
+    u.onstart=()=>{ if(CW7V.busy===tok&&!CW7V.bed){ const N=cw7NoiseBufs(); if(N) CW7V.bed=sndPlay('',{buf:N.bed,bus:'voice',radio:true,loop:true,vol:.04*vol,jit:0}); } };
+    u.onend=()=>{ if(CW7V.busy!==tok) return; if(CW7V.bed){ CW7V.bed.stop(.05); CW7V.bed=null; } sq(false); clearTimeout(CW7V.to); CW7V.to=setTimeout(done,170); }; u.onerror=()=>done();
+    sq(true); setTimeout(()=>{ if(CW7V.busy!==tok) return; try{ speechSynthesis.speak(u); }catch(e){ done(); } },110); CW7V.to=setTimeout(done,1800+txt.length*110);
+  }catch(e){ done(); } }
+// sound-pack importer: CS radio / player/vo file names -> radio:<phrase> (stored only in this browser like the rest of the pack)
+PACK_SHARED_IDS.add('radio');
+{ const N={ enemy:'enemyspot|enemyspotted|enemy_spotted|enemys|spotted|enemy', followme:'followme|follow_me|follow', following:'followingyou|following_you|following|imfollowing',
+    backup:'needbackup|need_backup|backup|takingfire|taking_fire|coverme|cover_me|help', inpos:'inposition|in_position|imin_?position|reportingin|reporting_in', clear:'sectorclear|sector_clear|areaclear|area_clear|clear',
+    regroup:'regroup|regroupteam|regroup_team|rotate|rotatetome', together:'sticktog|sticktogether|stick_together|staytogether|stay_together', hold:'holdposition|hold_position|holdthisposition|hold|position',
+    yes:'affirmative|roger|agree|yes|ok|okay|copy', no:'negative|disagree|no|nope', thanks:'thanks|thank_you|thankyou', nice:'niceshot|nice_shot|nice|goodjob|good_job|wellplayed',
+    go:'go|gogogo|go_go_go|letsgo|lets_go|moveout|move_out|com_go', fallback:'fallback|fall_back|getout|get_out|retreat', cover:'coveringyou|covering_you|cover|gotyoucovered', onmyway:'onmyway|on_my_way|omw|imcoming',
+    spread:'spreadout|spread_out|spread', attack:'attacking|attack|stormfront|storm_the_front|takepoint|take_point', quiet:'quiet|needquiet|need_quiet|shh', noise:'heardnoise|heard_noise|noise|heardsomething',
+    sniper:'sniper|sniperspotted|sniper_spotted|sniperwarning|sniper_warning', killsniper:'killedsniper|killed_sniper|sniperdown|sniper_down', hs:'headshot|gotheadshot|got_headshot', sawhs:'niceheadshot|nice_headshot|sawheadshot',
+    sorry:'sorry|mybad|my_bad', cheer:'cheer|onarollbrag|woohoo', pep:'peptalk|pep_talk', lost:'lostround|lost_round|roundlost', plan:'whatsplan|whatstheplan|plan', lead:'wholead|wholeads|whosleading|lead',
+    needsmoke:'needsmoke|needsmokes|need_smoke|need_smokes', needflash:'needflash|needflashes|needflashbang|need_flash', needhe:'needfrag|needgrenade|needhe|need_frag|need_grenade', needmolly:'needmolly|needmolotov|needincendiary|need_molotov',
+    needdecoy:'needdecoy|need_decoy', dropped:'bombdropped|bomb_dropped|droppedbomb', pickedup:'bombpickedup|gotthebomb|ihavethebomb|bomb_pickedup', carrier:'bombcarrier|bomb_carrier|bombcarrierspotted',
+    oneenemy:'oneenemy|one_enemy|oneguy', multi:'multipleenemies|multiple_enemies|manyenemies', guardA:'guardinga|holdinga|guarding_a', guardB:'guardingb|holdingb|guarding_b',
+    plantingA:'plantinga|planting_a', plantingB:'plantingb|planting_b', plantedA:'planteda|planted_a', plantedB:'plantedb|planted_b', planted:'weplanted|bombisplanted|bomb_is_planted', pingbomb:'bombhere|bomb_here' };
+  for(const id in N) PACK_NAME_RULES.push([new RegExp('^(?:(?:radio|radiobot|bot|vo|ct|t|com|player|chatwheel)[-_]?)*(?:'+N[id]+')(?:[-_]?(\\d+))?[a-z]?$'),'radio:'+id]); }
+// ---- bots: orders from the radio ----
+function cw7Mates(src){ return bots.filter(b=>b.alive&&!b.isRemote&&!b.dummy&&b.team===src.team&&b!==src); }
+function cw7BuyTime(){ return match.mode==='comp'&&(COMP.phase==='freeze'||(COMP.phase==='live'&&COMP.liveT<COMP.buyTime)); }
+function cw7Order(b,o){ const fr=match.mode==='comp'&&COMP.phase==='freeze'?COMP.t*1000:0; o.until+=fr; b.cw7o=o; b.path=null; b.repathT=0; b.hold=null; }
+function cw7Goal(b){ const o=b.cw7o; if(!o) return undefined; const now=performance.now();
+  if(now>o.until||(o.who&&(!o.who.alive||!allAgents().includes(o.who)))){ b.cw7o=null; b.hold=null; return undefined; }
+  if(o.k==='follow'){ const d=b.pos.distanceTo(o.who.pos); return d<2.6+(o.slot||0)*1.3?null:o.who.pos; }
+  if(o.k==='goto'&&Math.hypot(b.pos.x-o.pos.x,b.pos.z-o.pos.z)<2.5){ o.k='hold'; o.arr=1; if(o.say) cw7Reply(b,o.say,.4); return o.pos; }
+  if(o.k==='hold'){ if(!o.arr&&Math.hypot(b.pos.x-o.pos.x,b.pos.z-o.pos.z)<2){ o.arr=1; if(o.say) cw7Reply(b,o.say,.4); } return o.pos; }
+  if(o.k==='throw'){ const dx=o.pos.x-b.pos.x, dz=o.pos.z-b.pos.z; if(Math.hypot(dx,dz)>24) return o.pos; b.yaw=Math.atan2(-dx,-dz); if(!o.aimT) o.aimT=now+450; else if(now>=o.aimT){ cw7Throw(b,o.nade,o.pos); b.cw7o=null; } return null; }
+  return o.pos||null; }
+function cw7Throw(b,id,p){ const i=b.nades.indexOf(id), def=LIB.byId[id]; if(i<0||!def) return; b.nades.splice(i,1);
+  const e=agentEye(b,new THREE.Vector3()), t=p.clone(); t.y+=id==='flash'?2.4:.25; const dx=t.x-e.x, dz=t.z-e.z, dy=t.y-e.y, H=Math.hypot(dx,dz), g=GRAV*.85, T=clamp(H/13,.45,1.5);
+  const vel=new THREE.Vector3(dx/T,(dy+.5*g*T*T)/T,dz/T); throwNade(def,e.clone().addScaledVector(vel.clone().normalize(),.45),vel,b); }
+function cw7Snap(b){ b._cw7gift=0; b._cw7s={r:COMP.round,money:b.money,pri:b.slots.primary,sec:b.slots.secondary,ar:b.armor,he:b.helmet,kit:b.kit,nades:b.nades.slice()}; }
+function cw7Util(b){ const r=COMP.round, half=COMP.maxRounds/2; if(r===1||r===half+1||b.money<1500||Math.random()>.6) return; const T=b.team==='T', L=['smoke','flash',T?'molotov':'incgren','he'];
+  for(let n=b.money>4200?2:1;n>0;n--){ const id=L[(Math.random()*L.length)|0]; if(b.money>=900) buyItem(b,id); } }
+function cw7WantGun(src){ const pr=src===player&&CFG.loadout&&LIB.byId[CFG.loadout.primary], it=pr&&itemInfo(pr.id); if(it&&it.def.slot==='primary'&&(it.team==='any'||it.team===src.team)&&it.price<=3300) return it;
+  return itemInfo(src.team==='T'?'ak47':LIB.byId.m4a1s?'m4a1s':'m4a4'); }
+function cw7ReqGun(src,M,near){ if(match.mode!=='comp') return; const want=cw7WantGun(src), own=src.slots&&src.slots.primary;
+  if(!want||(own&&priceOf(own.def)>=want.price)){ cw7Reply(near[0],'no'); return; }
+  const d=cw7BuyTime()?M.filter(b=>b.money>=want.price&&(b.slots.primary||b.money>=want.price+2700)).sort((a,b)=>b.money-a.money)[0]:null;
+  if(!d){ cw7Reply(near[0],'no'); return; }
+  cw7Reply(d,'yes',.7); d._cw7gift=1;
+  setTimeout(()=>{ if(!d.alive||!src.alive||d.money<want.price||!cw7BuyTime()) return; addMoney(d,-want.price); const fw=new THREE.Vector3(-Math.sin(src.yaw),0,-Math.cos(src.yaw)), p=src.pos.clone().addScaledVector(fw,.8); p.y+=.7;
+    spawnDrop(mkSlot(want.def),p,new THREE.Vector3(fw.x*.5,.5,fw.z*.5)); if(src===player) toast(d.name+' sana '+want.name+' attı — '+keyName(CFG.keys.use)+' ile al',2800); },1300); }
+function cw7Eco(src,M,id,near){ if(match.mode!=='comp') return; const bt=cw7BuyTime(); COMP.cw7eco={team:src.team,k:id,r:COMP.round};
+  if(bt) for(const b of M){ if(!inBuyZone(b)) continue;
+    if(id==='save'){ const s=b._cw7s; if(s&&s.r===COMP.round&&b.money<s.money&&!b._cw7gift){ b.money=s.money; b.slots.primary=s.pri; b.slots.secondary=s.sec; b.armor=s.ar; b.helmet=s.he; b.kit=s.kit; b.nades=s.nades.slice(); b.w=null; b.equipBest(true); } }
+    else if(!b.slots.primary){ for(const g of src.team==='T'?['ak47','galil','mac10','ump45']:['m4a1s','m4a4','famas','mp9','ump45']) if(LIB.byId[g]&&!canBuyItem(b,g)){ buyItem(b,g); break; }
+      if(b.armor<50&&!canBuyItem(b,'kevlar')) buyItem(b,'kevlar'); b.equipBest(true); } }
+  cw7Reply(near[0],bt?'yes':'no'); }
+function cw7NadeReq(M,id,pos){ const kinds={needsmoke:['smoke'],needflash:['flash'],needhe:['he'],needmolly:['molotov','incgren'],needdecoy:['decoy']}[id]; if(!pos) return;
+  const near=M.slice().sort((a,b)=>a.pos.distanceTo(pos)-b.pos.distanceTo(pos)); let b=near.find(x=>x.nades.some(n=>kinds.includes(n)));
+  if(!b&&cw7BuyTime()){ b=near.find(x=>inBuyZone(x)&&x.money>=600&&kinds.some(k=>!canBuyItem(x,k))); if(b) buyItem(b,kinds.find(k=>!canBuyItem(b,k))); }
+  if(!b){ cw7Reply(near[0],'no'); return; } cw7Order(b,{k:'throw',nade:b.nades.find(n=>kinds.includes(n)),pos:pos.clone(),until:performance.now()+30000}); cw7Reply(b,'yes'); }
+function cw7PlantReq(src,M,pos,near){ if(match.mode!=='comp'||!COMP.bomb) return; const B=COMP.bomb, now=performance.now(), byB=M.slice().sort((a,b)=>a.pos.distanceTo(B.pos)-b.pos.distanceTo(B.pos));
+  if(src.team==='T'){ const c=B.state==='carried'&&B.carrier;
+    if(c&&M.includes(c)){ const S=COMP.sites.slice().sort((a,b)=>a.center.distanceTo(pos||src.pos)-b.center.distanceTo(pos||src.pos))[0]; if(S){ COMP.tSite=S.name; cw7Order(c,{k:'goto',pos:S.center.clone(),until:now+45000}); } cw7Reply(c,'yes'); return; }
+    if(B.state==='dropped'&&byB[0]){ cw7Order(byB[0],{k:'goto',pos:B.pos.clone(),until:now+25000}); cw7Reply(byB[0],'onmyway'); return; } cw7Reply(near[0],'no'); return; }
+  if(B.state==='planted'&&byB[0]){ cw7Order(byB[0],{k:'goto',pos:B.pos.clone(),until:now+40000}); cw7Reply(byB[0],'yes'); } else cw7Reply(near[0],'no'); }
+function cw7Command(src,id,pos,aim){ if(NET.client||!src) return; const M=cw7Mates(src); if(!M.length) return; const comp=match.mode==='comp', now=performance.now(), T=src.team;
+  const near=M.slice().sort((a,b)=>a.pos.distanceTo(src.pos)-b.pos.distanceTo(src.pos)), nearP=p=>M.slice().sort((a,b)=>a.pos.distanceTo(p)-b.pos.distanceTo(p));
+  const follow=(L,ms)=>L.forEach((b,i)=>cw7Order(b,{k:'follow',who:src,until:now+ms,slot:i}));
+  switch(id){
+    case 'followme': { const L=near.filter(b=>b.pos.distanceTo(src.pos)<45).slice(0,2); follow(L,30000); cw7Reply(L[0]||near[0],L.length?'following':'no'); break; }
+    case 'regroup': follow(M,35000); cw7Reply(near[0],'onmyway'); break;
+    case 'together': { const L=near.filter(b=>b.pos.distanceTo(src.pos)<55); follow(L,30000); cw7Reply(near[0],L.length?'yes':'onmyway'); if(!L.length) follow(near.slice(0,2),30000); break; }
+    case 'backup': { const L=near.slice(0,2); follow(L,25000); cw7Reply(L[0],'onmyway'); break; }
+    case 'iplant': { follow(near.slice(0,1),25000); cw7Reply(near[0],'cover'); break; }
+    case 'hold': { const p=pos||src.pos, b=nearP(p)[0]; cw7Order(b,{k:'hold',pos:cw7NavPt(p,1),until:now+45000,say:'inpos'}); cw7Reply(b,'yes'); break; }
+    case 'spread': M.forEach((b,i)=>{ const a=i/M.length*TAU+Math.random()*.7; cw7Order(b,{k:'goto',pos:cw7NavPt(new THREE.Vector3(b.pos.x+Math.cos(a)*13,b.pos.y,b.pos.z+Math.sin(a)*13),4),until:now+20000}); }); cw7Reply(near[0],'yes'); break;
+    case 'fallback': { const sp=cw7SpawnC(T); if(!sp) break; M.forEach(b=>cw7Order(b,{k:'goto',pos:cw7NavPt(sp,7),until:now+25000})); cw7Reply(near[0],'yes'); break; }
+    case 'attack': case 'go': { let p=id==='go'&&comp&&T==='T'&&cw7Site(COMP.tSite)?cw7Site(COMP.tSite).center:(pos||aim||src.pos); if(id==='attack'&&!pos&&!aim) p=src.pos;
+      M.forEach(b=>cw7Order(b,{k:'goto',pos:cw7NavPt(p,5),until:now+30000})); cw7Reply(near[0],'onmyway'); break; }
+    case 'pingA': case 'pingB': case 'pingM': { if(!pos) break; const s=id.slice(-1); let L=nearP(pos).slice(0,2);
+      if(comp&&s!=='M'){ if(T==='T'){ COMP.tSite=s; L=M; } else M.forEach(b=>{ if(L.includes(b)) b.siteAssign=s; }); }
+      L.forEach(b=>cw7Order(b,{k:'goto',pos:cw7NavPt(pos,6),until:now+30000})); cw7Reply(near[0],'onmyway'); break; }
+    case 'reqgun': cw7ReqGun(src,M,near); break;
+    case 'save': case 'buy': cw7Eco(src,M,id,near); break;
+    case 'enemy': case 'noise': case 'oneenemy': case 'multi': case 'sniper': case 'carrier': { if(!pos) break; if(comp) teamIntel(T,pos); M.forEach(b=>{ if(b.pos.distanceTo(pos)<45) b.alert(pos); });
+      if(id==='multi'){ const b=nearP(pos)[0]; cw7Order(b,{k:'goto',pos:cw7NavPt(pos,8),until:now+18000}); cw7Reply(b,'onmyway'); } else if(Math.random()<.35) cw7Reply(near[0],'yes'); break; }
+    case 'needsmoke': case 'needflash': case 'needhe': case 'needmolly': case 'needdecoy': cw7NadeReq(M,id,pos||aim); break;
+    case 'uplant': cw7PlantReq(src,M,aim,near); break;
+    case 'pingbomb': case 'dropped': { const B=COMP.bomb; if(!comp||!B) break; if(pos) teamIntel(T,pos); const b=nearP(B.pos)[0];
+      if(T==='T'&&B.state==='dropped'){ cw7Order(b,{k:'goto',pos:B.pos.clone(),until:now+25000}); cw7Reply(b,'onmyway'); } else if(T==='CT'&&B.state==='planted'){ cw7Order(b,{k:'goto',pos:B.pos.clone(),until:now+40000}); cw7Reply(b,'onmyway'); } break; }
+    case 'plan': { if(comp&&T==='T'){ const s=COMP.tSite==='B'?'B':'A'; cw7Reply(near[0],'ping'+s,1.1); } else if(comp){ const b=near[0]; cw7Reply(b,(b.siteAssign==='B'?'guardB':'guardA'),1.1); } break; }
+    case 'lead': cw7Reply(near[0],'following',1); break;
+    case 'nice': case 'sawhs': if(Math.random()<.5) cw7Reply(near[0],'thanks'); break;
+    case 'pep': case 'cheer': if(Math.random()<.5) cw7Reply(near[0],'cheer'); break;
+    case 'quiet': case 'lost': if(Math.random()<.4) cw7Reply(near[0],'yes'); break;
+  } }
+// bots use the radio on their own (host / offline): enemy spotted, planting / planted, need backup, nice after a teammate's kill — rate-limited
+function cw7BotAuto(now){ if(match.mode!=='comp'||COMP.phase!=='live'||match.state!=='live') return; const A=CW7.auto;
+  for(const b of bots){ if(!b.alive||b.isRemote||b.dummy) continue;
+    if(b.target&&b.target!==b._cw7t){ b._cw7t=b.target; if(now-(A[b.team]||0)>9000&&now-(b._cw7a||0)>15000){ A[b.team]=now; b._cw7a=now; const t=b.target, w=t.w||(t.slots&&(t.slots.primary||t.slots.secondary)), n=allAgents().filter(x=>x.alive&&x.team===t.team&&x.pos.distanceTo(t.pos)<8).length;
+        setTimeout(()=>cw7BotSay(b,w&&w.def&&w.def.type==='sniper'?'sniper':n>1?'multi':'enemy',t.pos.clone()),rand(250,600)); } }
+    else if(!b.target) b._cw7t=null;
+    if(b.planting&&!b._cw7pl){ b._cw7pl=1; const S=COMP.sites.find(s=>colContains(s.col,b.pos.x,b.pos.y+.5,b.pos.z)); cw7BotSay(b,S&&S.name==='B'?'plantingB':'plantingA'); } else if(!b.planting&&!b.hasBomb) b._cw7pl=0;
+    if(b.target&&b.hp<35&&now-(b._cw7bk||0)>20000&&now-(A['bk'+b.team]||0)>10000){ b._cw7bk=now; A['bk'+b.team]=now; cw7BotSay(b,'backup',b.pos.clone()); } }
+  const B=COMP.bomb, st=B?B.state:''; if(st==='planted'&&CW7.lastBomb!=='planted'){ const p=COMP.planter; if(p&&p.isBot&&!p.isRemote) setTimeout(()=>cw7BotSay(p,B.site==='B'?'plantedB':'plantedA'),900); } CW7.lastBomb=st;
+  for(const a of allAgents()){ const k=a.kills|0; if(a._cw7k===undefined||k<a._cw7k){ a._cw7k=k; continue; } if(k===a._cw7k) continue; a._cw7k=k;
+    if(now-(A.nice||0)>12000&&Math.random()<.45){ const L=bots.filter(b=>b.alive&&!b.isRemote&&b.team===a.team&&b!==a); const r=L[(Math.random()*L.length)|0]; if(r){ A.nice=now; cw7Reply(r,a.lastHs?'sawhs':'nice',rand(.9,1.6)); } } } }
+function cw7Tick(dt){ const now=performance.now();
+  if(CW7.open&&!cw7Can(true)) cw7Close(false);
+  if(match.mode==='comp'&&COMP.round!==CW7.round){ CW7.round=COMP.round; for(const b of bots) b.cw7o=null; cw7ClearMarks(); CW7.lastBomb=''; }
+  if(match.mode==='none'||match.state==='menu'){ if(CW7.marks.length) cw7ClearMarks(); return; }
+  if(CW7.marks.length) cw7MarksTick(now); if(!NET.client) cw7BotAuto(now);
+  if((CW7.tt-=dt)<=0){ CW7.tt=.3; const b=$('chatBtnTouch'); if(b&&!TE.on) b.classList.toggle('hidden',!(match.mode==='comp'||match.mode==='duel'||NET.on)); } }
+// ---- Settings > SOHBET ÇARKI ----
+const CW7S={wh:0,sel:0,q:'',st:0};
+function cw7Preview(id){ cw7Speak({id,tm:player.team==='CT'?'CT':'T',n:player.name||CFG.name||'SEN',loc:''},true); }
+function cw7Settings(L){ const on=sTab==='chat'; $('settingsScreen').classList.toggle('cw7S',on); if(!on) return false; cw7RenderSettings(L); return true; }
+function cw7RenderSettings(L){ const W=CFG.cw7.wheels, w=W[CW7S.wh], pg=el('div',{class:'cw7Pg'}), left=el('div',{class:'cw7L'}), right=el('div',{class:'cw7R'}); pg.append(left,right); L.appendChild(pg);
+  const re=()=>{ saveCfg(); renderSettings(); };
+  const tabs=el('div',{class:'cw7Tabs'}); for(let i=0;i<3;i++){ const b=el('button',{class:'cw7Tab'+(CW7S.wh===i?' on':'')},'ÇARK '+(i+1)); b.addEventListener('click',()=>{ uiSound('tab'); CW7S.wh=i; renderSettings(); }); tabs.appendChild(b); } left.appendChild(tabs);
+  const lay=el('div',{class:'cw7Lay'});
+  for(const k of [0,7,1,6,2,5,3,4]){ const id=w[k], b=el('button',{class:'cw7Slot'+(k===0||k===4?' c':'')+(CW7S.sel===k?' sel':''),draggable:'true',title:CW7_P[id].en});
+    b.innerHTML=cw7Svg(CW7_P[id].ic)+'<span>'+esc(CW7_P[id].tr)+'</span>';
+    b.addEventListener('click',()=>{ uiSound('click'); CW7S.sel=k; renderSettings(); });
+    b.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain','slot:'+k); });
+    b.addEventListener('dragover',e=>{ e.preventDefault(); b.classList.add('dz'); }); b.addEventListener('dragleave',()=>b.classList.remove('dz'));
+    b.addEventListener('drop',e=>{ e.preventDefault(); const v=e.dataTransfer.getData('text/plain')||''; if(v.startsWith('slot:')){ const j=+v.slice(5); [w[j],w[k]]=[w[k],w[j]]; } else if(CW7_P[v]) w[k]=v; CW7S.sel=k; uiSound('equip'); re(); });
+    lay.appendChild(b); }
+  left.appendChild(lay);
+  left.appendChild(el('p',{class:'cw7Hint'},'Bir yuva seç, sonra sağdaki listeden bir cümleye tıkla — ya da cümleyi yuvaya sürükle. Oyunda <kbd>'+esc(keyName(CFG.keys.chatwheel))+'</kbd> basılı tut, fareyle yön seç, bırak; açıkken fare tekerleği ya da 1 / 2 / 3 çarkı değiştirir.'));
+  const br=el('div',{class:'cw7Btns'}), b1=el('button',{class:'cBtn sm'},'BU ÇARKI SIFIRLA'), b2=el('button',{class:'cBtn sm ghost'},'TÜMÜNÜ SIFIRLA');
+  b1.addEventListener('click',()=>{ W[CW7S.wh]=CW7_DEFW[CW7S.wh].slice(); toast('Çark '+(CW7S.wh+1)+' varsayılana döndü'); re(); }); b2.addEventListener('click',()=>{ CFG.cw7.wheels=deepClone(CW7_DEFW); toast('Tüm çarklar varsayılan'); re(); }); br.append(b1,b2); left.appendChild(br);
+  const row=(lab,ctl)=>{ const r=el('div',{class:'sRow'}); r.append(el('label',null,esc(lab)),ctl); left.appendChild(r); };
+  const seg=(opts,get,set)=>{ const c=el('div',{class:'sCtl'}), g=el('div',{class:'seg'}); for(const [v,lb] of opts){ const b=el('button',{class:String(get())===String(v)?'on':''},esc(lb)); b.addEventListener('click',()=>{ uiSound('click'); set(v); CW7V.vc={}; re(); }); g.appendChild(b); } c.appendChild(g); return c; };
+  left.appendChild(el('div',{class:'sSec'},'TELSİZ SESİ'));
+  row('Telsiz sesi',seg([[1,'AÇIK'],[0,'KAPALI']],()=>CFG.cw7.voice?1:0,v=>CFG.cw7.voice=+v));
+  row('Ses dili',seg([['en','ENGLISH'],['tr','TÜRKÇE']],()=>cw7Lang(),v=>CFG.cw7.lang=v));
+  row('Varsayılan ses',seg([['m','ERKEK'],['f','KADIN']],()=>CFG.cw7.gender==='f'?'f':'m',v=>CFG.cw7.gender=v));
+  { const c=el('div',{class:'sCtl'}), r=el('input',{type:'range',min:0,max:1.5,step:.01}), n=el('input',{type:'text',class:'num'}); r.value=CFG.cw7.vol; n.value=Math.round(CFG.cw7.vol*100)+'%';
+    r.addEventListener('input',()=>{ CFG.cw7.vol=+r.value; n.value=Math.round(CFG.cw7.vol*100)+'%'; }); r.addEventListener('change',()=>saveCfg()); n.readOnly=true; c.append(r,n); row('Telsiz ses seviyesi',c); }
+  { const c=el('div',{class:'sCtl'}), s=el('select'), V='speechSynthesis' in window?voiceList(cw7Lang()):[]; s.appendChild(el('option',{value:''},'Otomatik — en doğal ses, botlara farklı ton'));
+    for(const v of V) s.appendChild(el('option',{value:v.name},esc((/Natural|Neural|Online|Premium|Enhanced|Siri/i.test(v.name)?'★ ':'')+voiceShort(v.name)+' · '+v.lang)));
+    s.value=CFG.cw7.voiceName||''; s.addEventListener('change',()=>{ CFG.cw7.voiceName=s.value; CW7V.vc={}; saveCfg(); cw7Preview('enemy'); }); c.appendChild(s); row('Konuşan ses',c); }
+  { const c=el('div',{class:'sCtl btnRow'}), k=el('button',{class:'keyBtn'},esc(keyName(CFG.keys.chatwheel))); k.addEventListener('click',()=>{ uiSound('click'); keyWait='chatwheel'; k.classList.add('wait'); k.textContent='BİR TUŞA BAS…'; }); c.appendChild(k); row('Çark tuşu',c); }
+  { const c=el('div',{class:'sCtl btnRow'}); for(const [lb,id] of [['▶ DÜŞMAN','enemy'],['▶ DESTEK','backup'],['▶ EVET','yes']]){ const b=el('button',{class:'cBtn sm'},lb); b.addEventListener('click',()=>cw7Preview(id)); c.appendChild(b); } row('Dinle',c); }
+  left.appendChild(el('p',{class:'cw7Hint'},'Ses Atölyesi → TELSİZ: her cümleyi kendi sesinle kaydedebilir ya da dosya seçebilirsin; ses paketindeki CS telsiz dosyaları (radio/*, player/vo/*) adlarına göre otomatik eşlenir. Bunlar yalnızca bu tarayıcıda saklanır.'));
+  const q=el('input',{type:'text',class:'cw7Q',placeholder:'Cümle ara…'}); q.value=CW7S.q; right.appendChild(q); const list=el('div',{class:'cw7List'}); right.appendChild(list);
+  list.addEventListener('scroll',()=>{ CW7S.st=list.scrollTop; });
+  const fill=()=>{ list.innerHTML=''; const s=CW7S.q.trim().toLocaleLowerCase('tr');
+    for(const [c,cn] of CW7_CATS){ const items=Object.values(CW7_P).filter(p=>p.c===c&&(!s||(p.tr+' '+p.en).toLocaleLowerCase('tr').includes(s))); if(!items.length) continue;
+      list.appendChild(el('div',{class:'cw7Cat'},esc(cn.toLocaleUpperCase('tr'))));
+      for(const p of items){ const it=el('div',{class:'cw7It'+(w.includes(p.id)?' used':''),draggable:'true'}); it.innerHTML=cw7Svg(p.ic)+'<span>'+esc(p.tr)+'</span><small>'+esc(p.en)+'</small>';
+        const pv=el('button',{class:'cw7Pv',title:'Dinle'},'▶'); pv.addEventListener('click',e=>{ e.stopPropagation(); cw7Preview(p.id); }); it.appendChild(pv);
+        it.addEventListener('click',()=>{ w[CW7S.sel]=p.id; uiSound('equip'); re(); });
+        it.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain',p.id); e.dataTransfer.effectAllowed='copy'; }); list.appendChild(it); } } };
+  q.addEventListener('input',()=>{ CW7S.q=q.value; fill(); }); fill(); list.scrollTop=CW7S.st; }
+// ---- Sound Workshop > TELSİZ: record / load a file for any phrase ----
+function cw7SndRow(L){ L.appendChild(el('div',{class:'tGrp'},'TELSİZ')); const r=el('div',{class:'tRow'+(sndSel==='__radio'?' sel':'')}); r.style.paddingLeft='10px';
+  const n=Object.keys(CW7_P).filter(id=>SND.custom.has('radio:'+id)||packHas('radio:'+id,'any')).length; r.innerHTML='<span class="nm">Telsiz cümleleri</span><span class="edBadge">'+(n?n+' ses':cw7Lang().toUpperCase())+'</span>';
+  r.addEventListener('click',()=>{ sndSel='__radio'; renderSoundWorkshop(); }); L.appendChild(r); }
+function cw7RadioPage(M){ M.insertAdjacentHTML('beforeend','<div class="sndHead"><div><h3>Telsiz cümleleri</h3><small>Sohbet çarkı · kendi kaydın ya da paketteki CS telsiz dosyası tarayıcı sesi yerine çalar · dil: '+(cw7Lang()==='tr'?'Türkçe':'English')+'</small></div></div>');
+  const lr=el('div',{class:'sndRow'}); lr.innerHTML='<b>DİL<small>Kayıt yoksa konuşan ses</small></b>'; const lv=el('div',{class:'vers'});
+  [['en','English'],['tr','Türkçe']].forEach(([v,l])=>{ const w=el('div',{class:'verBtn'+(cw7Lang()===v?' on':'')}), a=el('button',{class:'v'},l); a.addEventListener('click',()=>{ CFG.cw7.lang=v; CW7V.vc={}; saveCfg(); renderSoundWorkshop(); }); w.appendChild(a); lv.appendChild(w); }); lr.appendChild(lv); M.appendChild(lr);
+  for(const [c,cn] of CW7_CATS){ M.insertAdjacentHTML('beforeend','<div class="pkSec">'+esc(cn)+'</div>');
+    for(const p of Object.values(CW7_P).filter(x=>x.c===c)){ const slot='radio:'+p.id, has=SND.custom.has(slot), pk=packHas(slot,'any'), row=el('div',{class:'sndRow'});
+      row.innerHTML='<b>'+esc(p.tr)+'<small>“'+esc(cw7SayTxt(p.id,player.team==='CT'?'CT':'T',cw7Lang(),''))+'” · '+esc(p.en)+'</small></b>'; const vs=el('div',{class:'vers'});
+      const pl=el('button',{class:'eb'},'▶ Dinle'); pl.addEventListener('click',()=>cw7Preview(p.id));
+      const rec=el('button',{class:'eb'},'● Kaydet'); rec.addEventListener('click',()=>recordVoice(slot,rec));
+      const up=el('button',{class:'eb'},'Dosya…'); up.addEventListener('click',()=>pickSoundFile([slot],false)); vs.append(pl,rec,up);
+      if(has){ const cl=el('button',{class:'eb dan'},'Kaydı sil'); cl.addEventListener('click',()=>{ sndClearCustom(slot); renderSoundWorkshop(); }); vs.appendChild(cl); vs.insertAdjacentHTML('beforeend','<span class="custTag">senin kaydın</span>'); }
+      else if(pk) vs.insertAdjacentHTML('beforeend','<span class="custTag">paket</span>');
+      row.appendChild(vs); M.appendChild(row); } }
+  M.insertAdjacentHTML('beforeend','<p class="iNote" style="margin-top:12px">● Kaydet: mikrofon izni ister, 3 saniye kaydeder. Kayıtlar ve paket dosyaları yalnızca bu tarayıcıda saklanır. Paket eşleme örnekleri: enemyspotted → Düşman görüldü, followme → Beni takip et, needbackup / takingfire → Destek lazım, inposition → Pozisyondayım, sectorclear → Bölge temiz, regroup → Toplan, affirmative / negative → Evet / Hayır, thanks, niceshot …</p>'); }
+gameExport({ CW7, CW7_P, CW7_DEFW, CW7V, cw7Open, cw7Close, cw7SetVec, cw7SetWheel, cw7Send, cw7Command, cw7BotSay, cw7Loc, cw7Voices, cw7VoiceFor, cw7SayTxt, cw7Txt });
 
 /* @@BLOCK:test — STRIKE POINT TEST-only features (zombies, skins, extra knives); everything here must check TEST_BUILD */
 /* =====================================================================
