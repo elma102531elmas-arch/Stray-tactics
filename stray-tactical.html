@@ -15366,7 +15366,7 @@ function cw7Goal(b){ const o=b.cw7o; if(!o) return undefined; const now=performa
   if(o.k==='follow'){ const d=b.pos.distanceTo(o.who.pos); return d<2.6+(o.slot||0)*1.3?null:o.who.pos; }
   if(o.k==='goto'&&Math.hypot(b.pos.x-o.pos.x,b.pos.z-o.pos.z)<2.5){ o.k='hold'; o.arr=1; if(o.say) cw7Reply(b,o.say,.4); return o.pos; }
   if(o.k==='hold'){ if(!o.arr&&Math.hypot(b.pos.x-o.pos.x,b.pos.z-o.pos.z)<2){ o.arr=1; if(o.say) cw7Reply(b,o.say,.4); } return o.pos; }
-  if(o.k==='throw'){ const dx=o.pos.x-b.pos.x, dz=o.pos.z-b.pos.z; if(Math.hypot(dx,dz)>24) return o.pos; b.yaw=Math.atan2(-dx,-dz); if(!o.aimT) o.aimT=now+450; else if(now>=o.aimT){ cw7Throw(b,o.nade,o.pos); b.cw7o=b.cw7q||null; b.cw7q=null; } return null; }
+  if(o.k==='throw'){ const dx=o.pos.x-b.pos.x, dz=o.pos.z-b.pos.z; if(Math.hypot(dx,dz)>24) return o.pos; b.yaw=Math.atan2(-dx,-dz); if((o.aimN=(o.aimN||0)+1)>=24){ cw7Throw(b,o.nade,o.pos); b.cw7o=b.cw7q||null; b.cw7q=null; } return null; }
   return o.pos||null; }
 function cw7Throw(b,id,p){ const i=b.nades.indexOf(id), def=LIB.byId[id]; if(i<0||!def) return; b.nades.splice(i,1);
   const e=agentEye(b,new THREE.Vector3()), t=p.clone(); t.y+=id==='flash'?2.4:.25; const dx=t.x-e.x, dz=t.z-e.z, dy=t.y-e.y, H=Math.hypot(dx,dz), g=GRAV*.85, T=clamp(H/13,.45,1.5);
@@ -15438,8 +15438,8 @@ function cw7BotAuto(now){ if(match.mode!=='comp'||COMP.phase!=='live'||match.sta
     if(b.planting&&!b._cw7pl){ b._cw7pl=1; const S=COMP.sites.find(s=>colContains(s.col,b.pos.x,b.pos.y+.5,b.pos.z)); cw7BotSay(b,S&&S.name==='B'?'plantingB':'plantingA'); } else if(!b.planting&&!b.hasBomb) b._cw7pl=0;
     if(b.target&&b.hp<35&&now-(b._cw7bk||0)>20000&&now-(A['bk'+b.team]||0)>10000){ b._cw7bk=now; A['bk'+b.team]=now; cw7BotSay(b,'backup',b.pos.clone()); } }
   const B=COMP.bomb, st=B?B.state:''; if(st==='planted'&&CW7.lastBomb!=='planted'){ const p=COMP.planter; if(p&&p.isBot&&!p.isRemote) setTimeout(()=>cw7BotSay(p,B.site==='B'?'plantedB':'plantedA'),900); } CW7.lastBomb=st;
-  for(const a of allAgents()){ const k=a.kills|0; if(a._cw7k===undefined||k<a._cw7k){ a._cw7k=k; continue; } if(k===a._cw7k) continue; a._cw7k=k;
-    if(now-(A.nice||0)>12000&&Math.random()<.45){ const L=bots.filter(b=>b.alive&&!b.isRemote&&b.team===a.team&&b!==a); const r=L[(Math.random()*L.length)|0]; if(r){ A.nice=now; cw7Reply(r,a.lastHs?'sawhs':'nice',rand(.9,1.6)); } } } }
+  for(const a of allAgents()){ const k=a.kills|0, hk=a.hsKills|0; if(a._cw7k===undefined||k<a._cw7k){ a._cw7k=k; a._cw7h=hk; continue; } if(k===a._cw7k) continue; a._cw7k=k; const hs=hk>(a._cw7h|0); a._cw7h=hk;
+    if(now-(A.nice||0)>12000&&Math.random()<.45){ const L=bots.filter(b=>b.alive&&!b.isRemote&&b.team===a.team&&b!==a); const r=L[(Math.random()*L.length)|0]; if(r){ A.nice=now; cw7Reply(r,hs&&Math.random()<.6?'sawhs':'nice',rand(.9,1.6)); } } } }
 function cw7Tick(dt){ const now=performance.now();
   if(CW7.open&&!cw7Can(true)) cw7Close(false);
   if(match.mode==='comp'&&COMP.round!==CW7.round){ CW7.round=COMP.round; for(const b of bots){ b.cw7o=null; b.cw7q=null; } cw7ClearMarks(); CW7.lastBomb=''; }
