@@ -3399,7 +3399,7 @@ function buildRange(){ if(RG_NEW) return rgBuildRange();   // the bigger trainin
 }
 /* ---------- map library + activation ---------- */
 const MAPLIB={list:[],byId:{}};
-function rebuildMapIndex(){ MAPLIB.byId={}; MAPLIB.list.forEach(m=>MAPLIB.byId[m.id]=m); }
+function rebuildMapIndex(){ MAPLIB.byId={}; MAPLIB.list.forEach(m=>MAPLIB.byId[m.id]=m); if(TEST_BUILD) zmMapIndex(); }   // TEST: zombie-only maps (by id, never in MAPLIB.list)
 const WORLD={maps:{},active:null,colliders:[],ground:null,settingsKey:''};
 function ensureMapBuilt(id){
   if(WORLD.maps[id]) return WORLD.maps[id];
@@ -3416,6 +3416,7 @@ function applyMapSettings(st){
   if(key!==WORLD.settingsKey&&envTex){ WORLD.settingsKey=key; envTex.dispose(); buildEnvironment(); }
   WORLD.settingsKey=key;
   mq5Light(st);
+  if(TEST_BUILD) zmMapEnv(st);   // TEST: night / dusk sky + light for the zombie maps
 }
 function setMap(id){
   const B=id==='range'?WORLD.maps.range:ensureMapBuilt(id);
@@ -7663,6 +7664,7 @@ function drawRadar(){
   const dot=(p,col,r,ring)=>{ x.fillStyle=col; x.beginPath(); x.arc((p.x-me.pos.x)*ppm,(p.z-me.pos.z)*ppm,r,0,TAU); x.fill(); if(ring){ x.strokeStyle='#000'; x.lineWidth=1.5; x.stroke(); } };
   for(const a of allAgents()){ if(a===me||!a.alive) continue; const mate=a.team===player.team; if(!mate&&!(COMP.spotted[a.id]&&now-COMP.spotted[a.id]<1600)) continue; x.globalAlpha=radarAlpha(a,me); dot(a.pos,mate?(a.team==='T'?'#f0c04a':'#78b4ff'):'#ff3b4d',4.5,true); } x.globalAlpha=1;
   for(const p of radarDecoys()) dot(p,'#ff3b4d',4.5,true);
+  if(TEST_BUILD&&match.zm) zmRadar(x,dot,me,ppm);   // TEST: zombie pickups / placed items
   const B=COMP.bomb; if(match.mode==='comp'&&B&&(B.state==='dropped'||(B.state==='planted'&&(player.team==='T'||true)))){ x.fillStyle=B.state==='planted'?'#ff3b4d':'#ffcc33'; const bx=(B.pos.x-me.pos.x)*ppm, bz=(B.pos.z-me.pos.z)*ppm; x.fillRect(bx-4,bz-3,8,6); }
   x.restore();
   x.save(); x.translate(R,R); x.scale(W/200,W/200); if(!CFG.hud.radarRotate) x.rotate(-yaw); x.fillStyle='#fff'; x.beginPath(); x.moveTo(0,-7); x.lineTo(5,6); x.lineTo(0,3); x.lineTo(-5,6); x.closePath(); x.fill(); x.restore();
@@ -11438,7 +11440,7 @@ function renderLobby(){
   else $('lbTeams').innerHTML='<div class="lbTeam DM"><h4>'+(L.mode==='duel'?'DÜELLO · 1V1':TEST_BUILD&&L.mode==='zombie'?'ZOMBİ · CO-OP':'ÖLÜM MAÇI · HERKES DÜŞMAN')+' <span>'+L.players.length+' / '+netCap(L)+'</span></h4><ul class="lbList">'+netLobbyRows(L,()=>true,L.mode==='duel'?2:TEST_BUILD&&L.mode==='zombie'?4:Math.max(L.players.length,L.size*2))+'</ul></div>';
   $('lbTeamBtn').classList.toggle('hidden',L.mode!=='bomb');
   const dis=host?'':' disabled', seg=(k,opts,cur)=>'<div class="seg'+dis+'" data-ls="'+k+'">'+opts.map(o=>'<button data-v="'+o[0]+'" class="'+(String(o[0])===String(cur)?'on':'')+'"'+(host?'':' disabled')+'>'+o[1]+'</button>').join('')+'</div>';
-  const maps=MAPLIB.list.filter(m=>L.mode!=='bomb'||netHasSites(m)||!m.builtin);
+  const maps=(TEST_BUILD&&L.mode==='zombie'?zmMapsAll():MAPLIB.list).filter(m=>L.mode!=='bomb'||netHasSites(m)||!m.builtin);
   if(host&&!maps.some(m=>m.id===L.map)&&maps.length){ L.map=maps[0].id; }
   const mapH='<div class="lbMaps">'+maps.map(m=>'<button class="lbMap'+(m.id===L.map?' sel':'')+'" data-map="'+esc(m.id)+'"'+(host?'':' disabled')+'><img alt="" data-mp="'+esc(m.id)+'"><span>'+esc(m.name.toUpperCase())+(m.builtin?'':' · ATÖLYE')+'</span></button>').join('')+'</div>';
   $('lbSet').innerHTML='<h4>AYARLAR'+(host?'':' <small>(host seçer)</small>')+'</h4>'+
@@ -15769,7 +15771,206 @@ function zmTick(dt,raw){ if(!ZM.on||!match.zm||match.state==='over') return; con
   if(buyOpen&&ZM.phase!=='buy') toggleBuy(false);
   ZM.uiT-=raw; if(ZM.uiT<=0){ ZM.uiT=.15; zmRadarMark(); zmHudUpdate(); if(buyOpen) $('bmTime').textContent='DALGA ARASI · '+fmtTime(Math.max(0,ZM.t)); } }
 function zmRadarMark(){ const now=performance.now(), me=player.alive?player:null; for(const b of bots) if(b.zombie&&b.alive&&(!me||b.pos.distanceTo(me.pos)<45)) COMP.spotted[b.id]=now; }
-function tpTick(dt,raw){ if(match.zm) zmTick(dt,raw); }
+function tpTick(dt,raw){ if(zmSky&&skyMesh.material===zmSky) zmSky.uniforms.time.value+=raw; if(match.zm) zmTick(dt,raw); }
+/* ---------------- ZOMBİ maps (TEST only): KARAKOL (night outpost) + HASTANE (two-storey hospital at dusk) ----------------
+   registered by id only (rebuildMapIndex hook), so they are offered in the ZOMBİ pickers and never in the other modes / map menus.
+   Built with the two-level layout compiler (mpCompile2) from a cell grid; zspawn = zombie spawn zones out of sight, zitem = health / ammo spots,
+   zglow = fake light pool (+ beam) under a lamp, zbed = hospital bed / gurney, zhedge = czech hedgehog. */
+const ZMAPS={list:[],byId:{}};
+function zmRadar(){}
+function zmMapIndex(){ if(!ZMAPS.list.length) for(const f of [zmKarakolData,zmHastaneData]){ try{ const m=mq5Settle(f()); ZMAPS.list.push(m); ZMAPS.byId[m.id]=m; }catch(e){ console.warn('zm map',e); } }
+  for(const m of ZMAPS.list) MAPLIB.byId[m.id]=m; }
+function zmMapsAll(){ return ZMAPS.list.concat(MAPLIB.list); }
+let zmRadT=null, zmBeamT=null; const ZGM={};
+function zmRadTex(){ return zmRadT||(zmRadT=drawTex(128,(x,s)=>{ const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.3,'rgba(255,255,255,.6)'); g.addColorStop(.7,'rgba(255,255,255,.16)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); })); }
+function zmBeamTex(){ return zmBeamT||(zmBeamT=drawTex(64,(x,s)=>{ const g=x.createLinearGradient(0,0,0,s); g.addColorStop(0,'rgba(255,255,255,.9)'); g.addColorStop(.5,'rgba(255,255,255,.28)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); })); }
+function zmGlowMat(col,k,beam,own){ const key=col+'|'+k+'|'+(beam?1:0); if(!own&&ZGM[key]) return ZGM[key];
+  const m=new THREE.MeshBasicMaterial({map:beam?zmBeamTex():zmRadTex(),color:new THREE.Color(col).multiplyScalar(k),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:true,side:beam?THREE.DoubleSide:THREE.FrontSide,polygonOffset:!beam,polygonOffsetFactor:-4,polygonOffsetUnits:-8});
+  m.userData.k=k; if(!own) ZGM[key]=m; return m; }
+if(TEST_BUILD){
+  MOBJ.zspawn={label:'Zombi doğuş bölgesi',cat:'Oyun',def:{s:[3,1,3]},build(o,B){ (B.zsp||(B.zsp=[])).push({pos:new THREE.Vector3().fromArray(o.p),r:Math.max(.5,o.s[0]/2)}); if(B.editor) B.decorMesh(spawnMarker('#7ee03a')); }};
+  MOBJ.zitem={label:'Zombi eşya noktası (can / mermi)',cat:'Oyun',def:{kind:'hp'},build(o,B){ (B.zit||(B.zit=[])).push({pos:new THREE.Vector3().fromArray(o.p),kind:o.kind==='ammo'?'ammo':'hp'}); if(B.editor) B.decorMesh(spawnMarker(o.kind==='ammo'?'#e8c020':'#ff4a4a')); }};
+  MOBJ.zglow={label:'Işık havuzu (sahte ışık)',cat:'Dekor',def:{s:[4,1,4],col:'#ffcf8a',k:.5,beam:0,c:0},build(o,B){ if(B.editor) return; const r=o.s[0], fl=!!o.flk;
+    const g=new THREE.CircleGeometry(r,28); g.rotateX(-Math.PI/2); const m=new THREE.Mesh(g,zmGlowMat(o.col||'#ffcf8a',o.k??.5,false,fl)); m.position.y=.035; m.renderOrder=2; B.decorMesh(m);
+    let b=null; if(o.beam){ const cg=new THREE.CylinderGeometry(.22,r*.5,o.beam,18,1,true); cg.translate(0,o.beam/2+.04,0); b=new THREE.Mesh(cg,zmGlowMat(o.col||'#ffcf8a',(o.k??.5)*.22,true,fl)); b.renderOrder=3; B.decorMesh(b); }
+    if(fl) (B.zflk||(B.zflk=[])).push({m:[m.material].concat(b?[b.material]:[]),ph:Math.random()*99}); }};
+  MOBJ.zbed={label:'Hastane yatağı / sedye',cat:'Dekor',def:{s:[.95,.62,2]},build(o,B){ const [w,h,d]=o.s, y=h-.16;
+    for(const sx of [-1,1]) for(const sz of [-1,1]) mp4Box(B,'darkmetal',sx*(w/2-.06),y/2,sz*(d/2-.08),.05,y,.05);
+    mp4Box(B,'paintW',0,y-.03,0,w,.07,d); mp4Box(B,'white',0,y+.07,0,w-.08,.14,d-.1); mp4Box(B,'blueP',0,y+.1,.22,w-.04,.06,d*.56); mp4Box(B,'white',0,y+.18,-d/2+.3,w*.6,.09,.32);
+    mp4Box(B,'paintW',0,y+.22,-d/2+.03,w,.5,.05); if(o.c!==0) B.col('box',0,h/2,0,w/2,h/2,d/2,'metal'); B.aoRect(0,0,w/2,d/2,.3); }};
+  MOBJ.zhedge={label:'Tank kirpisi',cat:'Dekor',def:{s:[1.4,1.2,1.4],m:'rust'},build(o,B){ const k=o.s[0]/1.4, m=o.m||'rust';
+    for(let i=0;i<3;i++){ const g=new THREE.BoxGeometry(1.75*k,.12,.12); g.rotateZ(.62); g.rotateY(i*TAU/3); g.translate(0,.6*k,0); B.mesh(m,g); }
+    if(o.c!==0) B.col('box',0,.55*k,0,.55*k,.55*k,.55*k,'metal'); }};
+  Object.assign(MQ5_LIGHT,{karakol:{sun:.34,hemi:2.4,fog:0x0b111a,sky:0x6a80b0,gnd:0x2c2824},hastane:{sun:.5,hemi:2.8,fog:0x3a3d42,sky:0x8a98ac,gnd:0x4a4038}});
+}
+/* night / dusk sky: own gradient + stars + moon disc (or a low hazy sun glow); the environment map is rebuilt from it, viewmodel lights follow */
+const ZM_ENV={ night:{sun:0x8eaaf0,vm:[.26,.31,.46],vmH:.3,zen:[.006,.011,.028],hor:[.04,.055,.085],gnd:[.015,.016,.02],moon:[.95,.98,1.08],disc:1,stars:1,cl:[.05,.06,.085]},
+  dusk:{sun:0xff9a62,vm:[.5,.42,.38],vmH:.36,zen:[.035,.045,.075],hor:[.24,.22,.22],gnd:[.07,.065,.06],moon:[1.4,.62,.3],disc:0,stars:.12,cl:[.2,.17,.17]} };
+let zmSky=null, zmEnvOn=null;
+function zmSkyMat(){ if(zmSky) return zmSky; const V=()=>({value:new THREE.Color()});
+  zmSky=new THREE.ShaderMaterial({uniforms:{zen:V(),hor:V(),gnd:V(),moon:V(),cl:V(),mdir:{value:SUN_DIR},disc:{value:1},stars:{value:1},time:{value:0}},side:THREE.BackSide,depthWrite:false,fog:false,
+    vertexShader:SkyShader.vertexShader,
+    fragmentShader:`uniform vec3 zen,hor,gnd,moon,cl,mdir; uniform float disc,stars,time; varying vec3 vDir;
+      float h3(vec3 p){ return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453); }
+      float vn(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); float a=h3(vec3(i,0.)),b=h3(vec3(i+vec2(1,0),0.)),c=h3(vec3(i+vec2(0,1),0.)),d=h3(vec3(i+vec2(1,1),0.)); return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }
+      void main(){ vec3 d=normalize(vDir); float h=d.y, md=max(dot(d,normalize(mdir)),0.);
+        vec3 c=mix(hor,zen,pow(clamp(h,0.,1.),.45));
+        if(h>0.){ vec3 q=floor(d*380.); float s=h3(q), tw=.55+.45*sin(time*1.7+s*60.); c+=vec3(.85,.9,1.)*step(.9982,s)*stars*tw*smoothstep(.02,.3,h)*1.4;
+          vec2 uv=d.xz/(h+.12)*.8+vec2(time*.003,0.); float k=vn(uv*1.3)*.6+vn(uv*2.9+7.)*.4; k=smoothstep(.5,.85,k)*smoothstep(0.,.25,h); c=mix(c,cl*(1.+moon*pow(md,8.)*1.5),k*.75); }
+        c+=moon*(disc*smoothstep(.99955,.99975,md)*3.5+pow(md,90.)*.35*disc+pow(md,7.)*(disc>.5?.03:.22));
+        vec3 g=gnd*(.5+.5*smoothstep(-.3,0.,h)); c=h<0.?mix(hor*.85,g,smoothstep(0.,-.08,h)):c;
+        gl_FragColor=vec4(c,1.);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`});
+  return zmSky; }
+function zmMapEnv(st){ const id=st&&st.zenv, E=id&&ZM_ENV[id]; if(!E&&!zmEnvOn) return;
+  if(E){ const m=zmSkyMat(), U=m.uniforms; U.zen.value.setRGB(...E.zen); U.hor.value.setRGB(...E.hor); U.gnd.value.setRGB(...E.gnd); U.moon.value.setRGB(...E.moon); U.cl.value.setRGB(...E.cl); U.disc.value=E.disc; U.stars.value=E.stars;
+    skyMesh.material=m; sun.color.setHex(E.sun); vmSun.color.setRGB(...E.vm); vmHemi.intensity=E.vmH;
+    if(zmEnvOn!==id){ zmEnvOn=id; const pm=new THREE.PMREMGenerator(renderer), s=new THREE.Scene(), mm=m.clone(); mm.uniforms=THREE.UniformsUtils.clone(U); mm.uniforms.stars.value=0; s.add(new THREE.Mesh(new THREE.BoxGeometry(10,10,10),mm));
+      const rt=pm.fromScene(s,.02,.1,100); if(envTex) envTex.dispose(); envTex=rt.texture; pm.dispose(); mm.dispose(); scene.environment=envTex; vmScene.environment=envTex; } }
+  else { zmEnvOn=null; skyMesh.material=skyMat; sun.color.setHex(0xffeedd); vmSun.color.setHex(0xffeedd); vmHemi.intensity=.45; if(envTex) envTex.dispose(); buildEnvironment(); } }
+/* cell grid -> mpCompile2 input: lo = ground-floor walkable (floor material), up = upper walkable [h|mat], hole = open above (outdoors / atrium) */
+function zmGrid(S){ const N=2*S, lo=new Array(N*N).fill(null), up=new Array(N*N).fill(null), ho=new Uint8Array(N*N);
+  const each=(r,f)=>{ for(let z=Math.max(r[1],-S);z<Math.min(r[3],S);z++) for(let x=Math.max(r[0],-S);x<Math.min(r[2],S);x++) f((z+S)*N+x+S); };
+  return { lo:(r,m)=>each(r,k=>{ lo[k]=m||''; }), loX:r=>each(r,k=>{ lo[k]=null; }), up:(r,h,m)=>each(r,k=>{ up[k]=h+'|'+(m||''); }), upX:r=>each(r,k=>{ up[k]=null; }),
+    hole:r=>each(r,k=>{ ho[k]=1; }), holeX:r=>each(r,k=>{ ho[k]=0; }),
+    put(L){ mpGreedy(N,(i,j)=>lo[j*N+i],(key,i,j,w,d)=>L.lo.push([i-S,j-S,i-S+w,j-S+d,0,key]),14);
+      mpGreedy(N,(i,j)=>up[j*N+i],(key,i,j,w,d)=>{ const q=key.split('|'); L.up.push([i-S,j-S,i-S+w,j-S+d,+q[0],q[1]]); },14);
+      mpGreedy(N,(i,j)=>ho[j*N+i]&&up[j*N+i]===null?1:null,(key,i,j,w,d)=>L.holes.push([i-S,j-S,i-S+w,j-S+d]),24); } }; }
+const zmIn=(x,z,r)=>x>=r[0]&&x<r[2]&&z>=r[1]&&z<r[3];
+/* KARAKOL: walled outpost in a night forest clearing — central bunker (stairs up through a roof hatch), barracks, armory, two watchtowers, vehicle yard;
+   four ways in (north gate, south gate, east + west breaches); zombies gather in the dark forest ring outside the walls */
+function zmKarakolData(){
+  const S=34, U=3.4, g=zmGrid(S), BK=[-7,-6,7,6], BW=[-22,-20,-11,-10], AR=[8,-20,17,-10], T1=[20,-24,24,-20], T2=[-24,20,-20,24];
+  const L={S,U,slab:.4,up:[],lo:[],ramps:[],holes:[],blocks:[],upF:'conc2',loF:'',slabM:'conc2',platLo:'conc2',capM:'conc2',maxW:14,
+    wall:(x,z,e)=>e?[5.5,'jstoneM']:[U+.8,'conc2'],
+    wallLo:(x,z)=>zmIn(x,z,BW)?'planksD':zmIn(x,z,AR)?'panelG':zmIn(x,z,T1)||zmIn(x,z,T2)?'sandbag':'conc2'};
+  g.lo([-33,-33,33,33],''); g.hole([-34,-34,34,34]); g.lo([-24,-24,24,24],'asphalt');
+  g.loX([-25,-25,25,-24]); g.loX([-25,24,25,25]); g.loX([-25,-25,-24,25]); g.loX([24,-25,25,25]);   // compound wall
+  g.lo([-3,-25,3,-24],'asphalt'); g.lo([-2,24,2,25],'asphalt'); g.lo([24,4,25,7],''); g.lo([-25,-9,-24,-6],'');   // N gate, S gate, E + W breaches
+  g.loX(BK); g.lo([-6,-5,6,5],'conc2'); g.lo([-1,5,1,6],'conc2'); g.lo([-1,-6,1,-5],'conc2'); g.lo([-7,-1,-6,1],'conc2'); g.up(BK,U,'conc2');   // bunker + walkable roof
+  g.loX(BW); g.lo([-21,-19,-12,-11],'planks'); g.lo([-17,-11,-15,-10],'planks'); g.lo([-15,-20,-13,-19],'planks');   // barracks
+  g.loX(AR); g.lo([9,-19,16,-11],'epoxyB'); g.lo([11,-11,14,-10],'epoxyB'); g.lo([8,-16,9,-14],'epoxyB');   // armory
+  g.loX(T1); g.up(T1,U,'planksD'); g.loX(T2); g.up(T2,U,'planksD');   // watchtowers
+  g.put(L);
+  L.ramps.push({lv:'x',r:[3,-4,5,3],h0:0,h1:U,dir:'n',st:1,m:'conc2'},{lv:'x',r:[20,-20,22,-13],h0:0,h1:U,dir:'n',st:1,m:'planksD'},{lv:'x',r:[-22,13,-20,20],h0:0,h1:U,dir:'s',st:1,m:'planksD'});
+  const blk=(x0,y0,z0,x1,y1,z1,m,cap)=>L.blocks.push([x0,y0,z0,x1,y1,z1,m,cap]);
+  blk(-7,U,-6,7,U+.9,-5.6,'conc2'); blk(-7,U,5.6,7,U+.9,6,'conc2'); blk(-7,U,-5.6,-6.6,U+.9,5.6,'conc2'); blk(6.6,U,-5.6,7,U+.9,5.6,'conc2');   // bunker roof parapet
+  blk(-3,3,-25,3,3.7,-24,'conc2',1);   // gate lintel
+  const G=mpCompile2(L), O=G.O, A=o=>O.push(Object.assign({r:[0,0,0]},o));
+  const cr=(x,y,z,s)=>A({t:'crate',p:[x,y,z],s:[s,s,s]}), dr=(x,z,m)=>A({t:'drum',p:[x,0,z],s:[.7,1,.7],m:m||'greenP'}), sb=(x,y,z,w,r)=>A({t:'sandbag',p:[x,y,z],r:[0,r||0,0],s:[w,.95,.85]});
+  const pole=(x,z,r,h)=>A({t:'flood',kind:'pole',p:[x,0,z],r:[0,r,0],s:[1,h||6.5,1]}), hang=(x,y,z,cab)=>A({t:'flood',kind:'hang',p:[x,y,z],s:[1,0,1],cab:cab||.5}), wl=(x,y,z,r)=>A({t:'flood',kind:'wall',p:[x,y-3.2,z],r:[0,r,0],s:[1,3.2,1]});
+  const glow=(x,y,z,r,col,k,beam,flk)=>A({t:'zglow',p:[x,y,z],s:[r,1,r],col:col||'#ffc777',k:k||.55,beam:beam||0,flk:flk?1:0,c:0}), sign=(x,y,z,r,txt,s,col)=>A({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2,s||2,.1],txt,col:col||'#d8d0bc'});
+  // roofs (barracks + armory: corrugated gables on the 3 m walls), bunker roof hatch rails + radio mast
+  A({t:'roof',p:[-16.5,3,-15],s:[11,1.7,10],m:'metal',gm:'planksD'}); A({t:'roof',p:[12.5,3,-15],s:[9,1.5,10],m:'metal',gm:'panelG'});
+  A({t:'rail',p:[2.95,U,-.5],r:[0,90,0],s:[7,1.05,.08],m:'paintY'}); A({t:'rail',p:[5.05,U,-.5],r:[0,90,0],s:[7,1.05,.08],m:'paintY'}); A({t:'rail',p:[4,U,3.05],s:[2.1,1.05,.08],m:'paintY'});
+  A({t:'pipe',p:[-4.5,U,-3.5],e:[0,7,0],rad:.07,m:'darkmetal'}); A({t:'pipe',p:[-5.3,U+5.5,-3.5],e:[1.6,0,0],rad:.03,m:'darkmetal'}); A({t:'pipe',p:[-5,U+6.3,-3.5],e:[1,0,0],rad:.03,m:'darkmetal'});
+  sb(-5.5,U,4.4,2.6); sb(-2,U,-4.6,2.4); cr(-5.3,U,-1,1.2);
+  // watchtower tops: sandbag rings (stairs come up on the inner side), floodlights
+  sb(22,U,-23.55,3.9); sb(23.55,U,-22,3.1,90); sb(20.45,U,-22.6,1.9,90); sb(23,U,-20.45,1.9);
+  sb(-22,U,23.55,3.9); sb(-23.55,U,22,3.1,90); sb(-20.45,U,22.6,1.9,90); sb(-23,U,20.45,1.9);
+  A({t:'flood',kind:'pole',p:[22.6,U,-22.6],r:[0,-45,0],s:[1,3.2,1]}); A({t:'flood',kind:'pole',p:[-22.6,U,22.6],r:[0,135,0],s:[1,3.2,1]});
+  // gate leaves, hedgehogs, car wreck on the north road, cover inside the gates
+  A(mpLeaf(-3,0,-25,-118,3,2.8)); A(mpLeaf(3,0,-25,-62,3,2.8)); A({t:'vehicle',p:[-6.5,0,-30.5],r:[0,24,0],s:[1.9,1.5,4.3],kind:'car',m:'paintR'});
+  for(const [x,z] of [[-5,-28],[5.5,-27.6],[28,2.6],[27.8,8.4],[-28,-10.6],[-27.6,-4.4],[-4,27.6],[3.6,28]]) A({t:'zhedge',p:[x,0,z],r:[0,(x*37+z*11)%180,0]});
+  sb(-5.6,0,-20.2,5); sb(5,0,-17.4,5); sb(20.4,0,5.5,4,90); sb(-20.6,0,-7.5,4,90); sb(-4.5,0,20.5,4); sb(4,0,19,3.4);
+  // vehicle yard (SE), fuel drums, armory + barracks clutter, tents (SW), helipad
+  A({t:'container',p:[13,0,12],s:[2.6,2.7,6.5],m:'metal'}); A({t:'container',p:[19.5,0,15.5],r:[0,90,0],s:[2.6,2.7,6.5],m:'metal'}); A({t:'container',p:[19.5,2.7,15.5],r:[0,90,0],s:[2.6,2.7,6.5],m:'metal'});
+  A({t:'vehicle',p:[9,0,19],r:[0,90,0],s:[2.4,2.6,6.2],kind:'truck',m:'greenP'}); A({t:'vehicle',p:[18,0,7.5],r:[0,-15,0],s:[2.1,2.3,5],kind:'van',m:'greenP'});
+  for(const [x,z] of [[21.5,21.5],[22.3,20.7],[22.4,22.4],[21.4,19.8]]) dr(x,z); dr(15.6,20.8,'paintR'); dr(16.3,21.6,'paintR');
+  cr(10.2,0,-17.6,1.4); cr(10.2,1.4,-17.6,1); cr(14.6,0,-18,1.6); cr(14.8,0,-12.6,1.2); A({t:'block',p:[12.5,0,-18.8],s:[4,1.9,.7],m:'darkmetal',cap:0});
+  for(let i=0;i<3;i++){ A({t:'zbed',p:[-20.2,0,-17.2+i*2.6],r:[0,90,0],s:[.9,.55,1.9]}); A({t:'zbed',p:[-13.8,0,-17.2+i*2.6],r:[0,90,0],s:[.9,.55,1.9]}); }
+  cr(-17,0,-18.4,1.1); A({t:'awning',p:[-14,0,10],s:[5,3.2,3]}); A({t:'awning',p:[-9,0,14.5],r:[0,90,0],s:[4.5,3,3]}); cr(-12.5,0,12.5,1.3); cr(-15.5,0,13.4,1);
+  A({t:'decal',p:[14,0,-1],s:[6,.02,6],txt:'H',col:'#d9c48a'}); cr(-17,0,2,1.6); cr(-16.8,1.6,2.1,1);
+  // outside: trees + rocks in the dark ring
+  for(const [x,z,h] of [[-30,-21,8],[-29.5,1,7],[-31,19,8.5],[30.5,-24,7.5],[31,-4,8],[29.5,16,7],[-17,31,8],[14,30.5,7.5],[19,-31,8],[-15,-30.5,7],[30.5,30.5,8],[-30.5,30,7.5]]) A({t:'tree',p:[x,0,z],r:[0,(x*13)%360,0],s:[1,h,1],lean:.6});
+  for(const [x,z,s] of [[-28.5,-28,2.4],[28,27.5,2.2],[31,-30,2],[-31,9,1.8],[9,31.5,2],[-24,-31,1.6]]) A({t:'rock',p:[x,0,z],r:[0,(x*29)%360,0],s:[s,s*.65,s*.85],m:'jstoneM'});
+  // lights: floodlights on poles at the gates / yard, lamps in the buildings, light pools on the ground
+  pole(-5,-22.5,0); glow(-4.6,0,-20.5,6.5,'#ffd290',.5,6); pole(22.6,9.5,-90); glow(20.5,0,9.2,6,'#ffd290',.5,6); pole(-22.6,-3.5,90); glow(-20.6,0,-3.6,6,'#ffd290',.45,6);
+  pole(3,22.6,180); glow(3,0,20.6,6,'#ffd290',.5,6); pole(9.5,9,45); glow(11.4,0,10.8,6.5,'#ffe2b0',.42,0); pole(-10,-9,45); glow(-8.6,0,-7.8,5.5,'#ffe2b0',.4,0);
+  glow(23,U,-21.6,4,'#ffd290',.4,0); glow(-21.6,U,23,4,'#ffd290',.4,0);
+  hang(-3,2.35,-2,.65); hang(.5,2.35,2.6,.65); glow(-3,0,-2,4,'#ffc777',.6,2.3); glow(.5,0,2.6,4,'#ffc777',.55,2.3,1); hang(-16.5,2.6,-15,1.2); glow(-16.5,0,-15,4.5,'#ffc777',.55,2.5,1); hang(12.5,2.6,-15,1); glow(12.5,0,-15,4.5,'#e0f0ff',.5,2.5);
+  wl(-1,2.9,6.05,0); wl(-6.4,2.9,-6.05,180); wl(-16,2.7,-9.95,0); wl(12.5,2.7,-9.95,0); glow(-1,0,7.4,3.2,'#ffc777',.55); glow(-16,0,-8.6,3.2,'#ffc777',.5); glow(12.5,0,-8.6,3.2,'#ffc777',.5);
+  sign(0,3.35,-25.12,180,'KARAKOL',2.2,'#d8c9a0'); sign(0,2.2,6.04,0,'SIĞINAK',1.6); sign(12.5,2.2,-9.96,0,'CEPHANELİK',1.6); sign(-16,2.2,-9.96,0,'KOĞUŞ',1.6);
+  // survivors start in front of the bunker; zombie zones out in the forest ring; health + ammo spots
+  for(const [x,z] of [[-3,8.6],[-1,8.6],[1,8.6],[3,8.6],[0,10.6]]){ A({t:'spawnT',p:[x,0,z],r:[0,180,0]}); A({t:'spawnCT',p:[x,0,z],r:[0,180,0]}); }
+  for(const [x,z] of [[-20,-30],[0,-31.5],[20,-30],[30,-17],[31,6],[29,25],[0,30.5],[-22,30],[-30,12],[-31,-12]]) A({t:'zspawn',p:[x,0,z],s:[3,1,3]});
+  for(const [x,y,z,k] of [[-4.6,0,-3.6,'hp'],[22,U,-21.6,'hp'],[-14.2,0,11.6,'hp'],[14,0,-15.4,'ammo'],[17.2,0,20.4,'ammo'],[-18.6,0,-12.6,'ammo']]) A({t:'zitem',p:[x,y,z],kind:k});
+  return normalizeMap({id:'karakol',name:'Karakol',builtin:1,zm:1,settings:{size:34,sky:0,ground:'jground',sunAz:-128,sunEl:36,fog:.024,mode:'zombie',zenv:'night',radarSplit:2.2,preview:{p:[-30,30,40],t:[0,0,0]}},objects:O});
+}
+/* HASTANE: abandoned two-storey hospital at dusk — lobby atrium with gallery + skylight, corridor with wards / OR / morgue / pharmacy, ER bay,
+   three staircases; zombies come in from the back alley, the side yards and the car park (main doors, ER, back + side doors) */
+function zmHastaneData(){
+  const S=30, U=4.2, H=U+3.5, g=zmGrid(S), BD=[-24,-22,24,6], outer=(x,z)=>x===-24||x===23||z===-22||z===5;
+  const L={S,U,slab:.4,up:[],lo:[],ramps:[],holes:[],blocks:[],upF:'',loF:'',slabM:'conc2',platLo:'conc2',capM:'conc2',maxW:14,
+    wall:(x,z,e)=>e?[6.5,'brickD']:outer(x,z)?[U+4.2,'brickD']:[H-.26,'stuccoB'],
+    wallLo:(x,z)=>outer(x,z)?'brickD':z<=-13?'wtileG':'wtile'};
+  g.lo([-29,-29,29,29],'asphalt'); g.hole([-30,-30,30,30]); g.loX(BD); g.holeX(BD);
+  // ground floor: corridor, north rooms (morgue, labs, offices), ER, waiting, lobby, pharmacy, wards
+  g.lo([-23,-12,23,-8],'epoxyG');
+  for(const [a,b] of [[-23,-16],[-15,-8],[-7,0],[1,8],[9,16],[17,23]]) g.lo([a,-21,b,-13],'ceramic');
+  for(const a of [-20,-12,-4,4,12,19]) g.lo([a,-13,a+2,-12],'epoxyG');
+  g.lo([-21,-22,-19,-21],'ceramic'); g.lo([12,-22,14,-21],'ceramic');   // back doors to the alley
+  g.lo([-23,-7,-15,5],'ceramic'); g.lo([-14,-7,-9,5],'tiles'); g.lo([-8,-8,8,5],'tiles'); g.lo([9,-7,15,5],'ceramic'); g.lo([16,-7,23,5],'ceramic');
+  for(const a of [-20,-12,11,18]) g.lo([a,-8,a+2,-7],'epoxyG');
+  g.lo([-15,1,-14,3],'tiles'); g.lo([-9,3,-8,5],'tiles'); g.lo([8,-2,9,0],'tiles');   // inner doors
+  g.lo([-21,5,-18,6],'ceramic'); g.lo([-3,5,3,6],'tiles'); g.lo([-24,2,-23,4],'ceramic'); g.lo([23,2,24,4],'ceramic');   // ER bay, main doors, side doors
+  // upper floor: corridor, north rooms (ICU, OR...), west + east wards, gallery round the atrium
+  g.up([-23,-12,23,-8],U,'epoxyG');
+  for(const [a,b] of [[-23,-16],[-15,-8],[-7,0],[1,8],[9,16],[17,23]]) g.up([a,-21,b,-13],U,'ceramic');
+  for(const a of [-20,-12,-4,4,12,19]) g.up([a,-13,a+2,-12],U,'epoxyG');
+  g.up([-23,-7,-9,5],U,'ceramic'); g.up([9,-7,23,5],U,'ceramic'); for(const a of [-20,-12,11,18]) g.up([a,-8,a+2,-7],U,'epoxyG');
+  g.up([-8,-8,8,5],U,'tiles'); g.upX([-6,-6,6,3]); g.hole([-6,-6,6,3]); g.up([8,-2,9,0],U,'tiles');
+  g.put(L);
+  L.ramps.push({lv:'x',r:[-23,-6,-21,2],h0:0,h1:U,dir:'n',st:1,m:'conc2'},{lv:'x',r:[-8,-6,-6,3],h0:0,h1:U,dir:'n',st:1,m:'tiles'},{lv:'x',r:[21,-6,23,2],h0:0,h1:U,dir:'n',st:1,m:'conc2'});
+  const blk=(x0,y0,z0,x1,y1,z1,m,cap)=>L.blocks.push([x0,y0,z0,x1,y1,z1,m,cap]);
+  blk(-24,H,-22,24,H+.4,-5,'conc2'); blk(-24,H,2,24,H+.4,6,'conc2'); blk(-24,H,-5,-5,H+.4,2,'conc2'); blk(5,H,-5,24,H+.4,2,'conc2');   // roof + atrium skylight
+  for(const z of [-3.2,-.8]) blk(-5,H+.08,z-.08,5,H+.24,z+.08,'darkmetal');
+  const CL=U-.4, lin=(x0,z0,x1,z1,m,up)=>blk(x0,up?U+2.7:2.7,z0,x1,up?H-.26:CL,z1,m);   // door lintels (openings would run up to the ceiling)
+  for(const a of [-20,-12,-4,4,12,19]){ lin(a,-13,a+2,-12,'wtileG'); lin(a,-13,a+2,-12,'stuccoB',1); } for(const a of [-20,-12,11,18]){ lin(a,-8,a+2,-7,'wtile'); lin(a,-8,a+2,-7,'stuccoB',1); }
+  lin(-15,1,-14,3,'wtile'); lin(-9,3,-8,5,'wtile'); lin(8,-2,9,0,'wtile'); lin(8,-2,9,0,'stuccoB',1); lin(-21,-22,-19,-21,'brickD'); lin(12,-22,14,-21,'brickD');
+  lin(-21,5,-18,6,'brickD'); blk(-3,3.6,5,3,CL,6,'brickD'); lin(-24,2,-23,4,'brickD'); lin(23,2,24,4,'brickD');
+  blk(-4,3.2,5,4,3.6,8,'conc2');   // entrance canopy
+  const G=mpCompile2(L), O=G.O, A=o=>O.push(Object.assign({r:[0,0,0]},o));
+  const bed=(x,y,z,r)=>A({t:'zbed',p:[x,y,z],r:[0,r||0,0]}), bk=(x,y,z,w,h,d,m,c)=>A({t:'block',p:[x,y,z],s:[w,h,d],m,cap:0,c:c===0?0:1}), rail=(x,y,z,len,r)=>A({t:'rail',p:[x,y,z],r:[0,r||0,0],s:[len,1.05,.08],m:'paintW'});
+  const hang=(x,y,z,cab)=>A({t:'flood',kind:'hang',p:[x,y,z],s:[1,0,1],cab:cab||.4}), glow=(x,y,z,r,col,k,beam,flk)=>A({t:'zglow',p:[x,y,z],s:[r,1,r],col:col||'#d8ffe8',k:k||.5,beam:beam||0,flk:flk?1:0,c:0});
+  const lamp=(x,y,z,flk,col)=>{ hang(x,y===0?CLh:H-.55,z,y===0?.35:.5); glow(x,y,z,3.6,col||'#d4ffe6',.42,y===0?3.2:3.0,flk); }, CLh=U-.4-.4;
+  const sign=(x,y,z,r,txt,s,col)=>A({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||1.8,s||1.8,.1],txt,col:col||'#e8f0ec'});
+  // gallery railings round the atrium (the west side is the grand stair), lobby desk + benches + plants
+  rail(0,U,-6.05,12); rail(6.05,U,-1.5,9,90); rail(0,U,3.05,12);
+  bk(3.5,0,-4.6,4,1.1,.7,'paintW'); bk(5.3,0,-3.6,.7,1.1,2,'paintW'); bk(3.5,1.1,-4.6,4.2,.06,.9,'darkmetal',0);
+  for(const z of [.5,2.2]) for(const x of [-4.2,-1.4]) bk(x,0,z,2.2,.45,.6,'blueP');
+  A({t:'pot',p:[-5.4,0,-5.4],s:[.7,.6,.7],fl:'flW'}); A({t:'pot',p:[5.4,0,2.4],s:[.7,.6,.7]}); bed(1.5,0,1.2,70);
+  sign(3.5,.72,-4.2,0,'DANIŞMA',.9);
+  // corridor: gurneys, cabinets, a fallen cabinet
+  bed(-19,0,-11,90); bed(6.5,0,-9.3,96); bed(15,U,-11,84); bed(-2,U,-9.4,90); bk(-10,0,-11.6,1.6,1.9,.6,'paintW'); bk(16.5,0,-11.6,1.2,1.9,.6,'paintW'); bk(-15,U,-9.6,1.8,.6,.9,'paintW');
+  // rooms: beds, shelves, morgue drawers, operating tables
+  for(const a of [-23,-15,1,9,17]){ const b=a===9?15.2-a:4.4; if(a!==-23){ bed(a+1.6,0,-19.2,0); bed(a+b,0,-19.2,0); } bed(a+1.6,U,-19.2,0); bed(a+4.4,U,-19.2,0); }
+  bk(-22.6,0,-17.5,.8,2.2,6,'steelplate'); bed(-18.5,0,-16.5,90); bed(-18.5,0,-14.6,90); sign(-19,3.25,-11.96,0,'MORG',1); bk(-4,U,-17.5,1,.9,2.2,'paintW'); sign(-3,U+2.97,-11.96,0,'AMELİYATHANE',1.2); sign(-11,U+2.97,-11.96,0,'YOĞUN BAKIM',1.2);
+  for(const z of [-6,-3,0,3]) bk(14.4,0,z,.8,2,1.6,'darkmetal'); bk(10,0,4.3,4,1,.8,'paintW'); sign(12,3.25,-8.04,180,'ECZANE',1);
+  for(const z of [-5,-2,1]){ bed(-19,0,z,90); bed(-12,U,z,90); bed(-17,U,z,90); bed(12,U,z,-90); bed(17,U,z,-90); } bed(18,0,-4,90); bed(18,0,0,90); sign(-19,3.25,-8.04,180,'ACİL',1);
+  for(const [x,z] of [[-17,-6.6],[-12,-6.6],[12,-6.6],[17,-6.6]]) bk(x,U+.9,z,2.2,2.1,.05,'cloth',0);
+  sign(0,U+1.4,6.03,0,'HASTANE',3,'#e6ece8'); sign(-19.5,3.35,6.04,0,'ACİL',1.2,'#ff5a4a');
+  // outside: ambulances, cars, dumpsters, hedges, trees, fountain
+  A({t:'vehicle',p:[-19.5,0,10.5],r:[0,8,0],s:[2.2,2.6,5.4],kind:'van',m:'paintW'}); A({t:'vehicle',p:[8,0,11],r:[0,90,0],s:[2.2,2.6,5.4],kind:'van',m:'paintW'});
+  for(const [x,z,r,m] of [[18,17,0,'blueP'],[22,17,0,'paintR'],[-6,22,90,'greenP'],[14,24,90,'paintW']]) A({t:'vehicle',p:[x,0,z],r:[0,r,0],s:[1.9,1.5,4.3],kind:'car',m});
+  for(const [x,z] of [[-10,-25.5],[6,-25.5],[18,-25.8]]) bk(x,0,z,2,1.4,1.2,'greenP');
+  bk(-8,0,16,10,1,.9,'leafD'); bk(10,0,19.5,.9,1,7,'leafD'); A({t:'fountain',p:[0,0,20],s:[4,.8,4],m:'ashlar'});
+  for(const [x,z] of [[-25,16],[25,22],[-14,26],[3,26.5],[26.5,-24],[-26.5,-25]]) A({t:'tree',p:[x,0,z],r:[0,(x*17)%360,0],s:[1,7,1],lean:.5});
+  for(const [x,z] of [[-27,4],[27,-6],[-12,27.5]]) A({t:'crate',p:[x,0,z],s:[1.4,1.4,1.4]});
+  for(const [x,z] of [[-14,12],[14,12],[0,27],[-26.5,-14],[26.5,10]]){ A({t:'flood',kind:'pole',p:[x,0,z],r:[0,z>0?180:x>0?-90:90,0],s:[1,6,1]}); glow(x+(z>20?0:x>20?-1.8:x<-20?1.8:0),0,z+(z>20?-2:z>0?-1.8:0),5.5,'#ffd8a0',.36,0); }
+  // lights: fluorescent pools in the corridors / rooms (some flicker), skylight moon patch
+  for(const x of [-18,-9,0,9,18]){ lamp(x,0,-10,x===9); lamp(x,U,-10,x===-9||x===18); }
+  for(const [x,z] of [[-19.5,-17],[-11.5,-17],[-3.5,-17],[4.5,-17],[12.5,-17],[19.5,-17]]){ lamp(x,0,z,x===-19.5,x===-19.5?'#bfe6ff':null); lamp(x,U,z,x===4.5); }
+  for(const [x,z] of [[-19,-1],[-11.5,0],[12,-1],[19,-2]]) lamp(x,0,z,x===19); for(const [x,z] of [[-16,-1],[16,-1]]) lamp(x,U,z,x===16);
+  lamp(-1,U,-7,0); lamp(6.8,U,0,1); glow(0,0,-1.5,5.5,'#9fb4e0',.3,0);
+  // survivors start in the lobby; zombie zones in the alley, side yards and the car park; health + ammo spots
+  for(const [x,z] of [[-3,-.5],[-1,-.5],[1,-.5],[3,-.5],[0,-2.5]]){ A({t:'spawnT',p:[x,0,z],r:[0,180,0]}); A({t:'spawnCT',p:[x,0,z],r:[0,180,0]}); }
+  for(const [x,z] of [[-22,-26],[-4,-27],[10,-27],[24,-26.5],[-27,-9],[-27,14],[26.5,-12],[26.5,16],[-22,26],[22,26],[0,27.5]]) A({t:'zspawn',p:[x,0,z],s:[3,1,3]});
+  for(const [x,y,z,k] of [[11.5,0,-.5,'hp'],[-11.5,U,-18,'hp'],[-18,0,-3,'hp'],[12.5,0,-18,'ammo'],[14,U,1.5,'ammo'],[-12,0,13,'ammo']]) A({t:'zitem',p:[x,y,z],kind:k});
+  return normalizeMap({id:'hastane',name:'Hastane',builtin:1,zm:1,settings:{size:30,sky:0,ground:'concrete',sunAz:72,sunEl:9,fog:.02,mode:'zombie',zenv:'dusk',radarSplit:3,preview:{p:[-26,26,36],t:[0,2,-6]}},objects:O});
+}
 /* ---- registration: only the TEST build adds the knives, the ZOMBİ entries and restores its own picks ---- */
 if(TEST_BUILD){ tpBrand(); const t=tpPrefs(); if(t.melee) CFG.loadout.melee=t.melee; if(t.kn&&CFG.lo&&CFG.lo.knife){ if(t.kn.CT) CFG.lo.knife.CT=t.kn.CT; if(t.kn.T) CFG.lo.knife.T=t.kn.T; } if(t.prac) CFG.net.prac=t.prac; if(t.room) CFG.net.room.mode=t.room;
   BUILTIN.push(tpDefKarambit(),tpDefButterfly()); PRAC_MODES.push(['zombie','ZOMBİ']); NET_MODES.zombie='ZOMBİ'; }
