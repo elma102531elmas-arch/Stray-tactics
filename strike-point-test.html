@@ -5736,6 +5736,8 @@ function sndPlay(id,o){
 // resolution: your own file ("Kendi dosyan") > sound pack (version 'P'/'P2', packs on, pack has "<id>:<act>") > procedural bank (V1-V3)
 function weaponSound(def,act,o){
   if(!def) return null; o=o||{}; const T=def.type, knife=T==='knife', ka=knife?(['draw','hit','hitwall','stab'].includes(act)?act:'slash'):act;   // knife: fire / dry = swing
+  if(!knife&&T!=='grenade'&&T!=='c4'&&(act==='draw'||act==='inspect')) return null;   // no deploy / inspect clicks on guns (player request)
+  if(act==='clipout'||act==='clipin'||act==='cliphit'||act==='cliprelease') o=Object.assign({},o,{vol:(o.vol===undefined?1:o.vol)*1.45});   // magazine sounds up front
   const ck=def.id+':'+(knife?(ka==='slash'?'fire':ka):act==='far'?'fire':act), cust=!o.noCustom&&SND.custom.get(o.unsup?ck+':unsup':ck);
   if(cust) return sndPlay('',Object.assign({bus:'weapons'},o,{buf:cust}));
   if(!SFX_LIB){ if(act==='fire'||act==='far') playShotLegacy(o.unsup?(def.type==='pistol'?'pistol':'rifle'):(def.stats.sound||'rifle'),o.pos,o.dist); else if(act==='draw') SFX_OLD.draw(); else if(act==='clipout') SFX_OLD.magOut(); else if(act==='clipin') SFX_OLD.magIn(); else if(act==='boltback') SFX_OLD.boltBack(); else if(act==='boltfwd') SFX_OLD.boltFwd(); else if(act==='dry') SFX_OLD.dry(); return null; }
@@ -6793,7 +6795,7 @@ function updatePlayer(dt){
   P.punch.x=lerp(P.punch.x,tx,Math.min(1,dt*22)); P.punch.y=lerp(P.punch.y,ty,Math.min(1,dt*22));
   camera.position.set(P.pos.x,P.pos.y+P.eye,P.pos.z);
   const shake=Math.max(P.dmgShake||0,COMP.shake||0); P.dmgShake=Math.max(0,(P.dmgShake||0)-dt*3);
-  camera.rotation.set(P.pitch+P.punch.y*.5*DEG+Math.sin(VM.time*40)*shake*.01,P.yaw-P.punch.x*.5*DEG,Math.sin(VM.time*33)*shake*.01);
+  camera.rotation.set(P.pitch+P.punch.y*.5*DEG+Math.sin(VM.time*40)*shake*.006,P.yaw-P.punch.x*.5*DEG,Math.sin(VM.time*33)*shake*.005);
   moveState.speed=hs/MAXSPD; moveState.onGround=P.onGround; moveState.vy=P.vel.y; moveState.crouch=P.h===CROUCH_H; moveState.strafe=lerp(moveState.strafe,mx*Math.min(1,hs/3),Math.min(1,dt*6));
   if(P.fireCd>0) P.fireCd-=dt;
   if(P.rescope&&P.fireCd<=0&&!P.reloading&&P.alive){ const rd=curDef(); if(rd===P.rescopeDef&&(rd.stats.scope|0)>=P.rescope) setScope(P.rescope); P.rescope=0; }
@@ -6915,7 +6917,7 @@ function finishReload(){
 }
 function takeDamage(raw,zone,headMul,pen,fromPos,weaponName,attacker,def){
   const P=player; if(!P.alive||P.god) return; if(NET.client){ netSelfDamage(raw,zone,weaponName); return; } if(match.state!=='live'&&!(match.mode==='comp'&&COMP.phase==='post')&&!(NET.on&&match.state==='paused')) return;
-  const hp0=P.hp, dmg=applyDamage(P,raw,zone,pen,headMul); P.hp-=dmg; P.dmgShake=Math.min(1.2,(P.dmgShake||0)+.5);
+  const hp0=P.hp, dmg=applyDamage(P,raw,zone,pen,headMul); P.hp-=dmg; P.dmgShake=Math.min(.6,(P.dmgShake||0)+.22);
   if(attacker){ P.dmgBy[attacker.id]=(P.dmgBy[attacker.id]||0)+dmg; attacker.dmgDealt=(attacker.dmgDealt||0)+Math.min(dmg,hp0); }
   sfx.hurt(); flashDmg(); if(fromPos) showDmgDir(fromPos);
   P.dmgAcc=Math.min(1,(P.dmgAcc||0)+dmg/60);
@@ -6973,7 +6975,7 @@ class TeamBot{
     this.char=new Character(team,name); this.char.setTag(name,team==='T'?'#f0c04a':'#78b4ff'); this.pos=this.char.pos; this.vel=new THREE.Vector3(); this.h=STAND_H; this.onGround=true; this.yaw=0; this.pitch=0;
     this.hp=100; this.armor=0; this.helmet=false; this.kit=false; this.money=800; this.kills=0; this.deaths=0; this.assists=0; this.alive=true; this.hasBomb=false; this.nades=[]; this.dmgBy={};
     this.slots={primary:null,secondary:mkSlot(getWeapon(team==='T'?'glock':'usps')),melee:mkSlot(getWeapon('knife'))}; this.w=null;
-    this.react=[.8,.48,.28][diff]; this.aimSkill=[.45,.75,1][diff];
+    this.react=[.95,.6,.4][diff]; this.aimSkill=[.45,.75,1][diff];
     this.resetAI(); this.equipBest();
   }
   resetAI(){ this.path=null; this.pathI=0; this.goal=null; this.repathT=0; this.target=null; this.seeT=0; this.lostT=9; this.known=null; this.fireCd=0; this.reloadT=0; this.strafeDir=1; this.strafeT=0;
@@ -7052,7 +7054,7 @@ class TeamBot{
       if(ready){ const k=Math.exp(-dt*[3,12,22][this.diff]); this.vel.x*=k; this.vel.z*=k; }
       if(shooting&&this.diff<2) maxs*=.2;
       this.fireCd-=dt;
-      if(shooting&&this.fireCd<=0&&(spdF<[9,.6,.36][this.diff]||dist<5||!this.onGround&&this.diff===0)) this.fire(T,dist);
+      if(shooting&&this.fireCd<=0&&this.onGround&&(spdF<[.42,.36,.3][this.diff]||dist<2.5)) this.fire(T,dist);
       if(this.w.mag<=0&&this.reloadT<=0&&!knife){ if(this.w.res>0) this.reloadT=this.w.def.stats.reload; else if(this.slots.secondary&&this.w!==this.slots.secondary){ this.w=this.slots.secondary; this.char.setWeapon(this.w.def); } }
     } else if(!frozen){
       this.fireCd=Math.max(this.fireCd,this.react*.6); this.burst=0;
@@ -7573,7 +7575,7 @@ function bigExplosion(p,s){
   for(let i=0;i<50*s;i++) FX.sparks.spawn(p,_v1.set(rand(-1,1),rand(.2,1.6),rand(-1,1)).normalize().multiplyScalar(rand(4,14)*s),rand(.3,.9),.12*s,.04,[6,3.2,1.2],1,9.8,.8);
   for(let i=0;i<22*s;i++) FX.smoke.spawn(_v1.copy(p).add(_v2.set(rand(-1,1),rand(0,1.5),rand(-1,1)).multiplyScalar(s)),_v3.set(rand(-1.5,1.5),rand(.5,2.5),rand(-1.5,1.5)).multiplyScalar(s),rand(1.5,3),.8*s,3.2*s,[.25,.22,.2],.8,-.4,1.2);
   for(let i=0;i<18*s;i++) FX.sparks.spawn(_v1.copy(p).add(_v2.set(rand(-.6,.6),rand(0,.8),rand(-.6,.6))),_v3.set(rand(-2,2),rand(1,4),rand(-2,2)),rand(.2,.45),1.4*s,.4,[4,2,.6],.9,-1,1);
-  const d=camera.position.distanceTo(p); if(d<25){ COMP.shake=Math.max(COMP.shake,(1-d/25)*1.6*s); player.dmgShake=Math.max(player.dmgShake||0,(1-d/25)*s); }
+  const d=camera.position.distanceTo(p); if(d<25){ COMP.shake=Math.max(COMP.shake,(1-d/25)*.7*s); player.dmgShake=Math.max(player.dmgShake||0,(1-d/25)*.45*s); }
 }
 /* ---- decoy: rests, then fakes bursts of the thrower's gun for 15 s (sound + tiny flash, radar blip for the enemy, nearby enemy bots investigate), then pops ---- */
 function decoyGun(o){ const pick=st=>st&&st.def&&!['knife','grenade','c4'].includes(st.def.type)?st:null;
@@ -11133,7 +11135,7 @@ function netClientData(d){
     case 'kill': netOnKill(d); break;
     case 'lo': loNetClient(d); break;
     case 'zm': if(TEST_BUILD) zmNetClient(d); break;
-    case 'dmg': { const P=player; if(!P.alive) break; const hp0=P.hp; P.hp=Math.max(0,d.hp|0); P.armor=d.ar|0; P.dmgShake=Math.min(1.2,(P.dmgShake||0)+.5); sfx.hurt(); flashDmg(); if(d.f) showDmgDir(netV3(d.f).setY(d.f[1]+1.5)); P.dmgAcc=Math.min(1,(P.dmgAcc||0)+(hp0-P.hp)/60); if(d.z==='head') P.pitch+=.04; updateHUD(); break; }
+    case 'dmg': { const P=player; if(!P.alive) break; const hp0=P.hp; P.hp=Math.max(0,d.hp|0); P.armor=d.ar|0; P.dmgShake=Math.min(.6,(P.dmgShake||0)+.22); sfx.hurt(); flashDmg(); if(d.f) showDmgDir(netV3(d.f).setY(d.f[1]+1.5)); P.dmgAcc=Math.min(1,(P.dmgAcc||0)+(hp0-P.hp)/60); if(d.z==='head') P.pitch+=.04; updateHUD(); break; }
     case 'shot': if(d.o!==NET.myId) netShotFx(d,netAgent(d.o)); break;
     case 'nade': { const def=LIB.byId[d.w]; if(!def) break; throwNade(def,netV3(d.p),netV3(d.v),netAgent(d.o)); const n=NADES[NADES.length-1]; n.mirror=true; n.nid=d.id; break; }
     case 'det': { const i=NADES.findIndex(n=>n.nid===d.id); if(i<0) break; const n=NADES[i]; NADES.splice(i,1); const p=netV3(d.p); n.g.position.copy(p); detonate(n,p); break; }
@@ -12306,7 +12308,7 @@ function anDrawSnd(d){ if(!d) return null; const T=d.type; if(!SFX_LIB||T==='kni
   try{ h.g.gain.setTargetAtTime(0,n+cut,.018); h.src.stop(n+cut+.25); }catch(e){} return h; }
 // first draw of a freshly bought / picked-up gun: the rack is barely audible (low-passed, low level)
 function anQuietSnd(d,act){ if(SFX_LIB) weaponSound(d,act,{vol:.14,lp:1300}); }
-function anFirstDraw(R){ if(R!==VM||R.drawT<=0||!player.slots) return 0; const st=slotState(); if(!st||st.def!==R.def||st.drawn) return 0; st.drawn=1; return R.spawnDraw?0:1; }   // spawning with a gun: plain draw, no rack
+function anFirstDraw(R){ return 0; if(R!==VM||R.drawT<=0||!player.slots) return 0; const st=slotState(); if(!st||st.def!==R.def||st.drawn) return 0; st.drawn=1; return R.spawnDraw?0:1; }   // spawning with a gun: plain draw, no rack
 
 /* ---------- rounds visible in translucent magazines (P90 top mag, AUG): parts tagged rnd (0 = last round left), fol = follower ---------- */
 function anRoundsInit(R){ const w=R.w, d=R.def; R.rnds=null; R.rndFol=null; R.rndShown=-1; const L=[];
@@ -13035,7 +13037,7 @@ function defTAGrenade(){
   P.push(SP('LED',.3,0,.2,-1.95,led));
   wcFuze(P,4.0,[.55,6.37, -.3,6.45, -.95,6.2, -1.15,5.55, -1.2,4.65, -1.55,4.15, -1.95,3.6, -1.98,-1.5, -1.8,-2.1],dk,{ring,id:'ta'});
   return nadeDef('tagrenade','TA bombası','ta',600,'any',P); }
-BUILTIN.push(defHKP2000(),defFiveSeven(),defCZ75(),defMP7(),defUMP45(),defMP5SD(),defSG553(),defZeus(),defHealthshot(),defTAGrenade());
+BUILTIN.push(defHKP2000(),defFiveSeven(),defCZ75(),defMP7(),defUMP45(),defMP5SD(),defSG553(),defZeus(),defHealthshot());   // TA grenade removed (defTAGrenade kept unused)
 
 // ---- CS2 loadout data: per side, starting pistol + 4 pistol / 5 mid-tier / 5 rifle slots. Any weapon of a tier fits any slot of that tier (as in CS2);
 //      picking one that is already in another slot swaps the two. null = empty slot (not offered in the buy menu).
@@ -13044,7 +13046,7 @@ const LO_POOL={CT:{start:['usps','hkp2000'],pistols:['p250','fiveseven','cz75a',
 const LO_DEFAULT={CT:{start:'usps',pistols:['p250','fiveseven','cz75a','deagle'],mid:['mp9','mp7','ump45','p90','nova'],rifles:['famas','m4a4','aug','ssg08','awp']},
   T:{start:'glock',pistols:['p250','tec9','cz75a','deagle'],mid:['mac10','mp7','ump45','p90','nova'],rifles:['galil','ak47','sg556','ssg08','awp']}};
 const LO_TIERS=[['pistols','TABANCALAR','Başlangıç + 4 yuva',4],['mid','ORTA SINIF','Hafif makineli · pompalı',5],['rifles','TÜFEKLER','Tüfek · keskin nişancı',5]];
-const LO_GEAR=['kevlar','helmet','kit','taser','tagrenade'], LO_NADES=['he','flash','smoke','molotov','incgren','decoy'];
+const LO_GEAR=['kevlar','helmet','kit','taser'], LO_NADES=['he','flash','smoke','molotov','incgren','decoy'];
 const LO_DM_PRI=[['TÜFEKLER',['ak47','m4a4','m4a1s','famas','galil','aug','sg556']],['KESKİN NİŞANCI',['awp','ssg08']],['HAFİF MAKİNELİ',['mp9','mac10','mp7','mp5sd','ump45','p90']],['AĞIR',['nova']]];
 const LO_DM_SEC=['glock','usps','hkp2000','p250','fiveseven','tec9','cz75a','deagle'];
 const LO_DM_WIN=10, LO_ZEUS_RECHARGE=20, LO_INJ_DUR=1.0, LO_INJ_HIT=.42, LO_HEAL=50, LO_HEAL_RATE=25, LO_TA_ARM=2, LO_TA_SHOW=5, LO_TA_R=15;
