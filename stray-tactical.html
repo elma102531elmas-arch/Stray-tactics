@@ -3233,7 +3233,7 @@ function spawnMarker(col){ const g=new THREE.Group(); const m=new THREE.MeshStan
   const r=new THREE.Mesh(new THREE.RingGeometry(.45,.55,24),new THREE.MeshBasicMaterial({color:col,side:THREE.DoubleSide})); r.rotation.x=-Math.PI/2; r.position.y=.03; g.add(r); return g; }
 function addSkyline(B,inner,outer,seed){
   const R=mulberry(seed); const domes=[]; const n=Math.round(46*outer/78);
-  for(let i=0;i<n;i++){ const a=i/n*TAU+R()*.05; const r=inner+R()*(outer-inner); const x=Math.cos(a)*r, z=Math.sin(a)*r; const w=6+R()*10, d=6+R()*10, h=7+R()*14;
+  for(let i=0;i<n;i++){ const a=i/n*TAU+R()*.05; const r=inner+R()*(outer-inner); let x=Math.cos(a)*r, z=Math.sin(a)*r; const w=6+R()*10, d=6+R()*10, h=7+R()*14; [x,z]=op7SkyOut(B,x,z,Math.hypot(w,d)/2+.5);
     const g=new THREE.BoxGeometry(w,h,d); g.rotateY(-a); g.translate(x,h/2,z); applyBoxUV(g,IDENT); const mk=R()<.5?'plaster':'sandstone'; (B.batch[mk]=B.batch[mk]||[]).push(prepGeo(g));
     if(R()<.25){ const dg=new THREE.SphereGeometry(Math.min(w,d)*.36,20,10,0,TAU,0,Math.PI/2); dg.translate(x,h,z); domes.push(prepGeo(dg)); }
     if(R()<.08){ const mg=new THREE.CylinderGeometry(.9,1.1,h+14,10); mg.translate(x+3,(h+14)/2,z); applyBoxUV(mg,IDENT); (B.batch.plaster=B.batch.plaster||[]).push(prepGeo(mg)); const cg=new THREE.ConeGeometry(1.3,3.2,10); cg.translate(x+3,h+15.6,z); domes.push(prepGeo(cg)); }
@@ -3281,7 +3281,7 @@ function avluData(){
     cr(s*-3.3,s*27.7,1.4); cr(s*6,s*26,2.0); cr(s*6.2,s*25.8,1.2,2.0);
     bx(s*20,0,s*4,s*26,1.15,s*5,'sandstone',{cap:1});
     bx(s*20,0,s*-19,s*26,1.4,s*-16,'ashlar'); O.push({t:'stairway',p:[s*27.25,0,s*-17.5],r:[0,s>0?-90:90,0],s:[3,1.4,2.5],m:'trim',n:5}); cr(s*24.6,s*-14.2,1.4); cr(s*24.7,s*-14.3,.95,1.4); // site terrace + boost
-    bx(s*-7,0,s*25.2,s*5,4.6,s*26,'sandstone',{cap:1}); bx(s*-8,0,s*5,s*8,3.0,s*5.8,'sandstone',{cap:1}); bx(s*-24,0,s*5,s*-18,3.2,s*5.8,'sandstone',{cap:1}); // spawn wall + door/gap shields: no spawn-to-spawn sightline through the centre door
+    bx(s*-7,0,s*25.2,s*5,4.6,s*26,'sandstone',{cap:1}); bx(s*-8,0,s*5,s*8,3.0,s*5.8,'sandstone',{cap:1}); bx(s*-24,0,s*5,s*-18,3.2,s*6,'sandstone',{cap:1}); // spawn wall + door/gap shields: no spawn-to-spawn sightline through the centre door
     bx(s*26,0,s*24,s*36,6.6,s*36,'plaster',{cap:1});
     cr(s*31,s*14,1.6); cr(s*33,s*12.5,1.6); cr(s*33,s*12.5,1.1,1.6);
     bx(s*-36,0,s*-12,s*-31,3.2,s*-6,'plaster',{cap:1});
@@ -3351,7 +3351,7 @@ function kumVadisiData(){
   A({t:'lamp',p:[-5.95,0,0],r:[0,90,0],s:[1,3.4,1]}); A({t:'lamp',p:[5.95,0,22],r:[0,-90,0],s:[1,3.4,1]}); A({t:'lamp',p:[-32.05,0,0],r:[0,-90,0],s:[1,2.8,1]});
   A({t:'lamp',p:[-37.95,0,24],r:[0,90,0],s:[1,2.8,1]}); A({t:'lamp',p:[32.05,0,-4],r:[0,90,0],s:[1,3.4,1]}); A({t:'lamp',p:[17.95,0,-36],r:[0,-90,0],s:[1,3.6,1]});
   A({t:'cable',p:[-6,5.4,-6],e:[12,-.6,4],sag:.8}); A({t:'cable',p:[32,5,10],e:[12,0,-6],sag:.9}); A({t:'cable',p:[-6,5,30],e:[16,.2,0],sag:1});
-  A({t:'door',p:[33.2,0,20.6],r:[0,-58,0],s:[2,2.9,.12],c:0}); A({t:'door',p:[33.2,0,25.4],r:[0,58,0],s:[2,2.9,.12],c:0});
+  A({t:'door',p:[33.2,0,20.6],r:[0,-58,0],s:[2,2.9,.12],c:1}); A({t:'door',p:[33.2,0,25.4],r:[0,58,0],s:[2,2.9,.12],c:1});
   A({t:'sign',p:[31,3.4,-41.9],s:[3,3,.1],txt:'A',col:'#2b2722'}); A({t:'sign',p:[-31,3.2,-43.9],s:[3,3,.1],txt:'B',col:'#2b2722'});
   A({t:'sign',p:[0,4.7,-15.9],s:[2.4,2.4,.1],txt:'MID',col:'#3a3026'}); A({t:'sign',p:[27.9,4.8,23],r:[0,-90,0],s:[2.4,2.4,.1],txt:'UZUN',col:'#3a3026'});
   A({t:'sign',p:[17.95,2.4,-20],r:[0,-90,0],s:[1.6,1.6,.1],txt:'KISA',col:'#3a3026'}); A({t:'sign',p:[-31.95,2.2,24],r:[0,-90,0],s:[1.6,1.6,.1],txt:'B',col:'#ffd84a'});
@@ -3462,7 +3462,7 @@ function buildNav(B){
     if(e.length){ ex.push([k,e]); if(e.length>maxE) maxE=e.length; } }
   const L0=1+Math.min(3,maxE), floor=new Float32Array(N*L0), ok=new Uint8Array(N*L0); floor.set(f0); ok.set(ok0);
   for(const [k,e] of ex) for(let q=0;q<e.length&&q<L0-1;q++){ floor[k+(q+1)*N]=e[q]; ok[k+(q+1)*N]=1; }
-  const nav={S,cell,W,N,L:L0,floor,ok,drop:null,reach:null}; B.nav=nav; if(L0===1) return;
+  const nav={S,cell,W,N,L:L0,floor,ok,drop:null,reach:null}; B.nav=nav; op7NavEdges(nav,Q); if(L0===1) return;
   const drop=new Uint8Array(N*L0), D4=[[1,0],[-1,0],[0,1],[0,-1]]; nav.drop=drop;
   for(let n=0;n<N*L0;n++){ if(!ok[n]) continue; const k=n%N, i=k%W, j=(k/W)|0, f=floor[n];
     for(let d=0;d<4;d++){ const ni=i+D4[d][0], nj=j+D4[d][1]; if(ni<0||nj<0||ni>=W||nj>=W) continue; const c2=nj*W+ni; let walk=false, lf=-1;
@@ -3470,9 +3470,9 @@ function buildNav(B){
       if(walk||lf<0||Q.blocked(-S+(i+.5+D4[d][0]*.5)*cell,f+.03,-S+(j+.5+D4[d][1]*.5)*cell,1.7,.2)) continue; if(!Q.blocked(-S+(ni+.5)*cell,lf+.03,-S+(nj+.5)*cell,f-lf+1.7,.3)) drop[n]|=1<<d; } }
   const reach=navReach(nav,B); let extra=0; nav.reach=reach;
   for(let n=N;n<N*L0;n++){ if(ok[n]&&!reach[n]) ok[n]=0; if(ok[n]) extra++; }
-  if(!extra){ nav.L=1; nav.floor=f0; nav.ok=ok0; nav.drop=null; nav.reach=null; return; }
+  if(!extra){ nav.L=1; nav.floor=f0; nav.ok=ok0; nav.drop=null; nav.reach=null; nav.eb=nav.eb.slice(0,N); return; }
   let Lu=L0; while(Lu>1&&!ok.subarray((Lu-1)*N,Lu*N).some(v=>v)) Lu--;   // drop empty top layers
-  if(Lu<L0){ nav.L=Lu; nav.floor=floor.slice(0,N*Lu); nav.ok=ok.slice(0,N*Lu); nav.drop=drop.slice(0,N*Lu); nav.reach=reach.slice(0,N*Lu); }
+  if(Lu<L0){ nav.L=Lu; nav.floor=floor.slice(0,N*Lu); nav.ok=ok.slice(0,N*Lu); nav.eb=nav.eb.slice(0,N*Lu); nav.drop=drop.slice(0,N*Lu); nav.reach=reach.slice(0,N*Lu); }
 }
 /* every node a spawn can walk (or drop) to */
 function navReach(nav,B){ const r=new Uint8Array(nav.N*nav.L), q=[];
@@ -3482,8 +3482,8 @@ function navReach(nav,B){ const r=new Uint8Array(nav.N*nav.L), q=[];
 /* a column holds a walkable node near height f (diagonal corner test) */
 function navHas(nav,c,f){ if(nav.L===1) return !!nav.ok[c]; for(let l=0;l<nav.L;l++){ const m=c+l*nav.N; if(nav.ok[m]&&Math.abs(nav.floor[m]-f)<=.6) return true; } return false; }
 /* neighbours of node n: cb(node, cost) */
-function navNbrs(nav,n,cb){ const W=nav.W, N=nav.N, L=nav.L, ok=nav.ok, fl=nav.floor, k=n%N, i=k%W, j=(k/W)|0, f=fl[n];
-  for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ if(!di&&!dj) continue; const ni=i+di, nj=j+dj; if(ni<0||nj<0||ni>=W||nj>=W) continue; const c2=nj*W+ni;
+function navNbrs(nav,n,cb){ const W=nav.W, N=nav.N, L=nav.L, ok=nav.ok, fl=nav.floor, k=n%N, i=k%W, j=(k/W)|0, f=fl[n], eb=nav.eb?nav.eb[n]:0;
+  for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ if(!di&&!dj) continue; const ni=i+di, nj=j+dj; if(ni<0||nj<0||ni>=W||nj>=W) continue; const c2=nj*W+ni; if(eb){ const e=(dj+1)*3+di+1; if(eb>>(e>4?e-1:e)&1) continue; }
     for(let l=0;l<L;l++){ const m=c2+l*N; if(!ok[m]||Math.abs(fl[m]-f)>.56) continue; if(di&&dj&&!(navHas(nav,j*W+ni,f)&&navHas(nav,nj*W+i,f))) continue; cb(m,di&&dj?1.414:1); } }
   const d=nav.drop?nav.drop[n]:0; if(d) for(let q=0;q<4;q++){ if(!(d&(1<<q))) continue; const c2=(j+[0,0,1,-1][q])*W+i+[1,-1,0,0][q]; let best=-1, bf=-1;
     for(let l=0;l<L;l++){ const m=c2+l*N; if(ok[m]&&fl[m]<f-.56&&fl[m]>bf){ bf=fl[m]; best=m; } } if(best>=0) cb(best,4+(f-bf)*1.6); } }   // drops cost extra: bots take them as real shortcuts (rotations), not by default
@@ -6644,7 +6644,7 @@ function rayCharacters(o,d,maxD,list){
 /* =====================================================================
    PLAYER
    ===================================================================== */
-const STAND_H=1.8, CROUCH_H=1.32, EYE_S=1.64, EYE_C=1.2, HW=.3, STEP=.52;
+const STAND_H=1.8, CROUCH_H=1.32, EYE_S=1.64, EYE_C=1.2, HW=.3, STEP=.565;
 const player={ id:'p', isPlayer:true, name:'SEN', team:'T', pos:new THREE.Vector3(), vel:new THREE.Vector3(), yaw:0, pitch:0, onGround:true, crouch:false, crouchK:0, eye:EYE_S, h:STAND_H,
   hp:100, armor:100, helmet:true, kit:false, money:800, kills:0, deaths:0, assists:0, hasBomb:false, nades:[], nadeIdx:0, dmgBy:{},
   alive:true, slots:{}, cur:'primary', last:'secondary', fireCd:0, reloading:false, reloadT:0, sprayIdx:0, sinceShot:9,
@@ -9441,7 +9441,7 @@ function toz2Data(){
     lamp(-28.05,4,-90,3),lamp(-38.95,-10,90,3),lamp(-32.05,-18,-90,3),lamp(-16,-12.95,0,2.6),
     cr(-31,-28.6,2.0),cr(-31.2,-28.8,1.2,3.6),cr(-29.2,-28.7,1.4),{t:'vehicle',p:[-26,-36.6],r:[0,90,0],s:[1.9,1.5,4.3],kind:'car',m:'paintR'},
     cr(-39.4,-39.4,1.4,2.4),ba(-40.2,-25.2),ba(-39.4,-25.5),cr(-39.8,-27.2,1.2),sign(-32,4.6,-40.95,0,'B',3.2,'#2b2722'),
-    mpLeaf(-21.0,1.45,-31.0,0),mpLeaf(-21.0,1.45,-27.0,-40),cr(-14.2,-33,1.2),
+    mpLeaf(-21.0,1.6,-31.0,0),mpLeaf(-21.0,1.6,-27.0,-40),cr(-14.2,-33,1.2,.12),
     // pit
     cr(39.5,18.5,1.4),ba(34,19.3),ba(34.8,19.4)
   ]);
@@ -9531,7 +9531,7 @@ function serapData(){
   const lamp=(x,z,r,y)=>({t:'lamp',p:[x,z],r:[0,r,0],s:[1,y||3.3,1]}), sign=(x,y,z,r,txt,s,col)=>({t:'sign',p:[x,y,z],r:[0,r,0],s:[s||2.4,s||2.4,.1],txt,col:col||'#2c3a44'});
   mpDecor(O,G,[
     // T spawn / T side
-    {t:'palm',p:[34.8,-6.6],s:[1,7.4,1],lean:1},{t:'palm',p:[34.6,10.6],r:[0,180,0],s:[1,6.8,1],lean:-1},cr(25.4,10.6,1.4),cr(25.6,10.4,.9,3.4),ba(35.2,4.8),ba(35.3,5.6),
+    {t:'palm',p:[34.8,-6.6],s:[1,7.4,1],lean:1},{t:'palm',p:[34.6,10.6],r:[0,180,0],s:[1,6.8,1],lean:-1},ba(35.2,4.8),ba(35.3,5.6),
     {t:'awning',p:[30,-7.95],s:[5,3.6,2.2]},{t:'awning',p:[35.95,0],r:[0,-90,0],s:[4,3.4,2]},lamp(24.05,-1,90,3.4),
     cr(20,-8.2,1.2),cr(15,1.2,1.4),{t:'awning',p:[12,-7.95],s:[4.5,3.4,2]},cr(17,7,1.4),ba(23.2,17.2),ba(22.5,17.3),cr(31.2,21.2,1.2),{t:'awning',p:[31.95,16],r:[0,-90,0],s:[4,3.4,2]},
     cr(27,-20,1.2),{t:'palm',p:[27.4,-12],r:[0,180,0],s:[1,6.6,1],lean:-.8},lamp(22.05,-16,90),
@@ -9542,7 +9542,7 @@ function serapData(){
     cr(1.4,22,1.6),cr(3.05,22.1,1.6),cr(2.2,22,1.3,1.6),cr(2.6,20.2,2.0),cr(3.4,24.4,2.0),cr(-2,24.6,1.4),cr(-3.6,30,1.4),ba(-2.4,30.8),cr(4.9,18.2,1.2),cr(3.8,19.4,.9),
     {t:'block',p:[-6.5,0,21],s:[3,2.9,6],m:'wood',cap:1},{t:'block',p:[-4.97,1.2,21],s:[.06,.9,2.2],m:'darkmetal',c:0},{t:'block',p:[-4.9,1.1,21],s:[.25,.08,2.4],m:'trim',c:0},
     {t:'pillar',p:[8.4,1.6,22.4],s:[.6,2.8,.6]},{t:'pillar',p:[8.4,1.6,26.3],s:[.6,2.8,.6]},{t:'pillar',p:[11.6,1.6,29.6],s:[.6,2.8,.6]},
-    sign(0,3.8,33.95,180,'A',3,'#2b2722'),{t:'palm',p:[-7,15],s:[1,6.6,1],lean:.9},lamp(-7.95,20,90),cr(18,26,1.0),{t:'pillar',p:[18,1.6,25.6],s:[.7,2.8,.7]},
+    sign(0,3.8,33.95,180,'A',3,'#2b2722'),{t:'palm',p:[-7.55,15],s:[1,6.6,1],lean:.9},lamp(-7.95,20,90),cr(18,26,1.0),{t:'pillar',p:[18,1.6,25.6],s:[.7,2.8,.7]},
     sign(23.97,3.4,25,-90,'SARAY',1.8),
     // jungle, CT
     cr(-12.2,7,1.2),{t:'palm',p:[-12.2,12.8],s:[1,6,1],lean:.6},{t:'palm',p:[-33,11],s:[1,7.2,1],lean:1},{t:'palm',p:[-33,25],r:[0,180,0],s:[1,6.6,1],lean:-1},
@@ -9839,9 +9839,9 @@ MOBJ.skyline={label:'Uzak siluet (köy / orman)',cat:'Dekor',def:{style:'village
   for(let i=0;i<n;i++){ const a=i/n*TAU+R()*.05, r=r0+R()*(r1-r0), x=Math.cos(a)*r, z=Math.sin(a)*r;
     if(jungle){ const sc=2+R()*1.4; at(x,-.5,z,-a); MOBJ.tree.build({p:[x,0,z],s:[sc,10+R()*9,1],lean:1+R()*2,c:0},B);
       if(R()<.5){ const s=4+R()*5, g=new THREE.IcosahedronGeometry(s,1); g.scale(1.3,.7,1.3); at(x*1.04,0,z*1.04,0); g.translate(0,s*.3,0); B.mesh('leafD',g); } continue; }
-    const w=6+R()*8, d=6+R()*8, h=7+R()*9, gm=walls[Math.floor(R()*walls.length)];
-    at(x,0,z,-a); B.box(gm,0,h/2,0,w,h,d,{collide:false,ao:false}); at(x,h,z,-a); MOBJ.roof.build({s:[w+.5,Math.min(3.4,w*.32),d+.5],m:'roof',gm,c:0},B);
-    if(R()<.35){ const ca=a+.5/n*TAU, cr2=r-6-R()*4; at(Math.cos(ca)*cr2,0,Math.sin(ca)*cr2,0); MOBJ.cypress.build({p:[i,0,r],s:[2,9+R()*5,2],c:0},B); } }
+    const w=6+R()*8, d=6+R()*8, h=7+R()*9, gm=walls[Math.floor(R()*walls.length)], q=op7SkyOut(B,x,z,Math.hypot(w,d)/2+.6);
+    at(q[0],0,q[1],-a); B.box(gm,0,h/2,0,w,h,d,{collide:false,ao:false}); at(q[0],h,q[1],-a); MOBJ.roof.build({s:[w+.5,Math.min(3.4,w*.32),d+.5],m:'roof',gm,c:0},B);
+    if(R()<.35){ const ca=a+.5/n*TAU, cr2=r-6-R()*4, q2=op7SkyOut(B,Math.cos(ca)*cr2,Math.sin(ca)*cr2,2.2); at(q2[0],0,q2[1],0); MOBJ.cypress.build({p:[i,0,r],s:[2,9+R()*5,2],c:0},B); } }
   if(jungle){ for(const [a,r,s] of [[.8,r1+12,26],[3.6,r1+18,34]]){ for(let k=0;k<5;k++){ const w=s*(1-k*.18), h=s*.16; at(Math.cos(a)*r,k*h,Math.sin(a)*r,-a); B.box(k%2?'jstoneM':'jstone',0,h/2,0,w,h,w,{collide:false,ao:false}); }
       at(Math.cos(a)*r,5*s*.16,Math.sin(a)*r,-a); B.box('carved',0,s*.12,0,s*.2,s*.24,s*.2,{collide:false,ao:false}); } }
   else { const a=2.2, r=r0+8; at(Math.cos(a)*r,0,Math.sin(a)*r,-a); B.box('ashlar',0,13,0,4.4,26,4.4,{collide:false,ao:false}); B.box('brick',0,23.5,0,4.8,3,4.8,{collide:false,ao:false});
@@ -10161,8 +10161,8 @@ MOBJ.hazsign={label:'Radyasyon levhası',cat:'Dekor',def:{s:[1,1,.1],c:0},build(
 { const sb=MOBJ.skyline.build; MOBJ.skyline.build=function(o,B){ if(o.style!=='plant') return sb.call(this,o,B); if(B.editor) return; const R=mulberry(o.seed||91), r0=o.s[0], r1=o.s[2];
   const at=(x,y,z,a)=>{ B.M.makeRotationY(a).setPosition(x,y,z); B.T.makeTranslation(x,y,z); };
   const n=Math.round(30*r1/90), mats=['panelW','panelB','conc2','panelR','panelW','conc2'];
-  for(let i=0;i<n;i++){ const a=i/n*TAU+R()*.06, r=r0+R()*(r1-r0), x=Math.cos(a)*r, z=Math.sin(a)*r, w=12+R()*16, d=10+R()*14, h=15+R()*12, m=mats[Math.floor(R()*mats.length)];
-    at(x,0,z,-a); B.box(m,0,h/2,0,w,h,d,{collide:false,ao:false}); B.box('darkmetal',0,h+.2,0,w+.3,.4,d+.3,{collide:false,ao:false}); if(R()<.4) B.box('panelW',w*.2,h+1.4,0,3,2.4,3,{collide:false,ao:false}); }
+  for(let i=0;i<n;i++){ const a=i/n*TAU+R()*.06, r=r0+R()*(r1-r0), x=Math.cos(a)*r, z=Math.sin(a)*r, w=12+R()*16, d=10+R()*14, h=15+R()*12, m=mats[Math.floor(R()*mats.length)], q=op7SkyOut(B,x,z,Math.hypot(w,d)/2+.6);
+    at(q[0],0,q[1],-a); B.box(m,0,h/2,0,w,h,d,{collide:false,ao:false}); B.box('darkmetal',0,h+.2,0,w+.3,.4,d+.3,{collide:false,ao:false}); if(R()<.4) B.box('panelW',w*.2,h+1.4,0,3,2.4,3,{collide:false,ao:false}); }
   for(const [a,r,R2,H] of [[.9,r1+30,17,48],[1.5,r1+40,19,54],[4.3,r1+34,16,46]]){ const pts=[]; for(let i=0;i<=14;i++){ const t=i/14; pts.push(new THREE.Vector2(R2*(.6+.4*Math.pow((t-.72)/.72,2)),t*H)); }
     at(Math.cos(a)*r,0,Math.sin(a)*r,0); const g=new THREE.LatheGeometry(pts,32); B.mesh('conc2',g); const rg=new THREE.TorusGeometry(R2*.68,.4,6,32); rg.rotateX(Math.PI/2); rg.translate(0,H,0); B.mesh('conc2',rg); }
   for(const [a,r] of [[2.6,r1+12],[3.0,r1+20],[5.4,r1+16]]){ at(Math.cos(a)*r,0,Math.sin(a)*r,0); for(let k=0;k<6;k++){ const g=new THREE.CylinderGeometry(1.5-k*.08,1.6-k*.08,10,14); g.translate(0,5+k*10,0); B.mesh(k%2?'white':'paintR',g); } }
@@ -10768,8 +10768,66 @@ function mq5Settle(m){ const O=m.objects||[], top=o=>o.p[1]+o.s[1]+(o.t==='conta
     for(const b of O){ if(b===o||b.t!==o.t||b.p.length<3||o.s[0]>b.s[0]+.01||b.p[1]>=o.p[1]+o.s[1]-.05) continue;   /* only onto an equal / bigger one that starts below its top */ const hw=b.s[0]/2+.05, hd=b.s[2]/2+.05, rot=b.r&&Math.abs(Math.round(b.r[1]))%180===90;
       if(Math.abs(o.p[0]-b.p[0])>(rot?hd:hw)||Math.abs(o.p[2]-b.p[2])>(rot?hw:hd)) continue; const t=top(b); if(t>o.p[1]-2.2&&t<o.p[1]+o.s[1]+1.6&&(!best||t>top(best))) best=b; }
     if(best) o.p[1]=+top(best).toFixed(3); }
-  return m; }
+  return op7Depen(m); }
 
+
+/* ---------- op7: map sweep fixes + performance (test handle for the map scanner: internals the scan / perf scripts need) ---------- */
+/* colliders that follow the visible shape: vehicles = body + cabin / cargo bed (no invisible box over the hood), barrels / drums = a box inside the round
+   silhouette (the old corners stuck 14 cm out), the idol = plinth + head, leaning palms / jungle trees = trunk segments along the bend (the old upright column missed the trunk) */
+{ const vb=MOBJ.vehicle.build; MOBJ.vehicle.build=function(o,B){ vb.call(this,o.c===0?o:Object.assign({},o,{c:0}),B); if(o.c===0) return; const [w,h,d]=o.s;
+    if(o.kind==='truck'){ const cab=d*.3, bed=.42*.75+1.35; B.col('box',0,h/2,d/2-cab/2,w/2,h/2,cab/2,'metal'); B.col('box',0,bed/2,-cab/2,w/2,bed/2,(d-cab)/2,'metal'); return; }
+    const base=Math.min(.36,h*.22)*.7, lo=o.kind==='van'?base+(h-base)*.72:base+(h-base)*.5;
+    B.col('box',0,lo/2,0,w/2,lo/2,d/2,'metal'); if(o.kind==='van') B.col('box',0,(lo+h)/2,-d*.08,w*.49,(h-lo)/2,d*.42,'metal'); else B.col('box',0,(lo+h)/2,-d*.04,w*.43,(h-lo)/2,d*.24,'metal'); }; }
+for(const t of ['barrel','drum']){ const bb=MOBJ[t].build; MOBJ[t].build=function(o,B){ bb.call(this,o.c===0?o:Object.assign({},o,{c:0}),B); if(o.c!==0) B.col('box',0,o.s[1]/2,0,o.s[0]*.41,o.s[1]/2,o.s[0]*.41,'metal'); }; }
+{ const ib=MOBJ.idol.build; MOBJ.idol.build=function(o,B){ ib.call(this,o.c===0?o:Object.assign({},o,{c:0}),B); if(o.c===0) return; const [w,h,d]=o.s, b=h*.3, hh=h-b;
+    B.col('box',0,b+hh*.4,0,w*.43,hh*.4,d*.43,'stone'); B.col('box',0,h-hh*.1,0,w*.525,hh*.1,d*.525,'stone'); }; }
+function op7Trunk(B,f,h,r,segs,surf){ for(const [t0,t1] of segs){ const a=f(t0), b=f(t1); B.col('box',(a[0]+b[0])/2,(t0+t1)/2*h,(a[1]+b[1])/2,r+Math.abs(a[0]-b[0])/2,(t1-t0)/2*h,r+Math.abs(a[1]-b[1])/2,surf); } }
+{ const pb=MOBJ.palm.build; MOBJ.palm.build=function(o,B){ pb.call(this,o.c===0?o:Object.assign({},o,{c:0}),B); if(o.c===0) return; const L=o.lean??1;
+    op7Trunk(B,t=>[Math.sin(t*1.4)*L,t*t*L*.5],o.s[1],.19,[[0,.12],[.12,.24],[.24,.36],[.36,.48],[.48,.6]],'wood'); }; }
+{ const tb=MOBJ.tree.build; MOBJ.tree.build=function(o,B){ tb.call(this,o.c===0?o:Object.assign({},o,{c:0}),B); if(o.c===0) return; const L=o.lean??.8, a0=mulberry(mqSeed(o))()*TAU;
+    op7Trunk(B,t=>[Math.cos(a0)*Math.sin(t*1.2)*L,Math.sin(a0)*Math.sin(t*1.2)*L],o.s[1],.27*o.s[0],[[0,.15],[.15,.3],[.3,.45],[.45,.6],[.6,.72]],'wood'); }; }
+{ const fb=MOBJ.fountain.build; MOBJ.fountain.build=function(o,B){ fb.call(this,o,B); if(o.c!==0) B.col('box',0,o.s[1]+1.4,0,.6,.15,.6,'stone'); }; }   // the upper bowl had no collision
+/* distant skyline pieces stay outside the playable square (some reached into the map corners, through the outer walls) */
+function op7SkyOut(B,x,z,hr){ const S=(B.bounds||40)+1, m=Math.max(Math.abs(x),Math.abs(z)); if(m<1e-3||m>=S+hr) return [x,z]; const k=(S+hr)/m; return [x*k,z*k]; }
+/* data pass on every built-in map (after mq5Settle): a crate / barrel / car / container cutting into a wall or another prop moves out along the shortest free
+   direction (it must stay on the same floor and not touch anything else; what stands on it moves with it), a crate / container standing 1-25 cm off a tall
+   wall slides flush against it (no see-through slit), window boxes buried in a slab are dropped, and thin decorative blocks lose the default trim cap
+   (a .26 m cap on a 12 cm sill or a shutter cut into the window and the flower box) */
+const OP7_MOV={crate:1,barrel:1,drum:1,vehicle:1,container:1,pot:1}, OP7_SOL={block:1,container:1,crate:1,barrel:1,drum:1,vehicle:1,pillar:1,idol:1,tank:1,fountain:1,stairs:1,stairway:1,palm:1,tree:1,cypress:1};
+function op7Box(o){ const y=((o.r&&o.r[1])||0), q=Math.round(y/90); if(Math.abs(y-q*90)>.01||!o.s) return null; const odd=q&1, round=o.t==='barrel'||o.t==='drum'||o.t==='pillar'||o.t==='tank'||o.t==='fountain'||(o.t==='pot'&&o.kind!=='box');
+  const trunk=o.t==='palm'||o.t==='tree'||o.t==='cypress', w=trunk?.5:o.s[0], d=trunk?.5:round?o.s[0]:o.s[2], h=o.s[1]+(o.t==='container'?.08:0), hx=(odd?d:w)/2, hz=(odd?w:d)/2; return {x0:o.p[0]-hx,x1:o.p[0]+hx,z0:o.p[2]-hz,z1:o.p[2]+hz,y0:o.p[1],y1:o.p[1]+h}; }
+function op7Depen(m){ const O=m.objects||[], log=m._op7={moved:[],snapped:[],dropped:0,caps:0}, E=.002;
+  for(const o of O) if(o.t==='block'&&o.c===0&&o.cap&&o.s&&(o.s[1]<=.3||Math.max(o.s[0],o.s[2])<=.6)){ o.cap=0; log.caps++; }
+  const S=[]; for(const o of O){ if(!OP7_SOL[o.t]&&o.t!=='pot'||(o.t==='block'&&(o.c===0||o.s[1]<.25))) continue; const b=op7Box(o); if(b) S.push({o,b}); }
+  const floors=[]; for(const o of O){ if(o.t!=='block'&&o.t!=='floor'&&o.t!=='container'&&o.t!=='crate'&&o.t!=='stairs') continue; const b=op7Box(o); if(b) floors.push({o,b}); }
+  const ov=(a,b,t)=>Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0)>t&&Math.min(a.z1,b.z1)-Math.max(a.z0,b.z0)>t&&Math.min(a.y1,b.y1)-Math.max(a.y0,b.y0)>t;
+  const floorAt=(x,z,y)=>{ let f=0; for(const F of floors){ const b=F.b; if(x<b.x0-1e-3||x>b.x1+1e-3||z<b.z0-1e-3||z>b.z1+1e-3) continue; const t=F.o.t==='floor'?b.y0+F.o.s[1]:b.y1; if(t<=y+.05&&t>f) f=t; } return f; };
+  const sb=(b,dx,dz)=>({x0:b.x0+dx,x1:b.x1+dx,z0:b.z0+dz,z1:b.z1+dz,y0:b.y0,y1:b.y1});
+  const riders=(o,b)=>S.filter(s=>OP7_MOV[s.o.t]&&s.o!==o&&Math.abs(s.b.y0-b.y1)<.04&&Math.min(b.x1,s.b.x1)-Math.max(b.x0,s.b.x0)>.05&&Math.min(b.z1,s.b.z1)-Math.max(b.z0,s.b.z0)>.05);
+  const free=(o,nb,skip)=>{ for(const s of S){ if(s.o===o||skip.has(s.o)||s.o.t==='pot') continue; if(ov(nb,s.b,.005)) return false; }
+    const y=nb.y0, pts=[[(nb.x0+nb.x1)/2,(nb.z0+nb.z1)/2],[nb.x0+.08,nb.z0+.08],[nb.x1-.08,nb.z0+.08],[nb.x0+.08,nb.z1-.08],[nb.x1-.08,nb.z1-.08]]; for(const [x,z] of pts) if(Math.abs(floorAt(x,z,y)-y)>.035) return false; return true; };
+  const move=(s,dx,dz)=>{ const R=riders(s.o,s.b); s.o.p[0]=+(s.o.p[0]+dx).toFixed(3); s.o.p[2]=+(s.o.p[2]+dz).toFixed(3); s.b=sb(s.b,dx,dz); for(const r of R) move(r,dx,dz); };
+  const drop=new Set();
+  for(const s of S.filter(s=>OP7_MOV[s.o.t]).sort((a,b)=>a.b.y0-b.b.y0)){ const hits=S.filter(t=>t.o!==s.o&&t.o.t!=='pot'&&ov(s.b,t.b,.02)&&!(OP7_MOV[t.o.t]&&t.b.y0>s.b.y0+.02)); if(!hits.length) continue;
+    if(s.o.t==='pot'){ drop.add(s.o); log.dropped++; continue; }
+    const skip=new Set(riders(s.o,s.b).map(r=>r.o)), C=[]; for(const t of hits) C.push([t.b.x1-s.b.x0+E,0],[t.b.x0-s.b.x1-E,0],[0,t.b.z1-s.b.z0+E],[0,t.b.z0-s.b.z1-E]);
+    C.sort((a,b)=>Math.abs(a[0]+a[1])-Math.abs(b[0]+b[1]));
+    for(const [dx,dz] of C){ if(Math.abs(dx+dz)>1.6) break; if(free(s.o,sb(s.b,dx,dz),skip)){ log.moved.push(s.o.t+'@'+s.o.p[0]+','+s.o.p[2]+' by '+(+dx.toFixed(2))+','+(+dz.toFixed(2))); move(s,dx,dz); break; } } }
+  for(const s of S.filter(s=>s.o.t==='crate'||s.o.t==='container')){ let best=null;
+    for(const t of S){ if(t.o===s.o||t.o.t!=='block'||t.b.y1-t.b.y0<1.8) continue; const a=s.b, b=t.b; if(Math.min(a.y1,b.y1)-Math.max(a.y0,b.y0)<.5) continue;
+      const oz=Math.min(a.z1,b.z1)-Math.max(a.z0,b.z0), ox=Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0);
+      for(const [g,dx,dz,o2] of [[b.x0-a.x1,1,0,oz],[a.x0-b.x1,-1,0,oz],[b.z0-a.z1,0,1,ox],[a.z0-b.z1,0,-1,ox]]) if(g>.008&&g<=.25&&o2>=.3&&(!best||g<best[0])) best=[g,dx,dz]; }
+    if(best){ const g=best[0]-.004, dx=best[1]*g, dz=best[2]*g, skip=new Set(riders(s.o,s.b).map(r=>r.o)); if(free(s.o,sb(s.b,dx,dz),skip)){ log.snapped.push(s.o.t+'@'+s.o.p[0]+','+s.o.p[2]+' by '+(+(dx+dz).toFixed(3))); move(s,dx,dz); } } }
+  if(drop.size) m.objects=O.filter(o=>!drop.has(o));
+  return m; }
+/* nav edges: two free neighbouring cells only link when the strip between them is free above step height (a closed door leaf, a thin low wall, a palm
+   trunk or a railing post between two cell centres used to give the bots a link straight through it); diagonals test the shared corner */
+function op7NavEdges(nav,Q){ const {N,W,S,cell}=nav, eb=new Uint8Array(N*nav.L);
+  for(let n=0;n<N*nav.L;n++){ if(!nav.ok[n]) continue; const k=n%N, i=k%W, j=(k/W)|0, f=nav.floor[n], x=-S+(i+.5)*cell, z=-S+(j+.5)*cell; let m=0, b=0;
+    for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ if(!di&&!dj) continue; if(Q.blocked(x+di*cell*.5,f+.6,z+dj*cell*.5,1.08,di&&dj?.1:.15)) m|=1<<b; b++; }
+    eb[n]=m; }
+  nav.eb=eb; }
+gameExport({get op7I(){ return {THREE,mq5Sources,MQ5ScanB,mq5Data,mq5Dispose,makeCol,colContains,colTop,toLocal,overlapC,moveBody,blockedAtR,supportAt,rayWorld,navPos,navNbrs,navNearest,buildNav,getMapMat,MAPMAT,STEP,HW,STAND_H,EYE_S,rgBuildRange,obTutMapData,obTutMapEnsure,normalizeMap,addSkyline,tick,renderMain}; }});
 
 /* @@BLOCK:net — code from the net work goes right below this line */
 /* ===== NET v2 — host-star multiplayer over PeerJS (ALIŞTIRMA / EŞLEŞTİRME / ÖZEL OYUN) =====
