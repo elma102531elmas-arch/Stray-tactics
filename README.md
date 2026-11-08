@@ -61,7 +61,7 @@ Oyunun adı ve alt başlığı **DEV → PROJE AYARLARI** bölümünden değişt
 - **Bombalar:** HE, flaş, sis, molotof, yangın bombası, dekoy — sis görüşü keser, molotofu söndürür; dekoy 15 sn boyunca senin silahının sesiyle sahte ateş eder ve rakip radarında görünür.
 - **Susturucu:** USP-S ve M4A1-S'de sağ tık (mobilde SUS.) susturucuyu takar / söker.
 - **Bomba atışı:** basınca pim çekilir ve elde tutulur, bırakınca atılır (sol tık tam, sağ tık alttan, ikisi birden orta).
-- **Teçhizat:** C4, kevlar, kask, imha kiti, Zeus x27, TA bombası (yakındaki düşmanları duvar arkasından gösterir), sağlık iğnesi (ölüm maçı ve antrenman)
+- **Teçhizat:** C4, kevlar, kask, imha kiti, Zeus x27, sağlık iğnesi (ölüm maçı ve antrenman)
 
 ## Harita atölyesi
 - **Paneller:** Sahne hiyerarşisi, Inspector, nesne paleti (sürükle-bırak ya da tıkla) ve harita kütüphanesi (üstten küçük resimlerle).
@@ -79,13 +79,14 @@ Tüm tuşlar **Ayarlar → Klavye / Fare** bölümünden değiştirilebilir. Var
 - **Hareket:** `WASD` · `Shift` yürü · `Ctrl` / `C` çömel · `Space` zıpla
 - **Silah:** `R` şarjör · `F` incele · `1-5` / tekerlek silah · `Q` son silah · `G` silahı / bombayı at · sağ tık dürbün, bıçak saplama ya da alttan bomba atışı
 - **Bomba modu:** `B` satın al · `E` bomba kur / çöz / silah al · `TAB` skor tablosu
+- **Sohbet çarkı:** `Z` basılı tut, fareyle yön seç, bırak (3 çark, Ayarlar → SOHBET ÇARKI'ndan atanır; botlar komutları anlar, "Silah iste" ile silah atar). Mobilde TELSİZ düğmesi.
 - `~` geliştirici konsolu (`help`; örn. `map kumvadisi`, `bot_add`, `mp_roundtime`, `cash`)
 
 Mobilde dokunmatik kontroller otomatik açılır (E ve $ düğmeleri dahil). Küçük ATEŞ düğmesi anında sıkar; büyük ATEŞ düğmesi dürbünlü silahlarda basılı tutunca nişan alır, bırakınca sıkar (Ayarlar → HUD). Görüntü ayarlarında kare hızı sınırı ve dinamik çözünürlük, 90 / 120 Hz ekranlarda ekranın yenileme hızını hedefler.
 
 ## STRIKE POINT TEST
 Deneysel özellikler ayrı dosyada: `strike-point-test.html` (ana oyunla aynı kod, `TEST_BUILD=true`). Ana oyunda bu özellikler görünmez.
-- **Zombi modu:** tek başına (bot takım arkadaşlarıyla) ya da Özel oyunda 4 kişiye kadar online; dalgalar, yürüyen / koşucu / tank / patlayan zombiler, her 5. dalgada boss, dalga arası satın alma, yere düşen arkadaşı E ile kaldırma.
+- **Zombi modu:** zombiye özel Karakol ve Hastane haritaları, özel eşyalar (sağlık iğnesi, cephane kutusu, barikat, mayın, zırh tamiri), yerden can / cephane, mobil satın alma; tek başına (bot takım arkadaşlarıyla) ya da Özel oyunda 4 kişiye kadar online; dalgalar, yürüyen / koşucu / tank / patlayan zombiler, her 5. dalgada boss, dalga arası satın alma, yere düşen arkadaşı E ile kaldırma.
 - **Skinler:** Envanter → SKİNLER — tamamen kodla üretilen özgün desenler (düz boya, eloksal, kamuflaj, solma, şam çeliği tarzı, hidrografik, aşınmış metal), 0–1000 desen numarası ve aşınma derecesi. Kasa yok, gerçek para yok.
 - **Bıçaklar:** karambit ve kelebek bıçak, kendi çekme / inceleme animasyonlarıyla.
 - Ana dosya değişince `tools/build-test.sh` TEST dosyasını yeniden üretir.
