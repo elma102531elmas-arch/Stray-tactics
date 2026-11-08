@@ -1435,6 +1435,7 @@ body.zmMode #scorebar{display:none;}
 #zmItems .ic svg{width:34px;height:34px;display:block;}
 #zmItems b{position:absolute;right:4px;bottom:2px;font-size:12px;font-weight:800;}
 #zmItems small{position:absolute;left:5px;top:2px;font-size:10px;font-weight:800;color:#ffb648;}
+body.touch #zmItems{top:auto;bottom:calc(62px + env(safe-area-inset-bottom));right:auto;left:40%;transform:translateX(-50%);flex-direction:row;}
 body:not(.touch) #zmItems button{pointer-events:none;width:52px;height:46px;} body:not(.touch) #zmItems .ic svg{width:28px;height:28px;}
 body.zmMode .bmBox{width:min(100%,1220px);} body.zmMode #bmGrid:not(.zmTabs){grid-template-columns:repeat(6,minmax(0,1fr));}
 #buyMenu.zmBuyT{padding:0;} #buyMenu.zmBuyT .bmBox{width:100%;height:100%;max-height:none;}
@@ -15843,7 +15844,7 @@ function zmTick(dt,raw){ if(!ZM.on||!match.zm||match.state==='over') return; con
   if(!P.alive&&match.state==='live') zmSpectate();
   if(!paused){ ZM.clock+=dt; zmReviveInput(dt); if(!NET.client&&match.state==='live') zmHostTick(dt); if(NET.client) zmClientTick(dt); }
   if(buyOpen&&ZM.phase!=='buy') toggleBuy(false);
-  if(ZM.autoInj>0){ ZM.autoInj-=raw; if(P.cur==='heal'&&VM.drawT<=0&&!LO.inj){ ZM.autoInj=0; tryFire(true); } }   // touch medkit tile: equip, then inject
+  if(ZM.autoInj>0){ ZM.autoInj-=raw; if(P.cur==='heal'&&!(VM.drawT>0)&&!LO.inj){ ZM.autoInj=0; tryFire(true); } }   // touch medkit tile: equip, then inject
   ZM.uiT-=raw; if(ZM.uiT<=0){ ZM.uiT=.15; zmRadarMark(); zmHudUpdate(); if(buyOpen) $('bmTime').textContent='DALGA ARASI · '+fmtTime(Math.max(0,ZM.t));
     if(CFG.isTouch){ const sb=ZM.phase==='buy'&&P.alive&&!P.zmDown&&match.state==='live'; if(ZM._sb!==sb){ ZM._sb=sb; $('buyBtnTouch').classList.toggle('hidden',!sb); } } } }
 function zmRadarMark(){ const now=performance.now(), me=player.alive?player:null, all=ZM.phase==='live'&&ZM.left>0&&ZM.left<=3; for(const b of bots) if(b.zombie&&b.alive&&(all||!me||b.pos.distanceTo(me.pos)<45)) COMP.spotted[b.id]=now; }
@@ -15991,10 +15992,10 @@ if(TEST_BUILD){
   MOBJ.zhedge={label:'Tank kirpisi',cat:'Dekor',def:{s:[1.4,1.2,1.4],m:'rust'},build(o,B){ const k=o.s[0]/1.4, m=o.m||'rust';
     for(let i=0;i<3;i++){ const g=new THREE.BoxGeometry(1.75*k,.12,.12); g.rotateZ(.62); g.rotateY(i*TAU/3); g.translate(0,.6*k,0); B.mesh(m,g); }
     if(o.c!==0) B.col('box',0,.55*k,0,.55*k,.55*k,.55*k,'metal'); }};
-  Object.assign(MQ5_LIGHT,{karakol:{sun:.34,hemi:2.4,fog:0x0b111a,sky:0x6a80b0,gnd:0x2c2824},hastane:{sun:.5,hemi:2.8,fog:0x3a3d42,sky:0x8a98ac,gnd:0x4a4038}});
+  Object.assign(MQ5_LIGHT,{karakol:{sun:.62,hemi:3.6,fog:0x121b2a,sky:0x7590c8,gnd:0x38332c},hastane:{sun:.5,hemi:2.8,fog:0x3a3d42,sky:0x8a98ac,gnd:0x4a4038}});
 }
 /* night / dusk sky: own gradient + stars + moon disc (or a low hazy sun glow); the environment map is rebuilt from it, viewmodel lights follow */
-const ZM_ENV={ night:{sun:0x8eaaf0,vm:[.26,.31,.46],vmH:.3,zen:[.006,.011,.028],hor:[.04,.055,.085],gnd:[.015,.016,.02],moon:[.95,.98,1.08],disc:1,stars:1,cl:[.05,.06,.085]},
+const ZM_ENV={ night:{sun:0x8eaaf0,vm:[.32,.38,.55],vmH:.36,zen:[.008,.014,.034],hor:[.07,.095,.14],gnd:[.015,.016,.02],moon:[.95,.98,1.08],disc:1,stars:1,cl:[.05,.06,.085]},
   dusk:{sun:0xff9a62,vm:[.5,.42,.38],vmH:.36,zen:[.035,.045,.075],hor:[.24,.22,.22],gnd:[.07,.065,.06],moon:[1.4,.62,.3],disc:0,stars:.12,cl:[.2,.17,.17]} };
 let zmSky=null, zmEnvOn=null;
 function zmSkyMat(){ if(zmSky) return zmSky; const V=()=>({value:new THREE.Color()});
@@ -16088,7 +16089,7 @@ function zmKarakolData(){
   for(const [x,z] of [[-3,8.6],[-1,8.6],[1,8.6],[3,8.6],[0,10.6]]){ A({t:'spawnT',p:[x,0,z],r:[0,180,0]}); A({t:'spawnCT',p:[x,0,z],r:[0,180,0]}); }
   for(const [x,z] of [[-20,-30],[0,-31.5],[20,-30],[30,-17],[31,6],[29,25],[0,30.5],[-22,30],[-30,12],[-31,-12]]) A({t:'zspawn',p:[x,0,z],s:[3,1,3]});
   for(const [x,y,z,k] of [[-4.6,0,-3.6,'hp'],[22,U,-21.6,'hp'],[-14.2,0,11.6,'hp'],[14,0,-15.4,'ammo'],[17.2,0,20.4,'ammo'],[-18.6,0,-12.6,'ammo']]) A({t:'zitem',p:[x,y,z],kind:k});
-  return normalizeMap({id:'karakol',name:'Karakol',builtin:1,zm:1,settings:{size:34,sky:0,ground:'jground',sunAz:-128,sunEl:36,fog:.024,mode:'zombie',zenv:'night',radarSplit:2.2,preview:{p:[-30,30,40],t:[0,0,0]}},objects:O});
+  return normalizeMap({id:'karakol',name:'Karakol',builtin:1,zm:1,settings:{size:34,sky:0,ground:'jground',sunAz:-128,sunEl:40,fog:.019,mode:'zombie',zenv:'night',radarSplit:2.2,preview:{p:[-30,30,40],t:[0,0,0]}},objects:O});
 }
 /* HASTANE: abandoned two-storey hospital at dusk — lobby atrium with gallery + skylight, corridor with wards / OR / morgue / pharmacy, ER bay,
    three staircases; zombies come in from the back alley, the side yards and the car park (main doors, ER, back + side doors) */
