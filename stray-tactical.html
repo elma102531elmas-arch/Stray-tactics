@@ -2973,13 +2973,23 @@ const GradeShader={
   vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
   fragmentShader:`uniform sampler2D tDiffuse; uniform float vignette,dmg,time,sat,flash; uniform vec2 res; varying vec2 vUv;
     void main(){ vec2 c=vUv-.5; float ca=.0008+dmg*.007;
+
+#ifdef LITE
+      vec3 col=texture2D(tDiffuse,vUv).rgb+0.*ca;
+#else
       vec3 col=vec3(texture2D(tDiffuse,vUv+c*ca).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-c*ca).b);
+#endif
+
       float l=dot(col,vec3(.2126,.7152,.0722)); col=mix(vec3(l),col,sat-dmg*.5);
       col*=vec3(1.03,1.,.95);
       col*=mix(1.,smoothstep(.95,.22,length(c*vec2(1.,.85))*1.15),vignette);
       col=mix(col,col*vec3(1.4,.45,.4),dmg*.32);
       float n=fract(sin(dot(vUv*res+time*61.,vec2(12.9898,78.233)))*43758.5453);
-      col+=(n-.5)*.018*sqrt(max(l,0.)); col+=flash;
+
+#ifndef LITE
+      col+=(n-.5)*.018*sqrt(max(l,0.));
+#endif
+      col+=flash;
       gl_FragColor=vec4(max(col,0.),1.); }`
 };
 let composer=null, bloomPass=null, gradePass=null, gtaoPass=null, bokehPass=null;
@@ -2988,15 +2998,16 @@ function setupComposer(){
   gtaoPass=null; bloomPass=null; bokehPass=null;
   const V=CFG.video; if(CFG.quality==='low'&&!V.bloom&&!V.ao&&!V.aa) return;
   const sz=renderer.getDrawingBufferSize(new THREE.Vector2());
-  const rt=new THREE.WebGLRenderTarget(sz.x,sz.y,{type:THREE.HalfFloatType,samples:isGL2&&V.aa?4:0});
+  const rt=new THREE.WebGLRenderTarget(sz.x,sz.y,{type:THREE.HalfFloatType,samples:isGL2&&V.aa?(CFG.isTouch?2:4):0}), lite=CFG.isTouch||CFG.quality==='low'||CFG.quality==='med';
   composer=new EffectComposer(renderer,rt);
   composer.addPass(new RenderPass(scene,camera));
   if(V.ao){ try{ gtaoPass=new GTAOPass(scene,camera,sz.x,sz.y); gtaoPass.blendIntensity=.85; gtaoPass.updateGtaoMaterial({radius:.6,distanceFallOff:1,thickness:1.2,scale:1}); composer.addPass(gtaoPass); }catch(e){ console.warn('gtao',e); gtaoPass=null; } }
   // menu-only depth of field (the home screen agent stays sharp, the map behind it goes soft)
   if(CFG.quality!=='low'&&!CFG.isTouch){ try{ bokehPass=new BokehPass(scene,camera,{focus:3.7,aperture:.0022,maxblur:.0065}); bokehPass.enabled=false; composer.addPass(bokehPass); }catch(e){ console.warn('bokeh',e); bokehPass=null; } }
   composer.addPass(new VMPass(vmScene,vmCam));
-  if(V.bloom){ bloomPass=new UnrealBloomPass(new THREE.Vector2(sz.x,sz.y),.32,.45,3.2); composer.addPass(bloomPass); }
-  gradePass=new ShaderPass(GradeShader); gradePass.uniforms.res.value.set(sz.x,sz.y); composer.addPass(gradePass);
+  if(V.bloom){ bloomPass=new UnrealBloomPass(new THREE.Vector2(sz.x,sz.y),.32,.45,3.2); composer.addPass(bloomPass);
+    if(lite){ const ss=bloomPass.setSize.bind(bloomPass); bloomPass.setSize=(w,h)=>ss(Math.max(2,Math.round(w/2)),Math.max(2,Math.round(h/2))); bloomPass.setSize(sz.x,sz.y); } }   // half-res bloom chain (a quarter of the pixels)
+  gradePass=new ShaderPass(CFG.isTouch||CFG.quality==='low'?Object.assign({},GradeShader,{defines:{LITE:1}}):GradeShader);   // LITE: one tap, no grain gradePass.uniforms.res.value.set(sz.x,sz.y); composer.addPass(gradePass);
   composer.addPass(new OutputPass());
 }
 const VIDEO_PRESETS={low:{shadows:'off',bloom:0,ao:0,aa:0},med:{shadows:'low',bloom:1,ao:0,aa:1},high:{shadows:'med',bloom:1,ao:0,aa:1},ultra:{shadows:'high',bloom:1,ao:1,aa:1}};
@@ -3611,15 +3622,15 @@ function updateTracers(dt){
 }
 function ejectShell(pos,dir,up,big){
   const s=FX.shells[FX.shellI]; FX.shellI=(FX.shellI+1)%FX.shells.length;
-  s.m.position.copy(pos); s.m.visible=true; s.m.scale.setScalar(big?1.15:.75); s.t=0; s.b=0;
+  s.m.position.copy(pos); s.m.visible=true; s.m.scale.setScalar(big?1.15:.75); s.t=0; s.b=0; s.rest=0;
   s.v.copy(dir).multiplyScalar(rand(1.6,2.4)).addScaledVector(up,rand(1.2,2)).add(_v1.set(rand(-.3,.3),rand(-.2,.2),rand(-.3,.3))).add(player.vel);
   s.w.set(rand(-25,25),rand(-25,25),rand(-25,25)); s.m.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),dir);
 }
 function updateShells(dt){
-  for(const s of FX.shells){ if(!s.m.visible) continue; s.t+=dt; if(s.t>4){ s.m.visible=false; continue; }
+  for(const s of FX.shells){ if(!s.m.visible) continue; s.t+=dt; if(s.t>4){ s.m.visible=false; continue; } if(s.rest) continue;
     s.v.y-=9.8*dt; s.m.position.addScaledVector(s.v,dt); s.m.rotation.x+=s.w.x*dt; s.m.rotation.y+=s.w.y*dt; s.m.rotation.z+=s.w.z*dt;
     const p=s.m.position; const floor=supportAt(p.x,p.z,p.y+.05,.01);
-    if(p.y<floor+.006){ p.y=floor+.006; if(s.v.y<-.6&&s.b<3){ s.b++; if(s.b===1) sfx.shell(p); } s.v.y*=-.32; s.v.x*=.55; s.v.z*=.55; s.w.multiplyScalar(.5); } }
+    if(p.y<floor+.006){ p.y=floor+.006; if(s.v.y<-.6&&s.b<3){ s.b++; if(s.b===1) sfx.shell(p); } s.v.y*=-.32; s.v.x*=.55; s.v.z*=.55; s.w.multiplyScalar(.5); if(s.b>=3||Math.abs(s.v.y)<.35) s.rest=1; } }
 }
 function worldMuzzleFlash(p,silenced){
   const f=FX.wflash.find(x=>!x.s.visible)||FX.wflash[0]; f.s.position.copy(p); f.s.scale.setScalar(silenced?.18:rand(.45,.65)); f.s.material.rotation=Math.random()*TAU; f.s.visible=true; f.t=.05;
@@ -9237,6 +9248,7 @@ function tick(raw,doRender){
   if(gradePass){ gradePass.uniforms.time.value=(gradePass.uniforms.time.value+raw)%100; gradePass.uniforms.dmg.value=player.dmgAcc; }
   updateListener();
   if(!doRender) return;
+  op7Frame(raw);   // bot shadow / detail LOD, small decor culling (@@BLOCK:maps op7)
   renderMain(raw);
   fpsN++; fpsT+=raw; if(fpsT>=.5){ fpsV=Math.round(fpsN/fpsT); fpsN=0; fpsT=0; if(CFG.showFps&&!inMenu) $('netPing').textContent=fpsV+' FPS'+(NET.ping?' · PING '+NET.ping+' ms':''); }
 }
@@ -10475,7 +10487,7 @@ function rgArmory(){ const B=WORLD.maps.range, rg=B.rg, key=LIB.list.map(d=>d.id
   for(const o of RG.armory){ if(o.w) disposeWeaponObject(o.w); if(o.parent) o.parent.remove(o); } RG.armory=[]; RG.items=[];
   const defs=LIB.list.filter(d=>d.type!=='c4'&&d.parts&&d.parts.length), rack=defs.filter(d=>d.type==='rifle'||d.type==='sniper'), west=defs.filter(d=>d.type==='pistol'),
     center=defs.filter(d=>d.type==='grenade'||d.type==='knife'||d.slot==='melee'), east=defs.filter(d=>!rack.includes(d)&&!west.includes(d)&&!center.includes(d));
-  const place=(d,x,y,z,mode)=>{ const w=buildWeaponObject(d,{shadows:true}), g=new THREE.Group(); g.add(w.root); if(d.stats&&d.stats.silencer===false) setSuppressor(w,false);
+  const place=(d,x,y,z,mode)=>{ const w=c6TPWeapon(d)||buildWeaponObject(d,{shadows:true}), g=new THREE.Group();   // merged shared copy: a few draw calls per gun instead of ~60 g.add(w.root); if(d.stats&&d.stats.silencer===false) setSuppressor(w,false);
     if(mode==='rack') g.rotation.set(0,Math.PI/2,0); else if(mode==='tz') g.rotation.set(0,0,Math.PI/2); else g.rotation.set(0,Math.PI/2,Math.PI/2);
     g.updateMatrixWorld(true); const bb=new THREE.Box3().setFromObject(g), c=bb.getCenter(new THREE.Vector3());
     g.position.set(x-c.x,mode==='rack'?y-c.y:y-bb.min.y+.004,z-c.z); B.group.add(g); g.traverse(o=>{ if(o.isMesh) o.castShadow=true; }); g.w=w; RG.armory.push(g);
@@ -10827,6 +10839,24 @@ function op7NavEdges(nav,Q){ const {N,W,S,cell}=nav, eb=new Uint8Array(N*nav.L);
     for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ if(!di&&!dj) continue; if(Q.blocked(x+di*cell*.5,f+.6,z+dj*cell*.5,1.08,di&&dj?.1:.15)) m|=1<<b; b++; }
     eb[n]=m; }
   nav.eb=eb; }
+/* ---------- op7: performance ----------
+   - the training range is built the first time something needs it (not at boot)
+   - bots: shadow / detail LOD by distance — near bots cast shadows with their bigger parts only, mid bots with the torso-sized parts, far bots none;
+     parts smaller than ~6 cm (fingers, buckles, small gun parts) are not drawn beyond 40 m (hitboxes untouched)
+   - map decor: small loose meshes (lamps, shades, bolts) stop casting shadows and are not drawn beyond 55 m */
+const OP7P={t:0,map:null};
+function op7RangeLazy(){ Object.defineProperty(WORLD.maps,'range',{configurable:true,enumerable:false,get(){ const B=buildRange(); Object.defineProperty(WORLD.maps,'range',{value:B,writable:true,configurable:true,enumerable:true}); B.group.visible=false; scene.add(B.group); return B; },set(v){ Object.defineProperty(WORLD.maps,'range',{value:v,writable:true,configurable:true,enumerable:true}); }}); }
+function op7Rad(o){ let r=o.userData.op7r; if(r===undefined){ const g=o.geometry; if(!g.boundingSphere) g.computeBoundingSphere(); const s=o.getWorldScale(_op7v); r=o.userData.op7r=g.boundingSphere.radius*Math.max(s.x,s.y,s.z); } return r; }
+const _op7v=new THREE.Vector3();
+function op7BotLOD(b,cp){ const c=b.char; if(!c||!c.root) return; const d=b.pos.distanceTo(cp), band=d<24?0:d<40?1:2, S=c._op7||(c._op7={band:-1,age:0,hb:null}); S.age-=.25;
+  if(band===S.band&&S.age>0) return; S.band=band; S.age=2; const hb=new Set(c.hitboxes||[]);
+  c.root.traverse(o=>{ if(!o.isMesh||hb.has(o)) return; const r=op7Rad(o); o.castShadow=band===0?r>=.07:band===1?r>=.2:false; o.layers.set(band===2&&r<.06?3:0); }); }
+function op7MapPrep(B){ const L=[]; B.group.traverse(o=>{ if(!o.isMesh||o.isInstancedMesh||!o.geometry) return; const r=op7Rad(o); if(r>=.5) return; if(!(o.material&&o.material.transparent)) o.castShadow=false; o.updateMatrixWorld(); const g=o.geometry; L.push({o,p:g.boundingSphere.center.clone().applyMatrix4(o.matrixWorld)}); });
+  B._op7small=L; }
+function op7Frame(raw){ OP7P.t-=raw; if(OP7P.t>0) return; OP7P.t=.25; const cp=camera.position, B=WORLD.active;
+  if(B&&OP7P.map!==B){ OP7P.map=B; if(!B._op7small&&B.name!=='range') op7MapPrep(B); }
+  if(B&&B._op7small) for(const s of B._op7small) s.o.layers.set(s.p.distanceToSquared(cp)>3025?3:0);
+  for(const b of bots) op7BotLOD(b,cp); }
 gameExport({get op7I(){ return {THREE,mq5Sources,MQ5ScanB,mq5Data,mq5Dispose,makeCol,colContains,colTop,toLocal,overlapC,moveBody,blockedAtR,supportAt,rayWorld,navPos,navNbrs,navNearest,buildNav,getMapMat,MAPMAT,STEP,HW,STAND_H,EYE_S,rgBuildRange,obTutMapData,obTutMapEnsure,normalizeMap,addSkyline,tick,renderMain}; }});
 
 /* @@BLOCK:net — code from the net work goes right below this line */
@@ -15852,7 +15882,7 @@ async function init(){
   setLoad(16,'Dokular üretiliyor...'); await nextFrame(); genWorldTextures(); await nextFrame();
   setLoad(38,'Silah yüzeyleri...'); weaponDetailTextures(); genFxTextures(); await nextFrame();
   setLoad(52,'Haritalar inşa ediliyor...'); addGround(); await loadMapLibrary(); ensureMapBuilt(MENU.map); await nextFrame();
-  WORLD.maps.range=buildRange(); scene.add(WORLD.maps.range.group); setMap(MENU.map);
+  op7RangeLazy(); setMap(MENU.map);   // the range is built on first use (@@BLOCK:maps op7)
   setLoad(68,'Işık ve gökyüzü...'); buildEnvironment(); initFX(); await nextFrame();
   setLoad(80,'Silah kütüphanesi...'); await loadLibrary();
   VM=createRig(vmFlashLight); vmCam.add(VM.rig); setupLoadout(); vmEquip(VM,curDef(),true); VM.sounds=true;
