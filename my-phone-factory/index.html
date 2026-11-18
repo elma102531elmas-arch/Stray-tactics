@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>My Phone Factory</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div id="setup" class="hidden"></div>
+<div id="app" class="hidden">
+  <header id="hud"></header>
+  <main id="main"><div id="page"></div></main>
+  <div id="nextBar"><button id="speedBtn" title="Auto-play">⏩</button><button id="nextBtn">▶ NEXT MONTH</button></div>
+  <nav id="nav"></nav>
+</div>
+<div id="keynote"></div>
+<div id="modalRoot"></div>
+<div id="toasts"></div>
+<!-- BUILD:SCRIPTS -->
+<script src="src/core.js"></script>
+<script src="src/data.js"></script>
+<script src="src/models.js"></script>
+<script src="src/sim.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/screens.js"></script>
+<script src="src/design.js"></script>
+<script src="src/phonesim.js"></script>
+<script src="src/media.js"></script>
+<script src="src/event.js"></script>
+<script src="src/keynote.js"></script>
+<script>UI.init();</script>
+<!-- /BUILD:SCRIPTS -->
+</body>
+</html>
